@@ -14,13 +14,26 @@
  * limitations under the License.
  */
 
-export * from "./Either";
-export * from "./Eq";
-export * from "./Eval";
-export * from "./Maybe";
-export * from "./Ord";
-export * from "./Semigroup";
-export * from "./These";
-export * from "./Tuple";
-export * from "./Validated";
-export * from "./functions";
+type Node<A> = null | readonly [A, Node<A>];
+
+export class MutStack<A> {
+  private hd: Node<A> = null;
+
+  push(x: A): void {
+    this.hd = [x, this.hd];
+  }
+
+  pop(): A | undefined {
+    if (this.hd) {
+      const [x, xs] = this.hd;
+      this.hd = xs;
+      return x;
+    }
+  }
+
+  peek(): A | undefined {
+    if (this.hd) {
+      return this.hd[0];
+    }
+  }
+}

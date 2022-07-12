@@ -14,13 +14,4 @@
  * limitations under the License.
  */
 
-export * from "./Either";
-export * from "./Eq";
-export * from "./Eval";
-export * from "./Maybe";
-export * from "./Ord";
-export * from "./Semigroup";
-export * from "./These";
-export * from "./Tuple";
-export * from "./Validated";
-export * from "./functions";
+export * from "./MutStack";
