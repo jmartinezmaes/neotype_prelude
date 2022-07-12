@@ -15,6 +15,7 @@
  */
 
 export * from "./Eq";
+export * from "./Maybe";
 export * from "./Ord";
 export * from "./Semigroup";
 export * from "./Tuple";
