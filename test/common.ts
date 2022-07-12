@@ -1,11 +1,23 @@
 import * as fc from "fast-check";
-import { Eq, Semigroup } from "../src";
+import {
+  Eq,
+  equal,
+  greater,
+  less,
+  Ord,
+  type Ordering,
+  Semigroup,
+} from "../src";
 
-export class Num implements Eq<Num> {
+export class Num implements Ord<Num> {
   constructor(readonly x: number) {}
 
   [Eq.eq](that: Num): boolean {
     return this.x === that.x;
+  }
+
+  [Ord.cmp](that: Num): Ordering {
+    return this.x < that.x ? less : this.x > that.x ? greater : equal;
   }
 }
 
