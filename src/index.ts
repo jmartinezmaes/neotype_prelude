@@ -17,4 +17,5 @@
 export * from "./Eq";
 export * from "./Ord";
 export * from "./Semigroup";
+export * from "./Tuple";
 export * from "./functions";
