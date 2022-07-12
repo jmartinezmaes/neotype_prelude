@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+export * from "./Either";
 export * from "./Eq";
 export * from "./Maybe";
 export * from "./Ord";
