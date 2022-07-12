@@ -20,4 +20,5 @@ export * from "./Maybe";
 export * from "./Ord";
 export * from "./Semigroup";
 export * from "./Tuple";
+export * from "./Validated";
 export * from "./functions";
