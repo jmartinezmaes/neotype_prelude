@@ -1,0 +1,51 @@
+{
+  "name": "neotype",
+  "version": "0.0.1",
+  "description": "Functional Programming Essentials for TypeScript",
+  "main": "index.js",
+  "scripts": {
+    "build": "npm run clean; npx tsc -p ./tsconfig.build.json",
+    "clean": "npx rimraf ./dist",
+    "lint": "npx eslint --ext .ts .",
+    "prettier_check": "npx prettier --check .",
+    "prettier_write": "npx prettier --write .",
+    "test": "mocha -r ts-node/register test/*_test.ts"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jm4rtinez/neotype.git"
+  },
+  "keywords": [
+    "adt",
+    "algebraic-data-types",
+    "do-notation",
+    "effects",
+    "fp",
+    "functional",
+    "programming",
+    "typescript"
+  ],
+  "author": "Josh Martinez",
+  "license": "Apache-2.0",
+  "bugs": {
+    "url": "https://github.com/jm4rtinez/neotype/issues"
+  },
+  "homepage": "https://github.com/jm4rtinez/neotype#readme",
+  "devDependencies": {
+    "@types/chai": "^4.3.1",
+    "@types/mocha": "^9.1.1",
+    "@typescript-eslint/eslint-plugin": "^5.30.5",
+    "@typescript-eslint/parser": "^5.30.5",
+    "chai": "^4.3.6",
+    "cross-env": "^7.0.3",
+    "eslint": "^8.19.0",
+    "eslint-config-prettier": "^8.5.0",
+    "eslint-plugin-import": "^2.26.0",
+    "fast-check": "^3.0.1",
+    "mocha": "^10.0.0",
+    "prettier": "2.7.1",
+    "rimraf": "^3.0.2",
+    "ts-node": "^10.8.2",
+    "typescript": "^4.7.4"
+  }
+}
