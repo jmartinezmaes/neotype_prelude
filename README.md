@@ -1,2 +1,3 @@
-# neotype
+# Neotype
+
 Functional Programming Essentials for TypeScript
