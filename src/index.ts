@@ -15,4 +15,5 @@
  */
 
 export * from "./Eq";
+export * from "./Semigroup";
 export * from "./functions";
