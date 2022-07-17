@@ -94,6 +94,7 @@ export function icmp<A extends Ord<A>>(
   let nx = nxs.next();
   let ny = nys.next();
 
+  // eslint-disable-next-line no-constant-condition
   while (true) {
     if (!nx.done) {
       if (!ny.done) {

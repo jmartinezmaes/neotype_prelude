@@ -7,9 +7,9 @@
     "build": "npm run clean; npx tsc -p ./tsconfig.build.json",
     "clean": "npx rimraf ./dist",
     "lint": "npx eslint --ext .ts .",
-    "prettier_check": "npx prettier --check .",
-    "prettier_write": "npx prettier --write .",
-    "test": "mocha -r ts-node/register test/*_test.ts"
+    "prettier:check": "npx prettier --check .",
+    "prettier:write": "npx prettier --write .",
+    "test": "npm run lint -s && mocha -r ts-node/register test/*_test.ts"
   },
   "repository": {
     "type": "git",
