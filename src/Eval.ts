@@ -29,7 +29,7 @@ import { MutStack } from "./internal";
  * provides control over synchronous execution and can defer, memoize, and
  * compose computations.
  */
-export abstract class Eval<out A> {
+export class Eval<out A> {
   /**
    * The unique identifier for Eval.
    */
@@ -38,7 +38,14 @@ export abstract class Eval<out A> {
   /**
    * @internal
    */
-  protected constructor(/** @internal */ readonly i: Instr) {}
+  readonly i: Instr;
+
+  /**
+   * @internal
+   */
+  constructor(i: Instr) {
+    this.i = i;
+  }
 
   /**
    * Defining iterable behavior for Eval allows TypeScript to infer result
@@ -64,7 +71,7 @@ export abstract class Eval<out A> {
    * Apply a function to this Eval's result to produce a new Eval.
    */
   flatMap<B>(f: (x: A) => Eval<B>): Eval<B> {
-    return new FlatMap(this, f);
+    return _flatMap(this, f);
   }
 
   /**
@@ -145,7 +152,7 @@ export namespace Eval {
  * Construct an Eval whose value is resolved immediately.
  */
 export function evalNow<A>(x: A): Eval<A> {
-  return new Now(x);
+  return new Eval({ t: Instr.Tag.Now, x });
 }
 
 /**
@@ -153,7 +160,7 @@ export function evalNow<A>(x: A): Eval<A> {
  * first evaluation.
  */
 export function evalOnce<A>(f: () => A): Eval<A> {
-  return new Once(f);
+  return new Eval({ t: Instr.Tag.Once, f, d: false });
 }
 
 /**
@@ -161,7 +168,7 @@ export function evalOnce<A>(f: () => A): Eval<A> {
  * evaluation.
  */
 export function evalAlways<A>(f: () => A): Eval<A> {
-  return new Always(f);
+  return new Eval({ t: Instr.Tag.Always, f });
 }
 
 /**
@@ -193,7 +200,7 @@ export function runEval<A>(ev: Eval<A>): A {
  
        case Instr.Tag.FlatMap: {
          ks.push(c.i.f);
-         c = c.i.ev;
+         c = c.i.eff;
        } break;
  
        case Instr.Tag.Once: {
@@ -203,11 +210,11 @@ export function runEval<A>(ev: Eval<A>): A {
            delete c.i.f;
            c.i.d = true;
          }
-         c = new Now(c.i.x);
+         c = evalNow(c.i.x);
        } break;
  
        case Instr.Tag.Always: {
-         c = new Now(c.i.f());
+         c = evalNow(c.i.f());
        } break;
      }
   }
@@ -218,9 +225,9 @@ function step<A>(
   nx: IteratorResult<readonly [Eval<any>, Eval.Uid], A>,
 ): Eval<A> {
   if (nx.done) {
-    return new Now(nx.value);
+    return evalNow(nx.value);
   }
-  return new FlatMap(nx.value[0], (x) => step(nxs, nxs.next(x)));
+  return nx.value[0].flatMap((x) => step(nxs, nxs.next(x)));
 }
 
 function doImpl<A>(
@@ -347,28 +354,8 @@ export function liftNewEval<T extends unknown[], A>(
   return (...args) => zipEval(args).map((xs) => new ctor(...(xs as T)));
 }
 
-class Now<A> extends Eval<A> {
-  constructor(x: A) {
-    super({ t: Instr.Tag.Now, x });
-  }
-}
-
-class FlatMap<A, B> extends Eval<B> {
-  constructor(ev: Eval<A>, f: (x: A) => Eval<B>) {
-    super({ t: Instr.Tag.FlatMap, ev, f });
-  }
-}
-
-class Once<A> extends Eval<A> {
-  constructor(f: () => A) {
-    super({ t: Instr.Tag.Once, d: false, f });
-  }
-}
-
-class Always<A> extends Eval<A> {
-  constructor(f: () => A) {
-    super({ t: Instr.Tag.Always, f });
-  }
+function _flatMap<A, B>(eff: Eval<A>, f: (x: A) => Eval<B>): Eval<B> {
+  return new Eval({ t: Instr.Tag.FlatMap, eff, f });
 }
 
 type Instr = Instr.Now | Instr.FlatMap | Instr.Once | Instr.Always;
@@ -388,7 +375,7 @@ namespace Instr {
 
   export interface FlatMap {
     readonly t: Tag.FlatMap;
-    readonly ev: Eval<any>;
+    readonly eff: Eval<any>;
     readonly f: (x: any) => Eval<any>;
   }
 
