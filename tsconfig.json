@@ -11,7 +11,10 @@
     "removeComments": true,
     "stripInternal": true,
     "forceConsistentCasingInFileNames": true,
-    "strict": true
+    "strict": true,
+    "noImplicitReturns": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true
   },
   "include": ["./src", "./test"]
 }

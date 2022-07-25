@@ -29,11 +29,6 @@ export class MutStack<A> {
       this.hd = xs;
       return x;
     }
-  }
-
-  peek(): A | undefined {
-    if (this.hd) {
-      return this.hd[0];
-    }
+    return;
   }
 }
