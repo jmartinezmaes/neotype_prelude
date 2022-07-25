@@ -725,15 +725,13 @@ export function liftNamedThese<T extends Record<any, unknown>, A = T>(
 ): <E extends Semigroup<E>>(
   args: { [K in keyof T]: These<E, T[K]> }
 ) => These<E, A> {
-  return (args) => {
-    return doThese(function* () {
-      const xs: Record<any, unknown> = {};
-      for (const [kx, x] of Object.entries(args)) {
-        xs[kx] = yield* x;
-      }
-      return f(xs as T);
-    });
-  };
+  return (args) => doThese(function* () {
+    const xs: Record<any, unknown> = {};
+    for (const [kx, x] of Object.entries(args)) {
+      xs[kx] = yield* x;
+    }
+    return f(xs as T);
+  });
 }
 
 /**

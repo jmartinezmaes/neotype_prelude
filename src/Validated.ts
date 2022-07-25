@@ -574,21 +574,18 @@ export function liftValidated<T extends unknown[], A>(
  * Lift a function that accepts an object literal of named values into the
  * context of Validated.
  */
+// prettier-ignore
 export function liftNamedValidated<T extends Record<any, unknown>, A = T>(
   f: (args: T) => A,
-): <E extends Semigroup<E>>(args: {
-  [K in keyof T]: Validated<E, T[K]>;
-}) => Validated<E, A> {
-  return (args) => {
-    return Object.entries(args)
-      .reduce((acc, [kv, v]) => {
-        return acc.zipWith(v, (xs, x) => {
-          xs[kv] = x;
-          return xs;
-        });
-      }, accept<Record<any, any>>({}))
-      .map(f);
-  };
+): <E extends Semigroup<E>>(
+  args: { [K in keyof T]: Validated<E, T[K]> }
+) => Validated<E, A> {
+  return (args) => Object.entries(args).reduce((acc, [kv, v]) => {
+    return acc.zipWith(v, (xs, x) => {
+      xs[kv] = x;
+      return xs;
+    });
+  }, accept<Record<any, any>>({})).map(f);
 }
 
 /**
