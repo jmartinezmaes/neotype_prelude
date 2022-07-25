@@ -329,14 +329,6 @@ export function guardMaybe<A>(x: A, f: (x: A) => boolean): Maybe<A> {
 }
 
 /**
- * Return a fallback value if a Maybe is nothing; otherwise, return the Maybe's
- * value.
- */
-export function fromMaybe<B>(fallback: B): <A>(maybe: Maybe<A>) => A | B {
-  return (maybe) => maybe.getOrElse(fallback);
-}
-
-/**
  * Test whether a Maybe is absent.
  */
 export function absent(maybe: Maybe<any>): maybe is Maybe.Nothing {

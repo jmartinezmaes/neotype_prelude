@@ -9,7 +9,6 @@ import {
   doMaybe,
   eq,
   equal,
-  fromMaybe,
   fromMissing,
   gatherMaybe,
   greater,
@@ -211,14 +210,6 @@ describe("Maybe", () => {
 
     const t1 = guardMaybe(_2 as 1 | 2, f);
     assert.deepEqual(t1, nothing);
-  });
-
-  specify("fromMaybe", () => {
-    const t0 = fromMaybe(_2)(mk("N", _1));
-    assert.strictEqual(t0, _2);
-
-    const t1 = fromMaybe(_2)(mk("J", _1));
-    assert.strictEqual(t1, _1);
   });
 
   specify("doMaybe", () => {
