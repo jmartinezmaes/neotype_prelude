@@ -20,10 +20,10 @@
  * @module
  */
 
-import { Eq, eq } from "./Eq";
-import { cmp, greater, less, Ord, type Ordering } from "./Ord";
-import { combine, Semigroup } from "./Semigroup";
-import { id } from "./functions";
+import { Eq, eq } from "./Eq.js";
+import { cmp, greater, less, Ord, type Ordering } from "./Ord.js";
+import { combine, Semigroup } from "./Semigroup.js";
+import { id } from "./functions.js";
 
 /**
  * An `Either<A, B>` models an "exclusive or" relationship between two values

@@ -20,8 +20,8 @@
  * @module
  */
 
-import { Eq, eq } from "./Eq";
-import { combine, Semigroup } from "./Semigroup";
+import { Eq, eq } from "./Eq.js";
+import { combine, Semigroup } from "./Semigroup.js";
 
 /**
  * The `Ord<A>` interface provides evidence that two values of type `A` have a

@@ -1,6 +1,6 @@
 import * as fc from "fast-check";
 import { assert } from "chai";
-import { arbNum, arbStr, mkStr, pair, pairNamed } from "./common";
+import { arbNum, arbStr, mkStr, pair, pairNamed } from "./common.js";
 import {
   both,
   cmp,
@@ -23,7 +23,7 @@ import {
   traverseThese,
   tupledThese,
   zipThese,
-} from "../src";
+} from "../src/index.js";
 
 function mk<A, B>(t: "F" | "S" | "B", x: A, y: B): These<A, B> {
   return t === "F" ? first(x) : t === "S" ? second(y) : both(x, y);

@@ -1,6 +1,6 @@
 import * as fc from "fast-check";
 import { assert } from "chai";
-import { arbNum, arbStr, mkStr, pair, pairNamed } from "./common";
+import { arbNum, arbStr, mkStr, pair, pairNamed } from "./common.js";
 import {
   accept,
   accepted,
@@ -22,7 +22,7 @@ import {
   type Validated,
   validated,
   zipValidated,
-} from "../src";
+} from "../src/index.js";
 
 function mk<A, B>(t: "D" | "A", x: A, y: B): Validated<A, B> {
   return t === "D" ? dispute(x) : accept(y);

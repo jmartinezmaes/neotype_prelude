@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-export * from "./Either";
-export * from "./Eq";
-export * from "./Eval";
-export * from "./Maybe";
-export * from "./Ord";
-export * from "./Semigroup";
-export * from "./These";
-export * from "./Tuple";
-export * from "./Validated";
-export * from "./functions";
+export * from "./Either.js";
+export * from "./Eq.js";
+export * from "./Eval.js";
+export * from "./Maybe.js";
+export * from "./Ord.js";
+export * from "./Semigroup.js";
+export * from "./These.js";
+export * from "./Tuple.js";
+export * from "./Validated.js";
+export * from "./functions.js";

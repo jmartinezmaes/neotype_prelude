@@ -20,9 +20,9 @@
  * @module
  */
 
-import { combine, Semigroup } from "./Semigroup";
-import { id } from "./functions";
-import { MutStack } from "./internal";
+import { combine, Semigroup } from "./Semigroup.js";
+import { id } from "./functions.js";
+import { MutStack } from "./internal/MutStack.js";
 
 /**
  * An `Eval<A>` models a synchronous computation that produces a value `A`. Eval

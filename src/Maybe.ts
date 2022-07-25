@@ -20,10 +20,10 @@
  * @module
  */
 
-import { Eq, eq } from "./Eq";
-import { cmp, equal, greater, less, Ord, type Ordering } from "./Ord";
-import { combine, Semigroup } from "./Semigroup";
-import { id } from "./functions";
+import { Eq, eq } from "./Eq.js";
+import { cmp, equal, greater, less, Ord, type Ordering } from "./Ord.js";
+import { combine, Semigroup } from "./Semigroup.js";
+import { id } from "./functions.js";
 
 /**
  * A `Maybe<A>` models an optional value `A`. A Maybe can be a

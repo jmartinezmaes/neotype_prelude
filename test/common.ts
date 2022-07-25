@@ -7,7 +7,7 @@ import {
   Ord,
   type Ordering,
   Semigroup,
-} from "../src";
+} from "../src/index.js";
 
 export class Num implements Ord<Num> {
   constructor(readonly x: number) {}

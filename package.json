@@ -2,8 +2,6 @@
   "name": "neotype",
   "version": "0.0.1",
   "description": "Functional programming essentials for TypeScript",
-  "main": "index.js",
-  "sideEffects": false,
   "repository": {
     "type": "git",
     "url": "git+https://github.com/jm4rtinez/neotype.git"
@@ -23,14 +21,16 @@
   "bugs": {
     "url": "https://github.com/jm4rtinez/neotype/issues"
   },
+  "type": "module",
+  "exports": "./src/index.js",
+  "sideEffects": false,
   "scripts": {
     "build": "npm run clean; npx tsc -p ./tsconfig.build.json",
-    "build:api": "npx typedoc",
     "clean": "npx rimraf ./dist",
     "lint": "npx eslint --ext .ts .",
     "prettier:check": "npx prettier --check --ignore-path ./.gitignore .",
     "prettier:write": "npx prettier --write --ignore-path ./.gitignore .",
-    "test": "npm run lint -s && mocha -r ts-node/register test/*_test.ts"
+    "test": "npm run lint -s && mocha"
   },
   "eslintConfig": {
     "env": {
@@ -67,6 +67,16 @@
         "always"
       ]
     }
+  },
+  "mocha": {
+    "node-option": [
+      "experimental-specifier-resolution=node",
+      "loader=ts-node/esm",
+      "no-warnings"
+    ],
+    "spec": [
+      "test/*_test.ts"
+    ]
   },
   "prettier": {
     "trailingComma": "all"

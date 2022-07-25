@@ -20,11 +20,11 @@
  * @module
  */
 
-import { type Either, left, right } from "./Either";
-import { Eq, eq } from "./Eq";
-import { cmp, greater, less, Ord, type Ordering } from "./Ord";
-import { combine, Semigroup } from "./Semigroup";
-import { id } from "./functions";
+import { type Either, left, right } from "./Either.js";
+import { Eq, eq } from "./Eq.js";
+import { cmp, greater, less, Ord, type Ordering } from "./Ord.js";
+import { combine, Semigroup } from "./Semigroup.js";
+import { id } from "./functions.js";
 
 /**
  * A `Validated<E, A>` models an accumulating disputed value `E` or an accepted

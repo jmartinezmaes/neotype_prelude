@@ -1,6 +1,6 @@
 import * as fc from "fast-check";
 import { assert } from "chai";
-import { arbNum, arbStr, pair, pairNamed } from "./common";
+import { arbNum, arbStr, pair, pairNamed } from "./common.js";
 import {
   absent,
   cmp,
@@ -25,7 +25,7 @@ import {
   traverseMaybe,
   tupledMaybe,
   zipMaybe,
-} from "../src";
+} from "../src/index.js";
 
 function mk<A>(t: "N" | "J", x: A): Maybe<A> {
   return t === "N" ? nothing : just(x);

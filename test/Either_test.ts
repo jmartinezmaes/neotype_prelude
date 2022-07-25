@@ -1,6 +1,6 @@
 import * as fc from "fast-check";
 import { assert } from "chai";
-import { arbNum, arbStr, pair, pairNamed } from "./common";
+import { arbNum, arbStr, pair, pairNamed } from "./common.js";
 import {
   cmp,
   combine,
@@ -23,7 +23,7 @@ import {
   traverseEither,
   tupledEither,
   zipEither,
-} from "../src";
+} from "../src/index.js";
 
 function mk<A, B>(t: "L" | "R", x: A, y: B): Either<A, B> {
   return t === "L" ? left(x) : right(y);

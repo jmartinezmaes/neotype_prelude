@@ -1,6 +1,6 @@
 import * as fc from "fast-check";
 import { assert } from "chai";
-import { arbNum, arbStr, mkNum, type Num, type Str } from "./common";
+import { arbNum, arbStr, mkNum, type Num, type Str } from "./common.js";
 import {
   clamp,
   cmp,
@@ -25,7 +25,7 @@ import {
   ordLe,
   ordLt,
   reverseOrdering,
-} from "../src";
+} from "../src/index.js";
 
 function arbDownNum(): fc.Arbitrary<Down<Num>> {
   return arbNum().map(mkDown);

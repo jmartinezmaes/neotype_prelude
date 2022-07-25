@@ -20,9 +20,9 @@
  * @module
  */
 
-import { Eq, ieq } from "./Eq";
-import { icmp, Ord, type Ordering } from "./Ord";
-import { combine, Semigroup } from "./Semigroup";
+import { Eq, ieq } from "./Eq.js";
+import { icmp, Ord, type Ordering } from "./Ord.js";
+import { combine, Semigroup } from "./Semigroup.js";
 
 /**
  * A wrapper type for tuple literals of arity 2 through 10 that provides
