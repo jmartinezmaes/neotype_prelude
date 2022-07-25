@@ -3,7 +3,7 @@
     "target": "ES2020",
     "module": "ES2020",
     "moduleResolution": "NodeNext",
-    "esModuleInterop": true,
+    "declaration": true,
     "outDir": "./dist",
     "importsNotUsedAsValues": "remove",
     "downlevelIteration": false,
