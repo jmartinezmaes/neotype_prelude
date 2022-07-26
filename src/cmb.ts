@@ -37,7 +37,7 @@
  * `cmb (x, cmb (y, z)) ≡ cmb (cmb (x, y), z)`
  */
 export interface Semigroup<in out A> {
-  [Semigroup.cmb](this: A, that: A): A;
+  [Semigroup.cmb](that: A): A;
 }
 
 export namespace Semigroup {

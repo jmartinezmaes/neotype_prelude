@@ -52,7 +52,7 @@ import { cmb, Semigroup } from "./cmb.js";
  * instance of `Eq`, then `eq (f (x), f (y)) === true`
  */
 export interface Eq<in A> {
-  [Eq.eq](this: A, that: A): boolean;
+  [Eq.eq](that: A): boolean;
 }
 
 export namespace Eq {
@@ -163,7 +163,7 @@ export function ine<A extends Eq<A>>(
  * If `le (x, y) && le (y, x) === true` then `eq (x, y) === true`
  */
 export interface Ord<in A> extends Eq<A> {
-  [Ord.cmp](this: A, that: A): Ordering;
+  [Ord.cmp](that: A): Ordering;
 }
 
 export namespace Ord {
