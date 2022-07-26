@@ -23,7 +23,7 @@
 import { cmb, Semigroup } from "./cmb.js";
 import { cmp, Eq, eq, greater, less, Ord, type Ordering } from "./cmp.js";
 import { type Either, left, right } from "./either.js";
-import { id } from "./functions.js";
+import { id } from "./fn.js";
 
 /**
  * A `Validated<E, A>` models an accumulating disputed value `E` or an accepted

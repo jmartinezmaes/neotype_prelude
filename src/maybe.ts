@@ -31,7 +31,7 @@ import {
   Ord,
   type Ordering,
 } from "./cmp.js";
-import { id } from "./functions.js";
+import { id } from "./fn.js";
 
 /**
  * A `Maybe<A>` models an optional value `A`. A Maybe can be a

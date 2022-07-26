@@ -21,7 +21,7 @@
  */
 
 import { cmb, Semigroup } from "./cmb.js";
-import { id } from "./functions.js";
+import { id } from "./fn.js";
 import { MutStack } from "./internal/mut_stack.js";
 
 /**

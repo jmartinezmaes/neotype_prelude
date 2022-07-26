@@ -1,6 +1,6 @@
 import * as fc from "fast-check";
 import { assert } from "chai";
-import { flow, fst, id, negate, pipe, snd } from "../src/functions.js";
+import { flow, fst, id, negate, pipe, snd } from "../src/fn.js";
 
 describe("Functions", () => {
   specify("id", () => {

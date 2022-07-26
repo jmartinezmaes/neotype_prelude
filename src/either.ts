@@ -22,7 +22,7 @@
 
 import { cmb, Semigroup } from "./cmb.js";
 import { cmp, Eq, eq, greater, less, Ord, type Ordering } from "./cmp.js";
-import { id } from "./functions.js";
+import { id } from "./fn.js";
 
 /**
  * An `Either<A, B>` models an "exclusive or" relationship between two values

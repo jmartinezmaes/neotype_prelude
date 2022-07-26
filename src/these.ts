@@ -23,7 +23,7 @@
 
 import { cmb, Semigroup } from "./cmb.js";
 import { cmp, Eq, eq, greater, less, Ord, type Ordering } from "./cmp.js";
-import { id } from "./functions.js";
+import { id } from "./fn.js";
 
 /**
  * A `These<E, A>` models an "either or both" relationship between two values
