@@ -1,5 +1,5 @@
 {
-  "name": "neotype",
+  "name": "@neotype/prelude",
   "version": "0.0.1",
   "description": "Functional programming essentials for TypeScript",
   "repository": {
@@ -22,10 +22,21 @@
     "url": "https://github.com/jm4rtinez/neotype/issues"
   },
   "type": "module",
-  "exports": {
-    "./*.js": "./dist/*.js"
-  },
   "sideEffects": false,
+  "exports": {
+    "./*.js": "./dist/*.js",
+    "./package.json": "./package.json"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "files": [
+    "dist",
+    "src"
+  ],
+  "engines": {
+    "node": "14.* || 16.* || >= 18.*"
+  },
   "scripts": {
     "build": "npm run clean; npx tsc -p ./tsconfig.build.json",
     "clean": "npx rimraf ./dist",
