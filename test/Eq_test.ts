@@ -1,7 +1,7 @@
 import * as fc from "fast-check";
 import { assert } from "chai";
 import { arbNum } from "./common.js";
-import { Eq, eq, ieq, ine, ne } from "../src/index.js";
+import { Eq, eq, ieq, ine, ne } from "../src/Eq.js";
 
 describe("Eq", () => {
   specify("eq", () => {

@@ -22,7 +22,9 @@
     "url": "https://github.com/jm4rtinez/neotype/issues"
   },
   "type": "module",
-  "exports": "./src/index.js",
+  "exports": {
+    "./*.js": "./dist/*.js"
+  },
   "sideEffects": false,
   "scripts": {
     "build": "npm run clean; npx tsc -p ./tsconfig.build.json",

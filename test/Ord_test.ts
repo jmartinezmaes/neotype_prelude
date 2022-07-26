@@ -1,12 +1,11 @@
 import * as fc from "fast-check";
 import { assert } from "chai";
 import { arbNum, arbStr, mkNum, type Num, type Str } from "./common.js";
+import { eq } from "../src/Eq.js";
 import {
   clamp,
   cmp,
-  combine,
   type Down,
-  eq,
   equal,
   ge,
   greater,
@@ -25,7 +24,8 @@ import {
   ordLe,
   ordLt,
   reverseOrdering,
-} from "../src/index.js";
+} from "../src/Ord.js";
+import { combine } from "../src/Semigroup.js";
 
 function arbDownNum(): fc.Arbitrary<Down<Num>> {
   return arbNum().map(mkDown);

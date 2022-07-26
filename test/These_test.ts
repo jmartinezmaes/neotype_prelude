@@ -1,17 +1,14 @@
 import * as fc from "fast-check";
 import { assert } from "chai";
 import { arbNum, arbStr, mkStr, pair, pairNamed } from "./common.js";
+import { eq } from "../src/Eq.js";
+import { cmp, greater, less } from "../src/Ord.js";
 import {
   both,
-  cmp,
-  combine,
   doAsyncThese,
   doThese,
-  eq,
   first,
-  greater,
   here,
-  less,
   liftNamedThese,
   liftNewThese,
   liftThese,
@@ -23,7 +20,8 @@ import {
   traverseThese,
   tupledThese,
   zipThese,
-} from "../src/index.js";
+} from "../src/These.js";
+import { combine } from "../src/Semigroup.js";
 
 function mk<A, B>(t: "F" | "S" | "B", x: A, y: B): These<A, B> {
   return t === "F" ? first(x) : t === "S" ? second(y) : both(x, y);

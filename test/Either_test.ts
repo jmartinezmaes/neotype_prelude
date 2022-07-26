@@ -2,18 +2,13 @@ import * as fc from "fast-check";
 import { assert } from "chai";
 import { arbNum, arbStr, pair, pairNamed } from "./common.js";
 import {
-  cmp,
-  combine,
   doAsyncEither,
   doEither,
   type Either,
-  eq,
   gatherEither,
-  greater,
   guardEither,
   left,
   leftsided,
-  less,
   liftEither,
   liftNamedEither,
   liftNewEither,
@@ -23,7 +18,10 @@ import {
   traverseEither,
   tupledEither,
   zipEither,
-} from "../src/index.js";
+} from "../src/Either.js";
+import { eq } from "../src/Eq.js";
+import { cmp, greater, less } from "../src/Ord.js";
+import { combine } from "../src/Semigroup.js";
 
 function mk<A, B>(t: "L" | "R", x: A, y: B): Either<A, B> {
   return t === "L" ? left(x) : right(y);

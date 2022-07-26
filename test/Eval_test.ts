@@ -2,7 +2,6 @@ import * as fc from "fast-check";
 import { assert } from "chai";
 import { arbStr, pair, pairNamed } from "./common.js";
 import {
-  combine,
   doEval,
   evalAlways,
   evalNow,
@@ -16,7 +15,8 @@ import {
   traverseEval,
   tupledEval,
   zipEval,
-} from "../src/index.js";
+} from "../src/Eval.js";
+import { combine } from "../src/Semigroup.js";
 
 const mk = evalNow;
 

@@ -1,13 +1,7 @@
 import * as fc from "fast-check";
-import {
-  Eq,
-  equal,
-  greater,
-  less,
-  Ord,
-  type Ordering,
-  Semigroup,
-} from "../src/index.js";
+import { Eq } from "../src/Eq.js";
+import { equal, greater, less, Ord, type Ordering } from "../src/Ord.js";
+import { Semigroup } from "../src/Semigroup.js";
 
 export class Num implements Ord<Num> {
   constructor(readonly x: number) {}

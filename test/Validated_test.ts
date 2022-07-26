@@ -1,28 +1,25 @@
 import * as fc from "fast-check";
 import { assert } from "chai";
 import { arbNum, arbStr, mkStr, pair, pairNamed } from "./common.js";
+import { left, right } from "../src/Either.js";
+import { eq } from "../src/Eq.js";
+import { cmp, greater, less } from "../src/Ord.js";
+import { combine } from "../src/Semigroup.js";
 import {
   accept,
   accepted,
-  cmp,
-  combine,
   dispute,
   disputed,
-  eq,
-  greater,
-  left,
-  less,
   liftNamedValidated,
   liftNewValidated,
   liftValidated,
-  right,
   traverseValidated,
   tupledValidated,
   unvalidated,
   type Validated,
   validated,
   zipValidated,
-} from "../src/index.js";
+} from "../src/Validated.js";
 
 function mk<A, B>(t: "D" | "A", x: A, y: B): Validated<A, B> {
   return t === "D" ? dispute(x) : accept(y);

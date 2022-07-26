@@ -1,7 +1,7 @@
 import * as fc from "fast-check";
 import { assert } from "chai";
 import { arbStr } from "./common.js";
-import { combine, combineAll, Semigroup } from "../src/index.js";
+import { combine, combineAll, Semigroup } from "../src/Semigroup.js";
 
 describe("Semigroup", () => {
   specify("combine", () => {

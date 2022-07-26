@@ -1,7 +1,10 @@
 import * as fc from "fast-check";
 import { assert } from "chai";
 import { arbNum, arbStr } from "./common.js";
-import { cmp, combine, eq, mkTuple } from "../src/index.js";
+import { eq } from "../src/Eq.js";
+import { cmp } from "../src/Ord.js";
+import { combine } from "../src/Semigroup.js";
+import { mkTuple } from "../src/Tuple.js";
 
 const mk = mkTuple;
 

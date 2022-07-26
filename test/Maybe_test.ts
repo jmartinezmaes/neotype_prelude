@@ -1,20 +1,16 @@
 import * as fc from "fast-check";
 import { assert } from "chai";
 import { arbNum, arbStr, pair, pairNamed } from "./common.js";
+import { eq } from "../src/Eq.js";
+import { cmp, equal, greater, less } from "../src/Ord.js";
 import {
   absent,
-  cmp,
-  combine,
   doAsyncMaybe,
   doMaybe,
-  eq,
-  equal,
   fromMissing,
   gatherMaybe,
-  greater,
   guardMaybe,
   just,
-  less,
   liftMaybe,
   liftNamedMaybe,
   liftNewMaybe,
@@ -25,7 +21,8 @@ import {
   traverseMaybe,
   tupledMaybe,
   zipMaybe,
-} from "../src/index.js";
+} from "../src/Maybe.js";
+import { combine } from "../src/Semigroup.js";
 
 function mk<A>(t: "N" | "J", x: A): Maybe<A> {
   return t === "N" ? nothing : just(x);
