@@ -480,7 +480,7 @@ export function reverseOrdering(ordering: Ordering): Ordering {
 }
 
 /**
- * A wrapper type that reverses the Ordering of an underlying Ord.
+ * A helper type for reverse ordering.
  *
  * @example
  *
@@ -503,69 +503,69 @@ export function reverseOrdering(ordering: Ordering): Ordering {
  * const ordXY = cmp(x, y);
  * console.log(ordXY); // Less
  *
- * const dx = mkDown(x);
- * const dy = mkDown(y);
+ * const dx = mkReverse(x);
+ * const dy = mkReverse(y);
  *
  * const ordDXY = cmp(dx, dy);
  * console.log(ordDXY); // Greater
  * ```
  */
-export class Down<A> {
+export class Reverse<A> {
   /**
-   * Construct an instance of Down.
+   * Construct an instance of Reverse.
    */
   constructor(readonly value: A) {}
 
   /**
-   * Test whether this and that Down are equal according to their values'
+   * Test whether this and that Reverse are equal according to their values'
    * behavior as an Eq.
    *
    * ```ts
-   * eq (mkDown (x), mkDown (y)) ≡ eq (x, y)
+   * eq (mkReverse (x), mkReverse (y)) ≡ eq (x, y)
    * ```
    */
-  [Eq.eq]<A extends Eq<A>>(this: Down<A>, that: Down<A>): boolean {
+  [Eq.eq]<A extends Eq<A>>(this: Reverse<A>, that: Reverse<A>): boolean {
     return eq(this.value, that.value);
   }
 
   /**
-   * Compare this and that Down using Ord comparison, reversing the Ordering of
-   * the underlying Ord values.
+   * Compare this and that Reverse using Ord comparison, reversing the Ordering
+   * of the underlying Ord values.
    *
    * ```ts
-   * cmp (mkDown (x), mkDown (y)) ≡ reverseOrdering (cmp (x, y))
+   * cmp (mkReverse (x), mkReverse (y)) ≡ reverseOrdering (cmp (x, y))
    * ```
    */
-  [Ord.cmp]<A extends Ord<A>>(this: Down<A>, that: Down<A>): Ordering {
+  [Ord.cmp]<A extends Ord<A>>(this: Reverse<A>, that: Reverse<A>): Ordering {
     return reverseOrdering(cmp(this.value, that.value));
   }
 
   /**
-   * Combine this and that Down according to their values' behavior as a
+   * Combine this and that Reverse according to their values' behavior as a
    * Semigroup.
    *
    * ```ts
-   * combine (mkDown (x), mkDown (y)) ≡ mkDown (combine (x, y))
+   * combine (mkReverse (x), mkReverse (y)) ≡ mkReverse (combine (x, y))
    * ```
    */
   [Semigroup.combine]<A extends Semigroup<A>>(
-    this: Down<A>,
-    that: Down<A>,
-  ): Down<A> {
-    return new Down(combine(this.value, that.value));
+    this: Reverse<A>,
+    that: Reverse<A>,
+  ): Reverse<A> {
+    return new Reverse(combine(this.value, that.value));
   }
 }
 
 /**
- * Construct a Down.
+ * Construct a Reverse.
  */
-export function mkDown<A>(x: A): Down<A> {
-  return new Down(x);
+export function mkReverse<A>(x: A): Reverse<A> {
+  return new Reverse(x);
 }
 
 /**
- * Destruct a Down.
+ * Destruct a Reverse.
  */
-export function unDown<A>(down: Down<A>): A {
-  return down.value;
+export function unReverse<A>(reverse: Reverse<A>): A {
+  return reverse.value;
 }

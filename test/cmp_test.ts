@@ -4,7 +4,6 @@ import { arbNum, arbStr, mkNum, type Num, type Str } from "./common.js";
 import {
   clamp,
   cmp,
-  type Down,
   Eq,
   eq,
   equal,
@@ -19,7 +18,7 @@ import {
   lt,
   max,
   min,
-  mkDown,
+  mkReverse,
   ne,
   Ord,
   ordEq,
@@ -27,16 +26,17 @@ import {
   ordGt,
   ordLe,
   ordLt,
+  type Reverse,
   reverseOrdering,
 } from "../src/cmp.js";
 import { combine } from "../src/semigroup.js";
 
-function arbDownNum(): fc.Arbitrary<Down<Num>> {
-  return arbNum().map(mkDown);
+function arbRevNum(): fc.Arbitrary<Reverse<Num>> {
+  return arbNum().map(mkReverse);
 }
 
-function arbDownStr(): fc.Arbitrary<Down<Str>> {
-  return arbStr().map(mkDown);
+function arbRevStr(): fc.Arbitrary<Reverse<Str>> {
+  return arbStr().map(mkReverse);
 }
 
 describe("Eq", () => {
@@ -314,10 +314,10 @@ describe("Ordering", () => {
   });
 });
 
-describe("Down", () => {
+describe("Reverse", () => {
   specify("[Eq.eq]", () => {
     fc.assert(
-      fc.property(arbDownNum(), arbDownNum(), (x, y) => {
+      fc.property(arbRevNum(), arbRevNum(), (x, y) => {
         assert.strictEqual(eq(x, y), eq(x.value, y.value));
       }),
     );
@@ -325,7 +325,7 @@ describe("Down", () => {
 
   specify("[Ord.cmp]", () => {
     fc.assert(
-      fc.property(arbDownNum(), arbDownNum(), (x, y) => {
+      fc.property(arbRevNum(), arbRevNum(), (x, y) => {
         assert.strictEqual(cmp(x, y), reverseOrdering(cmp(x.value, y.value)));
       }),
     );
@@ -333,8 +333,8 @@ describe("Down", () => {
 
   specify("[Semigroup.combine]", () => {
     fc.assert(
-      fc.property(arbDownStr(), arbDownStr(), (x, y) => {
-        assert.deepEqual(combine(x, y), mkDown(combine(x.value, y.value)));
+      fc.property(arbRevStr(), arbRevStr(), (x, y) => {
+        assert.deepEqual(combine(x, y), mkReverse(combine(x.value, y.value)));
       }),
     );
   });
