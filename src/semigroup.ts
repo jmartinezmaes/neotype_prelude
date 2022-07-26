@@ -15,7 +15,7 @@
  */
 
 /**
- * The Semigroup interface and associated operations.
+ * Functionality for associative combination.
  *
  * @module
  */

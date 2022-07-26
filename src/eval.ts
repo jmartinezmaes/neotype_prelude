@@ -15,7 +15,7 @@
  */
 
 /**
- * The Eval type and associated operations.
+ * Control over synchronous evaluation.
  *
  * @module
  */

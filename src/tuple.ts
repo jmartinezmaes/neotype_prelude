@@ -15,7 +15,7 @@
  */
 
 /**
- * The Tuple type and associated operations.
+ * Functionality for comparing and combining tuple literals.
  *
  * @module
  */
@@ -24,7 +24,7 @@ import { Eq, icmp, ieq, Ord, type Ordering } from "./cmp.js";
 import { combine, Semigroup } from "./semigroup.js";
 
 /**
- * A wrapper type for tuple literals of arity 2 through 10 that provides
+ * A helper type for tuple literals of arity 2 through 10 that provides
  * evidence for comparing equality, determining order, and combining.
  */
 export class Tuple<out T extends readonly [any, any, ...any[]]> {

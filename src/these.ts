@@ -15,7 +15,8 @@
  */
 
 /**
- * The These type and associated operations.
+ * A hybrid Either/Validated type with both short-circuiting and accumulating
+ * behavior.
  *
  * @module
  */

@@ -24,7 +24,7 @@ import { combine, Semigroup } from "./semigroup.js";
 
 /**
  * The `Eq<A>` interface provides evidence that two values of type `A` have
- * equality and inequality.
+ * an equivalence relation.
  *
  * ### Minimal implementation
  *
@@ -57,7 +57,8 @@ export interface Eq<in A> {
 
 export namespace Eq {
   /**
-   * A method that determines the equality or inequality of two Eq values.
+   * A unique symbol for a method that determines the equality or inequality of
+   * two Eq values.
    */
   export const eq = Symbol("@neotype/prelude/Eq/eq");
 }
@@ -133,8 +134,8 @@ export function ine<A extends Eq<A>>(
 }
 
 /**
- * The `Ord<A>` interface provides evidence that two values of type `A` have a
- * total ordering.
+ * The `Ord<A>` interface provides evidence that two values of type `A` form a
+ * total order.
  *
  * ### Minimal implementation
  *
@@ -167,7 +168,8 @@ export interface Ord<in A> extends Eq<A> {
 
 export namespace Ord {
   /**
-   * A method that determines the total ordering of two Ord values.
+   * A unique symbol for a method that determines the total ordering of two Ord
+   * values.
    */
   export const cmp = Symbol("@neotype/prelude/Ord/compare");
 }

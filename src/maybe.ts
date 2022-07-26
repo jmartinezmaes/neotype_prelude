@@ -15,7 +15,7 @@
  */
 
 /**
- * The Maybe type and associated operations.
+ * Optional values.
  *
  * @module
  */

@@ -15,7 +15,7 @@
  */
 
 /**
- * The Validated type and associated operations.
+ * Sum types with accumulating left values.
  *
  * @module
  */

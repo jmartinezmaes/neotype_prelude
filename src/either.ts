@@ -15,7 +15,7 @@
  */
 
 /**
- * The Either type and associated operations.
+ * Disjoint sums and typed failures.
  *
  * @module
  */
