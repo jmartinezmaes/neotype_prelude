@@ -1,8 +1,7 @@
 import * as fc from "fast-check";
 import { assert } from "chai";
 import { arbNum, arbStr, pair, pairNamed } from "./common.js";
-import { eq } from "../src/eq.js";
-import { cmp, equal, greater, less } from "../src/ord.js";
+import { cmp, eq, equal, greater, less } from "../src/cmp.js";
 import {
   absent,
   doAsyncMaybe,

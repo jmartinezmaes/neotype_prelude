@@ -20,8 +20,16 @@
  * @module
  */
 
-import { Eq, eq } from "./eq.js";
-import { cmp, equal, greater, less, Ord, type Ordering } from "./ord.js";
+import {
+  cmp,
+  Eq,
+  eq,
+  equal,
+  greater,
+  less,
+  Ord,
+  type Ordering,
+} from "./cmp.js";
 import { combine, Semigroup } from "./semigroup.js";
 import { id } from "./functions.js";
 

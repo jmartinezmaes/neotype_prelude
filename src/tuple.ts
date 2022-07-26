@@ -20,8 +20,7 @@
  * @module
  */
 
-import { Eq, ieq } from "./eq.js";
-import { icmp, Ord, type Ordering } from "./ord.js";
+import { Eq, icmp, ieq, Ord, type Ordering } from "./cmp.js";
 import { combine, Semigroup } from "./semigroup.js";
 
 /**

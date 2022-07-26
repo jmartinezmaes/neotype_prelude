@@ -19,8 +19,7 @@ import {
   tupledEither,
   zipEither,
 } from "../src/either.js";
-import { eq } from "../src/eq.js";
-import { cmp, greater, less } from "../src/ord.js";
+import { cmp, eq, greater, less } from "../src/cmp.js";
 import { combine } from "../src/semigroup.js";
 
 function mk<A, B>(t: "L" | "R", x: A, y: B): Either<A, B> {

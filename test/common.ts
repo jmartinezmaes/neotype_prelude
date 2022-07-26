@@ -1,6 +1,5 @@
 import * as fc from "fast-check";
-import { Eq } from "../src/eq.js";
-import { equal, greater, less, Ord, type Ordering } from "../src/ord.js";
+import { Eq, equal, greater, less, Ord, type Ordering } from "../src/cmp.js";
 import { Semigroup } from "../src/semigroup.js";
 
 export class Num implements Ord<Num> {

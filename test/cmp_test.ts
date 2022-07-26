@@ -1,22 +1,26 @@
 import * as fc from "fast-check";
 import { assert } from "chai";
 import { arbNum, arbStr, mkNum, type Num, type Str } from "./common.js";
-import { eq } from "../src/eq.js";
 import {
   clamp,
   cmp,
   type Down,
+  Eq,
+  eq,
   equal,
   ge,
   greater,
   gt,
   icmp,
+  ieq,
+  ine,
   le,
   less,
   lt,
   max,
   min,
   mkDown,
+  ne,
   Ord,
   ordEq,
   ordGe,
@@ -24,7 +28,7 @@ import {
   ordLe,
   ordLt,
   reverseOrdering,
-} from "../src/ord.js";
+} from "../src/cmp.js";
 import { combine } from "../src/semigroup.js";
 
 function arbDownNum(): fc.Arbitrary<Down<Num>> {
@@ -34,6 +38,48 @@ function arbDownNum(): fc.Arbitrary<Down<Num>> {
 function arbDownStr(): fc.Arbitrary<Down<Str>> {
   return arbStr().map(mkDown);
 }
+
+describe("Eq", () => {
+  specify("eq", () => {
+    fc.assert(
+      fc.property(arbNum(), arbNum(), (x, y) => {
+        assert.strictEqual(eq(x, y), x[Eq.eq](y));
+      }),
+    );
+  });
+
+  specify("ne", () => {
+    fc.assert(
+      fc.property(arbNum(), arbNum(), (x, y) => {
+        assert.strictEqual(ne(x, y), !x[Eq.eq](y));
+      }),
+    );
+  });
+
+  specify("ieq", () => {
+    fc.assert(
+      fc.property(arbNum(), arbNum(), arbNum(), arbNum(), (a, x, b, y) => {
+        assert.strictEqual(ieq([a], []), false);
+        assert.strictEqual(ieq([], [b]), false);
+        assert.strictEqual(ieq([a, x], [b]), false);
+        assert.strictEqual(ieq([a], [b, y]), false);
+        assert.strictEqual(ieq([a, x], [b, y]), eq(a, b) && eq(x, y));
+      }),
+    );
+  });
+
+  specify("ine", () => {
+    fc.assert(
+      fc.property(arbNum(), arbNum(), arbNum(), arbNum(), (a, x, b, y) => {
+        assert.strictEqual(ine([a], []), true);
+        assert.strictEqual(ine([], [b]), true);
+        assert.strictEqual(ine([a, x], [b]), true);
+        assert.strictEqual(ine([a], [b, y]), true);
+        assert.strictEqual(ine([a, x], [b, y]), ne(a, b) || ne(x, y));
+      }),
+    );
+  });
+});
 
 describe("Ord", () => {
   specify("cmp", () => {

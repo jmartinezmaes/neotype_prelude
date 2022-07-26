@@ -2,8 +2,7 @@ import * as fc from "fast-check";
 import { assert } from "chai";
 import { arbNum, arbStr, mkStr, pair, pairNamed } from "./common.js";
 import { left, right } from "../src/either.js";
-import { eq } from "../src/eq.js";
-import { cmp, greater, less } from "../src/ord.js";
+import { cmp, eq, greater, less } from "../src/cmp.js";
 import { combine } from "../src/semigroup.js";
 import {
   accept,
