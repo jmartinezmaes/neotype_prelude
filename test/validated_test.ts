@@ -1,10 +1,10 @@
 import * as fc from "fast-check";
 import { assert } from "chai";
 import { arbNum, arbStr, mkStr, pair, pairNamed } from "./common.js";
-import { left, right } from "../src/Either.js";
-import { eq } from "../src/Eq.js";
-import { cmp, greater, less } from "../src/Ord.js";
-import { combine } from "../src/Semigroup.js";
+import { left, right } from "../src/either.js";
+import { eq } from "../src/eq.js";
+import { cmp, greater, less } from "../src/ord.js";
+import { combine } from "../src/semigroup.js";
 import {
   accept,
   accepted,
@@ -19,7 +19,7 @@ import {
   type Validated,
   validated,
   zipValidated,
-} from "../src/Validated.js";
+} from "../src/validated.js";
 
 function mk<A, B>(t: "D" | "A", x: A, y: B): Validated<A, B> {
   return t === "D" ? dispute(x) : accept(y);

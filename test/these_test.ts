@@ -1,8 +1,8 @@
 import * as fc from "fast-check";
 import { assert } from "chai";
 import { arbNum, arbStr, mkStr, pair, pairNamed } from "./common.js";
-import { eq } from "../src/Eq.js";
-import { cmp, greater, less } from "../src/Ord.js";
+import { eq } from "../src/eq.js";
+import { cmp, greater, less } from "../src/ord.js";
 import {
   both,
   doAsyncThese,
@@ -20,8 +20,8 @@ import {
   traverseThese,
   tupledThese,
   zipThese,
-} from "../src/These.js";
-import { combine } from "../src/Semigroup.js";
+} from "../src/these.js";
+import { combine } from "../src/semigroup.js";
 
 function mk<A, B>(t: "F" | "S" | "B", x: A, y: B): These<A, B> {
   return t === "F" ? first(x) : t === "S" ? second(y) : both(x, y);

@@ -1,7 +1,7 @@
 import * as fc from "fast-check";
 import { assert } from "chai";
 import { arbNum, arbStr, mkNum, type Num, type Str } from "./common.js";
-import { eq } from "../src/Eq.js";
+import { eq } from "../src/eq.js";
 import {
   clamp,
   cmp,
@@ -24,8 +24,8 @@ import {
   ordLe,
   ordLt,
   reverseOrdering,
-} from "../src/Ord.js";
-import { combine } from "../src/Semigroup.js";
+} from "../src/ord.js";
+import { combine } from "../src/semigroup.js";
 
 function arbDownNum(): fc.Arbitrary<Down<Num>> {
   return arbNum().map(mkDown);

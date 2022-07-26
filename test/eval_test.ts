@@ -15,8 +15,8 @@ import {
   traverseEval,
   tupledEval,
   zipEval,
-} from "../src/Eval.js";
-import { combine } from "../src/Semigroup.js";
+} from "../src/eval.js";
+import { combine } from "../src/semigroup.js";
 
 const mk = evalNow;
 

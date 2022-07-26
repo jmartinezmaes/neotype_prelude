@@ -1,8 +1,8 @@
 import * as fc from "fast-check";
 import { assert } from "chai";
 import { arbNum, arbStr, pair, pairNamed } from "./common.js";
-import { eq } from "../src/Eq.js";
-import { cmp, equal, greater, less } from "../src/Ord.js";
+import { eq } from "../src/eq.js";
+import { cmp, equal, greater, less } from "../src/ord.js";
 import {
   absent,
   doAsyncMaybe,
@@ -21,8 +21,8 @@ import {
   traverseMaybe,
   tupledMaybe,
   zipMaybe,
-} from "../src/Maybe.js";
-import { combine } from "../src/Semigroup.js";
+} from "../src/maybe.js";
+import { combine } from "../src/semigroup.js";
 
 function mk<A>(t: "N" | "J", x: A): Maybe<A> {
   return t === "N" ? nothing : just(x);

@@ -18,10 +18,10 @@ import {
   traverseEither,
   tupledEither,
   zipEither,
-} from "../src/Either.js";
-import { eq } from "../src/Eq.js";
-import { cmp, greater, less } from "../src/Ord.js";
-import { combine } from "../src/Semigroup.js";
+} from "../src/either.js";
+import { eq } from "../src/eq.js";
+import { cmp, greater, less } from "../src/ord.js";
+import { combine } from "../src/semigroup.js";
 
 function mk<A, B>(t: "L" | "R", x: A, y: B): Either<A, B> {
   return t === "L" ? left(x) : right(y);
