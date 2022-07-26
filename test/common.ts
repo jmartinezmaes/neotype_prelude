@@ -1,6 +1,6 @@
 import * as fc from "fast-check";
 import { Eq, equal, greater, less, Ord, type Ordering } from "../src/cmp.js";
-import { Semigroup } from "../src/semigroup.js";
+import { Semigroup } from "../src/cmb.js";
 
 export class Num implements Ord<Num> {
   constructor(readonly x: number) {}
@@ -29,7 +29,7 @@ export function arbNum(): fc.Arbitrary<Num> {
 export class Str implements Semigroup<Str> {
   constructor(readonly x: string) {}
 
-  [Semigroup.combine](that: Str): Str {
+  [Semigroup.cmb](that: Str): Str {
     return new Str(this.x + that.x);
   }
 }

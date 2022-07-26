@@ -20,9 +20,9 @@
  * @module
  */
 
-import { type Either, left, right } from "./either.js";
+import { cmb, Semigroup } from "./cmb.js";
 import { cmp, Eq, eq, greater, less, Ord, type Ordering } from "./cmp.js";
-import { combine, Semigroup } from "./semigroup.js";
+import { type Either, left, right } from "./either.js";
 import { id } from "./functions.js";
 
 /**
@@ -92,16 +92,16 @@ export namespace Validated {
      * If this and that Validated are both accepted and their values are a
      * Semigroup, combine the values.
      *
-     * combine (dispute (x), dispute (y)) ≡ dispute (combine (x, y))
-     * combine (dispute (x), accept  (y)) ≡ dispute (         x    )
-     * combine (accept  (x), dispute (y)) ≡ dispute (            y )
-     * combine (accept  (x), accept  (y)) ≡ accept  (combine (x, y))
+     * cmb (dispute (x), dispute (y)) ≡ dispute (cmb (x, y))
+     * cmb (dispute (x), accept  (y)) ≡ dispute (         x    )
+     * cmb (accept  (x), dispute (y)) ≡ dispute (            y )
+     * cmb (accept  (x), accept  (y)) ≡ accept  (cmb (x, y))
      */
-    [Semigroup.combine]<E extends Semigroup<E>, A extends Semigroup<A>>(
+    [Semigroup.cmb]<E extends Semigroup<E>, A extends Semigroup<A>>(
       this: Validated<E, A>,
       that: Validated<E, A>,
     ): Validated<E, A> {
-      return this.zipWith(that, combine);
+      return this.zipWith(that, cmb);
     }
 
     /**
@@ -157,7 +157,7 @@ export namespace Validated {
       f: (x: A, y: B) => C,
     ): Validated<E, C> {
       if (disputed(this)) {
-        return disputed(that) ? dispute(combine(this.value, that.value)) : this;
+        return disputed(that) ? dispute(cmb(this.value, that.value)) : this;
       }
       return disputed(that) ? that : accept(f(this.value, that.value));
     }

@@ -20,8 +20,8 @@
  * @module
  */
 
+import { cmb, Semigroup } from "./cmb.js";
 import { Eq, icmp, ieq, Ord, type Ordering } from "./cmp.js";
-import { combine, Semigroup } from "./semigroup.js";
 
 /**
  * A helper type for tuple literals of arity 2 through 10 that provides
@@ -104,7 +104,7 @@ export class Tuple<out T extends readonly [any, any, ...any[]]> {
    * Compare this and that Tuple pairwise using their elements' behavior as Ords.
    *
    * ```ts
-   * cmp (mkTuple ([a, x]), mkTuple ([b, y])) ≡ combine (cmp (a, b), cmp (x, y))
+   * cmp (mkTuple ([a, x]), mkTuple ([b, y])) ≡ cmb (cmp (a, b), cmp (x, y))
    * ```
    */
   [Ord.cmp]<A0 extends Ord<A0>, A1 extends Ord<A1>>(
@@ -171,68 +171,68 @@ export class Tuple<out T extends readonly [any, any, ...any[]]> {
    * behavior as Semigroups.
    *
    * ```ts
-   * combine (mkTuple ([a, x]), mkTuple ([b, y])) ≡ mkTuple ([combine (a, b), combine (x, y)])
+   * cmb (mkTuple ([a, x]), mkTuple ([b, y])) ≡ mkTuple ([cmb (a, b), cmb (x, y)])
    * ```
    */
-  [Semigroup.combine]<A0 extends Semigroup<A0>, A1 extends Semigroup<A1>>(
+  [Semigroup.cmb]<A0 extends Semigroup<A0>, A1 extends Semigroup<A1>>(
     this: Tuple<readonly [A0, A1]>,
     that: Tuple<readonly [A0, A1]>,
   ): Tuple<readonly [A0, A1]>;
 
   // prettier-ignore
-  [Semigroup.combine]<A0 extends Semigroup<A0>, A1 extends Semigroup<A1>, A2 extends Semigroup<A2>>(
+  [Semigroup.cmb]<A0 extends Semigroup<A0>, A1 extends Semigroup<A1>, A2 extends Semigroup<A2>>(
     this: Tuple<readonly [A0, A1, A2]>,
     that: Tuple<readonly [A0, A1, A2]>,
   ): Tuple<readonly [A0, A1, A2]>;
 
   // prettier-ignore
-  [Semigroup.combine]<A0 extends Semigroup<A0>, A1 extends Semigroup<A1>, A2 extends Semigroup<A2>, A3 extends Semigroup<A3>>(
+  [Semigroup.cmb]<A0 extends Semigroup<A0>, A1 extends Semigroup<A1>, A2 extends Semigroup<A2>, A3 extends Semigroup<A3>>(
     this: Tuple<readonly [A0, A1, A2, A3]>,
     that: Tuple<readonly [A0, A1, A2, A3]>,
   ): Tuple<readonly [A0, A1, A2, A3]>;
 
   // prettier-ignore
-  [Semigroup.combine]<A0 extends Semigroup<A0>, A1 extends Semigroup<A1>, A2 extends Semigroup<A2>, A3 extends Semigroup<A3>, A4 extends Semigroup<A4>>(
+  [Semigroup.cmb]<A0 extends Semigroup<A0>, A1 extends Semigroup<A1>, A2 extends Semigroup<A2>, A3 extends Semigroup<A3>, A4 extends Semigroup<A4>>(
     this: Tuple<readonly [A0, A1, A2, A3, A4]>,
     that: Tuple<readonly [A0, A1, A2, A3, A4]>,
   ): Tuple<readonly [A0, A1, A2, A3, A4]>;
 
   // prettier-ignore
-  [Semigroup.combine]<A0 extends Semigroup<A0>, A1 extends Semigroup<A1>, A2 extends Semigroup<A2>, A3 extends Semigroup<A3>, A4 extends Semigroup<A4>, A5 extends Semigroup<A5>>(
+  [Semigroup.cmb]<A0 extends Semigroup<A0>, A1 extends Semigroup<A1>, A2 extends Semigroup<A2>, A3 extends Semigroup<A3>, A4 extends Semigroup<A4>, A5 extends Semigroup<A5>>(
     this: Tuple<readonly [A0, A1, A2, A3, A4, A5]>,
     that: Tuple<readonly [A0, A1, A2, A3, A4, A5]>,
   ): Tuple<readonly [A0, A1, A2, A3, A4, A5]>;
 
   // prettier-ignore
-  [Semigroup.combine]<A0 extends Semigroup<A0>, A1 extends Semigroup<A1>, A2 extends Semigroup<A2>, A3 extends Semigroup<A3>, A4 extends Semigroup<A4>, A5 extends Semigroup<A5>, A6 extends Semigroup<A6>>(
+  [Semigroup.cmb]<A0 extends Semigroup<A0>, A1 extends Semigroup<A1>, A2 extends Semigroup<A2>, A3 extends Semigroup<A3>, A4 extends Semigroup<A4>, A5 extends Semigroup<A5>, A6 extends Semigroup<A6>>(
     this: Tuple<readonly [A0, A1, A2, A3, A4, A5, A6]>,
     that: Tuple<readonly [A0, A1, A2, A3, A4, A5, A6]>,
   ): Tuple<readonly [A0, A1, A2, A3, A4, A5, A6]>;
 
   // prettier-ignore
-  [Semigroup.combine]<A0 extends Semigroup<A0>, A1 extends Semigroup<A1>, A2 extends Semigroup<A2>, A3 extends Semigroup<A3>, A4 extends Semigroup<A4>, A5 extends Semigroup<A5>, A6 extends Semigroup<A6>, A7 extends Semigroup<A7>>(
+  [Semigroup.cmb]<A0 extends Semigroup<A0>, A1 extends Semigroup<A1>, A2 extends Semigroup<A2>, A3 extends Semigroup<A3>, A4 extends Semigroup<A4>, A5 extends Semigroup<A5>, A6 extends Semigroup<A6>, A7 extends Semigroup<A7>>(
     this: Tuple<readonly [A0, A1, A2, A3, A4, A5, A6, A7]>,
     that: Tuple<readonly [A0, A1, A2, A3, A4, A5, A6, A7]>,
   ): Tuple<readonly [A0, A1, A2, A3, A4, A5, A6, A7]>;
 
   // prettier-ignore
-  [Semigroup.combine]<A0 extends Semigroup<A0>, A1 extends Semigroup<A1>, A2 extends Semigroup<A2>, A3 extends Semigroup<A3>, A4 extends Semigroup<A4>, A5 extends Semigroup<A5>, A6 extends Semigroup<A6>, A7 extends Semigroup<A7>, A8 extends Semigroup<A8>>(
+  [Semigroup.cmb]<A0 extends Semigroup<A0>, A1 extends Semigroup<A1>, A2 extends Semigroup<A2>, A3 extends Semigroup<A3>, A4 extends Semigroup<A4>, A5 extends Semigroup<A5>, A6 extends Semigroup<A6>, A7 extends Semigroup<A7>, A8 extends Semigroup<A8>>(
     this: Tuple<readonly [A0, A1, A2, A3, A4, A5, A6, A7, A8]>,
     that: Tuple<readonly [A0, A1, A2, A3, A4, A5, A6, A7, A8]>,
   ): Tuple<readonly [A0, A1, A2, A3, A4, A5, A6, A7, A8]>;
 
   // prettier-ignore
-  [Semigroup.combine]<A0 extends Semigroup<A0>, A1 extends Semigroup<A1>, A2 extends Semigroup<A2>, A3 extends Semigroup<A3>, A4 extends Semigroup<A4>, A5 extends Semigroup<A5>, A6 extends Semigroup<A6>, A7 extends Semigroup<A7>, A8 extends Semigroup<A8>, A9 extends Semigroup<A9>>(
+  [Semigroup.cmb]<A0 extends Semigroup<A0>, A1 extends Semigroup<A1>, A2 extends Semigroup<A2>, A3 extends Semigroup<A3>, A4 extends Semigroup<A4>, A5 extends Semigroup<A5>, A6 extends Semigroup<A6>, A7 extends Semigroup<A7>, A8 extends Semigroup<A8>, A9 extends Semigroup<A9>>(
     this: Tuple<readonly [A0, A1, A2, A3, A4, A5, A6, A7, A8, A9]>,
     that: Tuple<readonly [A0, A1, A2, A3, A4, A5, A6, A7, A8, A9]>,
   ): Tuple<readonly [A0, A1, A2, A3, A4, A5, A6, A7, A8, A9]>;
 
-  [Semigroup.combine]<A extends Semigroup<A>>(
+  [Semigroup.cmb]<A extends Semigroup<A>>(
     this: Tuple<readonly [A, A, ...A[]]>,
     that: Tuple<readonly [A, A, ...A[]]>,
   ): Tuple<readonly [A, A, ...A[]]> {
     return new Tuple(
-      this.value.map((x, ix) => combine(x, that.value[ix])) as [A, A, ...A[]],
+      this.value.map((x, ix) => cmb(x, that.value[ix])) as [A, A, ...A[]],
     );
   }
 }

@@ -20,7 +20,7 @@
  * @module
  */
 
-import { combine, Semigroup } from "./semigroup.js";
+import { cmb, Semigroup } from "./cmb.js";
 
 /**
  * The `Eq<A>` interface provides evidence that two values of type `A` have
@@ -191,9 +191,9 @@ export function cmp<A extends Ord<A>>(x: A, y: A): Ordering {
  * ```ts
  * icmp ([a   ], [    ]) ≡ greater
  * icmp ([    ], [b   ]) ≡ less
- * icmp ([a, x], [b   ]) ≡ combine (cmp (a, b), greater   )
- * icmp ([a,  ], [b, y]) ≡ combine (cmp (a, b), less      )
- * icmp ([a, x], [b, y]) ≡ combine (cmp (a, b), cmp (x, y))
+ * icmp ([a, x], [b   ]) ≡ cmb (cmp (a, b), greater   )
+ * icmp ([a,  ], [b, y]) ≡ cmb (cmp (a, b), less      )
+ * icmp ([a, x], [b, y]) ≡ cmb (cmp (a, b), cmp (x, y))
  * ```
  */
 export function icmp<A extends Ord<A>>(
@@ -322,12 +322,12 @@ export namespace Ordering {
      * Combine this and that Ordering.
      *
      * ```ts
-     * combine (less   , y) ≡ less
-     * combine (equal  , y) ≡ y
-     * combine (greater, y) ≡ greater
+     * cmb (less   , y) ≡ less
+     * cmb (equal  , y) ≡ y
+     * cmb (greater, y) ≡ greater
      * ```
      */
-    [Semigroup.combine](this: Ordering, that: Ordering): Ordering {
+    [Semigroup.cmb](this: Ordering, that: Ordering): Ordering {
       return ordEq(this) ? that : this;
     }
   }
@@ -547,14 +547,14 @@ export class Reverse<A> {
    * Semigroup.
    *
    * ```ts
-   * combine (mkReverse (x), mkReverse (y)) ≡ mkReverse (combine (x, y))
+   * cmb (mkReverse (x), mkReverse (y)) ≡ mkReverse (cmb (x, y))
    * ```
    */
-  [Semigroup.combine]<A extends Semigroup<A>>(
+  [Semigroup.cmb]<A extends Semigroup<A>>(
     this: Reverse<A>,
     that: Reverse<A>,
   ): Reverse<A> {
-    return new Reverse(combine(this.value, that.value));
+    return new Reverse(cmb(this.value, that.value));
   }
 }
 

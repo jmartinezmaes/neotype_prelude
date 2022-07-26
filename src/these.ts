@@ -21,8 +21,8 @@
  * @module
  */
 
+import { cmb, Semigroup } from "./cmb.js";
 import { cmp, Eq, eq, greater, less, Ord, type Ordering } from "./cmp.js";
-import { combine, Semigroup } from "./semigroup.js";
 import { id } from "./functions.js";
 
 /**
@@ -93,7 +93,7 @@ export namespace These {
      * cmp (second (   x), both   (b, y)) ≡ less
      * cmp (both   (a, x), first  (b   )) ≡ greater
      * cmp (both   (a, x), second (   y)) ≡ greater
-     * cmp (both   (a, x), both   (b, y)) ≡ combine (cmp (a, b), cmp (x, y))
+     * cmp (both   (a, x), both   (b, y)) ≡ cmb (cmp (a, b), cmp (x, y))
      * ```
      */
     [Ord.cmp]<A extends Ord<A>, B extends Ord<B>>(
@@ -110,7 +110,7 @@ export namespace These {
         return here(that) ? greater : less;
       }
       if (paired(that)) {
-        return combine(cmp(this.fst, that.fst), cmp(this.snd, that.snd));
+        return cmb(cmp(this.fst, that.fst), cmp(this.snd, that.snd));
       }
       return greater;
     }
@@ -120,29 +120,29 @@ export namespace These {
      * using Semigroup combination.
      *
      * ```ts
-     * combine (first  (a   ), first  (b   )) ≡ first  (combine (a, b)                )
-     * combine (first  (a   ), second (   y)) ≡ both   (         a    ,             y )
-     * combine (first  (a   ), both   (b, y)) ≡ both   (combine (a, b),             y )
-     * combine (second (   x), first  (b   )) ≡ both   (            b ,          x    )
-     * combine (second (   x), second (   y)) ≡ second (                combine (x, y))
-     * combine (second (   x), both   (b, y)) ≡ both   (            b , combine (x, y))
-     * combine (both   (a, x), first  (b   )) ≡ both   (combine (a, b),          x    )
-     * combine (both   (a, x), second (   y)) ≡ both   (         a    , combine (x, y))
-     * combine (both   (a, x), both   (b, y)) ≡ both   (combine (a, b), combine (x, y))
+     * cmb (first  (a   ), first  (b   )) ≡ first  (cmb (a, b)            )
+     * cmb (first  (a   ), second (   y)) ≡ both   (         a,         y )
+     * cmb (first  (a   ), both   (b, y)) ≡ both   (cmb (a, b),         y )
+     * cmb (second (   x), first  (b   )) ≡ both   (        b ,      x    )
+     * cmb (second (   x), second (   y)) ≡ second (            cmb (x, y))
+     * cmb (second (   x), both   (b, y)) ≡ both   (        b , cmb (x, y))
+     * cmb (both   (a, x), first  (b   )) ≡ both   (cmb (a, b),          x    )
+     * cmb (both   (a, x), second (   y)) ≡ both   (         a, cmb (x, y))
+     * cmb (both   (a, x), both   (b, y)) ≡ both   (cmb (a, b), cmb (x, y))
      * ```
      */
-    [Semigroup.combine]<A extends Semigroup<A>, B extends Semigroup<B>>(
+    [Semigroup.cmb]<A extends Semigroup<A>, B extends Semigroup<B>>(
       this: These<A, B>,
       that: These<A, B>,
     ): These<A, B> {
       if (here(this)) {
         if (here(that)) {
-          return first(combine(this.value, that.value));
+          return first(cmb(this.value, that.value));
         }
         if (there(that)) {
           return both(this.value, that.value);
         }
-        return both(combine(this.value, that.fst), that.snd);
+        return both(cmb(this.value, that.fst), that.snd);
       }
 
       if (there(this)) {
@@ -150,18 +150,18 @@ export namespace These {
           return both(that.value, this.value);
         }
         if (there(that)) {
-          return second(combine(this.value, that.value));
+          return second(cmb(this.value, that.value));
         }
-        return both(that.fst, combine(this.value, that.snd));
+        return both(that.fst, cmb(this.value, that.snd));
       }
 
       if (here(that)) {
-        return both(combine(this.fst, that.value), this.snd);
+        return both(cmb(this.fst, that.value), this.snd);
       }
       if (there(that)) {
-        return both(this.fst, combine(this.snd, that.value));
+        return both(this.fst, cmb(this.snd, that.value));
       }
-      return both(combine(this.fst, that.fst), combine(this.snd, that.snd));
+      return both(cmb(this.fst, that.fst), cmb(this.snd, that.snd));
     }
 
     /**
@@ -196,7 +196,7 @@ export namespace These {
       if (there(this)) {
         return f(this.value);
       }
-      return f(this.snd).mapFirst((y) => combine((this as Both<E, A>).fst, y));
+      return f(this.snd).mapFirst((y) => cmb((this as Both<E, A>).fst, y));
     }
 
     /**
@@ -443,10 +443,10 @@ function doImpl<E extends Semigroup<E>, A>(
     if (there(t)) {
       nx = nxs.next(t.value);
     } else if (paired(t)) {
-      e = e ? combine(e, t.fst) : t.fst;
+      e = e ? cmb(e, t.fst) : t.fst;
       nx = nxs.next(t.snd);
     } else {
-      return e ? first(combine(e, t.value)) : t;
+      return e ? first(cmb(e, t.value)) : t;
     }
   }
   return e ? both(e, nx.value) : second(nx.value);
@@ -756,10 +756,10 @@ async function doAsyncImpl<E extends Semigroup<E>, A>(
     if (there(t)) {
       nx = await nxs.next(t.value);
     } else if (paired(t)) {
-      e = e ? combine(e, t.fst) : t.fst;
+      e = e ? cmb(e, t.fst) : t.fst;
       nx = await nxs.next(t.snd);
     } else {
-      return e ? first(combine(e, t.value)) : t;
+      return e ? first(cmb(e, t.value)) : t;
     }
   }
   return e ? both(e, nx.value) : second(nx.value);

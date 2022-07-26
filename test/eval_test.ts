@@ -1,6 +1,7 @@
 import * as fc from "fast-check";
 import { assert } from "chai";
 import { arbStr, pair, pairNamed } from "./common.js";
+import { cmb } from "../src/cmb.js";
 import {
   doEval,
   evalAlways,
@@ -16,7 +17,6 @@ import {
   tupledEval,
   zipEval,
 } from "../src/eval.js";
-import { combine } from "../src/semigroup.js";
 
 const mk = evalNow;
 
@@ -24,11 +24,11 @@ const _1 = 1 as const;
 const _2 = 2 as const;
 
 describe("Eval", () => {
-  specify("[Semigroup.combine]", () => {
+  specify("[Semigroup.cmb]", () => {
     fc.assert(
       fc.property(arbStr(), arbStr(), (x, y) => {
-        const t0 = combine(mk(x), mk(y));
-        assert.deepEqual(runEval(t0), combine(x, y));
+        const t0 = cmb(mk(x), mk(y));
+        assert.deepEqual(runEval(t0), cmb(x, y));
       }),
     );
   });

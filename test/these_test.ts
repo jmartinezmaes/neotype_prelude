@@ -1,6 +1,7 @@
 import * as fc from "fast-check";
 import { assert } from "chai";
 import { arbNum, arbStr, mkStr, pair, pairNamed } from "./common.js";
+import { cmb } from "../src/cmb.js";
 import { cmp, eq, greater, less } from "../src/cmp.js";
 import {
   both,
@@ -20,7 +21,6 @@ import {
   tupledThese,
   zipThese,
 } from "../src/these.js";
-import { combine } from "../src/semigroup.js";
 
 function mk<A, B>(t: "F" | "S" | "B", x: A, y: B): These<A, B> {
   return t === "F" ? first(x) : t === "S" ? second(y) : both(x, y);
@@ -102,40 +102,40 @@ describe("These", () => {
         assert.strictEqual(t7, greater);
 
         const t8 = cmp(both(a, x), both(b, y));
-        assert.strictEqual(t8, combine(cmp(a, b), cmp(x, y)));
+        assert.strictEqual(t8, cmb(cmp(a, b), cmp(x, y)));
       }),
     );
   });
 
-  specify("[Semigroup.combine]", () => {
+  specify("[Semigroup.cmb]", () => {
     fc.assert(
       fc.property(arbStr(), arbStr(), arbStr(), arbStr(), (a, x, b, y) => {
-        const t0 = combine(first(a), first(b));
-        assert.deepEqual(t0, first(combine(a, b)));
+        const t0 = cmb(first(a), first(b));
+        assert.deepEqual(t0, first(cmb(a, b)));
 
-        const t1 = combine(first(a), second(y));
+        const t1 = cmb(first(a), second(y));
         assert.deepEqual(t1, both(a, y));
 
-        const t2 = combine(first(a), both(b, y));
-        assert.deepEqual(t2, both(combine(a, b), y));
+        const t2 = cmb(first(a), both(b, y));
+        assert.deepEqual(t2, both(cmb(a, b), y));
 
-        const t3 = combine(second(x), first(b));
+        const t3 = cmb(second(x), first(b));
         assert.deepEqual(t3, both(b, x));
 
-        const t4 = combine(second(x), second(y));
-        assert.deepEqual(t4, second(combine(x, y)));
+        const t4 = cmb(second(x), second(y));
+        assert.deepEqual(t4, second(cmb(x, y)));
 
-        const t5 = combine(second(x), both(b, y));
-        assert.deepEqual(t5, both(b, combine(x, y)));
+        const t5 = cmb(second(x), both(b, y));
+        assert.deepEqual(t5, both(b, cmb(x, y)));
 
-        const t6 = combine(both(a, x), first(b));
-        assert.deepEqual(t6, both(combine(a, b), x));
+        const t6 = cmb(both(a, x), first(b));
+        assert.deepEqual(t6, both(cmb(a, b), x));
 
-        const t7 = combine(both(a, x), second(y));
-        assert.deepEqual(t7, both(a, combine(x, y)));
+        const t7 = cmb(both(a, x), second(y));
+        assert.deepEqual(t7, both(a, cmb(x, y)));
 
-        const t8 = combine(both(a, x), both(b, y));
-        assert.deepEqual(t8, both(combine(a, b), combine(x, y)));
+        const t8 = cmb(both(a, x), both(b, y));
+        assert.deepEqual(t8, both(cmb(a, b), cmb(x, y)));
       }),
     );
   });
@@ -183,33 +183,33 @@ describe("These", () => {
     assert.deepEqual(t5, both(sc, [_2, _4] as const));
 
     const t6 = mk("B", sa, _2).flatMap((x) => mk("F", sc, pair(x, _4)));
-    assert.deepEqual(t6, first(combine(sa, sc)));
+    assert.deepEqual(t6, first(cmb(sa, sc)));
 
     const t7 = mk("B", sa, _2).flatMap((x) => mk("S", sc, pair(x, _4)));
     assert.deepEqual(t7, both(sa, [_2, _4] as const));
 
     const t8 = mk("B", sa, _2).flatMap((x) => mk("B", sc, pair(x, _4)));
-    assert.deepEqual(t8, both(combine(sa, sc), [_2, _4] as const));
+    assert.deepEqual(t8, both(cmb(sa, sc), [_2, _4] as const));
   });
 
   specify("flat", () => {
     const t0 = mk("B", sa, mk("B", sc, _2)).flat();
-    assert.deepEqual(t0, both(combine(sa, sc), _2));
+    assert.deepEqual(t0, both(cmb(sa, sc), _2));
   });
 
   specify("zipWith", () => {
     const t0 = mk("B", sa, _2).zipWith(mk("B", sc, _4), pair);
-    assert.deepEqual(t0, both(combine(sa, sc), [_2, _4] as const));
+    assert.deepEqual(t0, both(cmb(sa, sc), [_2, _4] as const));
   });
 
   specify("zipFst", () => {
     const t0 = mk("B", sa, _2).zipFst(mk("B", sc, _4));
-    assert.deepEqual(t0, both(combine(sa, sc), _2));
+    assert.deepEqual(t0, both(cmb(sa, sc), _2));
   });
 
   specify("zipSnd", () => {
     const t0 = mk("B", sa, _2).zipSnd(mk("B", sc, _4));
-    assert.deepEqual(t0, both(combine(sa, sc), _4));
+    assert.deepEqual(t0, both(cmb(sa, sc), _4));
   });
 
   specify("map", () => {
@@ -340,7 +340,7 @@ describe("These", () => {
       const [y, z] = yield* mk("F", sc, pair(x, _4));
       return [x, y, z] as const;
     });
-    assert.deepEqual(t6, first(combine(sa, sc)));
+    assert.deepEqual(t6, first(cmb(sa, sc)));
 
     const t7 = doThese(function* () {
       const x = yield* mk("B", sa, _2);
@@ -354,45 +354,45 @@ describe("These", () => {
       const [y, z] = yield* mk("B", sc, pair(x, _4));
       return [x, y, z] as const;
     });
-    assert.deepEqual(t8, both(combine(sa, sc), [_2, _2, _4] as const));
+    assert.deepEqual(t8, both(cmb(sa, sc), [_2, _2, _4] as const));
   });
 
   specify("reduceThese", () => {
     const t0 = reduceThese(["x", "y"], (xs, x) => mk("B", sa, xs + x), "");
-    assert.deepEqual(t0, both(combine(sa, sa), "xy"));
+    assert.deepEqual(t0, both(cmb(sa, sa), "xy"));
   });
 
   specify("traverseThese", () => {
     const t0 = traverseThese(["x", "y"], (x) => mk("B", sa, x.toUpperCase()));
-    assert.deepEqual(t0, both(combine(sa, sa), ["X", "Y"]));
+    assert.deepEqual(t0, both(cmb(sa, sa), ["X", "Y"]));
   });
 
   specify("zipThese", () => {
     const t0 = zipThese([mk("B", sa, _2), mk("B", sc, _4)] as const);
-    assert.deepEqual(t0, both(combine(sa, sc), [_2, _4] as const));
+    assert.deepEqual(t0, both(cmb(sa, sc), [_2, _4] as const));
   });
 
   specify("tupledThese", () => {
     const t0 = tupledThese(mk("B", sa, _2), mk("B", sc, _4));
-    assert.deepEqual(t0, both(combine(sa, sc), [_2, _4] as const));
+    assert.deepEqual(t0, both(cmb(sa, sc), [_2, _4] as const));
   });
 
   specify("liftThese", () => {
     const f = liftThese(pair<2, 4>);
     const t0 = f(mk("B", sa, _2), mk("B", sc, _4));
-    assert.deepEqual(t0, both(combine(sa, sc), [_2, _4] as const));
+    assert.deepEqual(t0, both(cmb(sa, sc), [_2, _4] as const));
   });
 
   specify("liftNamedThese", () => {
     const f = liftNamedThese(pairNamed<2, 4>);
     const t0 = f({ x: mk("B", sa, _2), y: mk("B", sc, _4) });
-    assert.deepEqual(t0, both(combine(sa, sc), [_2, _4] as const));
+    assert.deepEqual(t0, both(cmb(sa, sc), [_2, _4] as const));
   });
 
   specify("liftNewThese", () => {
     const f = liftNewThese(Array<2 | 4>);
     const t0 = f(mk("B", sa, _2), mk("B", sc, _4));
-    assert.deepEqual(t0, both(combine(sa, sc), [_2, _4]));
+    assert.deepEqual(t0, both(cmb(sa, sc), [_2, _4]));
   });
 
   specify("doAsyncThese", async () => {
@@ -443,7 +443,7 @@ describe("These", () => {
       const [y, z] = yield* await mkA("F", sc, pair(x, _4));
       return [x, y, z] as const;
     });
-    assert.deepEqual(t6, first(combine(sa, sc)));
+    assert.deepEqual(t6, first(cmb(sa, sc)));
 
     const t7 = await doAsyncThese(async function* () {
       const x = yield* await mkA("B", sa, _2);
@@ -457,7 +457,7 @@ describe("These", () => {
       const [y, z] = yield* await mkA("B", sc, pair(x, _4));
       return [x, y, z] as const;
     });
-    assert.deepEqual(t8, both(combine(sa, sc), [_2, _2, _4] as const));
+    assert.deepEqual(t8, both(cmb(sa, sc), [_2, _2, _4] as const));
 
     it("unwraps nested promise-like values on bind and return", async () => {
       const t9 = await doAsyncThese(async function* () {
@@ -465,7 +465,7 @@ describe("These", () => {
         const [y, z] = yield* await mkA("B", sc, Promise.resolve(pair(x, _4)));
         return Promise.resolve([x, y, z] as const);
       });
-      assert.deepEqual(t9, both(combine(sa, sc), [_2, _2, _4] as const));
+      assert.deepEqual(t9, both(cmb(sa, sc), [_2, _2, _4] as const));
     });
   });
 });

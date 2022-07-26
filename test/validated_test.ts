@@ -3,7 +3,7 @@ import { assert } from "chai";
 import { arbNum, arbStr, mkStr, pair, pairNamed } from "./common.js";
 import { left, right } from "../src/either.js";
 import { cmp, eq, greater, less } from "../src/cmp.js";
-import { combine } from "../src/semigroup.js";
+import { cmb } from "../src/cmb.js";
 import {
   accept,
   accepted,
@@ -69,20 +69,20 @@ describe("Validated", () => {
     );
   });
 
-  specify("[Semigroup.combine]", () => {
+  specify("[Semigroup.cmb]", () => {
     fc.assert(
       fc.property(arbStr(), arbStr(), (x, y) => {
-        const t0 = combine(dispute(x), dispute(y));
-        assert.deepEqual(t0, dispute(combine(x, y)));
+        const t0 = cmb(dispute(x), dispute(y));
+        assert.deepEqual(t0, dispute(cmb(x, y)));
 
-        const t1 = combine(dispute(x), accept(y));
+        const t1 = cmb(dispute(x), accept(y));
         assert.deepEqual(t1, dispute(x));
 
-        const t2 = combine(accept(x), dispute(y));
+        const t2 = cmb(accept(x), dispute(y));
         assert.deepEqual(t2, dispute(y));
 
-        const t3 = combine(accept(x), accept(y));
-        assert.deepEqual(t3, accept(combine(x, y)));
+        const t3 = cmb(accept(x), accept(y));
+        assert.deepEqual(t3, accept(cmb(x, y)));
       }),
     );
   });
@@ -117,7 +117,7 @@ describe("Validated", () => {
 
   specify("zipWith", () => {
     const t0 = mk("D", sa, _2).zipWith(mk("D", sc, _4), pair);
-    assert.deepEqual(t0, dispute(combine(sa, sc)));
+    assert.deepEqual(t0, dispute(cmb(sa, sc)));
 
     const t1 = mk("D", sa, _2).zipWith(mk("A", sc, _4), pair);
     assert.deepEqual(t1, dispute(sa));
@@ -229,7 +229,7 @@ describe("Validated", () => {
     const t0 = traverseValidated(["x", "y"], (x) =>
       mk("D", sa, x.toUpperCase()),
     );
-    assert.deepEqual(t0, dispute(combine(sa, sa)));
+    assert.deepEqual(t0, dispute(cmb(sa, sa)));
 
     const t1 = traverseValidated(["x", "y"], (x) =>
       mk("A", sa, x.toUpperCase()),
@@ -239,7 +239,7 @@ describe("Validated", () => {
 
   specify("zipValidated", () => {
     const t0 = zipValidated([mk("D", sa, _2), mk("D", sc, _4)]);
-    assert.deepEqual(t0, dispute(combine(sa, sc)));
+    assert.deepEqual(t0, dispute(cmb(sa, sc)));
 
     const t1 = zipValidated([mk("D", sa, _2), mk("A", sc, _4)]);
     assert.deepEqual(t1, dispute(sa));

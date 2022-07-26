@@ -2,7 +2,7 @@ import * as fc from "fast-check";
 import { assert } from "chai";
 import { arbNum, arbStr } from "./common.js";
 import { cmp, eq } from "../src/cmp.js";
-import { combine } from "../src/semigroup.js";
+import { cmb } from "../src/cmb.js";
 import { mkTuple } from "../src/tuple.js";
 
 const mk = mkTuple;
@@ -21,16 +21,16 @@ describe("Tuple", () => {
     fc.assert(
       fc.property(arbNum(), arbNum(), arbNum(), arbNum(), (a, x, b, y) => {
         const t0 = cmp(mk([a, x]), mk([b, y]));
-        assert.strictEqual(t0, combine(cmp(a, b), cmp(x, y)));
+        assert.strictEqual(t0, cmb(cmp(a, b), cmp(x, y)));
       }),
     );
   });
 
-  specify("[Semigroup.combine]", () => {
+  specify("[Semigroup.cmb]", () => {
     fc.assert(
       fc.property(arbStr(), arbStr(), arbStr(), arbStr(), (a, x, b, y) => {
-        const t0 = combine(mk([a, x]), mk([b, y]));
-        assert.deepEqual(t0, mk([combine(a, b), combine(x, y)]));
+        const t0 = cmb(mk([a, x]), mk([b, y]));
+        assert.deepEqual(t0, mk([cmb(a, b), cmb(x, y)]));
       }),
     );
   });

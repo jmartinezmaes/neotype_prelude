@@ -20,7 +20,7 @@
  * @module
  */
 
-import { combine, Semigroup } from "./semigroup.js";
+import { cmb, Semigroup } from "./cmb.js";
 import { id } from "./functions.js";
 import { MutStack } from "./internal/mut_stack.js";
 
@@ -60,11 +60,11 @@ export class Eval<out A> {
   /**
    * If this and that Eval's results are a Semigroup, combine the results.
    */
-  [Semigroup.combine]<A extends Semigroup<A>>(
+  [Semigroup.cmb]<A extends Semigroup<A>>(
     this: Eval<A>,
     that: Eval<A>,
   ): Eval<A> {
-    return this.zipWith(that, combine);
+    return this.zipWith(that, cmb);
   }
 
   /**

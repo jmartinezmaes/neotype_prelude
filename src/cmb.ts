@@ -26,7 +26,7 @@
  *
  * ### Minimal implementation
  *
- * - {@link Semigroup[Semigroup.combine]}
+ * - {@link Semigroup[Semigroup.cmb]}
  *
  * ### Properties
  *
@@ -34,37 +34,27 @@
  *
  * __Associativity__
  *
- * `combine (x, combine (y, z)) ≡ combine (combine (x, y), z)`
+ * `cmb (x, cmb (y, z)) ≡ cmb (cmb (x, y), z)`
  */
 export interface Semigroup<in out A> {
-  [Semigroup.combine](this: A, that: A): A;
+  [Semigroup.cmb](this: A, that: A): A;
 }
 
 export namespace Semigroup {
   /**
-   * A method that combines two Semigroup values using an associative operation.
+   * A unique symbol for a method that combines two Semigroup values using an
+   * associative operation.
    */
-  export const combine = Symbol("@neotype/prelude/Semigroup/combine");
+  export const cmb = Symbol("@neotype/prelude/Semigroup/cmb");
 }
 
 /**
  * Combine two values of the same Semigroup.
  *
  * ```ts
- * combine (x, y) = x[Semigroup.combine](y)
+ * cmb (x, y) = x[Semigroup.cmb](y)
  * ```
  */
-export function combine<A extends Semigroup<A>>(x: A, y: A): A {
-  return x[Semigroup.combine](y);
-}
-
-/**
- * Combine a non-empty series of the same Semigroup from left to right.
- *
- * ```ts
- * combineAll (x, ...xs) ≡ [x, ...xs].reduce(combine)
- * ```
- */
-export function combineAll<A extends Semigroup<A>>(...xs: [A, ...A[]]): A {
-  return xs.reduce(combine);
+export function cmb<A extends Semigroup<A>>(x: A, y: A): A {
+  return x[Semigroup.cmb](y);
 }

@@ -20,8 +20,8 @@
  * @module
  */
 
+import { cmb, Semigroup } from "./cmb.js";
 import { cmp, Eq, eq, greater, less, Ord, type Ordering } from "./cmp.js";
-import { combine, Semigroup } from "./semigroup.js";
 import { id } from "./functions.js";
 
 /**
@@ -99,17 +99,17 @@ export namespace Either {
      * Semigroup, combine the values.
      *
      * ```ts
-     * combine (left  (x), left  (y)) ≡ left  (         x    )
-     * combine (left  (x), right (y)) ≡ left  (         x    )
-     * combine (right (x), left  (y)) ≡ left  (            y )
-     * combine (right (x), right (y)) ≡ right (combine (x, y))
+     * cmb (left  (x), left  (y)) ≡ left  (         x    )
+     * cmb (left  (x), right (y)) ≡ left  (         x    )
+     * cmb (right (x), left  (y)) ≡ left  (            y )
+     * cmb (right (x), right (y)) ≡ right (cmb (x, y))
      * ```
      */
-    [Semigroup.combine]<E, A extends Semigroup<A>>(
+    [Semigroup.cmb]<E, A extends Semigroup<A>>(
       this: Either<E, A>,
       that: Either<E, A>,
     ): Either<E, A> {
-      return this.zipWith(that, combine);
+      return this.zipWith(that, cmb);
     }
 
     /**

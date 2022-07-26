@@ -1,6 +1,7 @@
 import * as fc from "fast-check";
 import { assert } from "chai";
 import { arbNum, arbStr, mkNum, type Num, type Str } from "./common.js";
+import { cmb } from "../src/cmb.js";
 import {
   clamp,
   cmp,
@@ -29,7 +30,6 @@ import {
   type Reverse,
   reverseOrdering,
 } from "../src/cmp.js";
-import { combine } from "../src/semigroup.js";
 
 function arbRevNum(): fc.Arbitrary<Reverse<Num>> {
   return arbNum().map(mkReverse);
@@ -95,9 +95,9 @@ describe("Ord", () => {
       fc.property(arbNum(), arbNum(), arbNum(), arbNum(), (a, x, b, y) => {
         assert.strictEqual(icmp([a], []), greater);
         assert.strictEqual(icmp([], [b]), less);
-        assert.strictEqual(icmp([a, x], [b]), combine(cmp(a, b), greater));
-        assert.strictEqual(icmp([a], [b, y]), combine(cmp(a, b), less));
-        assert.strictEqual(icmp([a, x], [b, y]), combine(cmp(a, b), cmp(x, y)));
+        assert.strictEqual(icmp([a, x], [b]), cmb(cmp(a, b), greater));
+        assert.strictEqual(icmp([a], [b, y]), cmb(cmp(a, b), less));
+        assert.strictEqual(icmp([a, x], [b, y]), cmb(cmp(a, b), cmp(x, y)));
       }),
     );
   });
@@ -218,32 +218,32 @@ describe("Ordering", () => {
     assert.strictEqual(t8, equal);
   });
 
-  specify("[Semigroup.combine]", () => {
-    const t0 = combine(less, less);
+  specify("[Semigroup.cmb]", () => {
+    const t0 = cmb(less, less);
     assert.strictEqual(t0, less);
 
-    const t1 = combine(less, equal);
+    const t1 = cmb(less, equal);
     assert.strictEqual(t1, less);
 
-    const t2 = combine(less, greater);
+    const t2 = cmb(less, greater);
     assert.strictEqual(t2, less);
 
-    const t3 = combine(equal, less);
+    const t3 = cmb(equal, less);
     assert.strictEqual(t3, less);
 
-    const t4 = combine(equal, equal);
+    const t4 = cmb(equal, equal);
     assert.strictEqual(t4, equal);
 
-    const t5 = combine(equal, greater);
+    const t5 = cmb(equal, greater);
     assert.strictEqual(t5, greater);
 
-    const t6 = combine(greater, less);
+    const t6 = cmb(greater, less);
     assert.strictEqual(t6, greater);
 
-    const t7 = combine(greater, equal);
+    const t7 = cmb(greater, equal);
     assert.strictEqual(t7, greater);
 
-    const t8 = combine(greater, greater);
+    const t8 = cmb(greater, greater);
     assert.strictEqual(t8, greater);
   });
 
@@ -331,10 +331,10 @@ describe("Reverse", () => {
     );
   });
 
-  specify("[Semigroup.combine]", () => {
+  specify("[Semigroup.cmb]", () => {
     fc.assert(
       fc.property(arbRevStr(), arbRevStr(), (x, y) => {
-        assert.deepEqual(combine(x, y), mkReverse(combine(x.value, y.value)));
+        assert.deepEqual(cmb(x, y), mkReverse(cmb(x.value, y.value)));
       }),
     );
   });

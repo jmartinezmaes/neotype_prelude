@@ -20,6 +20,7 @@
  * @module
  */
 
+import { cmb, Semigroup } from "./cmb.js";
 import {
   cmp,
   Eq,
@@ -30,7 +31,6 @@ import {
   Ord,
   type Ordering,
 } from "./cmp.js";
-import { combine, Semigroup } from "./semigroup.js";
 import { id } from "./functions.js";
 
 /**
@@ -96,18 +96,18 @@ export namespace Maybe {
      * the values.
      *
      * ```ts
-     * combine (nothing , nothing ) ≡ nothing
-     * combine (nothing , just (y)) ≡ just (            y )
-     * combine (just (x), nothing ) ≡ just (         x    )
-     * combine (just (x), just (y)) ≡ just (combine (x, y))
+     * cmb (nothing , nothing ) ≡ nothing
+     * cmb (nothing , just (y)) ≡ just (            y )
+     * cmb (just (x), nothing ) ≡ just (         x    )
+     * cmb (just (x), just (y)) ≡ just (cmb (x, y))
      * ```
      */
-    [Semigroup.combine]<A extends Semigroup<A>>(
+    [Semigroup.cmb]<A extends Semigroup<A>>(
       this: Maybe<A>,
       that: Maybe<A>,
     ): Maybe<A> {
       if (present(this)) {
-        return present(that) ? just(combine(this.value, that.value)) : this;
+        return present(that) ? just(cmb(this.value, that.value)) : this;
       }
       return that;
     }

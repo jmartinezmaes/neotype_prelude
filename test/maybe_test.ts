@@ -1,6 +1,7 @@
 import * as fc from "fast-check";
 import { assert } from "chai";
 import { arbNum, arbStr, pair, pairNamed } from "./common.js";
+import { cmb } from "../src/cmb.js";
 import { cmp, eq, equal, greater, less } from "../src/cmp.js";
 import {
   absent,
@@ -21,7 +22,6 @@ import {
   tupledMaybe,
   zipMaybe,
 } from "../src/maybe.js";
-import { combine } from "../src/semigroup.js";
 
 function mk<A>(t: "N" | "J", x: A): Maybe<A> {
   return t === "N" ? nothing : just(x);
@@ -71,20 +71,20 @@ describe("Maybe", () => {
     );
   });
 
-  specify("[Semigroup.combine]", () => {
+  specify("[Semigroup.cmb]", () => {
     fc.assert(
       fc.property(arbStr(), arbStr(), (x, y) => {
-        const t0 = combine(nothing, nothing);
+        const t0 = cmb(nothing, nothing);
         assert.deepEqual(t0, nothing);
 
-        const t1 = combine(nothing, just(y));
+        const t1 = cmb(nothing, just(y));
         assert.deepEqual(t1, just(y));
 
-        const t2 = combine(just(x), nothing);
+        const t2 = cmb(just(x), nothing);
         assert.deepEqual(t2, just(x));
 
-        const t3 = combine(just(x), just(y));
-        assert.deepEqual(t3, just(combine(x, y)));
+        const t3 = cmb(just(x), just(y));
+        assert.deepEqual(t3, just(cmb(x, y)));
       }),
     );
   });

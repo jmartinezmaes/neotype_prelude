@@ -1,6 +1,7 @@
 import * as fc from "fast-check";
 import { assert } from "chai";
 import { arbNum, arbStr, pair, pairNamed } from "./common.js";
+import { cmb } from "../src/cmb.js";
 import {
   doAsyncEither,
   doEither,
@@ -20,7 +21,6 @@ import {
   zipEither,
 } from "../src/either.js";
 import { cmp, eq, greater, less } from "../src/cmp.js";
-import { combine } from "../src/semigroup.js";
 
 function mk<A, B>(t: "L" | "R", x: A, y: B): Either<A, B> {
   return t === "L" ? left(x) : right(y);
@@ -72,20 +72,20 @@ describe("Either", () => {
     );
   });
 
-  specify("[Semigroup.combine]", () => {
+  specify("[Semigroup.cmb]", () => {
     fc.assert(
       fc.property(arbStr(), arbStr(), (x, y) => {
-        const t0 = combine(left(x), left(y));
+        const t0 = cmb(left(x), left(y));
         assert.deepEqual(t0, left(x));
 
-        const t1 = combine(left(x), right(y));
+        const t1 = cmb(left(x), right(y));
         assert.deepEqual(t1, left(x));
 
-        const t2 = combine(right(x), left(y));
+        const t2 = cmb(right(x), left(y));
         assert.deepEqual(t2, left(y));
 
-        const t3 = combine(right(x), right(y));
-        assert.deepEqual(t3, right(combine(x, y)));
+        const t3 = cmb(right(x), right(y));
+        assert.deepEqual(t3, right(cmb(x, y)));
       }),
     );
   });
