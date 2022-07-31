@@ -190,33 +190,33 @@ export function runEval<A>(ev: Eval<A>): A {
   while (true) {
     // prettier-ignore
     switch (c.i.t) {
-       case Instr.Tag.Now: {
-         const k = ks.pop();
-         if (!k) {
-           return c.i.x;
-         }
-         c = k(c.i.x);
-       } break;
- 
-       case Instr.Tag.FlatMap: {
-         ks.push(c.i.f);
-         c = c.i.eff;
-       } break;
- 
-       case Instr.Tag.Once: {
-         if (!c.i.d) {
-           // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-           c.i.x = c.i.f!();
-           delete c.i.f;
-           c.i.d = true;
-         }
-         c = evalNow(c.i.x);
-       } break;
- 
-       case Instr.Tag.Always: {
-         c = evalNow(c.i.f());
-       } break;
-     }
+      case Instr.Tag.Now: {
+        const k = ks.pop();
+        if (!k) {
+          return c.i.x;
+        }
+        c = k(c.i.x);
+      } break;
+
+      case Instr.Tag.FlatMap: {
+        ks.push(c.i.f);
+        c = c.i.eff;
+      } break;
+
+      case Instr.Tag.Once: {
+        if (!c.i.d) {
+          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+          c.i.x = c.i.f!();
+          delete c.i.f;
+          c.i.d = true;
+        }
+        c = evalNow(c.i.x);
+      } break;
+
+      case Instr.Tag.Always: {
+        c = evalNow(c.i.f());
+      } break;
+    }
   }
 }
 
