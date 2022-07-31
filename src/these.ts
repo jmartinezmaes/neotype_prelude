@@ -31,10 +31,10 @@ import { id } from "./fn.js";
  * `A`, a {@link These.Second Second} containing a value `B`, or a
  * {@link These.Both Both} containing a pair of values `A` and `B`.
  *
- * These combines the accumulating behavior of {@link Validated} with the
- * "short-circuiting" behavior of {@link Either}. Both constructors will
- * accumulate first values according to their behavior as a Semigroup, while
- * First constructors will short-circuit the evaluation completely.
+ * These combines the accumulating behavior of Validated with the "short-
+ * circuiting" behavior of Either. Both constructors will accumulate first
+ * values according to their behavior as a Semigroup, while First constructors
+ * will short-circuit the evaluation completely.
  */
 export type These<A, B> = These.First<A> | These.Second<B> | These.Both<A, B>;
 
@@ -126,7 +126,7 @@ export namespace These {
      * cmb (second (   x), first  (b   )) ≡ both   (        b ,      x    )
      * cmb (second (   x), second (   y)) ≡ second (            cmb (x, y))
      * cmb (second (   x), both   (b, y)) ≡ both   (        b , cmb (x, y))
-     * cmb (both   (a, x), first  (b   )) ≡ both   (cmb (a, b),          x    )
+     * cmb (both   (a, x), first  (b   )) ≡ both   (cmb (a, b),      x    )
      * cmb (both   (a, x), second (   y)) ≡ both   (         a, cmb (x, y))
      * cmb (both   (a, x), both   (b, y)) ≡ both   (cmb (a, b), cmb (x, y))
      * ```
