@@ -16,7 +16,7 @@ import {
   tupledValidated,
   type Validated,
   viewValidated,
-  zipValidated,
+  sequenceValidated,
 } from "../src/validated.js";
 
 function mk<A, B>(t: "D" | "A", x: A, y: B): Validated<A, B> {
@@ -228,17 +228,17 @@ describe("Validated", () => {
     assert.deepEqual(t1, accept(["X", "Y"]));
   });
 
-  specify("zipValidated", () => {
-    const t0 = zipValidated([mk("D", sa, _2), mk("D", sc, _4)]);
+  specify("sequenceValidated", () => {
+    const t0 = sequenceValidated([mk("D", sa, _2), mk("D", sc, _4)]);
     assert.deepEqual(t0, dispute(cmb(sa, sc)));
 
-    const t1 = zipValidated([mk("D", sa, _2), mk("A", sc, _4)]);
+    const t1 = sequenceValidated([mk("D", sa, _2), mk("A", sc, _4)]);
     assert.deepEqual(t1, dispute(sa));
 
-    const t2 = zipValidated([mk("A", sa, _2), mk("D", sc, _4)]);
+    const t2 = sequenceValidated([mk("A", sa, _2), mk("D", sc, _4)]);
     assert.deepEqual(t2, dispute(sc));
 
-    const t3 = zipValidated([mk("A", sa, _2), mk("A", sc, _4)]);
+    const t3 = sequenceValidated([mk("A", sa, _2), mk("A", sc, _4)]);
     assert.deepEqual(t3, accept([_2, _4] as const));
   });
 

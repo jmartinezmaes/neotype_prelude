@@ -312,15 +312,15 @@ export function traverseValidated<A, E extends Semigroup<E>, B>(
  * Evaluate the Validateds in an array or a tuple literal from left to right and
  * collect the accepted values in an array or a tuple literal, respectively.
  */
-export function zipValidated<E extends Semigroup<E>, A0, A1>(
+export function sequenceValidated<E extends Semigroup<E>, A0, A1>(
   xs: readonly [Validated<E, A0>, Validated<E, A1>],
 ): Validated<E, readonly [A0, A1]>;
 
-export function zipValidated<E extends Semigroup<E>, A0, A1, A2>(
+export function sequenceValidated<E extends Semigroup<E>, A0, A1, A2>(
   xs: readonly [Validated<E, A0>, Validated<E, A1>, Validated<E, A2>],
 ): Validated<E, readonly [A0, A1, A2]>;
 
-export function zipValidated<E extends Semigroup<E>, A0, A1, A2, A3>(
+export function sequenceValidated<E extends Semigroup<E>, A0, A1, A2, A3>(
   xs: readonly [
     Validated<E, A0>,
     Validated<E, A1>,
@@ -329,7 +329,7 @@ export function zipValidated<E extends Semigroup<E>, A0, A1, A2, A3>(
   ],
 ): Validated<E, readonly [A0, A1, A2, A3]>;
 
-export function zipValidated<E extends Semigroup<E>, A0, A1, A2, A3, A4>(
+export function sequenceValidated<E extends Semigroup<E>, A0, A1, A2, A3, A4>(
   xs: readonly [
     Validated<E, A0>,
     Validated<E, A1>,
@@ -339,7 +339,15 @@ export function zipValidated<E extends Semigroup<E>, A0, A1, A2, A3, A4>(
   ],
 ): Validated<E, readonly [A0, A1, A2, A3, A4]>;
 
-export function zipValidated<E extends Semigroup<E>, A0, A1, A2, A3, A4, A5>(
+export function sequenceValidated<
+  E extends Semigroup<E>,
+  A0,
+  A1,
+  A2,
+  A3,
+  A4,
+  A5,
+>(
   xs: readonly [
     Validated<E, A0>,
     Validated<E, A1>,
@@ -351,7 +359,7 @@ export function zipValidated<E extends Semigroup<E>, A0, A1, A2, A3, A4, A5>(
 ): Validated<E, readonly [A0, A1, A2, A3, A4, A5]>;
 
 // prettier-ignore
-export function zipValidated<E extends Semigroup<E>, A0, A1, A2, A3, A4, A5, A6>(
+export function sequenceValidated<E extends Semigroup<E>, A0, A1, A2, A3, A4, A5, A6>(
   xs: readonly [
     Validated<E, A0>,
     Validated<E, A1>,
@@ -364,7 +372,7 @@ export function zipValidated<E extends Semigroup<E>, A0, A1, A2, A3, A4, A5, A6>
 ): Validated<E, readonly [A0, A1, A2, A3, A4, A5, A6]>;
 
 // prettier-ignore
-export function zipValidated<E extends Semigroup<E>, A0, A1, A2, A3, A4, A5, A6, A7>(
+export function sequenceValidated<E extends Semigroup<E>, A0, A1, A2, A3, A4, A5, A6, A7>(
   xs: readonly [
     Validated<E, A0>,
     Validated<E, A1>,
@@ -378,7 +386,7 @@ export function zipValidated<E extends Semigroup<E>, A0, A1, A2, A3, A4, A5, A6,
 ): Validated<E, readonly [A0, A1, A2, A3, A4, A5, A6, A7]>;
 
 // prettier-ignore
-export function zipValidated<E extends Semigroup<E>, A0, A1, A2, A3, A4, A5, A6, A7, A8>(
+export function sequenceValidated<E extends Semigroup<E>, A0, A1, A2, A3, A4, A5, A6, A7, A8>(
   xs: readonly [
     Validated<E, A0>,
     Validated<E, A1>,
@@ -393,7 +401,7 @@ export function zipValidated<E extends Semigroup<E>, A0, A1, A2, A3, A4, A5, A6,
 ): Validated<E, readonly [A0, A1, A2, A3, A4, A5, A6, A7, A8]>;
 
 // prettier-ignore
-export function zipValidated<E extends Semigroup<E>, A0, A1, A2, A3, A4, A5, A6, A7, A8, A9>(
+export function sequenceValidated<E extends Semigroup<E>, A0, A1, A2, A3, A4, A5, A6, A7, A8, A9>(
   xs: readonly [
     Validated<E, A0>,
     Validated<E, A1>,
@@ -408,11 +416,11 @@ export function zipValidated<E extends Semigroup<E>, A0, A1, A2, A3, A4, A5, A6,
   ],
 ): Validated<E, readonly [A0, A1, A2, A3, A4, A5, A6, A7, A8, A9]>;
 
-export function zipValidated<E extends Semigroup<E>, A>(
+export function sequenceValidated<E extends Semigroup<E>, A>(
   xs: readonly Validated<E, A>[],
 ): Validated<E, readonly A[]>;
 
-export function zipValidated<E extends Semigroup<E>, A>(
+export function sequenceValidated<E extends Semigroup<E>, A>(
   xs: readonly Validated<E, A>[],
 ): Validated<E, readonly A[]> {
   return xs.reduce((acc, v, iv) => {
@@ -526,7 +534,7 @@ export function tupledValidated<E extends Semigroup<E>, A0, A1, A2, A3, A4, A5, 
 export function tupledValidated<E extends Semigroup<E>, A>(
   ...xs: Validated<E, A>[]
 ): Validated<E, readonly A[]> {
-  return zipValidated(xs);
+  return sequenceValidated(xs);
 }
 
 /**
@@ -537,7 +545,7 @@ export function liftValidated<T extends unknown[], A>(
 ): <E extends Semigroup<E>>(
   ...args: { [K in keyof T]: Validated<E, T[K]> }
 ) => Validated<E, A> {
-  return (...args) => zipValidated(args).map((xs) => f(...(xs as T)));
+  return (...args) => sequenceValidated(args).map((xs) => f(...(xs as T)));
 }
 
 /**
@@ -566,5 +574,6 @@ export function liftNewValidated<T extends unknown[], A>(
 ): <E extends Semigroup<E>>(
   ...args: { [K in keyof T]: Validated<E, T[K]> }
 ) => Validated<E, A> {
-  return (...args) => zipValidated(args).map((xs) => new ctor(...(xs as T)));
+  return (...args) =>
+    sequenceValidated(args).map((xs) => new ctor(...(xs as T)));
 }

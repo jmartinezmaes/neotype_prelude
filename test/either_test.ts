@@ -20,7 +20,7 @@ import {
   traverseEither,
   tupledEither,
   viewEither,
-  zipEither,
+  sequenceEither,
 } from "../src/either.js";
 import { accept, dispute } from "../src/validated.js";
 
@@ -278,8 +278,8 @@ describe("Either", () => {
     assert.deepEqual(t0, right(["X", "Y"]));
   });
 
-  specify("zipEither", () => {
-    const t0 = zipEither([mk("R", _1, _2), mk("R", _3, _4)] as const);
+  specify("sequenceEither", () => {
+    const t0 = sequenceEither([mk("R", _1, _2), mk("R", _3, _4)] as const);
     assert.deepEqual(t0, right([_2, _4] as const));
   });
 
