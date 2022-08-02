@@ -13,7 +13,6 @@ import {
   gt,
   icmp,
   ieq,
-  ine,
   le,
   less,
   lt,
@@ -64,18 +63,6 @@ describe("Eq", () => {
         assert.strictEqual(ieq([a, x], [b]), false);
         assert.strictEqual(ieq([a], [b, y]), false);
         assert.strictEqual(ieq([a, x], [b, y]), eq(a, b) && eq(x, y));
-      }),
-    );
-  });
-
-  specify("ine", () => {
-    fc.assert(
-      fc.property(arbNum(), arbNum(), arbNum(), arbNum(), (a, x, b, y) => {
-        assert.strictEqual(ine([a], []), true);
-        assert.strictEqual(ine([], [b]), true);
-        assert.strictEqual(ine([a, x], [b]), true);
-        assert.strictEqual(ine([a], [b, y]), true);
-        assert.strictEqual(ine([a, x], [b, y]), ne(a, b) || ne(x, y));
       }),
     );
   });

@@ -115,16 +115,6 @@ export function ieq<A extends Eq<A>>(
 }
 
 /**
- * Test two iterables for inequality.
- */
-export function ine<A extends Eq<A>>(
-  xs: Iterable<A>,
-  ys: Iterable<A>,
-): boolean {
-  return !ieq(xs, ys);
-}
-
-/**
  * An interface that provides evidence of a total order.
  *
  * ## Minimal implementation
