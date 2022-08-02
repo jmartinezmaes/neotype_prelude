@@ -34,10 +34,8 @@ import {
 import { id } from "./fn.js";
 
 /**
- * A `Maybe<A>` models an optional value `A`. A Maybe can be a
- * {@link Maybe.Just Just} containing a value `A` or the singleton `Nothing`.
- *
- * When composed, Maybe will "short circuit" on the first encountered Nothing.
+ * A type that represents either an absent value ({@link Maybe.Nothing Nothing})
+ * or a present value ({@link Maybe.Just Just}).
  */
 export type Maybe<A> = Maybe.Nothing | Maybe.Just<A>;
 
@@ -53,18 +51,11 @@ export namespace Maybe {
   export type Uid = typeof uid;
 
   /**
-   * The unified syntax for Maybe.
+   * The fluent syntax for Maybe.
    */
   export abstract class Syntax {
     /**
      * Test whether this and that Maybe are equal using Eq comparison.
-     *
-     * ```ts
-     * eq (nothing , nothing ) ≡ true
-     * eq (nothing , just (x)) ≡ false
-     * eq (just (x), nothing ) ≡ false
-     * eq (just (x), just (y)) ≡ eq (x, y)
-     * ```
      */
     [Eq.eq]<A extends Eq<A>>(this: Maybe<A>, that: Maybe<A>): boolean {
       if (absent(this)) {
@@ -75,13 +66,6 @@ export namespace Maybe {
 
     /**
      * Compare this and that Maybe using Ord comparison.
-     *
-     * ```ts
-     * cmp (nothing , nothing ) ≡ equal
-     * cmp (nothing , just (y)) ≡ less
-     * cmp (just (x), nothing ) ≡ greater
-     * cmp (just (x), just (y)) ≡ cmp (x, y)
-     * ```
      */
     [Ord.cmp]<A extends Ord<A>>(this: Maybe<A>, that: Maybe<A>): Ordering {
       if (absent(this)) {
@@ -94,13 +78,6 @@ export namespace Maybe {
      * If this or that Maybe is absent, return the first non-absent Maybe. If
      * this and that are both present and their values are a Semigroup, combine
      * the values.
-     *
-     * ```ts
-     * cmb (nothing , nothing ) ≡ nothing
-     * cmb (nothing , just (y)) ≡ just (            y )
-     * cmb (just (x), nothing ) ≡ just (         x    )
-     * cmb (just (x), just (y)) ≡ just (cmb (x, y))
-     * ```
      */
     [Semigroup.cmb]<A extends Semigroup<A>>(
       this: Maybe<A>,
@@ -375,9 +352,7 @@ export function doMaybe<A>(
 }
 
 /**
- * Reduce an iterable from left to right in the context of Maybe.
- *
- * The iterable must be finite.
+ * Reduce a finite iterable from left to right in the context of Maybe.
  */
 export function reduceMaybe<A, B>(
   xs: Iterable<A>,
@@ -394,10 +369,8 @@ export function reduceMaybe<A, B>(
 }
 
 /**
- * Map each element of an iterable to a Maybe, then evaluate the Maybes from
- * left to right and collect the results in an array.
- *
- * The iterable must be finite.
+ * Map each element of a finite iterable to a Maybe, then evaluate the Maybes
+ * from left to right and collect the results in an array.
  */
 export function traverseMaybe<A, B>(
   xs: Iterable<A>,

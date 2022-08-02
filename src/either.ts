@@ -25,17 +25,8 @@ import { cmp, Eq, eq, greater, less, Ord, type Ordering } from "./cmp.js";
 import { id } from "./fn.js";
 
 /**
- * An `Either<A, B>` models an "exclusive or" relationship between two values
- * `A` and `B`. An Either can be a {@link Either.Right Right} containing a value
- * `A`, or a {@link Either.Left Left} containing a value `B`.
- *
- * Either is sometimes used to represent a value which is either correct or an
- * error; convention dictates that the Right constructor is used to hold a
- * correct value, and the Left constructor is used to hold an error value.
- *
- * When composed, Either will "short circuit" on the first encountered Left
- * constructor. This behavior makes Either a useful data type for modelling
- * programs that may fail.
+ * A type that represents an "exclusive or" relationship between two values
+ * ({@link Either.Left Left} and {@link Either.Right Right}).
  */
 export type Either<A, B> = Either.Left<A> | Either.Right<B>;
 
@@ -51,18 +42,11 @@ export namespace Either {
   export type Uid = typeof uid;
 
   /**
-   * The unified syntax for Either.
+   * The fluent syntax for Either.
    */
   export abstract class Syntax {
     /**
      * Test whether this and that Either are equal using Eq comparison.
-     *
-     * ```ts
-     * eq (left  (x), left  (y)) ≡ eq (x, y)
-     * eq (left  (x), right (y)) ≡ false
-     * eq (right (x), left  (y)) ≡ false
-     * eq (right (x), right (y)) ≡ eq (x, y)
-     * ```
      */
     [Eq.eq]<A extends Eq<A>, B extends Eq<B>>(
       this: Either<A, B>,
@@ -76,13 +60,6 @@ export namespace Either {
 
     /**
      * Compare this and that Either using Ord comparison.
-     *
-     * ```ts
-     * cmp (left  (x), left  (y)) ≡ cmp (x, y)
-     * cmp (left  (x), right (y)) ≡ less
-     * cmp (right (x), left  (y)) ≡ greater
-     * cmp (right (x), right (y)) ≡ cmp (x, y)
-     * ```
      */
     [Ord.cmp]<A extends Ord<A>, B extends Ord<B>>(
       this: Either<A, B>,
@@ -97,13 +74,6 @@ export namespace Either {
     /**
      * If this and that Either are both rightsided and their values are a
      * Semigroup, combine the values.
-     *
-     * ```ts
-     * cmb (left  (x), left  (y)) ≡ left  (         x    )
-     * cmb (left  (x), right (y)) ≡ left  (         x    )
-     * cmb (right (x), left  (y)) ≡ left  (            y )
-     * cmb (right (x), right (y)) ≡ right (cmb (x, y))
-     * ```
      */
     [Semigroup.cmb]<E, A extends Semigroup<A>>(
       this: Either<E, A>,
@@ -427,9 +397,7 @@ export function doEither<T extends readonly [Either<any, any>, Either.Uid], A>(
 }
 
 /**
- * Reduce an iterable from left to right in the context of Either.
- *
- * The iterable must be finite.
+ * Reduce a finite iterable from left to right in the context of Either.
  */
 export function reduceEither<A, B, E>(
   xs: Iterable<A>,
@@ -446,10 +414,8 @@ export function reduceEither<A, B, E>(
 }
 
 /**
- * Map each element of an iterable to an Either, then evaluate the Eithers from
- * left to right and collect the rightsided values in an array.
- *
- * The iterable must be finite.
+ * Map each element of a finite iterable to an Either, then evaluate the Eithers
+ * from left to right and collect the rightsided values in an array.
  */
 export function traverseEither<A, E, B>(
   xs: Iterable<A>,

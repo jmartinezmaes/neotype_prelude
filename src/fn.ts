@@ -15,7 +15,7 @@
  */
 
 /**
- * Utility functions.
+ * Utility functions and function application.
  *
  * @module
  */

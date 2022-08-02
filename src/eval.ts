@@ -25,9 +25,7 @@ import { id } from "./fn.js";
 import { MutStack } from "./internal/mut_stack.js";
 
 /**
- * An `Eval<A>` models a synchronous computation that produces a value `A`. Eval
- * provides control over synchronous execution and can defer, memoize, and
- * compose computations.
+ * A type that models a synchronous computation.
  */
 export class Eval<out A> {
   /**
@@ -246,9 +244,7 @@ export function doEval<A>(
 }
 
 /**
- * Reduce an iterable from left to right in the context of Eval.
- *
- * The iterable must be finite.
+ * Reduce a finite iterable from left to right in the context of Eval.
  */
 export function reduceEval<A, B>(
   xs: Iterable<A>,
@@ -265,10 +261,8 @@ export function reduceEval<A, B>(
 }
 
 /**
- * Map each element of an iterable to an Eval, then evaluate the Evals from left
- * to right and collect the results in an array.
- *
- * The iterable must be finite.
+ * Map each element of a finite iterable to an Eval, then evaluate the Evals
+ * from left to right and collect the results in an array.
  */
 export function traverseEval<A, B>(
   xs: Iterable<A>,

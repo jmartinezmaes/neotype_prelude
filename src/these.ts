@@ -15,8 +15,7 @@
  */
 
 /**
- * A hybrid Either/Validated type with both short-circuiting and accumulating
- * behavior.
+ * Dual functionality of Either and Validated.
  *
  * @module
  */
@@ -26,15 +25,9 @@ import { cmp, Eq, eq, greater, less, Ord, type Ordering } from "./cmp.js";
 import { id } from "./fn.js";
 
 /**
- * A `These<E, A>` models an "either or both" relationship between two values
- * `A` and `B`. A These can be a {@link These.First First} containing a value
- * `A`, a {@link These.Second Second} containing a value `B`, or a
- * {@link These.Both Both} containing a pair of values `A` and `B`.
- *
- * These combines the accumulating behavior of Validated with the "short-
- * circuiting" behavior of Either. Both constructors will accumulate first
- * values according to their behavior as a Semigroup, while First constructors
- * will short-circuit the evaluation completely.
+ * A type that represents an "inclusive-or" relationship between two values
+ * ({@link These.First First}, {@link These.Second Second}, or
+ * {@link These.Both Both}).
  */
 export type These<A, B> = These.First<A> | These.Second<B> | These.Both<A, B>;
 
@@ -50,23 +43,11 @@ export namespace These {
   export type Uid = typeof uid;
 
   /**
-   * The unitfied Syntax for These.
+   * The fluent syntax for These.
    */
   export abstract class Syntax {
     /**
      * Test whether this and that These are equal using Eq comparison.
-     *
-     * ```ts
-     * eq (first  (a   ), first  (b   )) ≡ eq (a, b)
-     * eq (first  (a   ), second (   y)) ≡ false
-     * eq (first  (a   ), both   (b, y)) ≡ false
-     * eq (second (   x), first  (b   )) ≡ false
-     * eq (second (   x), second (   y)) ≡ eq (x, y)
-     * eq (second (   x), both   (b, y)) ≡ false
-     * eq (both   (a, x), first  (b   )) ≡ false
-     * eq (both   (a, x), second (   y)) ≡ false
-     * eq (both   (a, x), both   (b, y)) ≡ eq (a, b) && eq (x, y)
-     * ```
      */
     [Eq.eq]<A extends Eq<A>, B extends Eq<B>>(
       this: These<A, B>,
@@ -83,18 +64,6 @@ export namespace These {
 
     /**
      * Compare this and that These using Ord comparison.
-     *
-     * ```ts
-     * cmp (first  (a   ), first  (b   )) ≡ cmp (a, b)
-     * cmp (first  (a   ), second (   y)) ≡ less
-     * cmp (first  (a   ), both   (b, y)) ≡ less
-     * cmp (second (   x), first  (b   )) ≡ greater
-     * cmp (second (   x), second (   y)) ≡ cmp (x, y)
-     * cmp (second (   x), both   (b, y)) ≡ less
-     * cmp (both   (a, x), first  (b   )) ≡ greater
-     * cmp (both   (a, x), second (   y)) ≡ greater
-     * cmp (both   (a, x), both   (b, y)) ≡ cmb (cmp (a, b), cmp (x, y))
-     * ```
      */
     [Ord.cmp]<A extends Ord<A>, B extends Ord<B>>(
       this: These<A, B>,
@@ -118,18 +87,6 @@ export namespace These {
     /**
      * Combine this and that These, accumulating both first and second values
      * using Semigroup combination.
-     *
-     * ```ts
-     * cmb (first  (a   ), first  (b   )) ≡ first  (cmb (a, b)            )
-     * cmb (first  (a   ), second (   y)) ≡ both   (         a,         y )
-     * cmb (first  (a   ), both   (b, y)) ≡ both   (cmb (a, b),         y )
-     * cmb (second (   x), first  (b   )) ≡ both   (        b ,      x    )
-     * cmb (second (   x), second (   y)) ≡ second (            cmb (x, y))
-     * cmb (second (   x), both   (b, y)) ≡ both   (        b , cmb (x, y))
-     * cmb (both   (a, x), first  (b   )) ≡ both   (cmb (a, b),      x    )
-     * cmb (both   (a, x), second (   y)) ≡ both   (         a, cmb (x, y))
-     * cmb (both   (a, x), both   (b, y)) ≡ both   (cmb (a, b), cmb (x, y))
-     * ```
      */
     [Semigroup.cmb]<A extends Semigroup<A>, B extends Semigroup<B>>(
       this: These<A, B>,
@@ -462,9 +419,7 @@ export function doThese<E extends Semigroup<E>, A>(
 }
 
 /**
- * Reduce an iterable from left to right in the context of These.
- *
- * The iterable must be finite.
+ * Reduce a finite iterable from left to right in the context of These.
  */
 export function reduceThese<A, B, E extends Semigroup<E>>(
   xs: Iterable<A>,
@@ -481,10 +436,8 @@ export function reduceThese<A, B, E extends Semigroup<E>>(
 }
 
 /**
- * Map each element of an iterable to a These, then evaluate the These from left
- * to right and collect the second values in an array.
- *
- * The iterable must be finite.
+ * Map each element of a finite iterable to a These, then evaluate the These
+ * from left to right and collect the second values in an array.
  */
 export function traverseThese<A, E extends Semigroup<E>, B>(
   xs: Iterable<A>,

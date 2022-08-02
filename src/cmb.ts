@@ -21,14 +21,13 @@
  */
 
 /**
- * The `Semigroup<A>` interface provides evidence that two values of type `A`
- * have an associative operation that combines them.
+ * An interface that provides evidence of an associative binary operation.
  *
- * ### Minimal implementation
+ * ## Minimal implementation
  *
  * - {@link Semigroup[Semigroup.cmb]}
  *
- * ### Properties
+ * ## Properties
  *
  * Instances of Semigroup __must__ satisfy the following property:
  *

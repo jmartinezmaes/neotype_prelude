@@ -24,8 +24,7 @@ import { cmb, Semigroup } from "./cmb.js";
 import { Eq, icmp, ieq, Ord, type Ordering } from "./cmp.js";
 
 /**
- * A helper type for tuple literals of arity 2 through 10 that provides
- * evidence for comparing equality, determining order, and combining.
+ * A helper type for tuple literals of arity 2 through 10.
  */
 export class Tuple<out T extends readonly [any, any, ...any[]]> {
   /**
@@ -36,10 +35,6 @@ export class Tuple<out T extends readonly [any, any, ...any[]]> {
   /**
    * Test whether this and that Tuple are equal pairwise using their elements'
    * behavior as Eqs.
-   *
-   * ```ts
-   * eq (mkTuple ([a, x]), mkTuple ([b, y])) ≡ eq (a, b) && eq (x, y)
-   * ```
    */
   [Eq.eq]<A0 extends Eq<A0>, A1 extends Eq<A1>>(
     this: Tuple<readonly [A0, A1]>,
@@ -102,10 +97,6 @@ export class Tuple<out T extends readonly [any, any, ...any[]]> {
 
   /**
    * Compare this and that Tuple pairwise using their elements' behavior as Ords.
-   *
-   * ```ts
-   * cmp (mkTuple ([a, x]), mkTuple ([b, y])) ≡ cmb (cmp (a, b), cmp (x, y))
-   * ```
    */
   [Ord.cmp]<A0 extends Ord<A0>, A1 extends Ord<A1>>(
     this: Tuple<readonly [A0, A1]>,
@@ -169,10 +160,6 @@ export class Tuple<out T extends readonly [any, any, ...any[]]> {
   /**
    * Combine this and that Tuple's elements pairwise using their elements'
    * behavior as Semigroups.
-   *
-   * ```ts
-   * cmb (mkTuple ([a, x]), mkTuple ([b, y])) ≡ mkTuple ([cmb (a, b), cmb (x, y)])
-   * ```
    */
   [Semigroup.cmb]<A0 extends Semigroup<A0>, A1 extends Semigroup<A1>>(
     this: Tuple<readonly [A0, A1]>,

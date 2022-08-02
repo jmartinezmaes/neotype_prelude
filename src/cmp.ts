@@ -23,14 +23,13 @@
 import { cmb, Semigroup } from "./cmb.js";
 
 /**
- * The `Eq<A>` interface provides evidence that two values of type `A` have
- * an equivalence relation.
+ * An interface that provides evidence of an equivalance relation.
  *
- * ### Minimal implementation
+ * ## Minimal implementation
  *
  * - {@link Eq[Eq.eq]}
  *
- * ### Properties
+ * ## Properties
  *
  * Instances of Eq are encouraged to satisfy the following properties:
  *
@@ -64,7 +63,7 @@ export namespace Eq {
 }
 
 /**
- * Test whether two values are equal using Eq comparison.
+ * Test two values for equality.
  *
  * ```ts
  * eq (x, y) ≡ x[Eq.eq](y)
@@ -75,7 +74,7 @@ export function eq<A extends Eq<A>>(x: A, y: A): boolean {
 }
 
 /**
- * Test whether two values are inequal using Eq comparison.
+ * Test two values for inequality.
  *
  * ```ts
  * ne (x, y) ≡ !x[Eq.eq](y)
@@ -86,15 +85,7 @@ export function ne<A extends Eq<A>>(x: A, y: A): boolean {
 }
 
 /**
- * Test whether two iterables are equal using Eq comparison.
- *
- * ```ts
- * ieq ([a   ], [    ]) ≡ false
- * ieq ([    ], [b   ]) ≡ false
- * ieq ([a, x], [b   ]) ≡ false
- * ieq ([a,  ], [b, y]) ≡ false
- * ieq ([a, x], [b, y]) ≡ eq (a, b) && eq (x, y)
- * ```
+ * Test two iterables for equality.
  */
 export function ieq<A extends Eq<A>>(
   xs: Iterable<A>,
@@ -124,7 +115,7 @@ export function ieq<A extends Eq<A>>(
 }
 
 /**
- * Test whether two iterables are inequal using Eq comparison.
+ * Test two iterables for inequality.
  */
 export function ine<A extends Eq<A>>(
   xs: Iterable<A>,
@@ -134,15 +125,14 @@ export function ine<A extends Eq<A>>(
 }
 
 /**
- * The `Ord<A>` interface provides evidence that two values of type `A` form a
- * total order.
+ * An interface that provides evidence of a total order.
  *
- * ### Minimal implementation
+ * ## Minimal implementation
  *
  * - {@link Eq[Eq.eq]}
  * - {@link Ord[Ord.cmp]}
  *
- * ### Properties
+ * ## Properties
  *
  * Instances of Ord __must__ satisfy the following properties:
  *
@@ -175,7 +165,7 @@ export namespace Ord {
 }
 
 /**
- * Compare `x` to `y` using Ord comparison.
+ * Determine the ordering of two values.
  *
  * ```ts
  * cmp (x, y) ≡ x[Ord.cmp](y)
@@ -186,15 +176,7 @@ export function cmp<A extends Ord<A>>(x: A, y: A): Ordering {
 }
 
 /**
- * Compare two iterables using Ord comparison.
- *
- * ```ts
- * icmp ([a   ], [    ]) ≡ greater
- * icmp ([    ], [b   ]) ≡ less
- * icmp ([a, x], [b   ]) ≡ cmb (cmp (a, b), greater   )
- * icmp ([a,  ], [b, y]) ≡ cmb (cmp (a, b), less      )
- * icmp ([a, x], [b, y]) ≡ cmb (cmp (a, b), cmp (x, y))
- * ```
+ * Determine the ordering of two iterables.
  */
 export function icmp<A extends Ord<A>>(
   xs: Iterable<A>,
@@ -225,60 +207,56 @@ export function icmp<A extends Ord<A>>(
 }
 
 /**
- * Test whether `x` is less than `y` using Ord comparison.
+ * Test whether `x` is less than `y`.
  */
 export function lt<A extends Ord<A>>(x: A, y: A): boolean {
   return ordLt(cmp(x, y));
 }
 
 /**
- * Test whether `x` is greater than `y` using Ord comparison.
+ * Test whether `x` is greater than `y`.
  */
 export function gt<A extends Ord<A>>(x: A, y: A): boolean {
   return ordGt(cmp(x, y));
 }
 
 /**
- * Test whether `x` is less than or equal to `y` using Ord comparison.
+ * Test whether `x` is less than or equal to `y`.
  */
 export function le<A extends Ord<A>>(x: A, y: A): boolean {
   return ordLe(cmp(x, y));
 }
 
 /**
- * Test whether `x` is greater than or equal to `y` using Ord comparison.
+ * Test whether `x` is greater than or equal to `y`.
  */
 export function ge<A extends Ord<A>>(x: A, y: A): boolean {
   return ordGe(cmp(x, y));
 }
 
 /**
- * Find the minimum of a non-empty series of values using Ord comparison.
+ * Find the minimum of two values.
  */
 export function min<A extends Ord<A>>(...xs: [A, ...A[]]): A {
   return xs.reduce((acc, x) => (lt(acc, x) ? acc : x));
 }
 
 /**
- * Find the maximum of a non-empty series of values using Ord comparison.
+ * Find the maximum of two values.
  */
 export function max<A extends Ord<A>>(...xs: [A, ...A[]]): A {
   return xs.reduce((acc, x) => (gt(acc, x) ? acc : x));
 }
 
 /**
- * Restrict a value to an inclusive bounds using Ord comparison.
+ * Restrict a value to an inclusive bounds.
  */
 export function clamp<A extends Ord<A>>(x: A, lo: A, hi: A) {
   return min(hi, max(lo, x));
 }
 
 /**
- * An `Ordering` determines the arrangement of two values in relation to each
- * other, usually according to a particular sequence or pattern.
- *
- * An Ordering can be one of three nullary constructors: `Less`, `Equal`, or
- * `Greater`.
+ * The result of a comparison between two values.
  */
 export type Ordering = Ordering.Less | Ordering.Equal | Ordering.Greater;
 
@@ -294,18 +272,18 @@ export namespace Ordering {
   export type Uid = typeof uid;
 
   /**
-   * The unified syntax for Ordering.
+   * The fluent syntax for Ordering.
    */
   export abstract class Syntax {
     /**
-     * Test whether this and that Ordering are equal using Eq comparison.
+     * Test this and that Ordering for equality.
      */
     [Eq.eq](this: Ordering, that: Ordering): boolean {
       return this.value === that.value;
     }
 
     /**
-     * Compare this and that Ordering using Ord comparison, where
+     * Determine the ordering of this and that Ordering, where
      * `Less < Equal < Greater`.
      */
     [Ord.cmp](this: Ordering, that: Ordering): Ordering {
@@ -319,13 +297,8 @@ export namespace Ordering {
     }
 
     /**
-     * Combine this and that Ordering.
-     *
-     * ```ts
-     * cmb (less   , y) ≡ less
-     * cmb (equal  , y) ≡ y
-     * cmb (greater, y) ≡ greater
-     * ```
+     * If this Ordering is Equal, return this; otherwise, return the other
+     * Ordering.
      */
     [Semigroup.cmb](this: Ordering, that: Ordering): Ordering {
       return ordEq(this) ? that : this;
@@ -463,13 +436,7 @@ export function ordGt(ordering: Ordering): ordering is Ordering.Greater {
 }
 
 /**
- * Reverse an ordering relationship.
- *
- * ```ts
- * reverseOrdering (less   ) ≡ greater
- * reverseOrdering (greater) ≡ less
- * reverseOrdering (equal  ) ≡ equal
- * ```
+ * Reverse an ordering.
  */
 export function reverseOrdering(ordering: Ordering): Ordering {
   if (ordLt(ordering)) {
@@ -483,34 +450,6 @@ export function reverseOrdering(ordering: Ordering): Ordering {
 
 /**
  * A helper type for reverse ordering.
- *
- * @example
- *
- * ```ts
- * class Num implements Ord<Num> {
- *   constructor(readonly x: number) { }
- *
- *   [Eq.eq](that: Num): boolean {
- *     return this.x === that.x;
- *   }
- *
- *   [Ord.cmp](that: Num): Ordering {
- *     return this.x < that.x ? less : this.x < that.x ? greater : equal;
- *   }
- * }
- *
- * const x = new Num(1);
- * const y = new Num(2);
- *
- * const ordXY = cmp(x, y);
- * console.log(ordXY); // Less
- *
- * const dx = mkReverse(x);
- * const dy = mkReverse(y);
- *
- * const ordDXY = cmp(dx, dy);
- * console.log(ordDXY); // Greater
- * ```
  */
 export class Reverse<A> {
   /**
@@ -519,36 +458,24 @@ export class Reverse<A> {
   constructor(readonly value: A) {}
 
   /**
-   * Test whether this and that Reverse are equal according to their values'
-   * behavior as an Eq.
-   *
-   * ```ts
-   * eq (mkReverse (x), mkReverse (y)) ≡ eq (x, y)
-   * ```
+   * Test this and that Reverse for equality using thier values' behavior as
+   * instances of Eq.
    */
   [Eq.eq]<A extends Eq<A>>(this: Reverse<A>, that: Reverse<A>): boolean {
     return eq(this.value, that.value);
   }
 
   /**
-   * Compare this and that Reverse using Ord comparison, reversing the Ordering
-   * of the underlying Ord values.
-   *
-   * ```ts
-   * cmp (mkReverse (x), mkReverse (y)) ≡ reverseOrdering (cmp (x, y))
-   * ```
+   * Determine the ordering of this and that Reverse, reversing the ordering
+   * of their underlying Ord values.
    */
   [Ord.cmp]<A extends Ord<A>>(this: Reverse<A>, that: Reverse<A>): Ordering {
     return reverseOrdering(cmp(this.value, that.value));
   }
 
   /**
-   * Combine this and that Reverse according to their values' behavior as a
+   * Combine this and that Reverse using their values' behavior as instances of
    * Semigroup.
-   *
-   * ```ts
-   * cmb (mkReverse (x), mkReverse (y)) ≡ mkReverse (cmb (x, y))
-   * ```
    */
   [Semigroup.cmb]<A extends Semigroup<A>>(
     this: Reverse<A>,

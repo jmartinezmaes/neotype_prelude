@@ -15,7 +15,7 @@
  */
 
 /**
- * Sum types with accumulating left values.
+ * Validation with accumulating failures.
  *
  * @module
  */
@@ -26,12 +26,9 @@ import { type Either, left, right } from "./either.js";
 import { id } from "./fn.js";
 
 /**
- * A `Validated<E, A>` models an accumulating disputed value `E` or an accepted
- * value `A`.
- *
- * When Validateds are composed, disputed values will accumulate according to
- * thier behavior as a Semigroup. This behavior makes Validated a useful data
- * type for reporting multiple failures within a program.
+ * A type that represents either an accumulating failure
+ * ({@link Validated.Disputed Disputed}) or a success
+ * ({@link Validated.Accepted Accepted}).
  */
 export type Validated<E, A> = Validated.Disputed<E> | Validated.Accepted<A>;
 
@@ -47,18 +44,11 @@ export namespace Validated {
   export type Uid = typeof uid;
 
   /**
-   * The unified Syntax for Validated.
+   * The fluent syntax for Validated.
    */
   export abstract class Syntax {
     /**
      * Test whether this and that Validated are equal using Eq comparison.
-     *
-     * ```ts
-     * eq (dispute (x), dispute (y)) ≡ eq (x, y)
-     * eq (dispute (x), accept  (y)) ≡ false
-     * eq (accept  (x), dispute (y)) ≡ false
-     * eq (accept  (x), accept  (y)) ≡ eq (x, y)
-     * ```
      */
     [Eq.eq]<E extends Eq<E>, A extends Eq<A>>(
       this: Validated<E, A>,
@@ -72,11 +62,6 @@ export namespace Validated {
 
     /**
      * Compare this and that Validated using Ord comparison.
-     *
-     * cmp (dispute (x), dispute (y)) ≡ cmp (x, y)
-     * cmp (dispute (x), accept  (y)) ≡ less
-     * cmp (accept  (x), dispute (y)) ≡ greater
-     * cmp (accept  (x), accept  (y)) ≡ cmp (x, y)
      */
     [Ord.cmp]<E extends Ord<E>, A extends Ord<A>>(
       this: Validated<E, A>,
@@ -91,11 +76,6 @@ export namespace Validated {
     /**
      * If this and that Validated are both accepted and their values are a
      * Semigroup, combine the values.
-     *
-     * cmb (dispute (x), dispute (y)) ≡ dispute (cmb (x, y))
-     * cmb (dispute (x), accept  (y)) ≡ dispute (         x    )
-     * cmb (accept  (x), dispute (y)) ≡ dispute (            y )
-     * cmb (accept  (x), accept  (y)) ≡ accept  (cmb (x, y))
      */
     [Semigroup.cmb]<E extends Semigroup<E>, A extends Semigroup<A>>(
       this: Validated<E, A>,
@@ -309,10 +289,8 @@ export function unvalidated<E, A>(validated: Validated<E, A>): Either<E, A> {
 }
 
 /**
- * Map each element of an iterable to a Validated, then evaluate the Validateds
- * from left to right and collect the accepted values in an array.
- *
- * The iterable must be finite.
+ * Map each element of a finite iterable to a Validated, then evaluate the
+ * Validateds from left to right and collect the accepted values in an array.
  */
 export function traverseValidated<A, E extends Semigroup<E>, B>(
   xs: Iterable<A>,
