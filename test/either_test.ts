@@ -2,6 +2,7 @@ import * as fc from "fast-check";
 import { assert } from "chai";
 import { arbNum, arbStr, pair, pairNamed } from "./common.js";
 import { cmb } from "../src/cmb.js";
+import { cmp, eq, greater, less } from "../src/cmp.js";
 import {
   doAsyncEither,
   doEither,
@@ -18,9 +19,10 @@ import {
   rightsided,
   traverseEither,
   tupledEither,
+  viewEither,
   zipEither,
 } from "../src/either.js";
-import { cmp, eq, greater, less } from "../src/cmp.js";
+import { accept, dispute } from "../src/validated.js";
 
 function mk<A, B>(t: "L" | "R", x: A, y: B): Either<A, B> {
   return t === "L" ? left(x) : right(y);
@@ -226,6 +228,14 @@ describe("Either", () => {
 
     const t1 = rightsided(mk("R", _1, _2));
     assert.strictEqual(t1, true);
+  });
+
+  specify("viewEither", () => {
+    const t0 = viewEither(dispute<1, 2>(_1));
+    assert.deepEqual(t0, left(_1));
+
+    const t1 = viewEither(accept<2, 1>(_2));
+    assert.deepEqual(t1, right(_2));
   });
 
   specify("doEither", () => {

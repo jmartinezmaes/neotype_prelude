@@ -2,8 +2,8 @@ import * as fc from "fast-check";
 import { assert } from "chai";
 import { arbNum, arbStr, mkStr, pair, pairNamed } from "./common.js";
 import { left, right } from "../src/either.js";
-import { cmp, eq, greater, less } from "../src/cmp.js";
 import { cmb } from "../src/cmb.js";
+import { cmp, eq, greater, less } from "../src/cmp.js";
 import {
   accept,
   accepted,
@@ -14,9 +14,8 @@ import {
   liftValidated,
   traverseValidated,
   tupledValidated,
-  unvalidated,
   type Validated,
-  validated,
+  viewValidated,
   zipValidated,
 } from "../src/validated.js";
 
@@ -209,20 +208,12 @@ describe("Validated", () => {
     assert.strictEqual(t1, true);
   });
 
-  specify("validated", () => {
-    const t0 = validated(left<1, 2>(_1));
+  specify("viewValidated", () => {
+    const t0 = viewValidated(left<1, 2>(_1));
     assert.deepEqual(t0, dispute(_1));
 
-    const t1 = validated(right<2, 1>(_2));
+    const t1 = viewValidated(right<2, 1>(_2));
     assert.deepEqual(t1, accept(_2));
-  });
-
-  specify("unvalidated", () => {
-    const t0 = unvalidated(dispute<1, 2>(_1));
-    assert.deepEqual(t0, left(_1));
-
-    const t1 = unvalidated(accept<2, 1>(_2));
-    assert.deepEqual(t1, right(_2));
   });
 
   specify("traverseValidated", () => {

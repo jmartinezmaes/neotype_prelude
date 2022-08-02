@@ -22,7 +22,7 @@
 
 import { cmb, Semigroup } from "./cmb.js";
 import { cmp, Eq, eq, greater, less, Ord, type Ordering } from "./cmp.js";
-import { type Either, left, right } from "./either.js";
+import { type Either } from "./either.js";
 import { id } from "./fn.js";
 
 /**
@@ -277,15 +277,8 @@ export function accepted<A>(
 /**
  * Convert an Either to a Validated.
  */
-export function validated<E, A>(either: Either<E, A>): Validated<E, A> {
+export function viewValidated<E, A>(either: Either<E, A>): Validated<E, A> {
   return either.fold(dispute, accept);
-}
-
-/**
- * Convert a Validated to an Either.
- */
-export function unvalidated<E, A>(validated: Validated<E, A>): Either<E, A> {
-  return validated.fold(left, right);
 }
 
 /**

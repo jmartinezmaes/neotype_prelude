@@ -23,6 +23,7 @@
 import { cmb, Semigroup } from "./cmb.js";
 import { cmp, Eq, eq, greater, less, Ord, type Ordering } from "./cmp.js";
 import { id } from "./fn.js";
+import { type Validated } from "./validated.js";
 
 /**
  * A type that represents an "exclusive or" relationship between two values
@@ -370,6 +371,13 @@ export function rightsided<B>(
   either: Either<any, B>,
 ): either is Either.Right<B> {
   return either.type === "Right";
+}
+
+/**
+ * Convert a Validated to an Either.
+ */
+export function viewEither<E, A>(validated: Validated<E, A>): Either<E, A> {
+  return validated.fold(left, right);
 }
 
 function doImpl<T extends readonly [Either<any, any>, Either.Uid], A>(
