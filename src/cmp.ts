@@ -25,10 +25,6 @@ import { cmb, Semigroup } from "./cmb.js";
 /**
  * An interface that provides evidence of an equivalance relation.
  *
- * ## Minimal implementation
- *
- * - {@link Eq[Eq.eq]}
- *
  * ## Properties
  *
  * Instances of Eq are encouraged to satisfy the following properties:
@@ -48,7 +44,7 @@ import { cmb, Semigroup } from "./cmb.js";
  * __Extensionality__
  *
  * If `eq (x, y) === true` and `f` is a function whose return type is an
- * instance of `Eq`, then `eq (f (x), f (y)) === true`
+ * instance of Eq, then `eq (f (x), f (y)) === true`
  */
 export interface Eq<in A> {
   [Eq.eq](that: A): boolean;
@@ -116,11 +112,6 @@ export function ieq<A extends Eq<A>>(
 
 /**
  * An interface that provides evidence of a total order.
- *
- * ## Minimal implementation
- *
- * - {@link Eq[Eq.eq]}
- * - {@link Ord[Ord.cmp]}
  *
  * ## Properties
  *

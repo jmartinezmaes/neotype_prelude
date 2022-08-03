@@ -23,10 +23,6 @@
 /**
  * An interface that provides evidence of an associative binary operation.
  *
- * ## Minimal implementation
- *
- * - {@link Semigroup[Semigroup.cmb]}
- *
  * ## Properties
  *
  * Instances of Semigroup __must__ satisfy the following property:
