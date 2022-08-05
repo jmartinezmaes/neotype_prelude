@@ -3,6 +3,7 @@ import { assert } from "chai";
 import { arbStr, pair, pairNamed } from "./common.js";
 import { cmb } from "../src/cmb.js";
 import {
+  collectEval,
   doEval,
   evalAlways,
   evalNow,
@@ -13,9 +14,7 @@ import {
   liftNewEval,
   reduceEval,
   runEval,
-  traverseEval,
   tupledEval,
-  collectEval,
 } from "../src/eval.js";
 
 const mk = evalNow;
@@ -108,11 +107,6 @@ describe("Eval", () => {
   specify("reduceEval", () => {
     const t0 = reduceEval(["x", "y"], (xs, x) => mk(xs + x), "");
     assert.deepEqual(runEval(t0), "xy");
-  });
-
-  specify("traverseEval", () => {
-    const t0 = traverseEval(["x", "y"], (x) => mk(x.toUpperCase()));
-    assert.deepEqual(runEval(t0), ["X", "Y"]);
   });
 
   specify("collectEval", () => {

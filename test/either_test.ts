@@ -4,6 +4,7 @@ import { arbNum, arbStr, pair, pairNamed } from "./common.js";
 import { cmb } from "../src/cmb.js";
 import { cmp, eq, greater, less } from "../src/cmp.js";
 import {
+  collectEither,
   doEitherAsync,
   doEither,
   type Either,
@@ -17,10 +18,8 @@ import {
   reduceEither,
   right,
   rightsided,
-  traverseEither,
   tupledEither,
   viewEither,
-  collectEither,
 } from "../src/either.js";
 import { accept, dispute } from "../src/validated.js";
 
@@ -271,11 +270,6 @@ describe("Either", () => {
   specify("reduceEither", () => {
     const t0 = reduceEither(["x", "y"], (xs, x) => mk("R", _1, xs + x), "");
     assert.deepEqual(t0, right("xy"));
-  });
-
-  specify("traverseEither", () => {
-    const t0 = traverseEither(["x", "y"], (x) => mk("R", _1, x.toUpperCase()));
-    assert.deepEqual(t0, right(["X", "Y"]));
   });
 
   specify("collectEither", () => {

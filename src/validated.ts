@@ -282,33 +282,6 @@ export function viewValidated<E, A>(either: Either<E, A>): Validated<E, A> {
 }
 
 /**
- * Map each element of a finite iterable to a Validated, then evaluate the
- * Validateds from left to right and collect the accepted values in an array.
- */
-export function traverseValidated<A, E extends Semigroup<E>, B>(
-  xs: Iterable<A>,
-  f: (x: A) => Validated<E, B>,
-): Validated<E, readonly B[]> {
-  function ireduce<A, B>(xs: Iterable<A>, f: (acc: B, x: A) => B, z: B): B {
-    let acc = z;
-    for (const x of xs) {
-      acc = f(acc, x);
-    }
-    return acc;
-  }
-  return ireduce(
-    xs,
-    (acc, v) => {
-      return acc.zipWith(f(v), (ys, y) => {
-        ys.push(y);
-        return ys;
-      });
-    },
-    accept<B[], E>([]),
-  );
-}
-
-/**
  * Evaluate the Validateds in an array or a tuple literal from left to right and
  * collect the accepted values in an array or a tuple literal, respectively.
  */

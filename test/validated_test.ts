@@ -7,16 +7,15 @@ import { cmp, eq, greater, less } from "../src/cmp.js";
 import {
   accept,
   accepted,
+  collectValidated,
   dispute,
   disputed,
   liftNamedValidated,
   liftNewValidated,
   liftValidated,
-  traverseValidated,
   tupledValidated,
   type Validated,
   viewValidated,
-  collectValidated,
 } from "../src/validated.js";
 
 function mk<A, B>(t: "D" | "A", x: A, y: B): Validated<A, B> {
@@ -214,18 +213,6 @@ describe("Validated", () => {
 
     const t1 = viewValidated(right<2, 1>(_2));
     assert.deepEqual(t1, accept(_2));
-  });
-
-  specify("traverseValidated", () => {
-    const t0 = traverseValidated(["x", "y"], (x) =>
-      mk("D", sa, x.toUpperCase()),
-    );
-    assert.deepEqual(t0, dispute(cmb(sa, sa)));
-
-    const t1 = traverseValidated(["x", "y"], (x) =>
-      mk("A", sa, x.toUpperCase()),
-    );
-    assert.deepEqual(t1, accept(["X", "Y"]));
   });
 
   specify("collectValidated", () => {

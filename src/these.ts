@@ -436,23 +436,6 @@ export function reduceThese<A, B, E extends Semigroup<E>>(
 }
 
 /**
- * Map each element of a finite iterable to a These, then evaluate the These
- * from left to right and collect the second values in an array.
- */
-export function traverseThese<A, E extends Semigroup<E>, B>(
-  xs: Iterable<A>,
-  f: (x: A) => These<E, B>,
-): These<E, readonly B[]> {
-  return doThese(function* () {
-    const ys: B[] = [];
-    for (const x of xs) {
-      ys.push(yield* f(x));
-    }
-    return ys;
-  });
-}
-
-/**
  * Evaluate the These in an array or a tuple literal from left to right and
  * collect the second values in an array or a tuple literal, respectively.
  */

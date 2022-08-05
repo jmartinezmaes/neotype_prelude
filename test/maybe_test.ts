@@ -5,6 +5,7 @@ import { cmb } from "../src/cmb.js";
 import { cmp, eq, equal, greater, less } from "../src/cmp.js";
 import {
   absent,
+  collectMaybe,
   doMaybeAsync,
   doMaybe,
   fromMissing,
@@ -18,9 +19,7 @@ import {
   nothing,
   present,
   reduceMaybe,
-  traverseMaybe,
   tupledMaybe,
-  collectMaybe,
 } from "../src/maybe.js";
 
 function mk<A>(t: "N" | "J", x: A): Maybe<A> {
@@ -248,10 +247,6 @@ describe("Maybe", () => {
     assert.deepEqual(t0, just("xy"));
   });
 
-  specify("traverseMaybe", () => {
-    const t0 = traverseMaybe(["x", "y"], (x) => mk("J", x.toUpperCase()));
-    assert.deepEqual(t0, just(["X", "Y"]));
-  });
   specify("tupledMaybe", () => {
     const t1 = tupledMaybe(mk("J", _1), mk("J", _2));
     assert.deepEqual(t1, just([_1, _2] as const));

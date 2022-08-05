@@ -369,23 +369,6 @@ export function reduceMaybe<A, B>(
 }
 
 /**
- * Map each element of a finite iterable to a Maybe, then evaluate the Maybes
- * from left to right and collect the results in an array.
- */
-export function traverseMaybe<A, B>(
-  xs: Iterable<A>,
-  f: (x: A) => Maybe<B>,
-): Maybe<readonly B[]> {
-  return doMaybe(function* () {
-    const ys: B[] = [];
-    for (const x of xs) {
-      ys.push(yield* f(x));
-    }
-    return ys;
-  });
-}
-
-/**
  * Evaluate the Maybes in an array or a tuple literal from left to right and
  * collect the present values in an array or a tuple literal, respectively.
  */

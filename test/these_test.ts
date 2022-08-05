@@ -5,6 +5,7 @@ import { cmb } from "../src/cmb.js";
 import { cmp, eq, greater, less } from "../src/cmp.js";
 import {
   both,
+  collectThese,
   doTheseAsync,
   doThese,
   first,
@@ -17,9 +18,7 @@ import {
   second,
   there,
   type These,
-  traverseThese,
   tupledThese,
-  collectThese,
 } from "../src/these.js";
 
 function mk<A, B>(t: "F" | "S" | "B", x: A, y: B): These<A, B> {
@@ -360,11 +359,6 @@ describe("These", () => {
   specify("reduceThese", () => {
     const t0 = reduceThese(["x", "y"], (xs, x) => mk("B", sa, xs + x), "");
     assert.deepEqual(t0, both(cmb(sa, sa), "xy"));
-  });
-
-  specify("traverseThese", () => {
-    const t0 = traverseThese(["x", "y"], (x) => mk("B", sa, x.toUpperCase()));
-    assert.deepEqual(t0, both(cmb(sa, sa), ["X", "Y"]));
   });
 
   specify("collectThese", () => {

@@ -261,23 +261,6 @@ export function reduceEval<A, B>(
 }
 
 /**
- * Map each element of a finite iterable to an Eval, then evaluate the Evals
- * from left to right and collect the results in an array.
- */
-export function traverseEval<A, B>(
-  xs: Iterable<A>,
-  f: (x: A) => Eval<B>,
-): Eval<readonly B[]> {
-  return doEval(function* () {
-    const ys: B[] = [];
-    for (const x of xs) {
-      ys.push(yield* f(x));
-    }
-    return ys;
-  });
-}
-
-/**
  * Evaluate the evals in an array or a tuple literal from left to right and
  * collect the results in an array or a tuple literal, respectively.
  */

@@ -422,23 +422,6 @@ export function reduceEither<A, B, E>(
 }
 
 /**
- * Map each element of a finite iterable to an Either, then evaluate the Eithers
- * from left to right and collect the rightsided values in an array.
- */
-export function traverseEither<A, E, B>(
-  xs: Iterable<A>,
-  f: (x: A) => Either<E, B>,
-): Either<E, readonly B[]> {
-  return doEither(function* () {
-    const ys: B[] = [];
-    for (const x of xs) {
-      ys.push(yield* f(x));
-    }
-    return ys;
-  });
-}
-
-/**
  * Evaluate the Eithers in an array or a tuple literal from left to right and
  * collect the rightsided values in an array or a tuple literal, respectively.
  */
