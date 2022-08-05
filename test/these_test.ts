@@ -5,7 +5,7 @@ import { cmb } from "../src/cmb.js";
 import { cmp, eq, greater, less } from "../src/cmp.js";
 import {
   both,
-  doAsyncThese,
+  doTheseAsync,
   doThese,
   first,
   here,
@@ -395,64 +395,64 @@ describe("These", () => {
     assert.deepEqual(t0, both(cmb(sa, sc), [_2, _4]));
   });
 
-  specify("doAsyncThese", async () => {
-    const t0 = await doAsyncThese(async function* () {
+  specify("doTheseAsync", async () => {
+    const t0 = await doTheseAsync(async function* () {
       const x = yield* await mkA("F", sa, _2);
       const [y, z] = yield* await mkA("F", sc, pair(x, _4));
       return [x, y, z] as const;
     });
     assert.deepEqual(t0, first(sa));
 
-    const t1 = await doAsyncThese(async function* () {
+    const t1 = await doTheseAsync(async function* () {
       const x = yield* await mkA("F", sa, _2);
       const [y, z] = yield* await mkA("S", sc, pair(x, _4));
       return [x, y, z] as const;
     });
     assert.deepEqual(t1, first(sa));
 
-    const t2 = await doAsyncThese(async function* () {
+    const t2 = await doTheseAsync(async function* () {
       const x = yield* await mkA("F", sa, _2);
       const [y, z] = yield* await mkA("B", sc, pair(x, _4));
       return [x, y, z] as const;
     });
     assert.deepEqual(t2, first(sa));
 
-    const t3 = await doAsyncThese(async function* () {
+    const t3 = await doTheseAsync(async function* () {
       const x = yield* await mkA("S", sa, _2);
       const [y, z] = yield* await mkA("F", sc, pair(x, _4));
       return [x, y, z] as const;
     });
     assert.deepEqual(t3, first(sc));
 
-    const t4 = await doAsyncThese(async function* () {
+    const t4 = await doTheseAsync(async function* () {
       const x = yield* await mkA("S", sa, _2);
       const [y, z] = yield* await mkA("S", sc, pair(x, _4));
       return [x, y, z] as const;
     });
     assert.deepEqual(t4, second([_2, _2, _4] as const));
 
-    const t5 = await doAsyncThese(async function* () {
+    const t5 = await doTheseAsync(async function* () {
       const x = yield* await mkA("S", sa, _2);
       const [y, z] = yield* await mkA("B", sc, pair(x, _4));
       return [x, y, z] as const;
     });
     assert.deepEqual(t5, both(sc, [_2, _2, _4] as const));
 
-    const t6 = await doAsyncThese(async function* () {
+    const t6 = await doTheseAsync(async function* () {
       const x = yield* await mkA("B", sa, _2);
       const [y, z] = yield* await mkA("F", sc, pair(x, _4));
       return [x, y, z] as const;
     });
     assert.deepEqual(t6, first(cmb(sa, sc)));
 
-    const t7 = await doAsyncThese(async function* () {
+    const t7 = await doTheseAsync(async function* () {
       const x = yield* await mkA("B", sa, _2);
       const [y, z] = yield* await mkA("S", sc, pair(x, _4));
       return [x, y, z] as const;
     });
     assert.deepEqual(t7, both(sa, [_2, _2, _4] as const));
 
-    const t8 = await doAsyncThese(async function* () {
+    const t8 = await doTheseAsync(async function* () {
       const x = yield* await mkA("B", sa, _2);
       const [y, z] = yield* await mkA("B", sc, pair(x, _4));
       return [x, y, z] as const;
@@ -460,7 +460,7 @@ describe("These", () => {
     assert.deepEqual(t8, both(cmb(sa, sc), [_2, _2, _4] as const));
 
     it("unwraps nested promise-like values on bind and return", async () => {
-      const t9 = await doAsyncThese(async function* () {
+      const t9 = await doTheseAsync(async function* () {
         const x = yield* await mkA("B", sa, Promise.resolve(_2));
         const [y, z] = yield* await mkA("B", sc, Promise.resolve(pair(x, _4)));
         return Promise.resolve([x, y, z] as const);

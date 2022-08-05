@@ -538,7 +538,7 @@ async function doAsyncImpl<
  * Construct a Promise that fulfills with an Either using an async generator
  * comprehension.
  */
-export function doAsyncEither<
+export function doEitherAsync<
   T extends readonly [Either<any, any>, Either.Uid],
   A,
 >(f: () => AsyncGenerator<T, A, any>): Promise<Either<Either.LeftT<T[0]>, A>> {

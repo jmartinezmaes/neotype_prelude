@@ -4,7 +4,7 @@ import { arbNum, arbStr, pair, pairNamed } from "./common.js";
 import { cmb } from "../src/cmb.js";
 import { cmp, eq, greater, less } from "../src/cmp.js";
 import {
-  doAsyncEither,
+  doEitherAsync,
   doEither,
   type Either,
   gatherEither,
@@ -311,29 +311,29 @@ describe("Either", () => {
     assert.deepEqual(t0, right([_2, _4]));
   });
 
-  specify("doAsyncEither", async () => {
-    const t0 = await doAsyncEither(async function* () {
+  specify("doEitherAsync", async () => {
+    const t0 = await doEitherAsync(async function* () {
       const x = yield* await mkA("L", _1, _2);
       const [y, z] = yield* await mkA("L", _3, pair(x, _4));
       return [x, y, z] as const;
     });
     assert.deepEqual(t0, left(_1));
 
-    const t1 = await doAsyncEither(async function* () {
+    const t1 = await doEitherAsync(async function* () {
       const x = yield* await mkA("L", _1, _2);
       const [y, z] = yield* await mkA("R", _3, pair(x, _4));
       return [x, y, z] as const;
     });
     assert.deepEqual(t1, left(_1));
 
-    const t2 = await doAsyncEither(async function* () {
+    const t2 = await doEitherAsync(async function* () {
       const x = yield* await mkA("R", _1, _2);
       const [y, z] = yield* await mkA("L", _3, pair(x, _4));
       return [x, y, z] as const;
     });
     assert.deepEqual(t2, left(_3));
 
-    const t3 = await doAsyncEither(async function* () {
+    const t3 = await doEitherAsync(async function* () {
       const x = yield* await mkA("R", _1, _2);
       const [y, z] = yield* await mkA("R", _3, pair(x, _4));
       return [x, y, z] as const;
@@ -341,7 +341,7 @@ describe("Either", () => {
     assert.deepEqual(t3, right([_2, _2, _4] as const));
 
     it("unwraps nested promise-like values on bind and return", async () => {
-      const t4 = await doAsyncEither(async function* () {
+      const t4 = await doEitherAsync(async function* () {
         const x = yield* await mkA("R", _1, Promise.resolve(_2));
         const [y, z] = yield* await mkA("R", _3, Promise.resolve(pair(x, _4)));
         return Promise.resolve([x, y, z] as const);

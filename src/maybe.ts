@@ -475,7 +475,7 @@ async function doAsyncImpl<A>(
  * Construct a Promise that fulfills with a Maybe using an async generator
  * comprehension.
  */
-export function doAsyncMaybe<A>(
+export function doMaybeAsync<A>(
   f: () => AsyncGenerator<readonly [Maybe<any>, Maybe.Uid], A, any>,
 ): Promise<Maybe<A>> {
   return doAsyncImpl(f());

@@ -5,7 +5,7 @@ import { cmb } from "../src/cmb.js";
 import { cmp, eq, equal, greater, less } from "../src/cmp.js";
 import {
   absent,
-  doAsyncMaybe,
+  doMaybeAsync,
   doMaybe,
   fromMissing,
   gatherMaybe,
@@ -280,29 +280,29 @@ describe("Maybe", () => {
     assert.deepEqual(t0, just([_1, _2]));
   });
 
-  specify("doAsyncMaybe", async () => {
-    const t0 = await doAsyncMaybe(async function* () {
+  specify("doMaybeAsync", async () => {
+    const t0 = await doMaybeAsync(async function* () {
       const x = yield* await mkA("N", _1);
       const [y, z] = yield* await mkA("N", pair(x, _2));
       return [x, y, z] as const;
     });
     assert.deepEqual(t0, nothing);
 
-    const t1 = await doAsyncMaybe(async function* () {
+    const t1 = await doMaybeAsync(async function* () {
       const x = yield* await mkA("N", _1);
       const [y, z] = yield* await mkA("J", pair(x, _2));
       return [x, y, z] as const;
     });
     assert.deepEqual(t1, nothing);
 
-    const t2 = await doAsyncMaybe(async function* () {
+    const t2 = await doMaybeAsync(async function* () {
       const x = yield* await mkA("J", _1);
       const [y, z] = yield* await mkA("N", pair(x, _2));
       return [x, y, z] as const;
     });
     assert.deepEqual(t2, nothing);
 
-    const t3 = await doAsyncMaybe(async function* () {
+    const t3 = await doMaybeAsync(async function* () {
       const x = yield* await mkA("J", _1);
       const [y, z] = yield* await mkA("J", pair(x, _2));
       return [x, y, z] as const;
@@ -310,7 +310,7 @@ describe("Maybe", () => {
     assert.deepEqual(t3, just([_1, _1, _2] as const));
 
     it("unwraps nested promise-like values on bind and return", async () => {
-      const t4 = await doAsyncMaybe(async function* () {
+      const t4 = await doMaybeAsync(async function* () {
         const x = yield* await mkA("J", Promise.resolve(_1));
         const [y, z] = yield* await mkA("J", Promise.resolve(pair(x, _2)));
         return Promise.resolve([x, y, z] as const);

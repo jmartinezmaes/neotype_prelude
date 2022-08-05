@@ -731,7 +731,7 @@ async function doAsyncImpl<E extends Semigroup<E>, A>(
  * Construct a Promise that fulfills with a These using an async generator
  * comprehension.
  */
-export function doAsyncThese<E extends Semigroup<E>, A>(
+export function doTheseAsync<E extends Semigroup<E>, A>(
   f: () => AsyncGenerator<readonly [These<E, any>, These.Uid], A, any>,
 ): Promise<These<E, A>> {
   return doAsyncImpl(f());
