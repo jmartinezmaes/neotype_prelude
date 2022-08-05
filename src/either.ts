@@ -442,7 +442,7 @@ export function traverseEither<A, E, B>(
  * Evaluate the Eithers in an array or a tuple literal from left to right and
  * collect the rightsided values in an array or a tuple literal, respectively.
  */
-export function sequenceEither<T extends readonly Either<any, any>[]>(
+export function collectEither<T extends readonly Either<any, any>[]>(
   xs: T,
 ): Either<Either.LeftT<T[number]>, Readonly<Either.RightsT<T>>> {
   return doEither(function* () {
@@ -462,7 +462,7 @@ export function sequenceEither<T extends readonly Either<any, any>[]>(
 export function tupledEither<
   T extends [Either<any, any>, Either<any, any>, ...Either<any, any>[]],
 >(...xs: T): Either<Either.LeftT<T[number]>, Readonly<Either.RightsT<T>>> {
-  return sequenceEither(xs);
+  return collectEither(xs);
 }
 
 /**
@@ -492,7 +492,7 @@ export function liftEither<T extends unknown[], A>(
 ): <T1 extends { [K in keyof T]: Either<any, T[K]> }>(
   ...args: T1
 ) => Either<Either.LeftT<T1[number]>, A> {
-  return (...args) => sequenceEither(args).map((xs) => f(...(xs as T)));
+  return (...args) => collectEither(args).map((xs) => f(...(xs as T)));
 }
 
 /**
@@ -515,7 +515,7 @@ export function liftNewEither<T extends unknown[], A>(
 ): <T1 extends { [K in keyof T]: Either<any, T[K]> }>(
   ...args: T1
 ) => Either<Either.LeftT<T1[number]>, A> {
-  return (...args) => sequenceEither(args).map((xs) => new ctor(...(xs as T)));
+  return (...args) => collectEither(args).map((xs) => new ctor(...(xs as T)));
 }
 
 async function doAsyncImpl<

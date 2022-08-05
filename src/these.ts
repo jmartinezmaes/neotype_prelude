@@ -456,19 +456,19 @@ export function traverseThese<A, E extends Semigroup<E>, B>(
  * Evaluate the These in an array or a tuple literal from left to right and
  * collect the second values in an array or a tuple literal, respectively.
  */
-export function sequenceThese<E extends Semigroup<E>, A0, A1>(
+export function collectThese<E extends Semigroup<E>, A0, A1>(
   xs: readonly [These<E, A0>, These<E, A1>],
 ): These<E, readonly [A0, A1]>;
 
-export function sequenceThese<E extends Semigroup<E>, A0, A1, A2>(
+export function collectThese<E extends Semigroup<E>, A0, A1, A2>(
   xs: readonly [These<E, A0>, These<E, A1>, These<E, A2>],
 ): These<E, readonly [A0, A1, A2]>;
 
-export function sequenceThese<E extends Semigroup<E>, A0, A1, A2, A3>(
+export function collectThese<E extends Semigroup<E>, A0, A1, A2, A3>(
   xs: readonly [These<E, A0>, These<E, A1>, These<E, A2>, These<E, A3>],
 ): These<E, readonly [A0, A1, A2, A3]>;
 
-export function sequenceThese<E extends Semigroup<E>, A0, A1, A2, A3, A4>(
+export function collectThese<E extends Semigroup<E>, A0, A1, A2, A3, A4>(
   xs: readonly [
     These<E, A0>,
     These<E, A1>,
@@ -478,7 +478,7 @@ export function sequenceThese<E extends Semigroup<E>, A0, A1, A2, A3, A4>(
   ],
 ): These<E, readonly [A0, A1, A2, A3, A4]>;
 
-export function sequenceThese<E extends Semigroup<E>, A0, A1, A2, A3, A4, A5>(
+export function collectThese<E extends Semigroup<E>, A0, A1, A2, A3, A4, A5>(
   xs: readonly [
     These<E, A0>,
     These<E, A1>,
@@ -489,7 +489,7 @@ export function sequenceThese<E extends Semigroup<E>, A0, A1, A2, A3, A4, A5>(
   ],
 ): These<E, readonly [A0, A1, A2, A3, A4, A5]>;
 
-export function sequenceThese<
+export function collectThese<
   E extends Semigroup<E>,
   A0,
   A1,
@@ -511,7 +511,7 @@ export function sequenceThese<
 ): These<E, readonly [A0, A1, A2, A3, A4, A5, A6]>;
 
 // prettier-ignore
-export function sequenceThese<E extends Semigroup<E>, A0, A1, A2, A3, A4, A5, A6, A7>(
+export function collectThese<E extends Semigroup<E>, A0, A1, A2, A3, A4, A5, A6, A7>(
   xs: readonly [
     These<E, A0>,
     These<E, A1>,
@@ -525,7 +525,7 @@ export function sequenceThese<E extends Semigroup<E>, A0, A1, A2, A3, A4, A5, A6
 ): These<E, readonly [A0, A1, A2, A3, A4, A5, A6, A7]>;
 
 // prettier-ignore
-export function sequenceThese<E extends Semigroup<E>, A0, A1, A2, A3, A4, A5, A6, A7, A8>(
+export function collectThese<E extends Semigroup<E>, A0, A1, A2, A3, A4, A5, A6, A7, A8>(
   xs: readonly [
     These<E, A0>,
     These<E, A1>,
@@ -540,7 +540,7 @@ export function sequenceThese<E extends Semigroup<E>, A0, A1, A2, A3, A4, A5, A6
 ): These<E, readonly [A0, A1, A2, A3, A4, A5, A6, A7, A8]>;
 
 // prettier-ignore
-export function sequenceThese<E extends Semigroup<E>, A0, A1, A2, A3, A4, A5, A6, A7, A8, A9>(
+export function collectThese<E extends Semigroup<E>, A0, A1, A2, A3, A4, A5, A6, A7, A8, A9>(
   xs: readonly [
     These<E, A0>,
     These<E, A1>,
@@ -555,11 +555,11 @@ export function sequenceThese<E extends Semigroup<E>, A0, A1, A2, A3, A4, A5, A6
   ],
 ): These<E, readonly [A0, A1, A2, A3, A4, A5, A6, A7, A8, A9]>;
 
-export function sequenceThese<E extends Semigroup<E>, A>(
+export function collectThese<E extends Semigroup<E>, A>(
   xs: readonly These<E, A>[],
 ): These<E, readonly A[]>;
 
-export function sequenceThese<E extends Semigroup<E>, A>(
+export function collectThese<E extends Semigroup<E>, A>(
   xs: readonly These<E, A>[],
 ): These<E, readonly A[]> {
   return doThese(function* () {
@@ -663,7 +663,7 @@ export function tupledThese<E extends Semigroup<E>, A0, A1, A2, A3, A4, A5, A6, 
 export function tupledThese<E extends Semigroup<E>, A>(
   ...xs: These<E, A>[]
 ): These<E, readonly A[]> {
-  return sequenceThese(xs);
+  return collectThese(xs);
 }
 
 /**
@@ -674,7 +674,7 @@ export function liftThese<T extends unknown[], A>(
 ): <E extends Semigroup<E>>(
   ...args: { [K in keyof T]: These<E, T[K]> }
 ) => These<E, A> {
-  return (...args) => sequenceThese(args).map((xs) => f(...(xs as T)));
+  return (...args) => collectThese(args).map((xs) => f(...(xs as T)));
 }
 
 /**
@@ -704,7 +704,7 @@ export function liftNewThese<T extends unknown[], A>(
 ): <E extends Semigroup<E>>(
   ...args: { [K in keyof T]: These<E, T[K]> }
 ) => These<E, A> {
-  return (...args) => sequenceThese(args).map((xs) => new ctor(...(xs as T)));
+  return (...args) => collectThese(args).map((xs) => new ctor(...(xs as T)));
 }
 
 async function doAsyncImpl<E extends Semigroup<E>, A>(

@@ -19,7 +19,7 @@ import {
   type These,
   traverseThese,
   tupledThese,
-  sequenceThese,
+  collectThese,
 } from "../src/these.js";
 
 function mk<A, B>(t: "F" | "S" | "B", x: A, y: B): These<A, B> {
@@ -367,8 +367,8 @@ describe("These", () => {
     assert.deepEqual(t0, both(cmb(sa, sa), ["X", "Y"]));
   });
 
-  specify("sequenceThese", () => {
-    const t0 = sequenceThese([mk("B", sa, _2), mk("B", sc, _4)] as const);
+  specify("collectThese", () => {
+    const t0 = collectThese([mk("B", sa, _2), mk("B", sc, _4)] as const);
     assert.deepEqual(t0, both(cmb(sa, sc), [_2, _4] as const));
   });
 

@@ -389,7 +389,7 @@ export function traverseMaybe<A, B>(
  * Evaluate the Maybes in an array or a tuple literal from left to right and
  * collect the present values in an array or a tuple literal, respectively.
  */
-export function sequenceMaybe<T extends readonly Maybe<any>[]>(
+export function collectMaybe<T extends readonly Maybe<any>[]>(
   xs: T,
 ): Maybe<Readonly<Maybe.JustsT<T>>> {
   return doMaybe(function* () {
@@ -409,7 +409,7 @@ export function sequenceMaybe<T extends readonly Maybe<any>[]>(
 export function tupledMaybe<
   T extends [Maybe<any>, Maybe<any>, ...Maybe<any>[]],
 >(...xs: T): Maybe<Readonly<Maybe.JustsT<T>>> {
-  return sequenceMaybe(xs);
+  return collectMaybe(xs);
 }
 
 /**
@@ -434,7 +434,7 @@ export function gatherMaybe<T extends Record<any, Maybe<any>>>(
 export function liftMaybe<T extends unknown[], A>(
   f: (...args: T) => A,
 ): (...args: { [K in keyof T]: Maybe<T[K]> }) => Maybe<A> {
-  return (...args) => sequenceMaybe(args).map((xs) => f(...(xs as T)));
+  return (...args) => collectMaybe(args).map((xs) => f(...(xs as T)));
 }
 
 /**
@@ -453,7 +453,7 @@ export function liftNamedMaybe<T extends Record<any, unknown>, A = T>(
 export function liftNewMaybe<T extends unknown[], A>(
   ctor: new (...args: T) => A,
 ): (...args: { [K in keyof T]: Maybe<T[K]> }) => Maybe<A> {
-  return (...args) => sequenceMaybe(args).map((xs) => new ctor(...(xs as T)));
+  return (...args) => collectMaybe(args).map((xs) => new ctor(...(xs as T)));
 }
 
 async function doAsyncImpl<A>(

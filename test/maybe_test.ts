@@ -20,7 +20,7 @@ import {
   reduceMaybe,
   traverseMaybe,
   tupledMaybe,
-  sequenceMaybe,
+  collectMaybe,
 } from "../src/maybe.js";
 
 function mk<A>(t: "N" | "J", x: A): Maybe<A> {
@@ -238,8 +238,8 @@ describe("Maybe", () => {
     assert.deepEqual(t3, just([1, 1, 2] as const));
   });
 
-  specify("sequenceMaybe", () => {
-    const t1 = sequenceMaybe([mk("J", _1), mk("J", _2)] as const);
+  specify("collectMaybe", () => {
+    const t1 = collectMaybe([mk("J", _1), mk("J", _2)] as const);
     assert.deepEqual(t1, just([_1, _2] as const));
   });
 

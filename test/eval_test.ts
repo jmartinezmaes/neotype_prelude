@@ -15,7 +15,7 @@ import {
   runEval,
   traverseEval,
   tupledEval,
-  sequenceEval,
+  collectEval,
 } from "../src/eval.js";
 
 const mk = evalNow;
@@ -115,8 +115,8 @@ describe("Eval", () => {
     assert.deepEqual(runEval(t0), ["X", "Y"]);
   });
 
-  specify("sequenceEval", () => {
-    const t0 = sequenceEval([mk(_1), mk(_2)] as const);
+  specify("collectEval", () => {
+    const t0 = collectEval([mk(_1), mk(_2)] as const);
     assert.deepEqual(runEval(t0), [_1, _2]);
   });
 

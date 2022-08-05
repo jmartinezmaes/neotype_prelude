@@ -281,7 +281,7 @@ export function traverseEval<A, B>(
  * Evaluate the evals in an array or a tuple literal from left to right and
  * collect the results in an array or a tuple literal, respectively.
  */
-export function sequenceEval<T extends readonly Eval<any>[]>(
+export function collectEval<T extends readonly Eval<any>[]>(
   xs: T,
 ): Eval<Eval.ResultsT<T>> {
   return doEval(function* () {
@@ -301,7 +301,7 @@ export function sequenceEval<T extends readonly Eval<any>[]>(
 export function tupledEval<T extends [Eval<any>, Eval<any>, ...Eval<any>[]]>(
   ...xs: T
 ): Eval<Eval.ResultsT<T>> {
-  return sequenceEval(xs);
+  return collectEval(xs);
 }
 
 /**
@@ -326,7 +326,7 @@ export function gatherEval<T extends Record<any, Eval<any>>>(
 export function liftEval<T extends unknown[], A>(
   f: (...args: T) => A,
 ): (...args: { [K in keyof T]: Eval<T[K]> }) => Eval<A> {
-  return (...args) => sequenceEval(args).map((xs) => f(...(xs as T)));
+  return (...args) => collectEval(args).map((xs) => f(...(xs as T)));
 }
 
 /**
@@ -345,7 +345,7 @@ export function liftNamedEval<T extends Record<any, unknown>, A = T>(
 export function liftNewEval<T extends unknown[], A>(
   ctor: new (...args: T) => A,
 ): (...args: { [K in keyof T]: Eval<T[K]> }) => Eval<A> {
-  return (...args) => sequenceEval(args).map((xs) => new ctor(...(xs as T)));
+  return (...args) => collectEval(args).map((xs) => new ctor(...(xs as T)));
 }
 
 function _flatMap<A, B>(eff: Eval<A>, f: (x: A) => Eval<B>): Eval<B> {
