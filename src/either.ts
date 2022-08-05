@@ -318,7 +318,7 @@ export namespace Either {
    * type T1 = Either.RightsT<T0>; // [2, 4, 6]
    *
    * type T2 = { x: Either<1, 2>, y: Either<3, 4>, z: Either<5, 6> };
-   * type T3 = Either.RightsT<T0>; // { x: 2, y: 4, z: 6 }
+   * type T3 = Either.RightsT<T2>; // { x: 2, y: 4, z: 6 }
    * ```
    */
   export type RightsT<

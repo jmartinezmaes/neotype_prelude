@@ -138,7 +138,7 @@ export namespace Eval {
    * type T1 = Eval.ResultsT<T0>; // [1, 2, 3]
    *
    * type T2 = { x: Eval<1>, y: Eval<2>, z: Eval<3> };
-   * type T3 = Eval.ResultsT<T0>; // { x: 1, y: 2, z: 3 }
+   * type T3 = Eval.ResultsT<T2>; // { x: 1, y: 2, z: 3 }
    * ```
    */
   export type ResultsT<
