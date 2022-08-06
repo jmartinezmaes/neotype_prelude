@@ -203,7 +203,7 @@ export namespace Validated {
         /**
          * The property that discriminates Validated.
          */
-        readonly type = "Disputed";
+        readonly typ = "Disputed";
 
         /**
          * Construct an instance of `Validated.Disputed`.
@@ -223,7 +223,7 @@ export namespace Validated {
         /**
          * The property that discriminates Validated.
          */
-        readonly type = "Accepted";
+        readonly typ = "Accepted";
 
         /**
          * Construct an instance of `Validated.Accepted`.
@@ -257,7 +257,7 @@ export function accept<A, E = never>(x: A): Validated<E, A> {
 export function disputed<E>(
     validated: Validated<E, any>,
 ): validated is Validated.Disputed<E> {
-    return validated.type === "Disputed";
+    return validated.typ === "Disputed";
 }
 
 /**
@@ -266,7 +266,7 @@ export function disputed<E>(
 export function accepted<A>(
     validated: Validated<any, A>,
 ): validated is Validated.Accepted<A> {
-    return validated.type === "Accepted";
+    return validated.typ === "Accepted";
 }
 
 /**

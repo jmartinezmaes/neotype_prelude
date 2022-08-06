@@ -238,7 +238,7 @@ export namespace Either {
         /**
          * The property that discriminates Either.
          */
-        readonly type = "Left";
+        readonly typ = "Left";
 
         /**
          * Construct an instance of `Either.Left`.
@@ -273,7 +273,7 @@ export namespace Either {
         /**
          * The property that discriminates Either.
          */
-        readonly type = "Right";
+        readonly typ = "Right";
 
         /**
          * Construct an instance of `Either.Right`.
@@ -368,7 +368,7 @@ export function guardEither<A>(x: A, f: (x: A) => boolean): Either<A, A> {
  * Test whether an Either is leftsided.
  */
 export function leftsided<A>(either: Either<A, any>): either is Either.Left<A> {
-    return either.type === "Left";
+    return either.typ === "Left";
 }
 
 /**
@@ -377,7 +377,7 @@ export function leftsided<A>(either: Either<A, any>): either is Either.Left<A> {
 export function rightsided<B>(
     either: Either<any, B>,
 ): either is Either.Right<B> {
-    return either.type === "Right";
+    return either.typ === "Right";
 }
 
 /**

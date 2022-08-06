@@ -189,7 +189,7 @@ export namespace Maybe {
         /**
          * The property that discriminates Maybe.
          */
-        readonly type = "Nothing";
+        readonly typ = "Nothing";
 
         /**
          * The singleton instance of the absent Maybe.
@@ -227,7 +227,7 @@ export namespace Maybe {
         /**
          * The property that discriminates Maybe.
          */
-        readonly type = "Just";
+        readonly typ = "Just";
 
         /**
          * Construct an instance of `Maybe.Just`.
@@ -318,14 +318,14 @@ export function guardMaybe<A>(x: A, f: (x: A) => boolean): Maybe<A> {
  * Test whether a Maybe is absent.
  */
 export function absent(maybe: Maybe<any>): maybe is Maybe.Nothing {
-    return maybe.type === "Nothing";
+    return maybe.typ === "Nothing";
 }
 
 /**
  * Test whether a Maybe is present.
  */
 export function present<A>(maybe: Maybe<A>): maybe is Maybe.Just<A> {
-    return maybe.type === "Just";
+    return maybe.typ === "Just";
 }
 
 /**

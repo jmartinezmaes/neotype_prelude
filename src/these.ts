@@ -265,7 +265,7 @@ export namespace These {
         /**
          * The property that discriminates These.
          */
-        readonly type = "First";
+        readonly typ = "First";
 
         /**
          * Construct an instance of `These.First`.
@@ -300,7 +300,7 @@ export namespace These {
         /**
          * The property that discriminates These.
          */
-        readonly type = "Second";
+        readonly typ = "Second";
 
         /**
          * Construct an instance of `These.Second`.
@@ -335,7 +335,7 @@ export namespace These {
         /**
          * The property that discriminates These.
          */
-        readonly type = "Both";
+        readonly typ = "Both";
 
         /**
          * Construct an instance of `These.Both`.
@@ -391,21 +391,21 @@ export function both<A, B>(x: A, y: B): These<A, B> {
  * Test whether a These has only a first value.
  */
 export function here<A>(these: These<A, any>): these is These.First<A> {
-    return these.type === "First";
+    return these.typ === "First";
 }
 
 /**
  * Test whether a These has only a second value.
  */
 export function there<B>(these: These<any, B>): these is These.Second<B> {
-    return these.type === "Second";
+    return these.typ === "Second";
 }
 
 /**
  * Test whether a These has both a first and second value.
  */
 export function paired<A, B>(these: These<A, B>): these is These.Both<A, B> {
-    return these.type === "Both";
+    return these.typ === "Both";
 }
 
 /**
