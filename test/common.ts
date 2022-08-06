@@ -3,14 +3,20 @@ import { Eq, equal, greater, less, Ord, type Ordering } from "../src/cmp.js";
 import { Semigroup } from "../src/cmb.js";
 
 export class Num implements Ord<Num> {
-    constructor(readonly x: number) {}
+    constructor(readonly val: number) {}
 
     [Eq.eq](that: Num): boolean {
-        return this.x === that.x;
+        return this.val === that.val;
     }
 
     [Ord.cmp](that: Num): Ordering {
-        return this.x < that.x ? less : this.x > that.x ? greater : equal;
+        if (this.val < that.val) {
+            return less;
+        }
+        if (this.val > that.val) {
+            return greater;
+        }
+        return equal;
     }
 }
 
@@ -19,7 +25,7 @@ export function mkNum(x: number): Num {
 }
 
 export function unNum(num: Num): number {
-    return num.x;
+    return num.val;
 }
 
 export function arbNum(): fc.Arbitrary<Num> {
@@ -27,10 +33,10 @@ export function arbNum(): fc.Arbitrary<Num> {
 }
 
 export class Str implements Semigroup<Str> {
-    constructor(readonly x: string) {}
+    constructor(readonly val: string) {}
 
     [Semigroup.cmb](that: Str): Str {
-        return new Str(this.x + that.x);
+        return new Str(this.val + that.val);
     }
 }
 
@@ -39,7 +45,7 @@ export function mkStr(x: string): Str {
 }
 
 export function unStr(str: Str): string {
-    return str.x;
+    return str.val;
 }
 
 export function arbStr(): fc.Arbitrary<Str> {

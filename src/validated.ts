@@ -55,9 +55,9 @@ export namespace Validated {
             that: Validated<E, A>,
         ): boolean {
             if (disputed(this)) {
-                return disputed(that) && eq(this.value, that.value);
+                return disputed(that) && eq(this.val, that.val);
             }
-            return accepted(that) && eq(this.value, that.value);
+            return accepted(that) && eq(this.val, that.val);
         }
 
         /**
@@ -68,9 +68,9 @@ export namespace Validated {
             that: Validated<E, A>,
         ): Ordering {
             if (disputed(this)) {
-                return disputed(that) ? cmp(this.value, that.value) : less;
+                return disputed(that) ? cmp(this.val, that.val) : less;
             }
-            return accepted(that) ? cmp(this.value, that.value) : greater;
+            return accepted(that) ? cmp(this.val, that.val) : greater;
         }
 
         /**
@@ -93,8 +93,8 @@ export namespace Validated {
             foldR: (x: A, validated: Accepted<A>) => B1,
         ): B | B1 {
             return disputed(this)
-                ? foldL(this.value, this)
-                : foldR(this.value, this);
+                ? foldL(this.val, this)
+                : foldR(this.val, this);
         }
 
         /**
@@ -127,7 +127,7 @@ export namespace Validated {
             this: Validated<E, A>,
             f: (x: A) => Validated<E1, B>,
         ): Validated<E | E1, B> {
-            return disputed(this) ? this : f(this.value);
+            return disputed(this) ? this : f(this.val);
         }
 
         /**
@@ -140,11 +140,9 @@ export namespace Validated {
             f: (x: A, y: B) => C,
         ): Validated<E, C> {
             if (disputed(this)) {
-                return disputed(that)
-                    ? dispute(cmb(this.value, that.value))
-                    : this;
+                return disputed(that) ? dispute(cmb(this.val, that.val)) : this;
             }
-            return disputed(that) ? that : accept(f(this.value, that.value));
+            return disputed(that) ? that : accept(f(this.val, that.val));
         }
 
         /**
@@ -179,8 +177,8 @@ export namespace Validated {
             mapR: (x: A) => B,
         ): Validated<E1, B> {
             return disputed(this)
-                ? dispute(mapL(this.value))
-                : accept(mapR(this.value));
+                ? dispute(mapL(this.val))
+                : accept(mapR(this.val));
         }
 
         /**
@@ -190,14 +188,14 @@ export namespace Validated {
             this: Validated<E, A>,
             f: (x: E) => E1,
         ): Validated<E1, A> {
-            return disputed(this) ? dispute(f(this.value)) : this;
+            return disputed(this) ? dispute(f(this.val)) : this;
         }
 
         /**
          * If this Validated is accepted, apply a function to its value.
          */
         map<E, A, B>(this: Validated<E, A>, f: (x: A) => B): Validated<E, B> {
-            return disputed(this) ? this : accept(f(this.value));
+            return disputed(this) ? this : accept(f(this.val));
         }
 
         /**
@@ -223,7 +221,7 @@ export namespace Validated {
          * Explicit use of this constructor should be avoided; use the
          * {@link dispute} function instead.
          */
-        constructor(readonly value: E) {
+        constructor(readonly val: E) {
             super();
         }
     }
@@ -243,7 +241,7 @@ export namespace Validated {
          * Explicit use of this constructor should be avoided; use the
          * {@link accept} function instead.
          */
-        constructor(readonly value: A) {
+        constructor(readonly val: A) {
             super();
         }
     }

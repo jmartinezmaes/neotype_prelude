@@ -54,10 +54,10 @@ export namespace These {
             that: These<A, B>,
         ): boolean {
             if (here(this)) {
-                return here(that) && eq(this.value, that.value);
+                return here(that) && eq(this.val, that.val);
             }
             if (there(this)) {
-                return there(that) && eq(this.value, that.value);
+                return there(that) && eq(this.val, that.val);
             }
             return (
                 paired(that) && eq(this.fst, that.fst) && eq(this.snd, that.snd)
@@ -72,11 +72,11 @@ export namespace These {
             that: These<A, B>,
         ): Ordering {
             if (here(this)) {
-                return here(that) ? cmp(this.value, that.value) : less;
+                return here(that) ? cmp(this.val, that.val) : less;
             }
             if (there(this)) {
                 if (there(that)) {
-                    return cmp(this.value, that.value);
+                    return cmp(this.val, that.val);
                 }
                 return here(that) ? greater : less;
             }
@@ -96,29 +96,29 @@ export namespace These {
         ): These<A, B> {
             if (here(this)) {
                 if (here(that)) {
-                    return first(cmb(this.value, that.value));
+                    return first(cmb(this.val, that.val));
                 }
                 if (there(that)) {
-                    return both(this.value, that.value);
+                    return both(this.val, that.val);
                 }
-                return both(cmb(this.value, that.fst), that.snd);
+                return both(cmb(this.val, that.fst), that.snd);
             }
 
             if (there(this)) {
                 if (here(that)) {
-                    return both(that.value, this.value);
+                    return both(that.val, this.val);
                 }
                 if (there(that)) {
-                    return second(cmb(this.value, that.value));
+                    return second(cmb(this.val, that.val));
                 }
-                return both(that.fst, cmb(this.value, that.snd));
+                return both(that.fst, cmb(this.val, that.snd));
             }
 
             if (here(that)) {
-                return both(cmb(this.fst, that.value), this.snd);
+                return both(cmb(this.fst, that.val), this.snd);
             }
             if (there(that)) {
-                return both(this.fst, cmb(this.snd, that.value));
+                return both(this.fst, cmb(this.snd, that.val));
             }
             return both(cmb(this.fst, that.fst), cmb(this.snd, that.snd));
         }
@@ -133,10 +133,10 @@ export namespace These {
             foldLR: (x: A, y: B, these: Both<A, B>) => E,
         ): C | D | E {
             if (here(this)) {
-                return foldL(this.value, this);
+                return foldL(this.val, this);
             }
             if (there(this)) {
-                return foldR(this.value, this);
+                return foldR(this.val, this);
             }
             return foldLR(this.fst, this.snd, this);
         }
@@ -153,7 +153,7 @@ export namespace These {
                 return this;
             }
             if (there(this)) {
-                return f(this.value);
+                return f(this.val);
             }
             return f(this.snd).mapFirst((y) => {
                 return cmb((this as Both<E, A>).fst, y);
@@ -212,10 +212,10 @@ export namespace These {
             mapR: (x: B) => D,
         ): These<C, D> {
             if (here(this)) {
-                return first(mapL(this.value));
+                return first(mapL(this.val));
             }
             if (there(this)) {
-                return second(mapR(this.value));
+                return second(mapR(this.val));
             }
             return both(mapL(this.fst), mapR(this.snd));
         }
@@ -228,7 +228,7 @@ export namespace These {
                 return this;
             }
             if (here(this)) {
-                return first(f(this.value));
+                return first(f(this.val));
             }
             return both(f(this.fst), this.snd);
         }
@@ -241,7 +241,7 @@ export namespace These {
                 return this;
             }
             if (there(this)) {
-                return second(f(this.value));
+                return second(f(this.val));
             }
             return both(this.fst, f(this.snd));
         }
@@ -269,7 +269,7 @@ export namespace These {
          * Explicit use of this constructor should be avoided; use the
          * {@link first} function instead.
          */
-        constructor(readonly value: A) {
+        constructor(readonly val: A) {
             super();
         }
 
@@ -304,7 +304,7 @@ export namespace These {
          * Explicit use of this constructor should be avoided; use the
          * {@link second} function instead.
          */
-        constructor(readonly value: B) {
+        constructor(readonly val: B) {
             super();
         }
 
@@ -417,12 +417,12 @@ export function doThese<E extends Semigroup<E>, A>(
     while (!nx.done) {
         const t = nx.value[0];
         if (there(t)) {
-            nx = nxs.next(t.value);
+            nx = nxs.next(t.val);
         } else if (paired(t)) {
             e = e ? cmb(e, t.fst) : t.fst;
             nx = nxs.next(t.snd);
         } else {
-            return e ? first(cmb(e, t.value)) : t;
+            return e ? first(cmb(e, t.val)) : t;
         }
     }
     return e ? both(e, nx.value) : second(nx.value);
@@ -712,12 +712,12 @@ export async function doTheseAsync<E extends Semigroup<E>, A>(
     while (!nx.done) {
         const t = nx.value[0];
         if (there(t)) {
-            nx = await nxs.next(t.value);
+            nx = await nxs.next(t.val);
         } else if (paired(t)) {
             e = e ? cmb(e, t.fst) : t.fst;
             nx = await nxs.next(t.snd);
         } else {
-            return e ? first(cmb(e, t.value)) : t;
+            return e ? first(cmb(e, t.val)) : t;
         }
     }
     return e ? both(e, nx.value) : second(nx.value);

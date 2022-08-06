@@ -54,9 +54,9 @@ export namespace Either {
             that: Either<A, B>,
         ): boolean {
             if (leftsided(this)) {
-                return leftsided(that) && eq(this.value, that.value);
+                return leftsided(that) && eq(this.val, that.val);
             }
-            return rightsided(that) && eq(this.value, that.value);
+            return rightsided(that) && eq(this.val, that.val);
         }
 
         /**
@@ -67,9 +67,9 @@ export namespace Either {
             that: Either<A, B>,
         ): Ordering {
             if (leftsided(this)) {
-                return leftsided(that) ? cmp(this.value, that.value) : less;
+                return leftsided(that) ? cmp(this.val, that.val) : less;
             }
-            return rightsided(that) ? cmp(this.value, that.value) : greater;
+            return rightsided(that) ? cmp(this.val, that.val) : greater;
         }
 
         /**
@@ -92,8 +92,8 @@ export namespace Either {
             foldR: (x: B, either: Right<B>) => D,
         ): C | D {
             return leftsided(this)
-                ? foldL(this.value, this)
-                : foldR(this.value, this);
+                ? foldL(this.val, this)
+                : foldR(this.val, this);
         }
 
         /**
@@ -128,7 +128,7 @@ export namespace Either {
             this: Either<E, A>,
             f: (x: E) => Either<E1, B>,
         ): Either<E1, A | B> {
-            return leftsided(this) ? f(this.value) : this;
+            return leftsided(this) ? f(this.val) : this;
         }
 
         /**
@@ -149,7 +149,7 @@ export namespace Either {
             this: Either<E, A>,
             f: (x: A) => Either<E1, B>,
         ): Either<E | E1, B> {
-            return leftsided(this) ? this : f(this.value);
+            return leftsided(this) ? this : f(this.val);
         }
 
         /**
@@ -201,8 +201,8 @@ export namespace Either {
             mapR: (x: B) => D,
         ): Either<C, D> {
             return leftsided(this)
-                ? left(mapL(this.value))
-                : right(mapR(this.value));
+                ? left(mapL(this.val))
+                : right(mapR(this.val));
         }
 
         /**
@@ -242,7 +242,7 @@ export namespace Either {
          * Explicit use of this constructor should be avoided; use the
          * {@link left} function instead.
          */
-        constructor(readonly value: A) {
+        constructor(readonly val: A) {
             super();
         }
 
@@ -277,7 +277,7 @@ export namespace Either {
          * Explicit use of this constructor should be avoided; use the
          * {@link right} function instead.
          */
-        constructor(readonly value: B) {
+        constructor(readonly val: B) {
             super();
         }
 
@@ -394,7 +394,7 @@ export function doEither<T extends readonly [Either<any, any>, Either.Uid], A>(
     while (!nx.done) {
         const x = nx.value[0];
         if (rightsided(x)) {
-            nx = nxs.next(x.value);
+            nx = nxs.next(x.val);
         } else {
             return x;
         }
@@ -512,7 +512,7 @@ export async function doEitherAsync<
     while (!nx.done) {
         const x = nx.value[0];
         if (rightsided(x)) {
-            nx = await nxs.next(x.value);
+            nx = await nxs.next(x.val);
         } else {
             return x;
         }

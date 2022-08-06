@@ -258,7 +258,7 @@ export namespace Ordering {
          * Test this and that Ordering for equality.
          */
         [Eq.eq](this: Ordering, that: Ordering): boolean {
-            return this.value === that.value;
+            return this.val === that.val;
         }
 
         /**
@@ -291,7 +291,7 @@ export namespace Ordering {
         /**
          * The numerical representation of this Ordering.
          */
-        readonly value = -1;
+        readonly val = -1;
 
         /**
          * The singleton instance of the Less Ordering.
@@ -313,7 +313,7 @@ export namespace Ordering {
         /**
          * The numerical representation of this Ordering.
          */
-        readonly value = 0;
+        readonly val = 0;
 
         /**
          * The singleton instance of the Equal Ordering.
@@ -335,7 +335,7 @@ export namespace Ordering {
         /**
          * The numerical representation of this Ordering.
          */
-        readonly value = 1;
+        readonly val = 1;
 
         /**
          * The singleton instance of the Greater Ordering.
@@ -371,7 +371,7 @@ export const greater = Ordering.Greater.singleton as Ordering;
  * Test whether an Ordering is Less.
  */
 export function ordLt(ordering: Ordering): ordering is Ordering.Less {
-    return ordering.value === -1;
+    return ordering.val === -1;
 }
 
 /**
@@ -387,7 +387,7 @@ export function ordLe(
  * Test whether an Ordering is Equal.
  */
 export function ordEq(ordering: Ordering): ordering is Ordering.Equal {
-    return ordering.value === 0;
+    return ordering.val === 0;
 }
 
 /**
@@ -412,7 +412,7 @@ export function ordGe(
  * Test whether an Ordering is Greater.
  */
 export function ordGt(ordering: Ordering): ordering is Ordering.Greater {
-    return ordering.value === 1;
+    return ordering.val === 1;
 }
 
 /**
@@ -435,14 +435,14 @@ export class Reverse<A> {
     /**
      * Construct an instance of Reverse.
      */
-    constructor(readonly value: A) {}
+    constructor(readonly val: A) {}
 
     /**
      * Test this and that Reverse for equality using thier values' behavior as
      * instances of Eq.
      */
     [Eq.eq]<A extends Eq<A>>(this: Reverse<A>, that: Reverse<A>): boolean {
-        return eq(this.value, that.value);
+        return eq(this.val, that.val);
     }
 
     /**
@@ -450,7 +450,7 @@ export class Reverse<A> {
      * of their underlying Ord values.
      */
     [Ord.cmp]<A extends Ord<A>>(this: Reverse<A>, that: Reverse<A>): Ordering {
-        return reverseOrdering(cmp(this.value, that.value));
+        return reverseOrdering(cmp(this.val, that.val));
     }
 
     /**
@@ -461,7 +461,7 @@ export class Reverse<A> {
         this: Reverse<A>,
         that: Reverse<A>,
     ): Reverse<A> {
-        return new Reverse(cmb(this.value, that.value));
+        return new Reverse(cmb(this.val, that.val));
     }
 }
 
@@ -476,5 +476,5 @@ export function mkReverse<A>(x: A): Reverse<A> {
  * Destruct a Reverse.
  */
 export function unReverse<A>(reverse: Reverse<A>): A {
-    return reverse.value;
+    return reverse.val;
 }

@@ -30,7 +30,7 @@ export class Tuple<out T extends readonly [any, any, ...any[]]> {
     /**
      * Construct an instance of Tuple from a tuple literal of arity 2 through 10.
      */
-    constructor(readonly value: T) {}
+    constructor(readonly val: T) {}
 
     /**
      * Test whether this and that Tuple are equal pairwise using their elements'
@@ -92,7 +92,7 @@ export class Tuple<out T extends readonly [any, any, ...any[]]> {
         this: Tuple<readonly [A, A, ...A[]]>,
         that: Tuple<readonly [A, A, ...A[]]>,
     ): boolean {
-        return ieq(this.value, that.value);
+        return ieq(this.val, that.val);
     }
 
     /**
@@ -154,7 +154,7 @@ export class Tuple<out T extends readonly [any, any, ...any[]]> {
         this: Tuple<readonly [A, A, ...A[]]>,
         that: Tuple<readonly [A, A, ...A[]]>,
     ): Ordering {
-        return icmp(this.value, that.value);
+        return icmp(this.val, that.val);
     }
 
     /**
@@ -219,7 +219,7 @@ export class Tuple<out T extends readonly [any, any, ...any[]]> {
         that: Tuple<readonly [A, A, ...A[]]>,
     ): Tuple<readonly [A, A, ...A[]]> {
         return new Tuple(
-            this.value.map((x, ix) => cmb(x, that.value[ix])) as [A, A, ...A[]],
+            this.val.map((x, ix) => cmb(x, that.val[ix])) as [A, A, ...A[]],
         );
     }
 }
@@ -279,5 +279,5 @@ export function mkTuple<A>(
 export function unTuple<T extends readonly [any, any, ...any[]]>(
     tuple: Tuple<T>,
 ): T {
-    return tuple.value;
+    return tuple.val;
 }

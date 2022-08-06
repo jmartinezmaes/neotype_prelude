@@ -61,7 +61,7 @@ export namespace Maybe {
             if (absent(this)) {
                 return absent(that);
             }
-            return present(that) && eq(this.value, that.value);
+            return present(that) && eq(this.val, that.val);
         }
 
         /**
@@ -71,7 +71,7 @@ export namespace Maybe {
             if (absent(this)) {
                 return absent(that) ? equal : less;
             }
-            return absent(that) ? greater : cmp(this.value, that.value);
+            return absent(that) ? greater : cmp(this.val, that.val);
         }
 
         /**
@@ -84,7 +84,7 @@ export namespace Maybe {
             that: Maybe<A>,
         ): Maybe<A> {
             if (present(this)) {
-                return present(that) ? just(cmb(this.value, that.value)) : this;
+                return present(that) ? just(cmb(this.val, that.val)) : this;
             }
             return that;
         }
@@ -97,7 +97,7 @@ export namespace Maybe {
             foldL: () => B,
             foldR: (x: A, maybe: Just<A>) => C,
         ): B | C {
-            return absent(this) ? foldL() : foldR(this.value, this);
+            return absent(this) ? foldL() : foldR(this.val, this);
         }
 
         /**
@@ -128,7 +128,7 @@ export namespace Maybe {
          * new Maybe.
          */
         flatMap<A, B>(this: Maybe<A>, f: (x: A) => Maybe<B>): Maybe<B> {
-            return absent(this) ? this : f(this.value);
+            return absent(this) ? this : f(this.val);
         }
 
         /**
@@ -231,7 +231,7 @@ export namespace Maybe {
          * Explicit use of this constructor should be avoided; use the
          * {@link just} function instead.
          */
-        constructor(readonly value: A) {
+        constructor(readonly val: A) {
             super();
         }
 
@@ -341,7 +341,7 @@ export function doMaybe<A>(
     while (!nx.done) {
         const x = nx.value[0];
         if (present(x)) {
-            nx = nxs.next(x.value);
+            nx = nxs.next(x.val);
         } else {
             return x;
         }
@@ -449,7 +449,7 @@ export async function doMaybeAsync<A>(
     while (!nx.done) {
         const x = nx.value[0];
         if (present(x)) {
-            nx = await nxs.next(x.value);
+            nx = await nxs.next(x.val);
         } else {
             return x;
         }

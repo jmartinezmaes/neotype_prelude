@@ -145,7 +145,7 @@ describe("Ord", () => {
     specify("min", () => {
         fc.assert(
             fc.property(arbNum(), arbNum(), (x, y) => {
-                assert.deepEqual(min(x, y), mkNum(Math.min(x.x, y.x)));
+                assert.deepEqual(min(x, y), mkNum(Math.min(x.val, y.val)));
             }),
         );
     });
@@ -153,7 +153,7 @@ describe("Ord", () => {
     specify("max", () => {
         fc.assert(
             fc.property(arbNum(), arbNum(), (x, y) => {
-                assert.deepEqual(max(x, y), mkNum(Math.max(x.x, y.x)));
+                assert.deepEqual(max(x, y), mkNum(Math.max(x.val, y.val)));
             }),
         );
     });
@@ -161,7 +161,7 @@ describe("Ord", () => {
     specify("clamp", () => {
         fc.assert(
             fc.property(arbNum(), arbNum(), arbNum(), (x, y, z) => {
-                assert.deepEqual(clamp(x, y, z), min(z, max(y, x)));
+                assert.deepEqual(clamp(x, y, z), min(max(x, y), z));
             }),
         );
     });
@@ -326,7 +326,7 @@ describe("Reverse", () => {
     specify("[Eq.eq]", () => {
         fc.assert(
             fc.property(arbRevNum(), arbRevNum(), (x, y) => {
-                assert.strictEqual(eq(x, y), eq(x.value, y.value));
+                assert.strictEqual(eq(x, y), eq(x.val, y.val));
             }),
         );
     });
@@ -336,7 +336,7 @@ describe("Reverse", () => {
             fc.property(arbRevNum(), arbRevNum(), (x, y) => {
                 assert.strictEqual(
                     cmp(x, y),
-                    reverseOrdering(cmp(x.value, y.value)),
+                    reverseOrdering(cmp(x.val, y.val)),
                 );
             }),
         );
@@ -345,7 +345,7 @@ describe("Reverse", () => {
     specify("[Semigroup.cmb]", () => {
         fc.assert(
             fc.property(arbRevStr(), arbRevStr(), (x, y) => {
-                assert.deepEqual(cmb(x, y), mkReverse(cmb(x.value, y.value)));
+                assert.deepEqual(cmb(x, y), mkReverse(cmb(x.val, y.val)));
             }),
         );
     });
