@@ -216,22 +216,22 @@ export function ge<A extends Ord<A>>(x: A, y: A): boolean {
 /**
  * Find the minimum of two values.
  */
-export function min<A extends Ord<A>>(...xs: [A, ...A[]]): A {
-    return xs.reduce((acc, x) => (lt(acc, x) ? acc : x));
+export function min<A extends Ord<A>>(x: A, y: A): A {
+    return le(x, y) ? x : y;
 }
 
 /**
  * Find the maximum of two values.
  */
-export function max<A extends Ord<A>>(...xs: [A, ...A[]]): A {
-    return xs.reduce((acc, x) => (gt(acc, x) ? acc : x));
+export function max<A extends Ord<A>>(x: A, y: A): A {
+    return ge(x, y) ? x : y;
 }
 
 /**
  * Restrict a value to an inclusive bounds.
  */
 export function clamp<A extends Ord<A>>(x: A, lo: A, hi: A) {
-    return min(hi, max(lo, x));
+    return min(max(x, lo), hi);
 }
 
 /**
