@@ -34,16 +34,6 @@ export type Validated<E, A> = Validated.Disputed<E> | Validated.Accepted<A>;
 
 export namespace Validated {
     /**
-     * The unique identifier for Validated.
-     */
-    export const uid = Symbol("@neotype/prelude/Validated/uid");
-
-    /**
-     * The unique identifier for Validated.
-     */
-    export type Uid = typeof uid;
-
-    /**
      * The fluent syntax for Validated.
      */
     export abstract class Syntax {

@@ -41,14 +41,18 @@ export type Maybe<A> = Maybe.Nothing | Maybe.Just<A>;
 
 export namespace Maybe {
     /**
-     * The unique idenifier for Maybe.
+     * A unique symbol used in Maybe generator comprehensions.
+     *
+     * @hidden
      */
-    export const uid = Symbol("@neotype/prelude/Maybe/uid");
+    export const yieldTkn = Symbol();
 
     /**
-     * The unique idenifier for Maybe.
+     * A unique symbol used in Maybe generator comprehensions.
+     *
+     * @hidden
      */
-    export type Uid = typeof uid;
+    export type YieldTkn = typeof yieldTkn;
 
     /**
      * The fluent syntax for Maybe.
@@ -208,11 +212,11 @@ export namespace Maybe {
          * @hidden
          */
         *[Symbol.iterator](): Iterator<
-            readonly [Maybe<never>, Uid],
+            readonly [Maybe<never>, YieldTkn],
             never,
             unknown
         > {
-            return (yield [this, uid]) as never;
+            return (yield [this, yieldTkn]) as never;
         }
     }
 
@@ -242,8 +246,12 @@ export namespace Maybe {
          *
          * @hidden
          */
-        *[Symbol.iterator](): Iterator<readonly [Maybe<A>, Uid], A, unknown> {
-            return (yield [this, uid]) as A;
+        *[Symbol.iterator](): Iterator<
+            readonly [Maybe<A>, YieldTkn],
+            A,
+            unknown
+        > {
+            return (yield [this, yieldTkn]) as A;
         }
     }
 
@@ -324,7 +332,7 @@ export function present<A>(maybe: Maybe<A>): maybe is Maybe.Just<A> {
  * Construct a Maybe using a generator comprehension.
  */
 export function doMaybe<A>(
-    f: () => Generator<readonly [Maybe<any>, Maybe.Uid], A, any>,
+    f: () => Generator<readonly [Maybe<any>, Maybe.YieldTkn], A, any>,
 ): Maybe<A> {
     const nxs = f();
     let nx = nxs.next();
@@ -432,7 +440,7 @@ export function liftNewMaybe<T extends unknown[], A>(
  * comprehension.
  */
 export async function doMaybeAsync<A>(
-    f: () => AsyncGenerator<readonly [Maybe<any>, Maybe.Uid], A, any>,
+    f: () => AsyncGenerator<readonly [Maybe<any>, Maybe.YieldTkn], A, any>,
 ): Promise<Maybe<A>> {
     const nxs = f();
     let nx = await nxs.next();

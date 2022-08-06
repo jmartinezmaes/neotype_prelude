@@ -29,9 +29,11 @@ import { MutStack } from "./internal/mut_stack.js";
  */
 export class Eval<out A> {
     /**
-     * The unique identifier for Eval.
+     * A unique symbol used in Eval generator comprehensions.
+     *
+     * @hidden
      */
-    static readonly uid = Symbol("@neotype/prelude/Eval/uid");
+    static readonly yieldTkn = Symbol();
 
     /**
      * @internal
@@ -51,8 +53,12 @@ export class Eval<out A> {
      *
      * @hidden
      */
-    *[Symbol.iterator](): Iterator<readonly [Eval<A>, Eval.Uid], A, unknown> {
-        return (yield [this, Eval.uid]) as A;
+    *[Symbol.iterator](): Iterator<
+        readonly [Eval<A>, Eval.YieldTkn],
+        A,
+        unknown
+    > {
+        return (yield [this, Eval.yieldTkn]) as A;
     }
 
     /**
@@ -117,9 +123,11 @@ export class Eval<out A> {
 
 export namespace Eval {
     /**
-     * The unique identifier for Eval.
+     * A unique symbol used in Eval generator comprehensions.
+     *
+     * @hidden
      */
-    export type Uid = typeof Eval.uid;
+    export type YieldTkn = typeof Eval.yieldTkn;
 
     /**
      * Extract the result type `A` from the type `Eval<A>`.
@@ -219,8 +227,8 @@ export function runEval<A>(ev: Eval<A>): A {
 }
 
 function step<A>(
-    nxs: Iterator<readonly [Eval<any>, Eval.Uid], A>,
-    nx: IteratorResult<readonly [Eval<any>, Eval.Uid], A>,
+    nxs: Iterator<readonly [Eval<any>, Eval.YieldTkn], A>,
+    nx: IteratorResult<readonly [Eval<any>, Eval.YieldTkn], A>,
 ): Eval<A> {
     if (nx.done) {
         return evalNow(nx.value);
@@ -229,7 +237,7 @@ function step<A>(
 }
 
 function stepGen<A>(
-    nxs: Generator<readonly [Eval<any>, Eval.Uid], A, any>,
+    nxs: Generator<readonly [Eval<any>, Eval.YieldTkn], A, any>,
 ): Eval<A> {
     return step(nxs, nxs.next());
 }
@@ -238,7 +246,7 @@ function stepGen<A>(
  * Construct an Eval using a generator comprehension.
  */
 export function doEval<A>(
-    f: () => Generator<readonly [Eval<any>, Eval.Uid], A, any>,
+    f: () => Generator<readonly [Eval<any>, Eval.YieldTkn], A, any>,
 ): Eval<A> {
     return deferEval(() => stepGen(f()));
 }

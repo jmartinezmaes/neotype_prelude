@@ -54,7 +54,7 @@ export namespace Eq {
     /**
      * A unique symbol for a method that tests two values for equality.
      */
-    export const eq = Symbol("@neotype/prelude/Eq/eq");
+    export const eq = Symbol();
 }
 
 /**
@@ -140,7 +140,7 @@ export namespace Ord {
     /**
      * A unique symbol for a method that determines the ordering of two values.
      */
-    export const cmp = Symbol("@neotype/prelude/Ord/compare");
+    export const cmp = Symbol();
 }
 
 /**
@@ -240,16 +240,6 @@ export function clamp<A extends Ord<A>>(x: A, lo: A, hi: A) {
 export type Ordering = Ordering.Less | Ordering.Equal | Ordering.Greater;
 
 export namespace Ordering {
-    /**
-     * The unique identifier for Ordering.
-     */
-    export const uid = Symbol("@neotype/prelude/Ordering/uid");
-
-    /**
-     * The unique identifier for Ordering.
-     */
-    export type Uid = typeof uid;
-
     /**
      * The fluent syntax for Ordering.
      */

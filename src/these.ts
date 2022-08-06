@@ -33,14 +33,18 @@ export type These<A, B> = These.First<A> | These.Second<B> | These.Both<A, B>;
 
 export namespace These {
     /**
-     * The unique identifier for These.
+     * A unique symbol used in These generator comprehensions.
+     *
+     * @hidden
      */
-    export const uid = Symbol("@neotype/prelude/These/uid");
+    export const yieldTkn = Symbol();
 
     /**
-     * The unique identifier for These.
+     * A unique symbol used in These generator comprehensions.
+     *
+     * @hidden
      */
-    export type Uid = typeof uid;
+    export type YieldTkn = typeof yieldTkn;
 
     /**
      * The fluent syntax for These.
@@ -281,11 +285,11 @@ export namespace These {
          * @hidden
          */
         *[Symbol.iterator](): Iterator<
-            readonly [These<A, never>, Uid],
+            readonly [These<A, never>, YieldTkn],
             never,
             unknown
         > {
-            return (yield [this, uid]) as never;
+            return (yield [this, yieldTkn]) as never;
         }
     }
 
@@ -316,11 +320,11 @@ export namespace These {
          * @hidden
          */
         *[Symbol.iterator](): Iterator<
-            readonly [These<never, B>, Uid],
+            readonly [These<never, B>, YieldTkn],
             B,
             unknown
         > {
-            return (yield [this, uid]) as B;
+            return (yield [this, yieldTkn]) as B;
         }
     }
 
@@ -351,11 +355,11 @@ export namespace These {
          * @hidden
          */
         *[Symbol.iterator](): Iterator<
-            readonly [These<A, B>, Uid],
+            readonly [These<A, B>, YieldTkn],
             B,
             unknown
         > {
-            return (yield [this, uid]) as B;
+            return (yield [this, yieldTkn]) as B;
         }
     }
 }
@@ -408,7 +412,7 @@ export function paired<A, B>(these: These<A, B>): these is These.Both<A, B> {
  * Construct a These using a generator comprehension.
  */
 export function doThese<E extends Semigroup<E>, A>(
-    f: () => Generator<readonly [These<E, any>, These.Uid], A, any>,
+    f: () => Generator<readonly [These<E, any>, These.YieldTkn], A, any>,
 ): These<E, A> {
     const nxs = f();
     let nx = nxs.next();
@@ -703,7 +707,7 @@ export function liftNewThese<T extends unknown[], A>(
  * comprehension.
  */
 export async function doTheseAsync<E extends Semigroup<E>, A>(
-    f: () => AsyncGenerator<readonly [These<E, any>, These.Uid], A, any>,
+    f: () => AsyncGenerator<readonly [These<E, any>, These.YieldTkn], A, any>,
 ): Promise<These<E, A>> {
     const nxs = f();
     let nx = await nxs.next();

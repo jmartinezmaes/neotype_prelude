@@ -33,14 +33,18 @@ export type Either<A, B> = Either.Left<A> | Either.Right<B>;
 
 export namespace Either {
     /**
-     * The unique identifier for Either.
+     * A unique symbol used in Either generator comprehensions.
+     *
+     * @hidden
      */
-    export const uid = Symbol("@neotype/prelude/Either/uid");
+    export const yieldTkn = Symbol();
 
     /**
-     * The unique identifier for Either.
+     * A unique symbol used in Either generator comprehensions.
+     *
+     * @hidden
      */
-    export type Uid = typeof uid;
+    export type YieldTkn = typeof yieldTkn;
 
     /**
      * The fluent syntax for Either.
@@ -254,11 +258,11 @@ export namespace Either {
          * @hidden
          */
         *[Symbol.iterator](): Iterator<
-            readonly [Either<A, never>, Uid],
+            readonly [Either<A, never>, YieldTkn],
             never,
             unknown
         > {
-            return (yield [this, uid]) as never;
+            return (yield [this, yieldTkn]) as never;
         }
     }
 
@@ -289,11 +293,11 @@ export namespace Either {
          * @hidden
          */
         *[Symbol.iterator](): Iterator<
-            readonly [Either<never, B>, Uid],
+            readonly [Either<never, B>, YieldTkn],
             B,
             unknown
         > {
-            return (yield [this, uid]) as B;
+            return (yield [this, yieldTkn]) as B;
         }
     }
 
@@ -386,9 +390,10 @@ export function viewEither<E, A>(validated: Validated<E, A>): Either<E, A> {
 /**
  * Construct an Either using a generator comprehension.
  */
-export function doEither<T extends readonly [Either<any, any>, Either.Uid], A>(
-    f: () => Generator<T, A, any>,
-): Either<Either.LeftT<T[0]>, A> {
+export function doEither<
+    T extends readonly [Either<any, any>, Either.YieldTkn],
+    A,
+>(f: () => Generator<T, A, any>): Either<Either.LeftT<T[0]>, A> {
     const nxs = f();
     let nx = nxs.next();
     while (!nx.done) {
@@ -504,7 +509,7 @@ export function liftNewEither<T extends unknown[], A>(
  * comprehension.
  */
 export async function doEitherAsync<
-    T extends readonly [Either<any, any>, Either.Uid],
+    T extends readonly [Either<any, any>, Either.YieldTkn],
     A,
 >(f: () => AsyncGenerator<T, A, any>): Promise<Either<Either.LeftT<T[0]>, A>> {
     const nxs = f();

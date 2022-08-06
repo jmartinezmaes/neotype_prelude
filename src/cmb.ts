@@ -40,7 +40,7 @@ export namespace Semigroup {
      * A unique symbol for a method that combines two Semigroup values using an
      * associative operation.
      */
-    export const cmb = Symbol("@neotype/prelude/Semigroup/cmb");
+    export const cmb = Symbol();
 }
 
 /**
