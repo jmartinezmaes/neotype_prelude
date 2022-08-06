@@ -33,252 +33,259 @@ import { id } from "./fn.js";
 export type Validated<E, A> = Validated.Disputed<E> | Validated.Accepted<A>;
 
 export namespace Validated {
-  /**
-   * The unique identifier for Validated.
-   */
-  export const uid = Symbol("@neotype/prelude/Validated/uid");
-
-  /**
-   * The unique identifier for Validated.
-   */
-  export type Uid = typeof uid;
-
-  /**
-   * The fluent syntax for Validated.
-   */
-  export abstract class Syntax {
     /**
-     * Test whether this and that Validated are equal using Eq comparison.
+     * The unique identifier for Validated.
      */
-    [Eq.eq]<E extends Eq<E>, A extends Eq<A>>(
-      this: Validated<E, A>,
-      that: Validated<E, A>,
-    ): boolean {
-      if (disputed(this)) {
-        return disputed(that) && eq(this.value, that.value);
-      }
-      return accepted(that) && eq(this.value, that.value);
+    export const uid = Symbol("@neotype/prelude/Validated/uid");
+
+    /**
+     * The unique identifier for Validated.
+     */
+    export type Uid = typeof uid;
+
+    /**
+     * The fluent syntax for Validated.
+     */
+    export abstract class Syntax {
+        /**
+         * Test whether this and that Validated are equal using Eq comparison.
+         */
+        [Eq.eq]<E extends Eq<E>, A extends Eq<A>>(
+            this: Validated<E, A>,
+            that: Validated<E, A>,
+        ): boolean {
+            if (disputed(this)) {
+                return disputed(that) && eq(this.value, that.value);
+            }
+            return accepted(that) && eq(this.value, that.value);
+        }
+
+        /**
+         * Compare this and that Validated using Ord comparison.
+         */
+        [Ord.cmp]<E extends Ord<E>, A extends Ord<A>>(
+            this: Validated<E, A>,
+            that: Validated<E, A>,
+        ): Ordering {
+            if (disputed(this)) {
+                return disputed(that) ? cmp(this.value, that.value) : less;
+            }
+            return accepted(that) ? cmp(this.value, that.value) : greater;
+        }
+
+        /**
+         * If this and that Validated are both accepted and their values are a
+         * Semigroup, combine the values.
+         */
+        [Semigroup.cmb]<E extends Semigroup<E>, A extends Semigroup<A>>(
+            this: Validated<E, A>,
+            that: Validated<E, A>,
+        ): Validated<E, A> {
+            return this.zipWith(that, cmb);
+        }
+
+        /**
+         * Case analysis for Validated.
+         */
+        fold<E, A, B, B1>(
+            this: Validated<E, A>,
+            foldL: (x: E, validated: Disputed<E>) => B,
+            foldR: (x: A, validated: Accepted<A>) => B1,
+        ): B | B1 {
+            return disputed(this)
+                ? foldL(this.value, this)
+                : foldR(this.value, this);
+        }
+
+        /**
+         * If this Validated is disputed, extract its value; otherwise, apply a
+         * function to the accepted value.
+         */
+        disputedOrFold<E, A, B>(
+            this: Validated<E, A>,
+            f: (x: A, validated: Accepted<A>) => B,
+        ): E | B {
+            return this.fold(id, f);
+        }
+
+        /**
+         * If this Validated is accepted, extract its value; otherwise, apply a
+         * function to the disputed value.
+         */
+        acceptedOrFold<E, A, B>(
+            this: Validated<E, A>,
+            f: (x: E, validated: Disputed<E>) => B,
+        ): A | B {
+            return this.fold(f, id);
+        }
+
+        /**
+         * If this Validated is accepted, apply a function to its value to
+         * produce a new Validated.
+         */
+        bindAccepted<E, A, E1, B>(
+            this: Validated<E, A>,
+            f: (x: A) => Validated<E1, B>,
+        ): Validated<E | E1, B> {
+            return disputed(this) ? this : f(this.value);
+        }
+
+        /**
+         * If this and that Validated are accepted, apply a function to their
+         * values.
+         */
+        zipWith<E extends Semigroup<E>, A, B, C>(
+            this: Validated<E, A>,
+            that: Validated<E, B>,
+            f: (x: A, y: B) => C,
+        ): Validated<E, C> {
+            if (disputed(this)) {
+                return disputed(that)
+                    ? dispute(cmb(this.value, that.value))
+                    : this;
+            }
+            return disputed(that) ? that : accept(f(this.value, that.value));
+        }
+
+        /**
+         * If this and that Validated are accepted, keep only this Validated's
+         * value.
+         */
+        zipFst<E extends Semigroup<E>, A>(
+            this: Validated<E, A>,
+            that: Validated<E, any>,
+        ): Validated<E, A> {
+            return this.zipWith(that, id);
+        }
+
+        /**
+         * If this and that Validated are accepted, keep only that Validated's
+         * value.
+         */
+        zipSnd<E extends Semigroup<E>, B>(
+            this: Validated<E, any>,
+            that: Validated<E, B>,
+        ): Validated<E, B> {
+            return this.zipWith(that, (_, y) => y);
+        }
+
+        /**
+         * Apply one of two functions to this Validated's value if this is
+         * disputed or accepted, respectively.
+         */
+        bimap<E, A, E1, B>(
+            this: Validated<E, A>,
+            mapL: (x: E) => E1,
+            mapR: (x: A) => B,
+        ): Validated<E1, B> {
+            return disputed(this)
+                ? dispute(mapL(this.value))
+                : accept(mapR(this.value));
+        }
+
+        /**
+         * If this Validated is disputed, apply a function to its value.
+         */
+        mapDisputed<E, A, E1>(
+            this: Validated<E, A>,
+            f: (x: E) => E1,
+        ): Validated<E1, A> {
+            return disputed(this) ? dispute(f(this.value)) : this;
+        }
+
+        /**
+         * If this Validated is accepted, apply a function to its value.
+         */
+        map<E, A, B>(this: Validated<E, A>, f: (x: A) => B): Validated<E, B> {
+            return disputed(this) ? this : accept(f(this.value));
+        }
+
+        /**
+         * If this Validated is accepted, overwrite its value.
+         */
+        mapTo<E, B>(this: Validated<E, any>, value: B): Validated<E, B> {
+            return this.map(() => value);
+        }
     }
 
     /**
-     * Compare this and that Validated using Ord comparison.
+     * A disputed Validated.
      */
-    [Ord.cmp]<E extends Ord<E>, A extends Ord<A>>(
-      this: Validated<E, A>,
-      that: Validated<E, A>,
-    ): Ordering {
-      if (disputed(this)) {
-        return disputed(that) ? cmp(this.value, that.value) : less;
-      }
-      return accepted(that) ? cmp(this.value, that.value) : greater;
+    export class Disputed<out E> extends Syntax {
+        /**
+         * The property that discriminates Validated.
+         */
+        readonly type = "Disputed";
+
+        /**
+         * Construct an instance of `Validated.Disputed`.
+         *
+         * Explicit use of this constructor should be avoided; use the
+         * {@link dispute} function instead.
+         */
+        constructor(readonly value: E) {
+            super();
+        }
     }
 
     /**
-     * If this and that Validated are both accepted and their values are a
-     * Semigroup, combine the values.
+     * An accepted Validated.
      */
-    [Semigroup.cmb]<E extends Semigroup<E>, A extends Semigroup<A>>(
-      this: Validated<E, A>,
-      that: Validated<E, A>,
-    ): Validated<E, A> {
-      return this.zipWith(that, cmb);
+    export class Accepted<out A> extends Syntax {
+        /**
+         * The property that discriminates Validated.
+         */
+        readonly type = "Accepted";
+
+        /**
+         * Construct an instance of `Validated.Accepted`.
+         *
+         * Explicit use of this constructor should be avoided; use the
+         * {@link accept} function instead.
+         */
+        constructor(readonly value: A) {
+            super();
+        }
     }
-
-    /**
-     * Case analysis for Validated.
-     */
-    fold<E, A, B, B1>(
-      this: Validated<E, A>,
-      foldL: (x: E, validated: Disputed<E>) => B,
-      foldR: (x: A, validated: Accepted<A>) => B1,
-    ): B | B1 {
-      return disputed(this) ? foldL(this.value, this) : foldR(this.value, this);
-    }
-
-    /**
-     * If this Validated is disputed, extract its value; otherwise, apply a
-     * function to the accepted value.
-     */
-    disputedOrFold<E, A, B>(
-      this: Validated<E, A>,
-      f: (x: A, validated: Accepted<A>) => B,
-    ): E | B {
-      return this.fold(id, f);
-    }
-
-    /**
-     * If this Validated is accepted, extract its value; otherwise, apply a
-     * function to the disputed value.
-     */
-    acceptedOrFold<E, A, B>(
-      this: Validated<E, A>,
-      f: (x: E, validated: Disputed<E>) => B,
-    ): A | B {
-      return this.fold(f, id);
-    }
-
-    /**
-     * If this Validated is accepted, apply a function to its value to produce a
-     * new Validated.
-     */
-    bindAccepted<E, A, E1, B>(
-      this: Validated<E, A>,
-      f: (x: A) => Validated<E1, B>,
-    ): Validated<E | E1, B> {
-      return disputed(this) ? this : f(this.value);
-    }
-
-    /**
-     * If this and that Validated are accepted, apply a function to their values.
-     */
-    zipWith<E extends Semigroup<E>, A, B, C>(
-      this: Validated<E, A>,
-      that: Validated<E, B>,
-      f: (x: A, y: B) => C,
-    ): Validated<E, C> {
-      if (disputed(this)) {
-        return disputed(that) ? dispute(cmb(this.value, that.value)) : this;
-      }
-      return disputed(that) ? that : accept(f(this.value, that.value));
-    }
-
-    /**
-     * If this and that Validated are accepted, keep only this Validated's value.
-     */
-    zipFst<E extends Semigroup<E>, A>(
-      this: Validated<E, A>,
-      that: Validated<E, any>,
-    ): Validated<E, A> {
-      return this.zipWith(that, id);
-    }
-
-    /**
-     * If this and that Validated are accepted, keep only that Validated's value.
-     */
-    zipSnd<E extends Semigroup<E>, B>(
-      this: Validated<E, any>,
-      that: Validated<E, B>,
-    ): Validated<E, B> {
-      return this.zipWith(that, (_, y) => y);
-    }
-
-    /**
-     * Apply one of two functions to this Validated's value if this is disputed
-     * or accepted, respectively.
-     */
-    bimap<E, A, E1, B>(
-      this: Validated<E, A>,
-      mapL: (x: E) => E1,
-      mapR: (x: A) => B,
-    ): Validated<E1, B> {
-      return disputed(this)
-        ? dispute(mapL(this.value))
-        : accept(mapR(this.value));
-    }
-
-    /**
-     * If this Validated is disputed, apply a function to its value.
-     */
-    mapDisputed<E, A, E1>(
-      this: Validated<E, A>,
-      f: (x: E) => E1,
-    ): Validated<E1, A> {
-      return disputed(this) ? dispute(f(this.value)) : this;
-    }
-
-    /**
-     * If this Validated is accepted, apply a function to its value.
-     */
-    map<E, A, B>(this: Validated<E, A>, f: (x: A) => B): Validated<E, B> {
-      return disputed(this) ? this : accept(f(this.value));
-    }
-
-    /**
-     * If this Validated is accepted, overwrite its value.
-     */
-    mapTo<E, B>(this: Validated<E, any>, value: B): Validated<E, B> {
-      return this.map(() => value);
-    }
-  }
-
-  /**
-   * A disputed Validated.
-   */
-  export class Disputed<out E> extends Syntax {
-    /**
-     * The property that discriminates Validated.
-     */
-    readonly type = "Disputed";
-
-    /**
-     * Construct an instance of `Validated.Disputed`.
-     *
-     * Explicit use of this constructor should be avoided; use the
-     * {@link dispute} function instead.
-     */
-    constructor(readonly value: E) {
-      super();
-    }
-  }
-
-  /**
-   * An accepted Validated.
-   */
-  export class Accepted<out A> extends Syntax {
-    /**
-     * The property that discriminates Validated.
-     */
-    readonly type = "Accepted";
-
-    /**
-     * Construct an instance of `Validated.Accepted`.
-     *
-     * Explicit use of this constructor should be avoided; use the
-     * {@link accept} function instead.
-     */
-    constructor(readonly value: A) {
-      super();
-    }
-  }
 }
 
 /**
  * Construct a disputed Validated.
  */
 export function dispute<E, A = never>(x: E): Validated<E, A> {
-  return new Validated.Disputed(x);
+    return new Validated.Disputed(x);
 }
 
 /**
  * Construct an accepted Validated.
  */
 export function accept<A, E = never>(x: A): Validated<E, A> {
-  return new Validated.Accepted(x);
+    return new Validated.Accepted(x);
 }
 
 /**
  * Test whether a Validated is disputed.
  */
 export function disputed<E>(
-  validated: Validated<E, any>,
+    validated: Validated<E, any>,
 ): validated is Validated.Disputed<E> {
-  return validated.type === "Disputed";
+    return validated.type === "Disputed";
 }
 
 /**
  * Test whether a Validated is accepted.
  */
 export function accepted<A>(
-  validated: Validated<any, A>,
+    validated: Validated<any, A>,
 ): validated is Validated.Accepted<A> {
-  return validated.type === "Accepted";
+    return validated.type === "Accepted";
 }
 
 /**
  * Convert an Either to a Validated.
  */
 export function viewValidated<E, A>(either: Either<E, A>): Validated<E, A> {
-  return either.fold(dispute, accept);
+    return either.fold(dispute, accept);
 }
 
 /**
@@ -286,122 +293,115 @@ export function viewValidated<E, A>(either: Either<E, A>): Validated<E, A> {
  * collect the accepted values in an array or a tuple literal, respectively.
  */
 export function collectValidated<E extends Semigroup<E>, A0, A1>(
-  xs: readonly [Validated<E, A0>, Validated<E, A1>],
+    xs: readonly [Validated<E, A0>, Validated<E, A1>],
 ): Validated<E, readonly [A0, A1]>;
 
 export function collectValidated<E extends Semigroup<E>, A0, A1, A2>(
-  xs: readonly [Validated<E, A0>, Validated<E, A1>, Validated<E, A2>],
+    xs: readonly [Validated<E, A0>, Validated<E, A1>, Validated<E, A2>],
 ): Validated<E, readonly [A0, A1, A2]>;
 
 export function collectValidated<E extends Semigroup<E>, A0, A1, A2, A3>(
-  xs: readonly [
-    Validated<E, A0>,
-    Validated<E, A1>,
-    Validated<E, A2>,
-    Validated<E, A3>,
-  ],
+    xs: readonly [
+        Validated<E, A0>,
+        Validated<E, A1>,
+        Validated<E, A2>,
+        Validated<E, A3>,
+    ],
 ): Validated<E, readonly [A0, A1, A2, A3]>;
 
 export function collectValidated<E extends Semigroup<E>, A0, A1, A2, A3, A4>(
-  xs: readonly [
-    Validated<E, A0>,
-    Validated<E, A1>,
-    Validated<E, A2>,
-    Validated<E, A3>,
-    Validated<E, A4>,
-  ],
+    xs: readonly [
+        Validated<E, A0>,
+        Validated<E, A1>,
+        Validated<E, A2>,
+        Validated<E, A3>,
+        Validated<E, A4>,
+    ],
 ): Validated<E, readonly [A0, A1, A2, A3, A4]>;
 
-export function collectValidated<
-  E extends Semigroup<E>,
-  A0,
-  A1,
-  A2,
-  A3,
-  A4,
-  A5,
->(
-  xs: readonly [
-    Validated<E, A0>,
-    Validated<E, A1>,
-    Validated<E, A2>,
-    Validated<E, A3>,
-    Validated<E, A4>,
-    Validated<E, A5>,
-  ],
+// prettier-ignore
+export function collectValidated<E extends Semigroup<E>, A0, A1, A2, A3, A4, A5>(
+    xs: readonly [
+        Validated<E, A0>,
+        Validated<E, A1>,
+        Validated<E, A2>,
+        Validated<E, A3>,
+        Validated<E, A4>,
+        Validated<E, A5>,
+    ],
 ): Validated<E, readonly [A0, A1, A2, A3, A4, A5]>;
 
 // prettier-ignore
 export function collectValidated<E extends Semigroup<E>, A0, A1, A2, A3, A4, A5, A6>(
-  xs: readonly [
-    Validated<E, A0>,
-    Validated<E, A1>,
-    Validated<E, A2>,
-    Validated<E, A3>,
-    Validated<E, A4>,
-    Validated<E, A5>,
-    Validated<E, A6>,
-  ],
+    xs: readonly [
+        Validated<E, A0>,
+        Validated<E, A1>,
+        Validated<E, A2>,
+        Validated<E, A3>,
+        Validated<E, A4>,
+        Validated<E, A5>,
+        Validated<E, A6>,
+    ],
 ): Validated<E, readonly [A0, A1, A2, A3, A4, A5, A6]>;
 
 // prettier-ignore
 export function collectValidated<E extends Semigroup<E>, A0, A1, A2, A3, A4, A5, A6, A7>(
-  xs: readonly [
-    Validated<E, A0>,
-    Validated<E, A1>,
-    Validated<E, A2>,
-    Validated<E, A3>,
-    Validated<E, A4>,
-    Validated<E, A5>,
-    Validated<E, A6>,
-    Validated<E, A7>,
-  ],
+    xs: readonly [
+        Validated<E, A0>,
+        Validated<E, A1>,
+        Validated<E, A2>,
+        Validated<E, A3>,
+        Validated<E, A4>,
+        Validated<E, A5>,
+        Validated<E, A6>,
+        Validated<E, A7>,
+    ],
 ): Validated<E, readonly [A0, A1, A2, A3, A4, A5, A6, A7]>;
 
 // prettier-ignore
 export function collectValidated<E extends Semigroup<E>, A0, A1, A2, A3, A4, A5, A6, A7, A8>(
-  xs: readonly [
-    Validated<E, A0>,
-    Validated<E, A1>,
-    Validated<E, A2>,
-    Validated<E, A3>,
-    Validated<E, A4>,
-    Validated<E, A5>,
-    Validated<E, A6>,
-    Validated<E, A7>,
-    Validated<E, A8>,
-  ],
+    xs: readonly [
+        Validated<E, A0>,
+        Validated<E, A1>,
+        Validated<E, A2>,
+        Validated<E, A3>,
+        Validated<E, A4>,
+        Validated<E, A5>,
+        Validated<E, A6>,
+        Validated<E, A7>,
+        Validated<E, A8>,
+    ],
 ): Validated<E, readonly [A0, A1, A2, A3, A4, A5, A6, A7, A8]>;
 
 // prettier-ignore
 export function collectValidated<E extends Semigroup<E>, A0, A1, A2, A3, A4, A5, A6, A7, A8, A9>(
-  xs: readonly [
-    Validated<E, A0>,
-    Validated<E, A1>,
-    Validated<E, A2>,
-    Validated<E, A3>,
-    Validated<E, A4>,
-    Validated<E, A5>,
-    Validated<E, A6>,
-    Validated<E, A7>,
-    Validated<E, A8>,
-    Validated<E, A9>,
-  ],
+    xs: readonly [
+        Validated<E, A0>,
+        Validated<E, A1>,
+        Validated<E, A2>,
+        Validated<E, A3>,
+        Validated<E, A4>,
+        Validated<E, A5>,
+        Validated<E, A6>,
+        Validated<E, A7>,
+        Validated<E, A8>,
+        Validated<E, A9>,
+    ],
 ): Validated<E, readonly [A0, A1, A2, A3, A4, A5, A6, A7, A8, A9]>;
 
 export function collectValidated<E extends Semigroup<E>, A>(
-  xs: readonly Validated<E, A>[],
+    xs: readonly Validated<E, A>[],
 ): Validated<E, readonly A[]>;
 
 export function collectValidated<E extends Semigroup<E>, A>(
-  xs: readonly Validated<E, A>[],
+    xs: readonly Validated<E, A>[],
 ): Validated<E, readonly A[]> {
-  return xs.reduce((acc, v, iv) => {
-    return acc.zipWith(v, (ys, x) => {
-      ys[iv] = x;
-      return ys;
-    });
-  }, accept<A[], E>(new Array(xs.length)));
+    return xs.reduce((acc, v, iv) => {
+        return acc.zipWith(v, (ys, x) => {
+            ys[iv] = x;
+            return ys;
+        });
+    }, accept<A[], E>(new Array(xs.length)));
 }
 
 /**
@@ -409,116 +409,116 @@ export function collectValidated<E extends Semigroup<E>, A>(
  * values in a tuple literal.
  */
 export function tupledValidated<E extends Semigroup<E>, A0, A1>(
-  ...xs: [Validated<E, A0>, Validated<E, A1>]
+    ...xs: [Validated<E, A0>, Validated<E, A1>]
 ): Validated<E, readonly [A0, A1]>;
 
 export function tupledValidated<E extends Semigroup<E>, A0, A1, A2>(
-  ...xs: [Validated<E, A0>, Validated<E, A1>, Validated<E, A2>]
+    ...xs: [Validated<E, A0>, Validated<E, A1>, Validated<E, A2>]
 ): Validated<E, readonly [A0, A1, A2]>;
 
 export function tupledValidated<E extends Semigroup<E>, A0, A1, A2, A3>(
-  ...xs: [
-    Validated<E, A0>,
-    Validated<E, A1>,
-    Validated<E, A2>,
-    Validated<E, A3>,
-  ]
+    ...xs: [
+        Validated<E, A0>,
+        Validated<E, A1>,
+        Validated<E, A2>,
+        Validated<E, A3>,
+    ]
 ): Validated<E, readonly [A0, A1, A2, A3]>;
 
 export function tupledValidated<E extends Semigroup<E>, A0, A1, A2, A3, A4>(
-  ...xs: [
-    Validated<E, A0>,
-    Validated<E, A1>,
-    Validated<E, A2>,
-    Validated<E, A3>,
-    Validated<E, A4>,
-  ]
+    ...xs: [
+        Validated<E, A0>,
+        Validated<E, A1>,
+        Validated<E, A2>,
+        Validated<E, A3>,
+        Validated<E, A4>,
+    ]
 ): Validated<E, readonly [A0, A1, A2, A3, A4]>;
 
 export function tupledValidated<E extends Semigroup<E>, A0, A1, A2, A3, A4, A5>(
-  ...xs: [
-    Validated<E, A0>,
-    Validated<E, A1>,
-    Validated<E, A2>,
-    Validated<E, A3>,
-    Validated<E, A4>,
-    Validated<E, A5>,
-  ]
+    ...xs: [
+        Validated<E, A0>,
+        Validated<E, A1>,
+        Validated<E, A2>,
+        Validated<E, A3>,
+        Validated<E, A4>,
+        Validated<E, A5>,
+    ]
 ): Validated<E, readonly [A0, A1, A2, A3, A4, A5]>;
 
 // prettier-ignore
 export function tupledValidated<E extends Semigroup<E>, A0, A1, A2, A3, A4, A5, A6>(
-  ...xs: [
-    Validated<E, A0>,
-    Validated<E, A1>,
-    Validated<E, A2>,
-    Validated<E, A3>,
-    Validated<E, A4>,
-    Validated<E, A5>,
-    Validated<E, A6>,
-  ]
+    ...xs: [
+        Validated<E, A0>,
+        Validated<E, A1>,
+        Validated<E, A2>,
+        Validated<E, A3>,
+        Validated<E, A4>,
+        Validated<E, A5>,
+        Validated<E, A6>,
+    ]
 ): Validated<E, readonly [A0, A1, A2, A3, A4, A5, A6]>;
 
 // prettier-ignore
 export function tupledValidated<E extends Semigroup<E>, A0, A1, A2, A3, A4, A5, A6, A7>(
-  ...xs: [
-    Validated<E, A0>,
-    Validated<E, A1>,
-    Validated<E, A2>,
-    Validated<E, A3>,
-    Validated<E, A4>,
-    Validated<E, A5>,
-    Validated<E, A6>,
-    Validated<E, A7>,
-  ]
+    ...xs: [
+        Validated<E, A0>,
+        Validated<E, A1>,
+        Validated<E, A2>,
+        Validated<E, A3>,
+        Validated<E, A4>,
+        Validated<E, A5>,
+        Validated<E, A6>,
+        Validated<E, A7>,
+    ]
 ): Validated<E, readonly [A0, A1, A2, A3, A4, A5, A6, A7]>;
 
 // prettier-ignore
 export function tupledValidated<E extends Semigroup<E>, A0, A1, A2, A3, A4, A5, A6, A7, A8>(
-  ...xs: [
-    Validated<E, A0>,
-    Validated<E, A1>,
-    Validated<E, A2>,
-    Validated<E, A3>,
-    Validated<E, A4>,
-    Validated<E, A5>,
-    Validated<E, A6>,
-    Validated<E, A7>,
-    Validated<E, A8>,
-  ]
+    ...xs: [
+        Validated<E, A0>,
+        Validated<E, A1>,
+        Validated<E, A2>,
+        Validated<E, A3>,
+        Validated<E, A4>,
+        Validated<E, A5>,
+        Validated<E, A6>,
+        Validated<E, A7>,
+        Validated<E, A8>,
+    ]
 ): Validated<E, readonly [A0, A1, A2, A3, A4, A5, A6, A7, A8]>;
 
 // prettier-ignore
 export function tupledValidated<E extends Semigroup<E>, A0, A1, A2, A3, A4, A5, A6, A7, A8, A9>(
-  ...xs: [
-    Validated<E, A0>,
-    Validated<E, A1>,
-    Validated<E, A2>,
-    Validated<E, A3>,
-    Validated<E, A4>,
-    Validated<E, A5>,
-    Validated<E, A6>,
-    Validated<E, A7>,
-    Validated<E, A8>,
-    Validated<E, A9>,
-  ]
+    ...xs: [
+        Validated<E, A0>,
+        Validated<E, A1>,
+        Validated<E, A2>,
+        Validated<E, A3>,
+        Validated<E, A4>,
+        Validated<E, A5>,
+        Validated<E, A6>,
+        Validated<E, A7>,
+        Validated<E, A8>,
+        Validated<E, A9>,
+    ]
 ): Validated<E, readonly [A0, A1, A2, A3, A4, A5, A6, A7, A8, A9]>;
 
 export function tupledValidated<E extends Semigroup<E>, A>(
-  ...xs: Validated<E, A>[]
+    ...xs: Validated<E, A>[]
 ): Validated<E, readonly A[]> {
-  return collectValidated(xs);
+    return collectValidated(xs);
 }
 
 /**
  * Lift a function of any arity into the context of Validated.
  */
 export function liftValidated<T extends unknown[], A>(
-  f: (...args: T) => A,
+    f: (...args: T) => A,
 ): <E extends Semigroup<E>>(
-  ...args: { [K in keyof T]: Validated<E, T[K]> }
+    ...args: { [K in keyof T]: Validated<E, T[K]> }
 ) => Validated<E, A> {
-  return (...args) => collectValidated(args).map((xs) => f(...(xs as T)));
+    return (...args) => collectValidated(args).map((xs) => f(...(xs as T)));
 }
 
 /**
@@ -527,26 +527,27 @@ export function liftValidated<T extends unknown[], A>(
  */
 // prettier-ignore
 export function liftNamedValidated<T extends Record<any, unknown>, A = T>(
-  f: (args: T) => A,
+    f: (args: T) => A,
 ): <E extends Semigroup<E>>(
-  args: { [K in keyof T]: Validated<E, T[K]> }
+    args: { [K in keyof T]: Validated<E, T[K]> }
 ) => Validated<E, A> {
-  return (args) => Object.entries(args).reduce((acc, [kv, v]) => {
-    return acc.zipWith(v, (xs, x) => {
-      xs[kv] = x;
-      return xs;
-    });
-  }, accept<Record<any, any>>({})).map(f);
+    return (args) => Object.entries(args).reduce((acc, [kv, v]) => {
+        return acc.zipWith(v, (xs, x) => {
+            xs[kv] = x;
+            return xs;
+        });
+    }, accept<Record<any, any>>({})).map(f);
 }
 
 /**
  * Lift a constructor function of any arity into the context of Validated.
  */
 export function liftNewValidated<T extends unknown[], A>(
-  ctor: new (...args: T) => A,
+    ctor: new (...args: T) => A,
 ): <E extends Semigroup<E>>(
-  ...args: { [K in keyof T]: Validated<E, T[K]> }
+    ...args: { [K in keyof T]: Validated<E, T[K]> }
 ) => Validated<E, A> {
-  return (...args) =>
-    collectValidated(args).map((xs) => new ctor(...(xs as T)));
+    return (...args) => {
+        return collectValidated(args).map((xs) => new ctor(...(xs as T)));
+    };
 }

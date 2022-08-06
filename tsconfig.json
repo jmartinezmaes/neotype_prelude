@@ -1,22 +1,22 @@
 {
-  "compilerOptions": {
-    "target": "ES2020",
-    "module": "ES2020",
-    "moduleResolution": "NodeNext",
-    "declaration": true,
-    "declarationMap": true,
-    "sourceMap": true,
-    "outDir": "./dist",
-    "importsNotUsedAsValues": "remove",
-    "downlevelIteration": false,
-    "newLine": "lf",
-    "removeComments": true,
-    "stripInternal": true,
-    "forceConsistentCasingInFileNames": true,
-    "strict": true,
-    "noImplicitReturns": true,
-    "noUnusedLocals": true,
-    "noUnusedParameters": true
-  },
-  "include": ["./src", "./test"]
+    "compilerOptions": {
+        "target": "ES2020",
+        "module": "ES2020",
+        "moduleResolution": "NodeNext",
+        "declaration": true,
+        "declarationMap": true,
+        "sourceMap": true,
+        "outDir": "./dist",
+        "importsNotUsedAsValues": "remove",
+        "downlevelIteration": false,
+        "newLine": "lf",
+        "removeComments": true,
+        "stripInternal": true,
+        "forceConsistentCasingInFileNames": true,
+        "strict": true,
+        "noImplicitReturns": true,
+        "noUnusedLocals": true,
+        "noUnusedParameters": true
+    },
+    "include": ["./src", "./test"]
 }

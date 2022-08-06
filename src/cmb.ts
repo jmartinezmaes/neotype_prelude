@@ -32,15 +32,15 @@
  * `cmb (x, cmb (y, z)) ≡ cmb (cmb (x, y), z)`
  */
 export interface Semigroup<in out A> {
-  [Semigroup.cmb](that: A): A;
+    [Semigroup.cmb](that: A): A;
 }
 
 export namespace Semigroup {
-  /**
-   * A unique symbol for a method that combines two Semigroup values using an
-   * associative operation.
-   */
-  export const cmb = Symbol("@neotype/prelude/Semigroup/cmb");
+    /**
+     * A unique symbol for a method that combines two Semigroup values using an
+     * associative operation.
+     */
+    export const cmb = Symbol("@neotype/prelude/Semigroup/cmb");
 }
 
 /**
@@ -51,5 +51,5 @@ export namespace Semigroup {
  * ```
  */
 export function cmb<A extends Semigroup<A>>(x: A, y: A): A {
-  return x[Semigroup.cmb](y);
+    return x[Semigroup.cmb](y);
 }

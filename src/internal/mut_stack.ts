@@ -17,18 +17,18 @@
 type Node<A> = null | readonly [A, Node<A>];
 
 export class MutStack<A> {
-  private hd: Node<A> = null;
+    private hd: Node<A> = null;
 
-  push(x: A): void {
-    this.hd = [x, this.hd];
-  }
-
-  pop(): A | undefined {
-    if (this.hd) {
-      const [x, xs] = this.hd;
-      this.hd = xs;
-      return x;
+    push(x: A): void {
+        this.hd = [x, this.hd];
     }
-    return;
-  }
+
+    pop(): A | undefined {
+        if (this.hd) {
+            const [x, xs] = this.hd;
+            this.hd = xs;
+            return x;
+        }
+        return;
+    }
 }

@@ -47,15 +47,14 @@ import { cmb, Semigroup } from "./cmb.js";
  * instance of Eq, then `eq (f (x), f (y)) === true`
  */
 export interface Eq<in A> {
-  [Eq.eq](that: A): boolean;
+    [Eq.eq](that: A): boolean;
 }
 
 export namespace Eq {
-  /**
-   * A unique symbol for a method that determines the equality or inequality of
-   * two Eq values.
-   */
-  export const eq = Symbol("@neotype/prelude/Eq/eq");
+    /**
+     * A unique symbol for a method that tests two values for equality.
+     */
+    export const eq = Symbol("@neotype/prelude/Eq/eq");
 }
 
 /**
@@ -66,7 +65,7 @@ export namespace Eq {
  * ```
  */
 export function eq<A extends Eq<A>>(x: A, y: A): boolean {
-  return x[Eq.eq](y);
+    return x[Eq.eq](y);
 }
 
 /**
@@ -77,37 +76,37 @@ export function eq<A extends Eq<A>>(x: A, y: A): boolean {
  * ```
  */
 export function ne<A extends Eq<A>>(x: A, y: A): boolean {
-  return !x[Eq.eq](y);
+    return !x[Eq.eq](y);
 }
 
 /**
  * Test two iterables for equality.
  */
 export function ieq<A extends Eq<A>>(
-  xs: Iterable<A>,
-  ys: Iterable<A>,
+    xs: Iterable<A>,
+    ys: Iterable<A>,
 ): boolean {
-  const nxs = xs[Symbol.iterator]();
-  const nys = ys[Symbol.iterator]();
-  let nx = nxs.next();
-  let ny = nys.next();
+    const nxs = xs[Symbol.iterator]();
+    const nys = ys[Symbol.iterator]();
+    let nx = nxs.next();
+    let ny = nys.next();
 
-  // eslint-disable-next-line no-constant-condition
-  while (true) {
-    if (!nx.done) {
-      if (!ny.done) {
-        if (ne(nx.value, ny.value)) {
-          return false;
+    // eslint-disable-next-line no-constant-condition
+    while (true) {
+        if (!nx.done) {
+            if (!ny.done) {
+                if (ne(nx.value, ny.value)) {
+                    return false;
+                }
+                nx = nxs.next();
+                ny = nys.next();
+            } else {
+                return false;
+            }
+        } else {
+            return !!ny.done;
         }
-        nx = nxs.next();
-        ny = nys.next();
-      } else {
-        return false;
-      }
-    } else {
-      return !!ny.done;
     }
-  }
 }
 
 /**
@@ -134,15 +133,14 @@ export function ieq<A extends Eq<A>>(
  * If `le (x, y) && le (y, x) === true` then `eq (x, y) === true`
  */
 export interface Ord<in A> extends Eq<A> {
-  [Ord.cmp](that: A): Ordering;
+    [Ord.cmp](that: A): Ordering;
 }
 
 export namespace Ord {
-  /**
-   * A unique symbol for a method that determines the total ordering of two Ord
-   * values.
-   */
-  export const cmp = Symbol("@neotype/prelude/Ord/compare");
+    /**
+     * A unique symbol for a method that determines the ordering of two values.
+     */
+    export const cmp = Symbol("@neotype/prelude/Ord/compare");
 }
 
 /**
@@ -153,87 +151,87 @@ export namespace Ord {
  * ```
  */
 export function cmp<A extends Ord<A>>(x: A, y: A): Ordering {
-  return x[Ord.cmp](y);
+    return x[Ord.cmp](y);
 }
 
 /**
  * Determine the ordering of two iterables.
  */
 export function icmp<A extends Ord<A>>(
-  xs: Iterable<A>,
-  ys: Iterable<A>,
+    xs: Iterable<A>,
+    ys: Iterable<A>,
 ): Ordering {
-  const nxs = xs[Symbol.iterator]();
-  const nys = ys[Symbol.iterator]();
-  let nx = nxs.next();
-  let ny = nys.next();
+    const nxs = xs[Symbol.iterator]();
+    const nys = ys[Symbol.iterator]();
+    let nx = nxs.next();
+    let ny = nys.next();
 
-  // eslint-disable-next-line no-constant-condition
-  while (true) {
-    if (!nx.done) {
-      if (!ny.done) {
-        const ord = cmp(nx.value, ny.value);
-        if (ordNe(ord)) {
-          return ord;
+    // eslint-disable-next-line no-constant-condition
+    while (true) {
+        if (!nx.done) {
+            if (!ny.done) {
+                const ord = cmp(nx.value, ny.value);
+                if (ordNe(ord)) {
+                    return ord;
+                }
+                nx = nxs.next();
+                ny = nys.next();
+            } else {
+                return greater;
+            }
+        } else {
+            return ny.done ? equal : less;
         }
-        nx = nxs.next();
-        ny = nys.next();
-      } else {
-        return greater;
-      }
-    } else {
-      return ny.done ? equal : less;
     }
-  }
 }
 
 /**
  * Test whether `x` is less than `y`.
  */
 export function lt<A extends Ord<A>>(x: A, y: A): boolean {
-  return ordLt(cmp(x, y));
+    return ordLt(cmp(x, y));
 }
 
 /**
  * Test whether `x` is greater than `y`.
  */
 export function gt<A extends Ord<A>>(x: A, y: A): boolean {
-  return ordGt(cmp(x, y));
+    return ordGt(cmp(x, y));
 }
 
 /**
  * Test whether `x` is less than or equal to `y`.
  */
 export function le<A extends Ord<A>>(x: A, y: A): boolean {
-  return ordLe(cmp(x, y));
+    return ordLe(cmp(x, y));
 }
 
 /**
  * Test whether `x` is greater than or equal to `y`.
  */
 export function ge<A extends Ord<A>>(x: A, y: A): boolean {
-  return ordGe(cmp(x, y));
+    return ordGe(cmp(x, y));
 }
 
 /**
  * Find the minimum of two values.
  */
 export function min<A extends Ord<A>>(...xs: [A, ...A[]]): A {
-  return xs.reduce((acc, x) => (lt(acc, x) ? acc : x));
+    return xs.reduce((acc, x) => (lt(acc, x) ? acc : x));
 }
 
 /**
  * Find the maximum of two values.
  */
 export function max<A extends Ord<A>>(...xs: [A, ...A[]]): A {
-  return xs.reduce((acc, x) => (gt(acc, x) ? acc : x));
+    return xs.reduce((acc, x) => (gt(acc, x) ? acc : x));
 }
 
 /**
  * Restrict a value to an inclusive bounds.
  */
 export function clamp<A extends Ord<A>>(x: A, lo: A, hi: A) {
-  return min(hi, max(lo, x));
+    return min(hi, max(lo, x));
 }
 
 /**
@@ -242,115 +240,116 @@ export function clamp<A extends Ord<A>>(x: A, lo: A, hi: A) {
 export type Ordering = Ordering.Less | Ordering.Equal | Ordering.Greater;
 
 export namespace Ordering {
-  /**
-   * The unique identifier for Ordering.
-   */
-  export const uid = Symbol("@neotype/prelude/Ordering/uid");
-
-  /**
-   * The unique identifier for Ordering.
-   */
-  export type Uid = typeof uid;
-
-  /**
-   * The fluent syntax for Ordering.
-   */
-  export abstract class Syntax {
     /**
-     * Test this and that Ordering for equality.
+     * The unique identifier for Ordering.
      */
-    [Eq.eq](this: Ordering, that: Ordering): boolean {
-      return this.value === that.value;
+    export const uid = Symbol("@neotype/prelude/Ordering/uid");
+
+    /**
+     * The unique identifier for Ordering.
+     */
+    export type Uid = typeof uid;
+
+    /**
+     * The fluent syntax for Ordering.
+     */
+    export abstract class Syntax {
+        /**
+         * Test this and that Ordering for equality.
+         */
+        [Eq.eq](this: Ordering, that: Ordering): boolean {
+            return this.value === that.value;
+        }
+
+        /**
+         * Determine the ordering of this and that Ordering, where
+         * `Less < Equal < Greater`.
+         */
+        [Ord.cmp](this: Ordering, that: Ordering): Ordering {
+            if (ordLt(this)) {
+                return ordLt(that) ? equal : less;
+            }
+            if (ordGt(this)) {
+                return ordGt(that) ? equal : greater;
+            }
+            return ordEq(that) ? equal : ordLt(that) ? greater : less;
+        }
+
+        /**
+         * If this Ordering is Equal, return this; otherwise, return the other
+         * Ordering.
+         */
+        [Semigroup.cmb](this: Ordering, that: Ordering): Ordering {
+            return ordEq(this) ? that : this;
+        }
     }
 
     /**
-     * Determine the ordering of this and that Ordering, where
-     * `Less < Equal < Greater`.
+     * An Ordering that models a "less than" relationship between two values.
      */
-    [Ord.cmp](this: Ordering, that: Ordering): Ordering {
-      if (ordLt(this)) {
-        return ordLt(that) ? equal : less;
-      }
-      if (ordGt(this)) {
-        return ordGt(that) ? equal : greater;
-      }
-      return ordEq(that) ? equal : ordLt(that) ? greater : less;
+    export class Less extends Syntax {
+        /**
+         * The numerical representation of this Ordering.
+         */
+        readonly value = -1;
+
+        /**
+         * The singleton instance of the Less Ordering.
+         */
+        static readonly singleton = new Less();
+
+        /**
+         * `Less` is not constructable; use the {@link less} constant instead.
+         */
+        private constructor() {
+            super();
+        }
     }
 
     /**
-     * If this Ordering is Equal, return this; otherwise, return the other
-     * Ordering.
+     * An Ordering that models an "equal" relationship between two values.
      */
-    [Semigroup.cmb](this: Ordering, that: Ordering): Ordering {
-      return ordEq(this) ? that : this;
+    export class Equal extends Syntax {
+        /**
+         * The numerical representation of this Ordering.
+         */
+        readonly value = 0;
+
+        /**
+         * The singleton instance of the Equal Ordering.
+         */
+        static readonly singleton = new Equal();
+
+        /**
+         * `Equal` is not constructable; use the {@link equal} constant instead.
+         */
+        private constructor() {
+            super();
+        }
     }
-  }
-
-  /**
-   * An Ordering that models a "less than" relationship between two values.
-   */
-  export class Less extends Syntax {
-    /**
-     * The numerical representation of this Ordering.
-     */
-    readonly value = -1;
 
     /**
-     * The singleton instance of the Less Ordering.
+     * An Ordering that models a "greater than" relationship between two values.
      */
-    static readonly singleton = new Less();
+    export class Greater extends Syntax {
+        /**
+         * The numerical representation of this Ordering.
+         */
+        readonly value = 1;
 
-    /**
-     * `Less` is not constructable; use the {@link less} constant instead.
-     */
-    private constructor() {
-      super();
+        /**
+         * The singleton instance of the Greater Ordering.
+         */
+        static readonly singleton = new Greater();
+
+        /**
+         * `Greater` is not constructable; use the {@link greater} constant
+         * instead.
+         */
+        private constructor() {
+            super();
+        }
     }
-  }
-
-  /**
-   * An Ordering that models an "equal" relationship between two values.
-   */
-  export class Equal extends Syntax {
-    /**
-     * The numerical representation of this Ordering.
-     */
-    readonly value = 0;
-
-    /**
-     * The singleton instance of the Equal Ordering.
-     */
-    static readonly singleton = new Equal();
-
-    /**
-     * `Equal` is not constructable; use the {@link equal} constant instead.
-     */
-    private constructor() {
-      super();
-    }
-  }
-
-  /**
-   * An Ordering that models a "greater than" relationship between two values.
-   */
-  export class Greater extends Syntax {
-    /**
-     * The numerical representation of this Ordering.
-     */
-    readonly value = 1;
-
-    /**
-     * The singleton instance of the Greater Ordering.
-     */
-    static readonly singleton = new Greater();
-
-    /**
-     * `Greater` is not constructable; use the {@link greater} constant instead.
-     */
-    private constructor() {
-      super();
-    }
-  }
 }
 
 /**
@@ -372,110 +371,110 @@ export const greater = Ordering.Greater.singleton as Ordering;
  * Test whether an Ordering is Less.
  */
 export function ordLt(ordering: Ordering): ordering is Ordering.Less {
-  return ordering.value === -1;
+    return ordering.value === -1;
 }
 
 /**
  * Test whether an Ordering is Less or Equal.
  */
 export function ordLe(
-  ordering: Ordering,
+    ordering: Ordering,
 ): ordering is Ordering.Less | Ordering.Equal {
-  return !ordGt(ordering);
+    return !ordGt(ordering);
 }
 
 /**
  * Test whether an Ordering is Equal.
  */
 export function ordEq(ordering: Ordering): ordering is Ordering.Equal {
-  return ordering.value === 0;
+    return ordering.value === 0;
 }
 
 /**
  * Test whether an Ordering is not Equal.
  */
 export function ordNe(
-  ordering: Ordering,
+    ordering: Ordering,
 ): ordering is Ordering.Less | Ordering.Greater {
-  return !ordEq(ordering);
+    return !ordEq(ordering);
 }
 
 /**
  * Test whether an Ordering is Greater or Equal.
  */
 export function ordGe(
-  ordering: Ordering,
+    ordering: Ordering,
 ): ordering is Ordering.Greater | Ordering.Equal {
-  return !ordLt(ordering);
+    return !ordLt(ordering);
 }
 
 /**
  * Test whether an Ordering is Greater.
  */
 export function ordGt(ordering: Ordering): ordering is Ordering.Greater {
-  return ordering.value === 1;
+    return ordering.value === 1;
 }
 
 /**
  * Reverse an ordering.
  */
 export function reverseOrdering(ordering: Ordering): Ordering {
-  if (ordLt(ordering)) {
-    return greater;
-  }
-  if (ordGt(ordering)) {
-    return less;
-  }
-  return ordering;
+    if (ordLt(ordering)) {
+        return greater;
+    }
+    if (ordGt(ordering)) {
+        return less;
+    }
+    return ordering;
 }
 
 /**
  * A helper type for reverse ordering.
  */
 export class Reverse<A> {
-  /**
-   * Construct an instance of Reverse.
-   */
-  constructor(readonly value: A) {}
+    /**
+     * Construct an instance of Reverse.
+     */
+    constructor(readonly value: A) {}
 
-  /**
-   * Test this and that Reverse for equality using thier values' behavior as
-   * instances of Eq.
-   */
-  [Eq.eq]<A extends Eq<A>>(this: Reverse<A>, that: Reverse<A>): boolean {
-    return eq(this.value, that.value);
-  }
+    /**
+     * Test this and that Reverse for equality using thier values' behavior as
+     * instances of Eq.
+     */
+    [Eq.eq]<A extends Eq<A>>(this: Reverse<A>, that: Reverse<A>): boolean {
+        return eq(this.value, that.value);
+    }
 
-  /**
-   * Determine the ordering of this and that Reverse, reversing the ordering
-   * of their underlying Ord values.
-   */
-  [Ord.cmp]<A extends Ord<A>>(this: Reverse<A>, that: Reverse<A>): Ordering {
-    return reverseOrdering(cmp(this.value, that.value));
-  }
+    /**
+     * Determine the ordering of this and that Reverse, reversing the ordering
+     * of their underlying Ord values.
+     */
+    [Ord.cmp]<A extends Ord<A>>(this: Reverse<A>, that: Reverse<A>): Ordering {
+        return reverseOrdering(cmp(this.value, that.value));
+    }
 
-  /**
-   * Combine this and that Reverse using their values' behavior as instances of
-   * Semigroup.
-   */
-  [Semigroup.cmb]<A extends Semigroup<A>>(
-    this: Reverse<A>,
-    that: Reverse<A>,
-  ): Reverse<A> {
-    return new Reverse(cmb(this.value, that.value));
-  }
+    /**
+     * Combine this and that Reverse using their values' behavior as instances
+     * of Semigroup.
+     */
+    [Semigroup.cmb]<A extends Semigroup<A>>(
+        this: Reverse<A>,
+        that: Reverse<A>,
+    ): Reverse<A> {
+        return new Reverse(cmb(this.value, that.value));
+    }
 }
 
 /**
  * Construct a Reverse.
  */
 export function mkReverse<A>(x: A): Reverse<A> {
-  return new Reverse(x);
+    return new Reverse(x);
 }
 
 /**
  * Destruct a Reverse.
  */
 export function unReverse<A>(reverse: Reverse<A>): A {
-  return reverse.value;
+    return reverse.value;
 }
