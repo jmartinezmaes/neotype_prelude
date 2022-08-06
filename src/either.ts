@@ -252,8 +252,8 @@ export namespace Either {
 
         /**
          * Defining iterable behavior for Either allows TypeScript to infer
-         * rightsided value types when `yield*`ing Eithers in generator
-         * comprehensions.
+         * rightsided types when yielding Eithers in generator comprehensions
+         * using `yield*`.
          *
          * @hidden
          */
@@ -287,8 +287,8 @@ export namespace Either {
 
         /**
          * Defining iterable behavior for Either allows TypeScript to infer
-         * rightsided value types when `yield*`ing Eithers in generator
-         * comprehensions.
+         * rightsided types when yielding Eithers in generator comprehensions
+         * using `yield*`.
          *
          * @hidden
          */

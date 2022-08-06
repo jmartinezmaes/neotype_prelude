@@ -49,7 +49,7 @@ export class Eval<out A> {
 
     /**
      * Defining iterable behavior for Eval allows TypeScript to infer result
-     * types when `yield*`ing Evals in generator comprehensions.
+     * types when yielding Eithers in generator comprehensions using `yield*`.
      *
      * @hidden
      */

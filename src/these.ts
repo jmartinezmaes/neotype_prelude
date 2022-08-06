@@ -279,8 +279,8 @@ export namespace These {
 
         /**
          * Defining iterable behavior for These allows TypeScript to infer
-         * second value types when yielding These in generator comprehensions
-         * via `yield*`.
+         * second types when yielding These in generator comprehensions using
+         * `yield*`.
          *
          * @hidden
          */
@@ -314,8 +314,8 @@ export namespace These {
 
         /**
          * Defining iterable behavior for These allows TypeScript to infer
-         * second value types when yielding These in generator comprehensions
-         * via `yield*`.
+         * second types when yielding These in generator comprehensions using
+         * `yield*`.
          *
          * @hidden
          */
@@ -349,8 +349,8 @@ export namespace These {
 
         /**
          * Defining iterable behavior for These allows TypeScript to infer
-         * second value types when yielding These in generator comprehensions
-         * via `yield*`.
+         * second types when yielding These in generator comprehensions using
+         * `yield*`.
          *
          * @hidden
          */

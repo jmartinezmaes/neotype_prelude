@@ -206,8 +206,8 @@ export namespace Maybe {
 
         /**
          * Defining iterable behavior for Maybe allows TypeScript to infer
-         * present value types when yielding Maybes in generator comprehensions
-         * via `yield*`.
+         * present types when yielding Maybes in generator comprehensions using
+         * `yield*`.
          *
          * @hidden
          */
@@ -241,8 +241,8 @@ export namespace Maybe {
 
         /**
          * Defining iterable behavior for Maybe allows TypeScript to infer
-         * present value types when yielding Maybes in generator comprehensions
-         * via `yield*`.
+         * present types when yielding Maybes in generator comprehensions using
+         * `yield*`.
          *
          * @hidden
          */
