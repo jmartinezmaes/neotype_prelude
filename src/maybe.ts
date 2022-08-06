@@ -292,16 +292,6 @@ export function fromMissing<A>(x: A | null | undefined): Maybe<A> {
 }
 
 /**
- * Adapt a function that may return null or undefined into a function that
- * returns a Maybe, converting null and undefined to nothing.
- */
-export function maybeMissing<T extends unknown[], A>(
-    f: (...args: T) => A | null | undefined,
-): (...args: T) => Maybe<A> {
-    return (...args) => fromMissing(f(...args));
-}
-
-/**
  * Apply a predicate function to a value. If the predicate returns true, return
  * a Just containing the value; otherwise return nothing.
  */
