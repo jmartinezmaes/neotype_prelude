@@ -69,7 +69,7 @@ export class Eval<out A> {
      * Apply a function to this Eval's result to produce a new Eval.
      */
     flatMap<B>(f: (x: A) => Eval<B>): Eval<B> {
-        return _flatMap(this, f);
+        return flatMap(this, f);
     }
 
     /**
@@ -205,8 +205,8 @@ export function runEval<A>(ev: Eval<A>): A {
                 if (!c.i.d) {
                 // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
                 c.i.x = c.i.f!();
-                delete c.i.f;
-                c.i.d = true;
+                    delete c.i.f;
+                    c.i.d = true;
                 }
                 c = evalNow(c.i.x);
             } break;
@@ -228,7 +228,7 @@ function step<A>(
     return nx.value[0].flatMap((x) => step(nxs, nxs.next(x)));
 }
 
-function doImpl<A>(
+function stepGen<A>(
     nxs: Generator<readonly [Eval<any>, Eval.Uid], A, any>,
 ): Eval<A> {
     return step(nxs, nxs.next());
@@ -240,7 +240,7 @@ function doImpl<A>(
 export function doEval<A>(
     f: () => Generator<readonly [Eval<any>, Eval.Uid], A, any>,
 ): Eval<A> {
-    return deferEval(() => doImpl(f()));
+    return deferEval(() => stepGen(f()));
 }
 
 /**
@@ -261,7 +261,7 @@ export function reduceEval<A, B>(
 }
 
 /**
- * Evaluate the evals in an array or a tuple literal from left to right and
+ * Evaluate the Evals in an array or a tuple literal from left to right and
  * collect the results in an array or a tuple literal, respectively.
  */
 export function collectEval<T extends readonly Eval<any>[]>(
@@ -288,7 +288,7 @@ export function tupledEval<T extends [Eval<any>, Eval<any>, ...Eval<any>[]]>(
 }
 
 /**
- * Evalute the Evals in an object literal and collect the results in an object
+ * Evaluate the Evals in an object literal and collect the results in an object
  * literal.
  */
 export function gatherEval<T extends Record<any, Eval<any>>>(
@@ -331,7 +331,7 @@ export function liftNewEval<T extends unknown[], A>(
     return (...args) => collectEval(args).map((xs) => new ctor(...(xs as T)));
 }
 
-function _flatMap<A, B>(eff: Eval<A>, f: (x: A) => Eval<B>): Eval<B> {
+function flatMap<A, B>(eff: Eval<A>, f: (x: A) => Eval<B>): Eval<B> {
     return new Eval({ t: Instr.Tag.FlatMap, eff, f });
 }
 

@@ -383,9 +383,13 @@ export function viewEither<E, A>(validated: Validated<E, A>): Either<E, A> {
     return validated.fold(left, right);
 }
 
-function doImpl<T extends readonly [Either<any, any>, Either.Uid], A>(
-    nxs: Generator<T, A, any>,
+/**
+ * Construct an Either using a generator comprehension.
+ */
+export function doEither<T extends readonly [Either<any, any>, Either.Uid], A>(
+    f: () => Generator<T, A, any>,
 ): Either<Either.LeftT<T[0]>, A> {
+    const nxs = f();
     let nx = nxs.next();
     while (!nx.done) {
         const x = nx.value[0];
@@ -396,15 +400,6 @@ function doImpl<T extends readonly [Either<any, any>, Either.Uid], A>(
         }
     }
     return right(nx.value);
-}
-
-/**
- * Construct an Either using a generator comprehension.
- */
-export function doEither<T extends readonly [Either<any, any>, Either.Uid], A>(
-    f: () => Generator<T, A, any>,
-): Either<Either.LeftT<T[0]>, A> {
-    return doImpl(f());
 }
 
 /**
@@ -504,10 +499,15 @@ export function liftNewEither<T extends unknown[], A>(
     return (...args) => collectEither(args).map((xs) => new ctor(...(xs as T)));
 }
 
-async function doAsyncImpl<
+/**
+ * Construct a Promise that fulfills with an Either using an async generator
+ * comprehension.
+ */
+export async function doEitherAsync<
     T extends readonly [Either<any, any>, Either.Uid],
     A,
->(nxs: AsyncGenerator<T, A, any>): Promise<Either<Either.LeftT<T[0]>, A>> {
+>(f: () => AsyncGenerator<T, A, any>): Promise<Either<Either.LeftT<T[0]>, A>> {
+    const nxs = f();
     let nx = await nxs.next();
     while (!nx.done) {
         const x = nx.value[0];
@@ -518,15 +518,4 @@ async function doAsyncImpl<
         }
     }
     return right(nx.value);
-}
-
-/**
- * Construct a Promise that fulfills with an Either using an async generator
- * comprehension.
- */
-export function doEitherAsync<
-    T extends readonly [Either<any, any>, Either.Uid],
-    A,
->(f: () => AsyncGenerator<T, A, any>): Promise<Either<Either.LeftT<T[0]>, A>> {
-    return doAsyncImpl(f());
 }

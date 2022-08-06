@@ -404,9 +404,13 @@ export function paired<A, B>(these: These<A, B>): these is These.Both<A, B> {
     return these.type === "Both";
 }
 
-function doImpl<E extends Semigroup<E>, A>(
-    nxs: Generator<readonly [These<E, any>, These.Uid], A, any>,
+/**
+ * Construct a These using a generator comprehension.
+ */
+export function doThese<E extends Semigroup<E>, A>(
+    f: () => Generator<readonly [These<E, any>, These.Uid], A, any>,
 ): These<E, A> {
+    const nxs = f();
     let nx = nxs.next();
     let e: E | undefined;
 
@@ -422,15 +426,6 @@ function doImpl<E extends Semigroup<E>, A>(
         }
     }
     return e ? both(e, nx.value) : second(nx.value);
-}
-
-/**
- * Construct a These using a generator comprehension.
- */
-export function doThese<E extends Semigroup<E>, A>(
-    f: () => Generator<readonly [These<E, any>, These.Uid], A, any>,
-): These<E, A> {
-    return doImpl(f());
 }
 
 /**
@@ -703,9 +698,14 @@ export function liftNewThese<T extends unknown[], A>(
     return (...args) => collectThese(args).map((xs) => new ctor(...(xs as T)));
 }
 
-async function doAsyncImpl<E extends Semigroup<E>, A>(
-    nxs: AsyncGenerator<readonly [These<E, any>, These.Uid], A, any>,
+/**
+ * Construct a Promise that fulfills with a These using an async generator
+ * comprehension.
+ */
+export async function doTheseAsync<E extends Semigroup<E>, A>(
+    f: () => AsyncGenerator<readonly [These<E, any>, These.Uid], A, any>,
 ): Promise<These<E, A>> {
+    const nxs = f();
     let nx = await nxs.next();
     let e: E | undefined;
 
@@ -721,14 +721,4 @@ async function doAsyncImpl<E extends Semigroup<E>, A>(
         }
     }
     return e ? both(e, nx.value) : second(nx.value);
-}
-
-/**
- * Construct a Promise that fulfills with a These using an async generator
- * comprehension.
- */
-export function doTheseAsync<E extends Semigroup<E>, A>(
-    f: () => AsyncGenerator<readonly [These<E, any>, These.Uid], A, any>,
-): Promise<These<E, A>> {
-    return doAsyncImpl(f());
 }

@@ -330,9 +330,13 @@ export function present<A>(maybe: Maybe<A>): maybe is Maybe.Just<A> {
     return maybe.type === "Just";
 }
 
-function doImpl<A>(
-    nxs: Generator<readonly [Maybe<any>, Maybe.Uid], A, any>,
+/**
+ * Construct a Maybe using a generator comprehension.
+ */
+export function doMaybe<A>(
+    f: () => Generator<readonly [Maybe<any>, Maybe.Uid], A, any>,
 ): Maybe<A> {
+    const nxs = f();
     let nx = nxs.next();
     while (!nx.done) {
         const x = nx.value[0];
@@ -343,15 +347,6 @@ function doImpl<A>(
         }
     }
     return just(nx.value);
-}
-
-/**
- * Construct a Maybe using a generator comprehension.
- */
-export function doMaybe<A>(
-    f: () => Generator<readonly [Maybe<any>, Maybe.Uid], A, any>,
-): Maybe<A> {
-    return doImpl(f());
 }
 
 /**
@@ -442,9 +437,14 @@ export function liftNewMaybe<T extends unknown[], A>(
     return (...args) => collectMaybe(args).map((xs) => new ctor(...(xs as T)));
 }
 
-async function doAsyncImpl<A>(
-    nxs: AsyncGenerator<readonly [Maybe<any>, Maybe.Uid], A, any>,
+/**
+ * Construct a Promise that fulfills with a Maybe using an async generator
+ * comprehension.
+ */
+export async function doMaybeAsync<A>(
+    f: () => AsyncGenerator<readonly [Maybe<any>, Maybe.Uid], A, any>,
 ): Promise<Maybe<A>> {
+    const nxs = f();
     let nx = await nxs.next();
     while (!nx.done) {
         const x = nx.value[0];
@@ -455,14 +455,4 @@ async function doAsyncImpl<A>(
         }
     }
     return just(nx.value);
-}
-
-/**
- * Construct a Promise that fulfills with a Maybe using an async generator
- * comprehension.
- */
-export function doMaybeAsync<A>(
-    f: () => AsyncGenerator<readonly [Maybe<any>, Maybe.Uid], A, any>,
-): Promise<Maybe<A>> {
-    return doAsyncImpl(f());
 }
