@@ -10,7 +10,6 @@
         "importsNotUsedAsValues": "remove",
         "downlevelIteration": false,
         "newLine": "lf",
-        "removeComments": true,
         "stripInternal": true,
         "forceConsistentCasingInFileNames": true,
         "strict": true,
