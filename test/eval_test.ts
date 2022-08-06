@@ -1,6 +1,6 @@
 import * as fc from "fast-check";
 import { assert } from "chai";
-import { arbStr, pair, pairNamed } from "./common.js";
+import { arbStr, pair } from "./common.js";
 import { cmb } from "../src/cmb.js";
 import {
     collectEval,
@@ -9,9 +9,6 @@ import {
     evalNow,
     evalOnce,
     gatherEval,
-    liftEval,
-    liftNamedEval,
-    liftNewEval,
     reduceEval,
     runEval,
     tupledEval,
@@ -122,23 +119,5 @@ describe("Eval", () => {
     specify("gatherEval", () => {
         const t0 = gatherEval({ x: mk(_1), y: mk(_2) });
         assert.deepEqual(runEval(t0), { x: _1, y: _2 });
-    });
-
-    specify("liftEval", () => {
-        const f = liftEval(pair);
-        const t0 = f(mk(_1), mk(_2));
-        assert.deepEqual(runEval(t0), [_1, _2]);
-    });
-
-    specify("liftNamedEval", () => {
-        const f = liftNamedEval(pairNamed);
-        const t0 = f({ x: mk(_1), y: mk(_2) });
-        assert.deepEqual(runEval(t0), [_1, _2]);
-    });
-
-    specify("liftNewEval", () => {
-        const f = liftNewEval(Array<1 | 2>);
-        const t0 = f(mk(_1), mk(_2));
-        assert.deepEqual(runEval(t0), [_1, _2]);
     });
 });

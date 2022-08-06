@@ -55,7 +55,3 @@ export function arbStr(): fc.Arbitrary<Str> {
 export function pair<A, B>(x: A, y: B): readonly [A, B] {
     return [x, y] as const;
 }
-
-export function pairNamed<A, B>({ x, y }: { x: A; y: B }): readonly [A, B] {
-    return [x, y] as const;
-}

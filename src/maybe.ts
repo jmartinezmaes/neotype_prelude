@@ -408,34 +408,6 @@ export function gatherMaybe<T extends Record<any, Maybe<any>>>(
 }
 
 /**
- * Lift a function of any arity into the context of Maybe.
- */
-export function liftMaybe<T extends unknown[], A>(
-    f: (...args: T) => A,
-): (...args: { [K in keyof T]: Maybe<T[K]> }) => Maybe<A> {
-    return (...args) => collectMaybe(args).map((xs) => f(...(xs as T)));
-}
-
-/**
- * Lift a function that accepts an object literal of named arguments into the
- * context of Maybe.
- */
-export function liftNamedMaybe<T extends Record<any, unknown>, A = T>(
-    f: (args: T) => A,
-): (args: { [K in keyof T]: Maybe<T[K]> }) => Maybe<A> {
-    return (args) => gatherMaybe(args).map((xs) => f(xs as T));
-}
-
-/**
- * Lift a constructor function of any arity into the context of Maybe.
- */
-export function liftNewMaybe<T extends unknown[], A>(
-    ctor: new (...args: T) => A,
-): (...args: { [K in keyof T]: Maybe<T[K]> }) => Maybe<A> {
-    return (...args) => collectMaybe(args).map((xs) => new ctor(...(xs as T)));
-}
-
-/**
  * Construct a Promise that fulfills with a Maybe using an async generator
  * comprehension.
  */

@@ -471,40 +471,6 @@ export function gatherEither<T extends Record<any, Either<any, any>>>(
 }
 
 /**
- * Lift a function of any arity into the context of Either.
- */
-export function liftEither<T extends unknown[], A>(
-    f: (...args: T) => A,
-): <T1 extends { [K in keyof T]: Either<any, T[K]> }>(
-    ...args: T1
-) => Either<Either.LeftT<T1[number]>, A> {
-    return (...args) => collectEither(args).map((xs) => f(...(xs as T)));
-}
-
-/**
- * Lift a function that accepts an object literal of named arguments into the
- * context of Either.
- */
-export function liftNamedEither<T extends Record<any, unknown>, A = T>(
-    f: (args: T) => A,
-): <T1 extends { [K in keyof T]: Either<any, T[K]> }>(
-    args: T1,
-) => Either<Either.LeftT<T1[keyof T1]>, A> {
-    return (args) => gatherEither(args).map((xs) => f(xs as T));
-}
-
-/**
- * Lift a constructor function of any arity into the context of Either.
- */
-export function liftNewEither<T extends unknown[], A>(
-    ctor: new (...args: T) => A,
-): <T1 extends { [K in keyof T]: Either<any, T[K]> }>(
-    ...args: T1
-) => Either<Either.LeftT<T1[number]>, A> {
-    return (...args) => collectEither(args).map((xs) => new ctor(...(xs as T)));
-}
-
-/**
  * Construct a Promise that fulfills with an Either using an async generator
  * comprehension.
  */

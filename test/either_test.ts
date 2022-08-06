@@ -1,6 +1,6 @@
 import * as fc from "fast-check";
 import { assert } from "chai";
-import { arbNum, arbStr, pair, pairNamed } from "./common.js";
+import { arbNum, arbStr, pair } from "./common.js";
 import { cmb } from "../src/cmb.js";
 import { cmp, eq, greater, less } from "../src/cmp.js";
 import {
@@ -12,9 +12,6 @@ import {
     guardEither,
     left,
     leftsided,
-    liftEither,
-    liftNamedEither,
-    liftNewEither,
     reduceEither,
     right,
     rightsided,
@@ -285,24 +282,6 @@ describe("Either", () => {
     specify("gatherEither", () => {
         const t0 = gatherEither({ x: mk("R", _1, _2), y: mk("R", _3, _4) });
         assert.deepEqual(t0, right({ x: _2, y: _4 }));
-    });
-
-    specify("liftEither", () => {
-        const f = liftEither(pair<2, 4>);
-        const t0 = f(mk("R", _1, _2), mk("R", _3, _4));
-        assert.deepEqual(t0, right([_2, _4] as const));
-    });
-
-    specify("liftNamedEither", () => {
-        const f = liftNamedEither(pairNamed<2, 4>);
-        const t0 = f({ x: mk("R", _1, _2), y: mk("R", _3, _4) });
-        assert.deepEqual(t0, right([_2, _4] as const));
-    });
-
-    specify("liftNewEither", () => {
-        const f = liftNewEither(Array<2 | 4>);
-        const t0 = f(mk("R", _1, _2), mk("R", _3, _4));
-        assert.deepEqual(t0, right([_2, _4]));
     });
 
     specify("doEitherAsync", async () => {

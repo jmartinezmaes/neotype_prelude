@@ -311,34 +311,6 @@ export function gatherEval<T extends Record<any, Eval<any>>>(
     });
 }
 
-/**
- * Lift a function of any arity into the context of Eval.
- */
-export function liftEval<T extends unknown[], A>(
-    f: (...args: T) => A,
-): (...args: { [K in keyof T]: Eval<T[K]> }) => Eval<A> {
-    return (...args) => collectEval(args).map((xs) => f(...(xs as T)));
-}
-
-/**
- * Lift a function that accepts an object literal of named arguments into the
- * context of Eval.
- */
-export function liftNamedEval<T extends Record<any, unknown>, A = T>(
-    f: (args: T) => A,
-): (args: { [K in keyof T]: Eval<T[K]> }) => Eval<A> {
-    return (args) => gatherEval(args).map((xs) => f(xs));
-}
-
-/**
- * Lift a constructor function of any arity into the context of Eval.
- */
-export function liftNewEval<T extends unknown[], A>(
-    ctor: new (...args: T) => A,
-): (...args: { [K in keyof T]: Eval<T[K]> }) => Eval<A> {
-    return (...args) => collectEval(args).map((xs) => new ctor(...(xs as T)));
-}
-
 function flatMap<A, B>(eff: Eval<A>, f: (x: A) => Eval<B>): Eval<B> {
     return new Eval({ t: Instr.Tag.FlatMap, eff, f });
 }

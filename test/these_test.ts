@@ -1,6 +1,6 @@
 import * as fc from "fast-check";
 import { assert } from "chai";
-import { arbNum, arbStr, mkStr, pair, pairNamed } from "./common.js";
+import { arbNum, arbStr, mkStr, pair } from "./common.js";
 import { cmb } from "../src/cmb.js";
 import { cmp, eq, greater, less } from "../src/cmp.js";
 import {
@@ -10,9 +10,6 @@ import {
     doThese,
     first,
     here,
-    liftNamedThese,
-    liftNewThese,
-    liftThese,
     paired,
     reduceThese,
     second,
@@ -387,24 +384,6 @@ describe("These", () => {
     specify("tupledThese", () => {
         const t0 = tupledThese(mk("B", sa, _2), mk("B", sc, _4));
         assert.deepEqual(t0, both(cmb(sa, sc), [_2, _4] as const));
-    });
-
-    specify("liftThese", () => {
-        const f = liftThese(pair<2, 4>);
-        const t0 = f(mk("B", sa, _2), mk("B", sc, _4));
-        assert.deepEqual(t0, both(cmb(sa, sc), [_2, _4] as const));
-    });
-
-    specify("liftNamedThese", () => {
-        const f = liftNamedThese(pairNamed<2, 4>);
-        const t0 = f({ x: mk("B", sa, _2), y: mk("B", sc, _4) });
-        assert.deepEqual(t0, both(cmb(sa, sc), [_2, _4] as const));
-    });
-
-    specify("liftNewThese", () => {
-        const f = liftNewThese(Array<2 | 4>);
-        const t0 = f(mk("B", sa, _2), mk("B", sc, _4));
-        assert.deepEqual(t0, both(cmb(sa, sc), [_2, _4]));
     });
 
     specify("doTheseAsync", async () => {

@@ -1,6 +1,6 @@
 import * as fc from "fast-check";
 import { assert } from "chai";
-import { arbNum, arbStr, pair, pairNamed } from "./common.js";
+import { arbNum, arbStr, pair } from "./common.js";
 import { cmb } from "../src/cmb.js";
 import { cmp, eq, equal, greater, less } from "../src/cmp.js";
 import {
@@ -12,9 +12,6 @@ import {
     gatherMaybe,
     guardMaybe,
     just,
-    liftMaybe,
-    liftNamedMaybe,
-    liftNewMaybe,
     type Maybe,
     nothing,
     present,
@@ -255,24 +252,6 @@ describe("Maybe", () => {
     specify("gatherMaybe", () => {
         const t1 = gatherMaybe({ x: mk("J", _1), y: mk("J", _2) });
         assert.deepEqual(t1, just({ x: _1, y: _2 }));
-    });
-
-    specify("liftMaybe", () => {
-        const f = liftMaybe(pair);
-        const t0 = f(mk("J", _1), mk("J", _2));
-        assert.deepEqual(t0, just([_1, _2] as const));
-    });
-
-    specify("liftNamedMaybe", () => {
-        const f = liftNamedMaybe(pairNamed);
-        const t0 = f({ x: mk("J", _1), y: mk("J", _2) });
-        assert.deepEqual(t0, just([_1, _2] as const));
-    });
-
-    specify("liftNewMaybe", () => {
-        const f = liftNewMaybe(Array as new <A>(...xs: A[]) => A[]);
-        const t0 = f(mk("J", _1), mk("J", _2));
-        assert.deepEqual(t0, just([_1, _2]));
     });
 
     specify("doMaybeAsync", async () => {

@@ -1,6 +1,6 @@
 import * as fc from "fast-check";
 import { assert } from "chai";
-import { arbNum, arbStr, mkStr, pair, pairNamed } from "./common.js";
+import { arbNum, arbStr, mkStr, pair } from "./common.js";
 import { left, right } from "../src/either.js";
 import { cmb } from "../src/cmb.js";
 import { cmp, eq, greater, less } from "../src/cmp.js";
@@ -10,9 +10,6 @@ import {
     collectValidated,
     dispute,
     disputed,
-    liftNamedValidated,
-    liftNewValidated,
-    liftValidated,
     tupledValidated,
     type Validated,
     viewValidated,
@@ -240,23 +237,5 @@ describe("Validated", () => {
     specify("tupledValidated", () => {
         const t4 = tupledValidated(mk("A", sa, _2), mk("A", sc, _4));
         assert.deepEqual(t4, accept([_2, _4] as const));
-    });
-
-    specify("liftValidated", () => {
-        const f = liftValidated(pair<2, 4>);
-        const t0 = f(mk("A", sa, _2), mk("A", sc, _4));
-        assert.deepEqual(t0, accept([_2, _4] as const));
-    });
-
-    specify("liftNamedValidated", () => {
-        const f = liftNamedValidated(pairNamed<2, 4>);
-        const t0 = f({ x: mk("A", sa, _2), y: mk("A", sc, _4) });
-        assert.deepEqual(t0, accept([_2, _4] as const));
-    });
-
-    specify("liftNewValidated", () => {
-        const f = liftNewValidated(Array<2 | 4>);
-        const t0 = f(mk("A", sa, _2), mk("A", sc, _4));
-        assert.deepEqual(t0, accept([_2, _4]));
     });
 });

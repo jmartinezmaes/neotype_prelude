@@ -662,47 +662,6 @@ export function tupledThese<E extends Semigroup<E>, A>(
 }
 
 /**
- * Lift a function of any arity into the context of These.
- */
-export function liftThese<T extends unknown[], A>(
-    f: (...args: T) => A,
-): <E extends Semigroup<E>>(
-    ...args: { [K in keyof T]: These<E, T[K]> }
-) => These<E, A> {
-    return (...args) => collectThese(args).map((xs) => f(...(xs as T)));
-}
-
-/**
- * Lift a function that accepts an object literal of named arguments into the
- * context of These.
- */
-// prettier-ignore
-export function liftNamedThese<T extends Record<any, unknown>, A = T>(
-    f: (args: T) => A,
-): <E extends Semigroup<E>>(
-     args: { [K in keyof T]: These<E, T[K]> }
-) => These<E, A> {
-    return (args) => doThese(function* () {
-        const xs: Record<any, unknown> = {};
-        for (const [kx, x] of Object.entries(args)) {
-            xs[kx] = yield* x;
-        }
-        return f(xs as T);
-    });
-}
-
-/**
- * Lift a constructor function of any arity into the contet of These.
- */
-export function liftNewThese<T extends unknown[], A>(
-    ctor: new (...args: T) => A,
-): <E extends Semigroup<E>>(
-    ...args: { [K in keyof T]: These<E, T[K]> }
-) => These<E, A> {
-    return (...args) => collectThese(args).map((xs) => new ctor(...(xs as T)));
-}
-
-/**
  * Construct a Promise that fulfills with a These using an async generator
  * comprehension.
  */
