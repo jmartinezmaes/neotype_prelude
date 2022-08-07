@@ -32,17 +32,17 @@ function arbRevStr(): fc.Arbitrary<Reverse<Str>> {
 describe("Eq", () => {
     specify("eq", () => {
         fc.assert(
-            fc.property(arbNum(), arbNum(), (x, y) => {
-                assert.strictEqual(eq(x, y), x[Eq.eq](y));
-            }),
+            fc.property(arbNum(), arbNum(), (x, y) =>
+                assert.strictEqual(eq(x, y), x[Eq.eq](y)),
+            ),
         );
     });
 
     specify("ne", () => {
         fc.assert(
-            fc.property(arbNum(), arbNum(), (x, y) => {
-                assert.strictEqual(ne(x, y), !x[Eq.eq](y));
-            }),
+            fc.property(arbNum(), arbNum(), (x, y) =>
+                assert.strictEqual(ne(x, y), !x[Eq.eq](y)),
+            ),
         );
     });
 
@@ -71,9 +71,9 @@ describe("Eq", () => {
 describe("Ord", () => {
     specify("cmp", () => {
         fc.assert(
-            fc.property(arbNum(), arbNum(), (x, y) => {
-                assert.strictEqual(cmp(x, y), x[Ord.cmp](y));
-            }),
+            fc.property(arbNum(), arbNum(), (x, y) =>
+                assert.strictEqual(cmp(x, y), x[Ord.cmp](y)),
+            ),
         );
     });
 
@@ -106,49 +106,49 @@ describe("Ord", () => {
 
     specify("lt", () => {
         fc.assert(
-            fc.property(arbNum(), arbNum(), (x, y) => {
-                assert.strictEqual(lt(x, y), cmp(x, y).isLt());
-            }),
+            fc.property(arbNum(), arbNum(), (x, y) =>
+                assert.strictEqual(lt(x, y), cmp(x, y).isLt()),
+            ),
         );
     });
 
     specify("gt", () => {
         fc.assert(
-            fc.property(arbNum(), arbNum(), (x, y) => {
-                assert.strictEqual(gt(x, y), cmp(x, y).isGt());
-            }),
+            fc.property(arbNum(), arbNum(), (x, y) =>
+                assert.strictEqual(gt(x, y), cmp(x, y).isGt()),
+            ),
         );
     });
 
     specify("le", () => {
         fc.assert(
-            fc.property(arbNum(), arbNum(), (x, y) => {
-                assert.strictEqual(le(x, y), cmp(x, y).isLe());
-            }),
+            fc.property(arbNum(), arbNum(), (x, y) =>
+                assert.strictEqual(le(x, y), cmp(x, y).isLe()),
+            ),
         );
     });
 
     specify("ge", () => {
         fc.assert(
-            fc.property(arbNum(), arbNum(), (x, y) => {
-                assert.strictEqual(ge(x, y), cmp(x, y).isGe());
-            }),
+            fc.property(arbNum(), arbNum(), (x, y) =>
+                assert.strictEqual(ge(x, y), cmp(x, y).isGe()),
+            ),
         );
     });
 
     specify("min", () => {
         fc.assert(
-            fc.property(arbNum(), arbNum(), (x, y) => {
-                assert.deepEqual(min(x, y), new Num(Math.min(x.val, y.val)));
-            }),
+            fc.property(arbNum(), arbNum(), (x, y) =>
+                assert.deepEqual(min(x, y), new Num(Math.min(x.val, y.val))),
+            ),
         );
     });
 
     specify("max", () => {
         fc.assert(
-            fc.property(arbNum(), arbNum(), (x, y) => {
-                assert.deepEqual(max(x, y), new Num(Math.max(x.val, y.val)));
-            }),
+            fc.property(arbNum(), arbNum(), (x, y) =>
+                assert.deepEqual(max(x, y), new Num(Math.max(x.val, y.val))),
+            ),
         );
     });
 
@@ -330,25 +330,25 @@ describe("Ordering", () => {
 describe("Reverse", () => {
     specify("[Eq.eq]", () => {
         fc.assert(
-            fc.property(arbRevNum(), arbRevNum(), (x, y) => {
-                assert.strictEqual(eq(x, y), eq(x.val, y.val));
-            }),
+            fc.property(arbRevNum(), arbRevNum(), (x, y) =>
+                assert.strictEqual(eq(x, y), eq(x.val, y.val)),
+            ),
         );
     });
 
     specify("[Ord.cmp]", () => {
         fc.assert(
-            fc.property(arbRevNum(), arbRevNum(), (x, y) => {
-                assert.strictEqual(cmp(x, y), cmp(x.val, y.val).reverse());
-            }),
+            fc.property(arbRevNum(), arbRevNum(), (x, y) =>
+                assert.strictEqual(cmp(x, y), cmp(x.val, y.val).reverse()),
+            ),
         );
     });
 
     specify("[Semigroup.cmb]", () => {
         fc.assert(
-            fc.property(arbRevStr(), arbRevStr(), (x, y) => {
-                assert.deepEqual(cmb(x, y), new Reverse(cmb(x.val, y.val)));
-            }),
+            fc.property(arbRevStr(), arbRevStr(), (x, y) =>
+                assert.deepEqual(cmb(x, y), new Reverse(cmb(x.val, y.val))),
+            ),
         );
     });
 });

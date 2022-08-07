@@ -147,24 +147,24 @@ describe("Validated", () => {
     });
 
     specify("#bindAccepted", () => {
-        const t0 = mk("D", _1, _2).bindAccepted((x) => {
-            return mk("D", _3, pair(x, _4));
-        });
+        const t0 = mk("D", _1, _2).bindAccepted((x) =>
+            mk("D", _3, pair(x, _4)),
+        );
         assert.deepEqual(t0, Validated.dispute(_1));
 
-        const t1 = mk("D", _1, _2).bindAccepted((x) => {
-            return mk("A", _3, pair(x, _4));
-        });
+        const t1 = mk("D", _1, _2).bindAccepted((x) =>
+            mk("A", _3, pair(x, _4)),
+        );
         assert.deepEqual(t1, Validated.dispute(_1));
 
-        const t2 = mk("A", _1, _2).bindAccepted((x) => {
-            return mk("D", _3, pair(x, _4));
-        });
+        const t2 = mk("A", _1, _2).bindAccepted((x) =>
+            mk("D", _3, pair(x, _4)),
+        );
         assert.deepEqual(t2, Validated.dispute(_3));
 
-        const t3 = mk("A", _1, _2).bindAccepted((x) => {
-            return mk("A", _3, pair(x, _4));
-        });
+        const t3 = mk("A", _1, _2).bindAccepted((x) =>
+            mk("A", _3, pair(x, _4)),
+        );
         assert.deepEqual(t3, Validated.accept([_2, _4] as const));
     });
 

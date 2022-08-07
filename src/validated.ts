@@ -162,12 +162,14 @@ export namespace Validated {
     export function collect<E extends Semigroup<E>, A>(
         xs: readonly Validated<E, A>[],
     ): Validated<E, readonly A[]> {
-        return xs.reduce((acc, v, iv) => {
-            return acc.zipWith(v, (ys, x) => {
-                ys[iv] = x;
-                return ys;
-            });
-        }, accept<A[], E>(new Array(xs.length)));
+        return xs.reduce(
+            (acc, v, iv) =>
+                acc.zipWith(v, (ys, x) => {
+                    ys[iv] = x;
+                    return ys;
+                }),
+            accept<A[], E>(new Array(xs.length)),
+        );
     }
 
     /**

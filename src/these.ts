@@ -481,9 +481,9 @@ export namespace These {
             if (this.isSecond()) {
                 return f(this.val);
             }
-            return f(this.snd).mapFirst((y) => {
-                return cmb((this as Both<E, A>).fst, y);
-            });
+            return f(this.snd).mapFirst((y) =>
+                cmb((this as Both<E, A>).fst, y),
+            );
         }
 
         /**

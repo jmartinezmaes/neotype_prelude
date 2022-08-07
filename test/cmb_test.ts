@@ -6,9 +6,9 @@ import { cmb, Semigroup } from "../src/cmb.js";
 describe("Semigroup", () => {
     specify("cmb", () => {
         fc.assert(
-            fc.property(arbStr(), arbStr(), (x, y) => {
-                assert.deepEqual(cmb(x, y), x[Semigroup.cmb](y));
-            }),
+            fc.property(arbStr(), arbStr(), (x, y) =>
+                assert.deepEqual(cmb(x, y), x[Semigroup.cmb](y)),
+            ),
         );
     });
 });
