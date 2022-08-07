@@ -57,14 +57,16 @@ export namespace These {
             this: These<A, B>,
             that: These<A, B>,
         ): boolean {
-            if (here(this)) {
-                return here(that) && eq(this.val, that.val);
+            if (this.isFirst()) {
+                return that.isFirst() && eq(this.val, that.val);
             }
-            if (there(this)) {
-                return there(that) && eq(this.val, that.val);
+            if (this.isSecond()) {
+                return that.isSecond() && eq(this.val, that.val);
             }
             return (
-                paired(that) && eq(this.fst, that.fst) && eq(this.snd, that.snd)
+                that.isBoth() &&
+                eq(this.fst, that.fst) &&
+                eq(this.snd, that.snd)
             );
         }
 
@@ -75,16 +77,16 @@ export namespace These {
             this: These<A, B>,
             that: These<A, B>,
         ): Ordering {
-            if (here(this)) {
-                return here(that) ? cmp(this.val, that.val) : less;
+            if (this.isFirst()) {
+                return that.isFirst() ? cmp(this.val, that.val) : less;
             }
-            if (there(this)) {
-                if (there(that)) {
+            if (this.isSecond()) {
+                if (that.isSecond()) {
                     return cmp(this.val, that.val);
                 }
-                return here(that) ? greater : less;
+                return that.isFirst() ? greater : less;
             }
-            if (paired(that)) {
+            if (that.isBoth()) {
                 return cmb(cmp(this.fst, that.fst), cmp(this.snd, that.snd));
             }
             return greater;
@@ -98,33 +100,54 @@ export namespace These {
             this: These<A, B>,
             that: These<A, B>,
         ): These<A, B> {
-            if (here(this)) {
-                if (here(that)) {
+            if (this.isFirst()) {
+                if (that.isFirst()) {
                     return first(cmb(this.val, that.val));
                 }
-                if (there(that)) {
+                if (that.isSecond()) {
                     return both(this.val, that.val);
                 }
                 return both(cmb(this.val, that.fst), that.snd);
             }
 
-            if (there(this)) {
-                if (here(that)) {
+            if (this.isSecond()) {
+                if (that.isFirst()) {
                     return both(that.val, this.val);
                 }
-                if (there(that)) {
+                if (that.isSecond()) {
                     return second(cmb(this.val, that.val));
                 }
                 return both(that.fst, cmb(this.val, that.snd));
             }
 
-            if (here(that)) {
+            if (that.isFirst()) {
                 return both(cmb(this.fst, that.val), this.snd);
             }
-            if (there(that)) {
+            if (that.isSecond()) {
                 return both(this.fst, cmb(this.snd, that.val));
             }
             return both(cmb(this.fst, that.fst), cmb(this.snd, that.snd));
+        }
+
+        /**
+         * Test whether this These is a `First`.
+         */
+        isFirst<A>(this: These<A, any>): this is First<A> {
+            return this.typ === "First";
+        }
+
+        /**
+         * Test whether this These is a `Second`.
+         */
+        isSecond<B>(this: These<any, B>): this is Second<B> {
+            return this.typ === "Second";
+        }
+
+        /**
+         * Test whether this These is a `Both`.
+         */
+        isBoth<A, B>(this: These<A, B>): this is Both<A, B> {
+            return this.typ === "Both";
         }
 
         /**
@@ -136,10 +159,10 @@ export namespace These {
             foldR: (x: B, these: Second<B>) => D,
             foldLR: (x: A, y: B, these: Both<A, B>) => E,
         ): C | D | E {
-            if (here(this)) {
+            if (this.isFirst()) {
                 return foldL(this.val, this);
             }
-            if (there(this)) {
+            if (this.isSecond()) {
                 return foldR(this.val, this);
             }
             return foldLR(this.fst, this.snd, this);
@@ -153,10 +176,10 @@ export namespace These {
             this: These<E, A>,
             f: (x: A) => These<E, B>,
         ): These<E, B> {
-            if (here(this)) {
+            if (this.isFirst()) {
                 return this;
             }
-            if (there(this)) {
+            if (this.isSecond()) {
                 return f(this.val);
             }
             return f(this.snd).mapFirst((y) => {
@@ -215,10 +238,10 @@ export namespace These {
             mapL: (x: A) => C,
             mapR: (x: B) => D,
         ): These<C, D> {
-            if (here(this)) {
+            if (this.isFirst()) {
                 return first(mapL(this.val));
             }
-            if (there(this)) {
+            if (this.isSecond()) {
                 return second(mapR(this.val));
             }
             return both(mapL(this.fst), mapR(this.snd));
@@ -228,10 +251,10 @@ export namespace These {
          * If this These is has a first value, apply a function to the value.
          */
         mapFirst<A, B, C>(this: These<A, B>, f: (x: A) => C): These<C, B> {
-            if (there(this)) {
+            if (this.isSecond()) {
                 return this;
             }
-            if (here(this)) {
+            if (this.isFirst()) {
                 return first(f(this.val));
             }
             return both(f(this.fst), this.snd);
@@ -241,10 +264,10 @@ export namespace These {
          * If this These has a second value, apply a function to the value.
          */
         map<A, B, D>(this: These<A, B>, f: (x: B) => D): These<A, D> {
-            if (here(this)) {
+            if (this.isFirst()) {
                 return this;
             }
-            if (there(this)) {
+            if (this.isSecond()) {
                 return second(f(this.val));
             }
             return both(this.fst, f(this.snd));
@@ -388,27 +411,6 @@ export function both<A, B>(x: A, y: B): These<A, B> {
 }
 
 /**
- * Test whether a These has only a first value.
- */
-export function here<A>(these: These<A, any>): these is These.First<A> {
-    return these.typ === "First";
-}
-
-/**
- * Test whether a These has only a second value.
- */
-export function there<B>(these: These<any, B>): these is These.Second<B> {
-    return these.typ === "Second";
-}
-
-/**
- * Test whether a These has both a first and second value.
- */
-export function paired<A, B>(these: These<A, B>): these is These.Both<A, B> {
-    return these.typ === "Both";
-}
-
-/**
  * Construct a These using a generator comprehension.
  */
 export function doThese<E extends Semigroup<E>, A>(
@@ -420,9 +422,9 @@ export function doThese<E extends Semigroup<E>, A>(
 
     while (!nx.done) {
         const t = nx.value[0];
-        if (there(t)) {
+        if (t.isSecond()) {
             nx = nxs.next(t.val);
-        } else if (paired(t)) {
+        } else if (t.isBoth()) {
             e = e !== undefined ? cmb(e, t.fst) : t.fst;
             nx = nxs.next(t.snd);
         } else {
@@ -674,9 +676,9 @@ export async function doTheseAsync<E extends Semigroup<E>, A>(
 
     while (!nx.done) {
         const t = nx.value[0];
-        if (there(t)) {
+        if (t.isSecond()) {
             nx = await nxs.next(t.val);
-        } else if (paired(t)) {
+        } else if (t.isBoth()) {
             e = e !== undefined ? cmb(e, t.fst) : t.fst;
             nx = await nxs.next(t.snd);
         } else {

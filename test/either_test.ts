@@ -11,10 +11,8 @@ import {
     gatherEither,
     guardEither,
     left,
-    leftsided,
     reduceEither,
     right,
-    rightsided,
     tupledEither,
     viewEither,
 } from "../src/either.js";
@@ -210,19 +208,19 @@ describe("Either", () => {
         assert.deepEqual(t1, left(_4));
     });
 
-    specify("leftsided", () => {
-        const t0 = leftsided(mk("L", _1, _2));
+    specify("isLeft", () => {
+        const t0 = mk("L", _1, _2).isLeft();
         assert.strictEqual(t0, true);
 
-        const t1 = leftsided(mk("R", _1, _2));
+        const t1 = mk("R", _1, _2).isLeft();
         assert.strictEqual(t1, false);
     });
 
-    specify("rightsided", () => {
-        const t0 = rightsided(mk("L", _1, _2));
+    specify("isRight", () => {
+        const t0 = mk("L", _1, _2).isRight();
         assert.strictEqual(t0, false);
 
-        const t1 = rightsided(mk("R", _1, _2));
+        const t1 = mk("R", _1, _2).isRight();
         assert.strictEqual(t1, true);
     });
 

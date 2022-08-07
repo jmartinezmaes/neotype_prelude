@@ -9,11 +9,8 @@ import {
     doTheseAsync,
     doThese,
     first,
-    here,
-    paired,
     reduceThese,
     second,
-    there,
     type These,
     tupledThese,
 } from "../src/these.js";
@@ -273,36 +270,36 @@ describe("These", () => {
         assert.deepEqual(t2, both([_1, _3] as const, [_2, _4] as const));
     });
 
-    specify("here", () => {
-        const t0 = here(mk("F", _1, _2));
+    specify("isFirst", () => {
+        const t0 = mk("F", _1, _2).isFirst();
         assert.strictEqual(t0, true);
 
-        const t1 = here(mk("S", _1, _2));
+        const t1 = mk("S", _1, _2).isFirst();
         assert.strictEqual(t1, false);
 
-        const t2 = here(mk("B", _1, _2));
+        const t2 = mk("B", _1, _2).isFirst();
         assert.strictEqual(t2, false);
     });
 
-    specify("there", () => {
-        const t0 = there(mk("F", _1, _2));
+    specify("isSecond", () => {
+        const t0 = mk("F", _1, _2).isSecond();
         assert.strictEqual(t0, false);
 
-        const t1 = there(mk("S", _1, _2));
+        const t1 = mk("S", _1, _2).isSecond();
         assert.strictEqual(t1, true);
 
-        const t2 = there(mk("B", _1, _2));
+        const t2 = mk("B", _1, _2).isSecond();
         assert.strictEqual(t2, false);
     });
 
-    specify("paired", () => {
-        const t0 = paired(mk("F", _1, _2));
+    specify("isBoth", () => {
+        const t0 = mk("F", _1, _2).isBoth();
         assert.strictEqual(t0, false);
 
-        const t1 = paired(mk("S", _1, _2));
+        const t1 = mk("S", _1, _2).isBoth();
         assert.strictEqual(t1, false);
 
-        const t2 = paired(mk("B", _1, _2));
+        const t2 = mk("B", _1, _2).isBoth();
         assert.strictEqual(t2, true);
     });
 

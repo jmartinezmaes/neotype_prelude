@@ -21,13 +21,7 @@ import {
     mkReverse,
     ne,
     Ord,
-    ordEq,
-    ordGe,
-    ordGt,
-    ordLe,
-    ordLt,
     type Reverse,
-    reverseOrdering,
 } from "../src/cmp.js";
 
 function arbRevNum(): fc.Arbitrary<Reverse<Num>> {
@@ -113,7 +107,7 @@ describe("Ord", () => {
     specify("lt", () => {
         fc.assert(
             fc.property(arbNum(), arbNum(), (x, y) => {
-                assert.strictEqual(lt(x, y), ordLt(cmp(x, y)));
+                assert.strictEqual(lt(x, y), cmp(x, y).isLt());
             }),
         );
     });
@@ -121,7 +115,7 @@ describe("Ord", () => {
     specify("gt", () => {
         fc.assert(
             fc.property(arbNum(), arbNum(), (x, y) => {
-                assert.strictEqual(gt(x, y), ordGt(cmp(x, y)));
+                assert.strictEqual(gt(x, y), cmp(x, y).isGt());
             }),
         );
     });
@@ -129,7 +123,7 @@ describe("Ord", () => {
     specify("le", () => {
         fc.assert(
             fc.property(arbNum(), arbNum(), (x, y) => {
-                assert.strictEqual(le(x, y), ordLe(cmp(x, y)));
+                assert.strictEqual(le(x, y), cmp(x, y).isLe());
             }),
         );
     });
@@ -137,7 +131,7 @@ describe("Ord", () => {
     specify("ge", () => {
         fc.assert(
             fc.property(arbNum(), arbNum(), (x, y) => {
-                assert.strictEqual(ge(x, y), ordGe(cmp(x, y)));
+                assert.strictEqual(ge(x, y), cmp(x, y).isGe());
             }),
         );
     });
@@ -255,69 +249,80 @@ describe("Ordering", () => {
         assert.strictEqual(t8, greater);
     });
 
-    specify("ordLt", () => {
-        const t0 = ordLt(less);
+    specify("isEq", () => {
+        const t0 = less.isEq();
+        assert.strictEqual(t0, false);
+
+        const t1 = equal.isEq();
+        assert.strictEqual(t1, true);
+
+        const t2 = greater.isEq();
+        assert.strictEqual(t2, false);
+    });
+
+    specify("isNe", () => {
+        const t0 = less.isNe();
         assert.strictEqual(t0, true);
 
-        const t1 = ordLt(equal);
+        const t1 = equal.isNe();
         assert.strictEqual(t1, false);
 
-        const t2 = ordLt(greater);
-        assert.strictEqual(t2, false);
-    });
-
-    specify("ordLe", () => {
-        const t0 = ordLe(less);
-        assert.strictEqual(t0, true);
-
-        const t1 = ordLe(equal);
-        assert.strictEqual(t1, true);
-
-        const t2 = ordLe(greater);
-        assert.strictEqual(t2, false);
-    });
-
-    specify("ordEq", () => {
-        const t0 = ordEq(less);
-        assert.strictEqual(t0, false);
-
-        const t1 = ordEq(equal);
-        assert.strictEqual(t1, true);
-
-        const t2 = ordEq(greater);
-        assert.strictEqual(t2, false);
-    });
-
-    specify("ordGe", () => {
-        const t0 = ordGe(less);
-        assert.strictEqual(t0, false);
-
-        const t1 = ordGe(equal);
-        assert.strictEqual(t1, true);
-
-        const t2 = ordGe(greater);
+        const t2 = greater.isNe();
         assert.strictEqual(t2, true);
     });
 
-    specify("ordGt", () => {
-        const t0 = ordGt(less);
-        assert.strictEqual(t0, false);
+    specify("isLt", () => {
+        const t0 = less.isLt();
+        assert.strictEqual(t0, true);
 
-        const t1 = ordGt(equal);
+        const t1 = equal.isLt();
         assert.strictEqual(t1, false);
 
-        const t2 = ordGt(greater);
+        const t2 = greater.isLt();
+        assert.strictEqual(t2, false);
+    });
+
+    specify("isGt", () => {
+        const t0 = less.isGt();
+        assert.strictEqual(t0, false);
+
+        const t1 = equal.isGt();
+        assert.strictEqual(t1, false);
+
+        const t2 = greater.isGt();
         assert.strictEqual(t2, true);
     });
 
-    specify("reverseOrdering", () => {
-        const t0 = reverseOrdering(less);
+    specify("isLe", () => {
+        const t0 = less.isLe();
+        assert.strictEqual(t0, true);
+
+        const t1 = equal.isLe();
+        assert.strictEqual(t1, true);
+
+        const t2 = greater.isLe();
+        assert.strictEqual(t2, false);
+    });
+
+    specify("isGe", () => {
+        const t0 = less.isGe();
+        assert.strictEqual(t0, false);
+
+        const t1 = equal.isGe();
+        assert.strictEqual(t1, true);
+
+        const t2 = greater.isGe();
+        assert.strictEqual(t2, true);
+    });
+
+    specify("reverse", () => {
+        const t0 = less.reverse();
         assert.strictEqual(t0, greater);
 
-        const t1 = reverseOrdering(equal);
+        const t1 = equal.reverse();
         assert.strictEqual(t1, equal);
 
-        const t2 = reverseOrdering(greater);
+        const t2 = greater.reverse();
         assert.strictEqual(t2, less);
     });
 });
@@ -334,10 +339,7 @@ describe("Reverse", () => {
     specify("[Ord.cmp]", () => {
         fc.assert(
             fc.property(arbRevNum(), arbRevNum(), (x, y) => {
-                assert.strictEqual(
-                    cmp(x, y),
-                    reverseOrdering(cmp(x.val, y.val)),
-                );
+                assert.strictEqual(cmp(x, y), cmp(x.val, y.val).reverse());
             }),
         );
     });

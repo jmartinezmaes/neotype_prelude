@@ -6,10 +6,8 @@ import { cmb } from "../src/cmb.js";
 import { cmp, eq, greater, less } from "../src/cmp.js";
 import {
     accept,
-    accepted,
     collectValidated,
     dispute,
-    disputed,
     tupledValidated,
     type Validated,
     viewValidated,
@@ -196,19 +194,19 @@ describe("Validated", () => {
         assert.strictEqual(t1, _2);
     });
 
-    specify("disputed", () => {
-        const t0 = disputed(mk("D", _1, _2));
+    specify("isDisputed", () => {
+        const t0 = mk("D", _1, _2).isDisputed();
         assert.strictEqual(t0, true);
 
-        const t1 = disputed(mk("A", _1, _2));
+        const t1 = mk("A", _1, _2).isDisputed();
         assert.strictEqual(t1, false);
     });
 
-    specify("accepted", () => {
-        const t0 = accepted(mk("D", _1, _2));
+    specify("isAccepted", () => {
+        const t0 = mk("D", _1, _2).isAccepted();
         assert.strictEqual(t0, false);
 
-        const t1 = accepted(mk("A", _1, _2));
+        const t1 = mk("A", _1, _2).isAccepted();
         assert.strictEqual(t1, true);
     });
 

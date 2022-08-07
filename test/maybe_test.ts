@@ -4,7 +4,6 @@ import { arbNum, arbStr, pair } from "./common.js";
 import { cmb } from "../src/cmb.js";
 import { cmp, eq, equal, greater, less } from "../src/cmp.js";
 import {
-    absent,
     collectMaybe,
     doMaybeAsync,
     doMaybe,
@@ -14,7 +13,6 @@ import {
     type Maybe,
     maybe,
     nothing,
-    present,
     reduceMaybe,
     tupledMaybe,
 } from "../src/maybe.js";
@@ -167,19 +165,19 @@ describe("Maybe", () => {
         assert.strictEqual(t0, _1);
     });
 
-    specify("absent", () => {
-        const t0 = absent(mk("N", _1));
+    specify("isNothing", () => {
+        const t0 = mk("N", _1).isNothing();
         assert.strictEqual(t0, true);
 
-        const t1 = absent(mk("J", _1));
+        const t1 = mk("J", _1).isNothing();
         assert.strictEqual(t1, false);
     });
 
-    specify("present", () => {
-        const t0 = present(mk("N", _1));
+    specify("isJust", () => {
+        const t0 = mk("N", _1).isJust();
         assert.strictEqual(t0, false);
 
-        const t1 = present(mk("J", _1));
+        const t1 = mk("J", _1).isJust();
         assert.strictEqual(t1, true);
     });
 

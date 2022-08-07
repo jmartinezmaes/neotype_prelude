@@ -57,10 +57,10 @@ export namespace Either {
             this: Either<A, B>,
             that: Either<A, B>,
         ): boolean {
-            if (leftsided(this)) {
-                return leftsided(that) && eq(this.val, that.val);
+            if (this.isLeft()) {
+                return that.isLeft() && eq(this.val, that.val);
             }
-            return rightsided(that) && eq(this.val, that.val);
+            return that.isRight() && eq(this.val, that.val);
         }
 
         /**
@@ -70,10 +70,10 @@ export namespace Either {
             this: Either<A, B>,
             that: Either<A, B>,
         ): Ordering {
-            if (leftsided(this)) {
-                return leftsided(that) ? cmp(this.val, that.val) : less;
+            if (this.isLeft()) {
+                return that.isLeft() ? cmp(this.val, that.val) : less;
             }
-            return rightsided(that) ? cmp(this.val, that.val) : greater;
+            return that.isRight() ? cmp(this.val, that.val) : greater;
         }
 
         /**
@@ -88,6 +88,20 @@ export namespace Either {
         }
 
         /**
+         * Test whether this Either is a `Left`.
+         */
+        isLeft<A>(this: Either<A, any>): this is Left<A> {
+            return this.typ === "Left";
+        }
+
+        /**
+         * Test whether this Either is a `Right`.
+         */
+        isRight<B>(this: Either<any, B>): this is Right<B> {
+            return this.typ === "Right";
+        }
+
+        /**
          * Case analysis for Either.
          */
         fold<A, B, C, D>(
@@ -95,7 +109,7 @@ export namespace Either {
             foldL: (x: A, either: Left<A>) => C,
             foldR: (x: B, either: Right<B>) => D,
         ): C | D {
-            return leftsided(this)
+            return this.isLeft()
                 ? foldL(this.val, this)
                 : foldR(this.val, this);
         }
@@ -132,7 +146,7 @@ export namespace Either {
             this: Either<E, A>,
             f: (x: E) => Either<E1, B>,
         ): Either<E1, A | B> {
-            return leftsided(this) ? f(this.val) : this;
+            return this.isLeft() ? f(this.val) : this;
         }
 
         /**
@@ -153,7 +167,7 @@ export namespace Either {
             this: Either<E, A>,
             f: (x: A) => Either<E1, B>,
         ): Either<E | E1, B> {
-            return leftsided(this) ? this : f(this.val);
+            return this.isLeft() ? this : f(this.val);
         }
 
         /**
@@ -204,9 +218,7 @@ export namespace Either {
             mapL: (x: A) => C,
             mapR: (x: B) => D,
         ): Either<C, D> {
-            return leftsided(this)
-                ? left(mapL(this.val))
-                : right(mapR(this.val));
+            return this.isLeft() ? left(mapL(this.val)) : right(mapR(this.val));
         }
 
         /**
@@ -365,22 +377,6 @@ export function guardEither<A>(x: A, f: (x: A) => boolean): Either<A, A> {
 }
 
 /**
- * Test whether an Either is leftsided.
- */
-export function leftsided<A>(either: Either<A, any>): either is Either.Left<A> {
-    return either.typ === "Left";
-}
-
-/**
- * Test whether an Either is rightsided.
- */
-export function rightsided<B>(
-    either: Either<any, B>,
-): either is Either.Right<B> {
-    return either.typ === "Right";
-}
-
-/**
  * Convert a Validated to an Either.
  */
 export function viewEither<E, A>(validated: Validated<E, A>): Either<E, A> {
@@ -398,7 +394,7 @@ export function doEither<
     let nx = nxs.next();
     while (!nx.done) {
         const x = nx.value[0];
-        if (rightsided(x)) {
+        if (x.isRight()) {
             nx = nxs.next(x.val);
         } else {
             return x;
@@ -482,7 +478,7 @@ export async function doEitherAsync<
     let nx = await nxs.next();
     while (!nx.done) {
         const x = nx.value[0];
-        if (rightsided(x)) {
+        if (x.isRight()) {
             nx = await nxs.next(x.val);
         } else {
             return x;

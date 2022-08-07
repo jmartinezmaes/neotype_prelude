@@ -62,20 +62,20 @@ export namespace Maybe {
          * Test whether this and that Maybe are equal using Eq comparison.
          */
         [Eq.eq]<A extends Eq<A>>(this: Maybe<A>, that: Maybe<A>): boolean {
-            if (absent(this)) {
-                return absent(that);
+            if (this.isNothing()) {
+                return that.isNothing();
             }
-            return present(that) && eq(this.val, that.val);
+            return that.isJust() && eq(this.val, that.val);
         }
 
         /**
          * Compare this and that Maybe using Ord comparison.
          */
         [Ord.cmp]<A extends Ord<A>>(this: Maybe<A>, that: Maybe<A>): Ordering {
-            if (absent(this)) {
-                return absent(that) ? equal : less;
+            if (this.isNothing()) {
+                return that.isNothing() ? equal : less;
             }
-            return absent(that) ? greater : cmp(this.val, that.val);
+            return that.isNothing() ? greater : cmp(this.val, that.val);
         }
 
         /**
@@ -87,10 +87,24 @@ export namespace Maybe {
             this: Maybe<A>,
             that: Maybe<A>,
         ): Maybe<A> {
-            if (present(this)) {
-                return present(that) ? just(cmb(this.val, that.val)) : this;
+            if (this.isJust()) {
+                return that.isJust() ? just(cmb(this.val, that.val)) : this;
             }
             return that;
+        }
+
+        /**
+         * Test whether this Maybe is `Nothing`.
+         */
+        isNothing(this: Maybe<any>): this is Nothing {
+            return this.typ === "Nothing";
+        }
+
+        /**
+         * Test whether this Maybe is a `Just`.
+         */
+        isJust<A>(this: Maybe<A>): this is Just<A> {
+            return this.typ === "Just";
         }
 
         /**
@@ -101,7 +115,7 @@ export namespace Maybe {
             foldL: () => B,
             foldR: (x: A, maybe: Just<A>) => C,
         ): B | C {
-            return absent(this) ? foldL() : foldR(this.val, this);
+            return this.isNothing() ? foldL() : foldR(this.val, this);
         }
 
         /**
@@ -124,7 +138,7 @@ export namespace Maybe {
          * If this Maybe is absent, return a fallback Maybe.
          */
         orElse<A, B>(this: Maybe<A>, that: Maybe<B>): Maybe<A | B> {
-            return absent(this) ? that : this;
+            return this.isNothing() ? that : this;
         }
 
         /**
@@ -132,7 +146,7 @@ export namespace Maybe {
          * new Maybe.
          */
         flatMap<A, B>(this: Maybe<A>, f: (x: A) => Maybe<B>): Maybe<B> {
-            return absent(this) ? this : f(this.val);
+            return this.isNothing() ? this : f(this.val);
         }
 
         /**
@@ -315,20 +329,6 @@ export function guardMaybe<A>(x: A, f: (x: A) => boolean): Maybe<A> {
 }
 
 /**
- * Test whether a Maybe is absent.
- */
-export function absent(maybe: Maybe<any>): maybe is Maybe.Nothing {
-    return maybe.typ === "Nothing";
-}
-
-/**
- * Test whether a Maybe is present.
- */
-export function present<A>(maybe: Maybe<A>): maybe is Maybe.Just<A> {
-    return maybe.typ === "Just";
-}
-
-/**
  * Construct a Maybe using a generator comprehension.
  */
 export function doMaybe<A>(
@@ -338,7 +338,7 @@ export function doMaybe<A>(
     let nx = nxs.next();
     while (!nx.done) {
         const x = nx.value[0];
-        if (present(x)) {
+        if (x.isJust()) {
             nx = nxs.next(x.val);
         } else {
             return x;
@@ -418,7 +418,7 @@ export async function doMaybeAsync<A>(
     let nx = await nxs.next();
     while (!nx.done) {
         const x = nx.value[0];
-        if (present(x)) {
+        if (x.isJust()) {
             nx = await nxs.next(x.val);
         } else {
             return x;

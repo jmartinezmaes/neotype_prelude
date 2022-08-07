@@ -171,7 +171,7 @@ export function icmp<A extends Ord<A>>(
         if (!nx.done) {
             if (!ny.done) {
                 const ord = cmp(nx.value, ny.value);
-                if (ordNe(ord)) {
+                if (ord.isNe()) {
                     return ord;
                 }
                 nx = nxs.next();
@@ -189,28 +189,28 @@ export function icmp<A extends Ord<A>>(
  * Test whether `x` is less than `y`.
  */
 export function lt<A extends Ord<A>>(x: A, y: A): boolean {
-    return ordLt(cmp(x, y));
+    return cmp(x, y).isLt();
 }
 
 /**
  * Test whether `x` is greater than `y`.
  */
 export function gt<A extends Ord<A>>(x: A, y: A): boolean {
-    return ordGt(cmp(x, y));
+    return cmp(x, y).isGt();
 }
 
 /**
  * Test whether `x` is less than or equal to `y`.
  */
 export function le<A extends Ord<A>>(x: A, y: A): boolean {
-    return ordLe(cmp(x, y));
+    return cmp(x, y).isLe();
 }
 
 /**
  * Test whether `x` is greater than or equal to `y`.
  */
 export function ge<A extends Ord<A>>(x: A, y: A): boolean {
-    return ordGe(cmp(x, y));
+    return cmp(x, y).isGe();
 }
 
 /**
@@ -256,21 +256,80 @@ export namespace Ordering {
          * `Less < Equal < Greater`.
          */
         [Ord.cmp](this: Ordering, that: Ordering): Ordering {
-            if (ordLt(this)) {
-                return ordLt(that) ? equal : less;
+            if (this.isLt()) {
+                return that.isLt() ? equal : less;
             }
-            if (ordGt(this)) {
-                return ordGt(that) ? equal : greater;
+            if (this.isGt()) {
+                return that.isGt() ? equal : greater;
             }
-            return ordEq(that) ? equal : ordLt(that) ? greater : less;
+            return that.isEq() ? equal : that.isLt() ? greater : less;
         }
 
         /**
-         * If this Ordering is Equal, return this; otherwise, return the other
+         * If this Ordering is `Equal`, return this; otherwise, return the other
          * Ordering.
          */
         [Semigroup.cmb](this: Ordering, that: Ordering): Ordering {
-            return ordEq(this) ? that : this;
+            return this.isEq() ? that : this;
+        }
+
+        /**
+         * Test whether this Ordering is `Equal`.
+         */
+        isEq(this: Ordering): this is Equal {
+            return this.val === 0;
+        }
+
+        /**
+         * Test whether this Ordering is not `Equal`.
+         */
+        isNe(this: Ordering): this is Less | Greater {
+            return !this.isEq();
+        }
+
+        /**
+         * Test whether this Ordering is `Less`.
+         */
+        isLt(this: Ordering): this is Less {
+            return this.val === -1;
+        }
+
+        /**
+         * Test whether this Ordering is `Greater`.
+         */
+        isGt(this: Ordering): this is Greater {
+            return this.val === 1;
+        }
+
+        /**
+         * Test whether this Ordering is `Less` or `Equal`.
+         */
+        isLe(this: Ordering): this is Less | Equal {
+            return !this.isGt();
+        }
+
+        /**
+         * Test whether this Ordering is `Greater` or `Equal`.
+         */
+        isGe(this: Ordering): this is Greater | Equal {
+            return !this.isLt();
+        }
+
+        /**
+         * Reverse this Ordering.
+         *
+         * - `Less` becomes `Greater`.
+         * - `Greater` becomes `Less`.
+         * - `Equal` remains `Equal`.
+         */
+        reverse(this: Ordering): Ordering {
+            if (this.isLt()) {
+                return greater;
+            }
+            if (this.isGt()) {
+                return less;
+            }
+            return this;
         }
     }
 
@@ -358,67 +417,6 @@ export const equal = Ordering.Equal.singleton as Ordering;
 export const greater = Ordering.Greater.singleton as Ordering;
 
 /**
- * Test whether an Ordering is Less.
- */
-export function ordLt(ordering: Ordering): ordering is Ordering.Less {
-    return ordering.val === -1;
-}
-
-/**
- * Test whether an Ordering is Less or Equal.
- */
-export function ordLe(
-    ordering: Ordering,
-): ordering is Ordering.Less | Ordering.Equal {
-    return !ordGt(ordering);
-}
-
-/**
- * Test whether an Ordering is Equal.
- */
-export function ordEq(ordering: Ordering): ordering is Ordering.Equal {
-    return ordering.val === 0;
-}
-
-/**
- * Test whether an Ordering is not Equal.
- */
-export function ordNe(
-    ordering: Ordering,
-): ordering is Ordering.Less | Ordering.Greater {
-    return !ordEq(ordering);
-}
-
-/**
- * Test whether an Ordering is Greater or Equal.
- */
-export function ordGe(
-    ordering: Ordering,
-): ordering is Ordering.Greater | Ordering.Equal {
-    return !ordLt(ordering);
-}
-
-/**
- * Test whether an Ordering is Greater.
- */
-export function ordGt(ordering: Ordering): ordering is Ordering.Greater {
-    return ordering.val === 1;
-}
-
-/**
- * Reverse an ordering.
- */
-export function reverseOrdering(ordering: Ordering): Ordering {
-    if (ordLt(ordering)) {
-        return greater;
-    }
-    if (ordGt(ordering)) {
-        return less;
-    }
-    return ordering;
-}
-
-/**
  * A helper type for reverse ordering.
  */
 export class Reverse<A> {
@@ -440,7 +438,7 @@ export class Reverse<A> {
      * of their underlying Ord values.
      */
     [Ord.cmp]<A extends Ord<A>>(this: Reverse<A>, that: Reverse<A>): Ordering {
-        return reverseOrdering(cmp(this.val, that.val));
+        return cmp(this.val, that.val).reverse();
     }
 
     /**

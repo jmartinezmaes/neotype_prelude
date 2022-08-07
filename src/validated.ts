@@ -44,10 +44,10 @@ export namespace Validated {
             this: Validated<E, A>,
             that: Validated<E, A>,
         ): boolean {
-            if (disputed(this)) {
-                return disputed(that) && eq(this.val, that.val);
+            if (this.isDisputed()) {
+                return that.isDisputed() && eq(this.val, that.val);
             }
-            return accepted(that) && eq(this.val, that.val);
+            return that.isAccepted() && eq(this.val, that.val);
         }
 
         /**
@@ -57,10 +57,10 @@ export namespace Validated {
             this: Validated<E, A>,
             that: Validated<E, A>,
         ): Ordering {
-            if (disputed(this)) {
-                return disputed(that) ? cmp(this.val, that.val) : less;
+            if (this.isDisputed()) {
+                return that.isDisputed() ? cmp(this.val, that.val) : less;
             }
-            return accepted(that) ? cmp(this.val, that.val) : greater;
+            return that.isAccepted() ? cmp(this.val, that.val) : greater;
         }
 
         /**
@@ -75,6 +75,20 @@ export namespace Validated {
         }
 
         /**
+         * Test whether this Validated is `Disputed`.
+         */
+        isDisputed<E>(this: Validated<E, any>): this is Disputed<E> {
+            return this.typ === "Disputed";
+        }
+
+        /**
+         * Test whether this Validated is `Accepted`.
+         */
+        isAccepted<A>(this: Validated<any, A>): this is Accepted<A> {
+            return this.typ === "Accepted";
+        }
+
+        /**
          * Case analysis for Validated.
          */
         fold<E, A, B, B1>(
@@ -82,7 +96,7 @@ export namespace Validated {
             foldL: (x: E, validated: Disputed<E>) => B,
             foldR: (x: A, validated: Accepted<A>) => B1,
         ): B | B1 {
-            return disputed(this)
+            return this.isDisputed()
                 ? foldL(this.val, this)
                 : foldR(this.val, this);
         }
@@ -117,7 +131,7 @@ export namespace Validated {
             this: Validated<E, A>,
             f: (x: A) => Validated<E1, B>,
         ): Validated<E | E1, B> {
-            return disputed(this) ? this : f(this.val);
+            return this.isDisputed() ? this : f(this.val);
         }
 
         /**
@@ -129,10 +143,12 @@ export namespace Validated {
             that: Validated<E, B>,
             f: (x: A, y: B) => C,
         ): Validated<E, C> {
-            if (disputed(this)) {
-                return disputed(that) ? dispute(cmb(this.val, that.val)) : this;
+            if (this.isDisputed()) {
+                return that.isDisputed()
+                    ? dispute(cmb(this.val, that.val))
+                    : this;
             }
-            return disputed(that) ? that : accept(f(this.val, that.val));
+            return that.isDisputed() ? that : accept(f(this.val, that.val));
         }
 
         /**
@@ -166,7 +182,7 @@ export namespace Validated {
             mapL: (x: E) => E1,
             mapR: (x: A) => B,
         ): Validated<E1, B> {
-            return disputed(this)
+            return this.isDisputed()
                 ? dispute(mapL(this.val))
                 : accept(mapR(this.val));
         }
@@ -178,14 +194,14 @@ export namespace Validated {
             this: Validated<E, A>,
             f: (x: E) => E1,
         ): Validated<E1, A> {
-            return disputed(this) ? dispute(f(this.val)) : this;
+            return this.isDisputed() ? dispute(f(this.val)) : this;
         }
 
         /**
          * If this Validated is accepted, apply a function to its value.
          */
         map<E, A, B>(this: Validated<E, A>, f: (x: A) => B): Validated<E, B> {
-            return disputed(this) ? this : accept(f(this.val));
+            return this.isDisputed() ? this : accept(f(this.val));
         }
 
         /**
@@ -249,24 +265,6 @@ export function dispute<E, A = never>(x: E): Validated<E, A> {
  */
 export function accept<A, E = never>(x: A): Validated<E, A> {
     return new Validated.Accepted(x);
-}
-
-/**
- * Test whether a Validated is disputed.
- */
-export function disputed<E>(
-    validated: Validated<E, any>,
-): validated is Validated.Disputed<E> {
-    return validated.typ === "Disputed";
-}
-
-/**
- * Test whether a Validated is accepted.
- */
-export function accepted<A>(
-    validated: Validated<any, A>,
-): validated is Validated.Accepted<A> {
-    return validated.typ === "Accepted";
 }
 
 /**
