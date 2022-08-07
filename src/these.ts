@@ -423,13 +423,13 @@ export function doThese<E extends Semigroup<E>, A>(
         if (there(t)) {
             nx = nxs.next(t.val);
         } else if (paired(t)) {
-            e = e ? cmb(e, t.fst) : t.fst;
+            e = e !== undefined ? cmb(e, t.fst) : t.fst;
             nx = nxs.next(t.snd);
         } else {
-            return e ? first(cmb(e, t.val)) : t;
+            return e !== undefined ? first(cmb(e, t.val)) : t;
         }
     }
-    return e ? both(e, nx.value) : second(nx.value);
+    return e !== undefined ? both(e, nx.value) : second(nx.value);
 }
 
 /**
@@ -677,11 +677,11 @@ export async function doTheseAsync<E extends Semigroup<E>, A>(
         if (there(t)) {
             nx = await nxs.next(t.val);
         } else if (paired(t)) {
-            e = e ? cmb(e, t.fst) : t.fst;
+            e = e !== undefined ? cmb(e, t.fst) : t.fst;
             nx = await nxs.next(t.snd);
         } else {
-            return e ? first(cmb(e, t.val)) : t;
+            return e !== undefined ? first(cmb(e, t.val)) : t;
         }
     }
-    return e ? both(e, nx.value) : second(nx.value);
+    return e !== undefined ? both(e, nx.value) : second(nx.value);
 }
