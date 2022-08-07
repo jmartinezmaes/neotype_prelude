@@ -8,11 +8,11 @@ import {
     collectMaybe,
     doMaybeAsync,
     doMaybe,
-    fromMissing,
     gatherMaybe,
     guardMaybe,
     just,
     type Maybe,
+    maybe,
     nothing,
     present,
     reduceMaybe,
@@ -183,14 +183,14 @@ describe("Maybe", () => {
         assert.strictEqual(t1, true);
     });
 
-    specify("fromMissing", () => {
-        const t0 = fromMissing<1>(undefined);
+    specify("maybe", () => {
+        const t0 = maybe<1>(undefined);
         assert.deepEqual(t0, nothing);
 
-        const t1 = fromMissing<1>(null);
+        const t1 = maybe<1>(null);
         assert.deepEqual(t1, nothing);
 
-        const t2 = fromMissing(_1);
+        const t2 = maybe(_1);
         assert.deepEqual(t2, just(_1));
     });
 

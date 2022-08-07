@@ -295,7 +295,7 @@ export function just<A>(x: A): Maybe<A> {
 /**
  * Consruct a Maybe, converting null and undefined to nothing.
  */
-export function fromMissing<A>(x: A | null | undefined): Maybe<A> {
+export function maybe<A>(x: A | null | undefined): Maybe<A> {
     return x === null || x === undefined ? nothing : just(x);
 }
 
