@@ -28,20 +28,6 @@ export function id<A>(x: A): A {
 }
 
 /**
- * Retrieve the first element in a pair-like structure.
- */
-export function fst<A>(pair: [A, any]): A {
-    return pair[0];
-}
-
-/**
- * Retrieve the second argument in a pair-like structure.
- */
-export function snd<B>(pair: [any, B]): B {
-    return pair[1];
-}
-
-/**
  * Reverse a refinement function or a predicate function.
  */
 export function negate<A, A1 extends A>(

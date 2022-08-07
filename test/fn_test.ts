@@ -1,28 +1,12 @@
 import * as fc from "fast-check";
 import { assert } from "chai";
-import { fst, id, negate, snd } from "../src/fn.js";
+import { id, negate } from "../src/fn.js";
 
 describe("Functions", () => {
     specify("id", () => {
         fc.assert(
             fc.property(fc.anything(), (x) => {
                 assert.strictEqual(id(x), x);
-            }),
-        );
-    });
-
-    specify("fst", () => {
-        fc.assert(
-            fc.property(fc.anything(), fc.anything(), (x, y) => {
-                assert.strictEqual(fst([x, y]), x);
-            }),
-        );
-    });
-
-    specify("snd", () => {
-        fc.assert(
-            fc.property(fc.anything(), fc.anything(), (x, y) => {
-                assert.strictEqual(snd([x, y]), y);
             }),
         );
     });
