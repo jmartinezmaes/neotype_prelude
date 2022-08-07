@@ -21,13 +21,12 @@
  */
 
 import { cmb, Semigroup } from "./cmb.js";
-import { cmp, Eq, eq, greater, less, Ord, type Ordering } from "./cmp.js";
+import { cmp, Eq, eq, Ord, Ordering } from "./cmp.js";
 import { id } from "./fn.js";
 import { type Validated } from "./validated.js";
 
 /**
- * A type that represents an "exclusive or" relationship between two values
- * ({@link Either.Left Left} and {@link Either.Right Right}).
+ * A type that represents one of two values (`Left` or `Right`).
  */
 export type Either<A, B> = Either.Left<A> | Either.Right<B>;
 
@@ -45,6 +44,145 @@ export namespace Either {
      * @hidden
      */
     export type YieldTkn = typeof yieldTkn;
+
+    /**
+     * Construct a leftsided Either with an optional type witness for the
+     * rightsided value.
+     */
+    export function left<A, B = never>(x: A): Either<A, B> {
+        return new Left(x);
+    }
+
+    /**
+     * Construct a rightsided Either with an optional type witness for the
+     * leftsided value.
+     */
+    export function right<B, A = never>(x: B): Either<A, B> {
+        return new Right(x);
+    }
+
+    /**
+     * Apply a predicate function to a value. If the predicate returns true,
+     * return the value in a `Right`; otherwise, return the value in a `Left`.
+     */
+    export function guard<A, A1 extends A>(
+        x: A,
+        f: (x: A) => x is A1,
+    ): Either<Exclude<A, A1>, A1>;
+
+    export function guard<A>(x: A, f: (x: A) => boolean): Either<A, A>;
+
+    export function guard<A>(x: A, f: (x: A) => boolean): Either<A, A> {
+        return f(x) ? right(x) : left(x);
+    }
+
+    /**
+     * Construct an Either from a Validated.
+     */
+    export function fromValidated<E, A>(vtd: Validated<E, A>): Either<E, A> {
+        return vtd.fold(left, right);
+    }
+
+    /**
+     * Construct an Either using a generator comprehension.
+     */
+    export function go<T extends readonly [Either<any, any>, YieldTkn], A>(
+        f: () => Generator<T, A, any>,
+    ): Either<LeftT<T[0]>, A> {
+        const nxs = f();
+        let nx = nxs.next();
+        while (!nx.done) {
+            const x = nx.value[0];
+            if (x.isRight()) {
+                nx = nxs.next(x.val);
+            } else {
+                return x;
+            }
+        }
+        return right(nx.value);
+    }
+
+    /**
+     * Reduce a finite iterable from left to right in the context of Either.
+     */
+    export function reduce<A, B, E>(
+        xs: Iterable<A>,
+        f: (acc: B, x: A) => Either<E, B>,
+        z: B,
+    ): Either<E, B> {
+        return go(function* () {
+            let acc = z;
+            for (const x of xs) {
+                acc = yield* f(acc, x);
+            }
+            return acc;
+        });
+    }
+
+    /**
+     * Evaluate the Eithers in an array or a tuple literal from left to right
+     * and collect the rightsided values in an array or a tuple literal,
+     * respectively.
+     */
+    export function collect<T extends readonly Either<any, any>[]>(
+        xs: T,
+    ): Either<LeftT<T[number]>, Readonly<RightsT<T>>> {
+        return go(function* () {
+            const l = xs.length;
+            const ys = new Array(l);
+            for (let ix = 0; ix < l; ix++) {
+                ys[ix] = yield* xs[ix];
+            }
+            return ys as unknown as RightsT<T>;
+        });
+    }
+
+    /**
+     * Evaluate a series of Eithers from left to right and collect the
+     * rightsided values in a tuple literal.
+     */
+    export function tupled<
+        T extends [Either<any, any>, Either<any, any>, ...Either<any, any>[]],
+    >(...xs: T): Either<LeftT<T[number]>, Readonly<RightsT<T>>> {
+        return collect(xs);
+    }
+
+    /**
+     * Evaluate the Eithers in an object literal and collect the rightsided
+     * values in an object literal.
+     */
+    export function gather<T extends Record<any, Either<any, any>>>(
+        xs: T,
+    ): Either<LeftT<T[keyof T]>, { readonly [K in keyof T]: RightT<T[K]> }> {
+        return go(function* () {
+            const ys: Record<any, unknown> = {};
+            for (const [kx, x] of Object.entries(xs)) {
+                ys[kx] = yield* x;
+            }
+            return ys as RightsT<T>;
+        });
+    }
+
+    /**
+     * Construct a Promise that fulfills with an Either using an async generator
+     * comprehension.
+     */
+    export async function goAsync<
+        T extends readonly [Either<any, any>, YieldTkn],
+        A,
+    >(f: () => AsyncGenerator<T, A, any>): Promise<Either<LeftT<T[0]>, A>> {
+        const nxs = f();
+        let nx = await nxs.next();
+        while (!nx.done) {
+            const x = nx.value[0];
+            if (x.isRight()) {
+                nx = await nxs.next(x.val);
+            } else {
+                return x;
+            }
+        }
+        return right(nx.value);
+    }
 
     /**
      * The fluent syntax for Either.
@@ -71,9 +209,9 @@ export namespace Either {
             that: Either<A, B>,
         ): Ordering {
             if (this.isLeft()) {
-                return that.isLeft() ? cmp(this.val, that.val) : less;
+                return that.isLeft() ? cmp(this.val, that.val) : Ordering.less;
             }
-            return that.isRight() ? cmp(this.val, that.val) : greater;
+            return that.isRight() ? cmp(this.val, that.val) : Ordering.greater;
         }
 
         /**
@@ -253,7 +391,7 @@ export namespace Either {
         readonly typ = "Left";
 
         /**
-         * Construct an instance of `Either.Left`.
+         * Construct an instance of `Left`.
          *
          * Explicit use of this constructor should be avoided; use the
          * {@link left} function instead.
@@ -288,7 +426,7 @@ export namespace Either {
         readonly typ = "Right";
 
         /**
-         * Construct an instance of `Either.Right`.
+         * Construct an instance of `Right`.
          *
          * Explicit use of this constructor should be avoided; use the
          * {@link right} function instead.
@@ -334,155 +472,13 @@ export namespace Either {
      *
      * ```ts
      * type T0 = [Either<1, 2>, Either<3, 4>, Either<5, 6>];
-     * type T1 = Either.RightsT<T0>; // [2, 4, 6]
+     * type T1 = RightsT<T0>; // [2, 4, 6]
      *
      * type T2 = { x: Either<1, 2>, y: Either<3, 4>, z: Either<5, 6> };
-     * type T3 = Either.RightsT<T2>; // { x: 2, y: 4, z: 6 }
+     * type T3 = RightsT<T2>; // { x: 2, y: 4, z: 6 }
      * ```
      */
     export type RightsT<
         T extends readonly Either<any, any>[] | Record<any, Either<any, any>>,
     > = { [K in keyof T]: [T[K]] extends [Either<any, infer B>] ? B : never };
-}
-
-/**
- * Construct a leftsided Either with an optional type witness for the
- * rightsided value.
- */
-export function left<A, B = never>(x: A): Either<A, B> {
-    return new Either.Left(x);
-}
-
-/**
- * Construct a rightsided Either with an optional type witness for the
- * leftsided value.
- */
-export function right<B, A = never>(x: B): Either<A, B> {
-    return new Either.Right(x);
-}
-
-/**
- * Apply a predicate function to a value. If the predicate returns true, return
- * a Right containing the value; otherwise, return a Left containing the value.
- */
-export function guardEither<A, A1 extends A>(
-    x: A,
-    f: (x: A) => x is A1,
-): Either<Exclude<A, A1>, A1>;
-
-export function guardEither<A>(x: A, f: (x: A) => boolean): Either<A, A>;
-
-export function guardEither<A>(x: A, f: (x: A) => boolean): Either<A, A> {
-    return f(x) ? right(x) : left(x);
-}
-
-/**
- * Convert a Validated to an Either.
- */
-export function viewEither<E, A>(validated: Validated<E, A>): Either<E, A> {
-    return validated.fold(left, right);
-}
-
-/**
- * Construct an Either using a generator comprehension.
- */
-export function doEither<
-    T extends readonly [Either<any, any>, Either.YieldTkn],
-    A,
->(f: () => Generator<T, A, any>): Either<Either.LeftT<T[0]>, A> {
-    const nxs = f();
-    let nx = nxs.next();
-    while (!nx.done) {
-        const x = nx.value[0];
-        if (x.isRight()) {
-            nx = nxs.next(x.val);
-        } else {
-            return x;
-        }
-    }
-    return right(nx.value);
-}
-
-/**
- * Reduce a finite iterable from left to right in the context of Either.
- */
-export function reduceEither<A, B, E>(
-    xs: Iterable<A>,
-    f: (acc: B, x: A) => Either<E, B>,
-    z: B,
-): Either<E, B> {
-    return doEither(function* () {
-        let acc = z;
-        for (const x of xs) {
-            acc = yield* f(acc, x);
-        }
-        return acc;
-    });
-}
-
-/**
- * Evaluate the Eithers in an array or a tuple literal from left to right and
- * collect the rightsided values in an array or a tuple literal, respectively.
- */
-export function collectEither<T extends readonly Either<any, any>[]>(
-    xs: T,
-): Either<Either.LeftT<T[number]>, Readonly<Either.RightsT<T>>> {
-    return doEither(function* () {
-        const l = xs.length;
-        const ys = new Array(l);
-        for (let ix = 0; ix < l; ix++) {
-            ys[ix] = yield* xs[ix];
-        }
-        return ys as unknown as Either.RightsT<T>;
-    });
-}
-
-/**
- * Evaluate a series of Eithers from left to right and collect the rightsided
- * values in a tuple literal.
- */
-export function tupledEither<
-    T extends [Either<any, any>, Either<any, any>, ...Either<any, any>[]],
->(...xs: T): Either<Either.LeftT<T[number]>, Readonly<Either.RightsT<T>>> {
-    return collectEither(xs);
-}
-
-/**
- * Evaluate the Eithers in an object literal and collect the rightsided values
- * in an object literal.
- */
-export function gatherEither<T extends Record<any, Either<any, any>>>(
-    xs: T,
-): Either<
-    Either.LeftT<T[keyof T]>,
-    { readonly [K in keyof T]: Either.RightT<T[K]> }
-> {
-    return doEither(function* () {
-        const ys: Record<any, unknown> = {};
-        for (const [kx, x] of Object.entries(xs)) {
-            ys[kx] = yield* x;
-        }
-        return ys as Either.RightsT<T>;
-    });
-}
-
-/**
- * Construct a Promise that fulfills with an Either using an async generator
- * comprehension.
- */
-export async function doEitherAsync<
-    T extends readonly [Either<any, any>, Either.YieldTkn],
-    A,
->(f: () => AsyncGenerator<T, A, any>): Promise<Either<Either.LeftT<T[0]>, A>> {
-    const nxs = f();
-    let nx = await nxs.next();
-    while (!nx.done) {
-        const x = nx.value[0];
-        if (x.isRight()) {
-            nx = await nxs.next(x.val);
-        } else {
-            return x;
-        }
-    }
-    return right(nx.value);
 }

@@ -177,10 +177,10 @@ export function icmp<A extends Ord<A>>(
                 nx = nxs.next();
                 ny = nys.next();
             } else {
-                return greater;
+                return Ordering.greater;
             }
         } else {
-            return ny.done ? equal : less;
+            return ny.done ? Ordering.equal : Ordering.less;
         }
     }
 }
@@ -399,22 +399,22 @@ export namespace Ordering {
             super();
         }
     }
+
+    /**
+     * The Ordering that models a "less than" relationship between two values.
+     */
+    export const less = Ordering.Less.singleton as Ordering;
+
+    /**
+     * The Ordering that models an "equal" relationship between two values.
+     */
+    export const equal = Ordering.Equal.singleton as Ordering;
+
+    /**
+     * The Ordering that models a "greater than" relationship between two values.
+     */
+    export const greater = Ordering.Greater.singleton as Ordering;
 }
-
-/**
- * The Ordering that models a "less than" relationship between two values.
- */
-export const less = Ordering.Less.singleton as Ordering;
-
-/**
- * The Ordering that models an "equal" relationship between two values.
- */
-export const equal = Ordering.Equal.singleton as Ordering;
-
-/**
- * The Ordering that models a "greater than" relationship between two values.
- */
-export const greater = Ordering.Greater.singleton as Ordering;
 
 /**
  * A helper type for reverse ordering.
@@ -451,18 +451,4 @@ export class Reverse<A> {
     ): Reverse<A> {
         return new Reverse(cmb(this.val, that.val));
     }
-}
-
-/**
- * Construct a Reverse.
- */
-export function mkReverse<A>(x: A): Reverse<A> {
-    return new Reverse(x);
-}
-
-/**
- * Destruct a Reverse.
- */
-export function unReverse<A>(reverse: Reverse<A>): A {
-    return reverse.val;
 }

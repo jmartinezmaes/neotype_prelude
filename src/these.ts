@@ -21,13 +21,12 @@
  */
 
 import { cmb, Semigroup } from "./cmb.js";
-import { cmp, Eq, eq, greater, less, Ord, type Ordering } from "./cmp.js";
+import { cmp, Eq, eq, Ord, Ordering } from "./cmp.js";
 import { id } from "./fn.js";
 
 /**
- * A type that represents an "inclusive-or" relationship between two values
- * ({@link These.First First}, {@link These.Second Second}, or
- * {@link These.Both Both}).
+ * A type that represents one or both of two values (`First`, `Second`, or
+ * `Both`).
  */
 export type These<A, B> = These.First<A> | These.Second<B> | These.Both<A, B>;
 
@@ -45,6 +44,306 @@ export namespace These {
      * @hidden
      */
     export type YieldTkn = typeof yieldTkn;
+
+    /**
+     * Construct a These with only a first value, with an optional type witness
+     * for the second value.
+     */
+    export function first<A, B = never>(x: A): These<A, B> {
+        return new First(x);
+    }
+
+    /**
+     * Construct a These with only a second value, with an optional type witness
+     * for the first value.
+     */
+    export function second<B, A = never>(x: B): These<A, B> {
+        return new Second(x);
+    }
+
+    /**
+     * Construct a These with a first and second value.
+     */
+    export function both<A, B>(x: A, y: B): These<A, B> {
+        return new Both(x, y);
+    }
+
+    /**
+     * Construct a These using a generator comprehension.
+     */
+    export function go<E extends Semigroup<E>, A>(
+        f: () => Generator<readonly [These<E, any>, These.YieldTkn], A, any>,
+    ): These<E, A> {
+        const nxs = f();
+        let nx = nxs.next();
+        let e: E | undefined;
+
+        while (!nx.done) {
+            const t = nx.value[0];
+            if (t.isSecond()) {
+                nx = nxs.next(t.val);
+            } else if (t.isBoth()) {
+                e = e !== undefined ? cmb(e, t.fst) : t.fst;
+                nx = nxs.next(t.snd);
+            } else {
+                return e !== undefined ? first(cmb(e, t.val)) : t;
+            }
+        }
+        return e !== undefined ? both(e, nx.value) : second(nx.value);
+    }
+
+    /**
+     * Reduce a finite iterable from left to right in the context of These.
+     */
+    export function reduce<A, B, E extends Semigroup<E>>(
+        xs: Iterable<A>,
+        f: (acc: B, x: A) => These<E, B>,
+        z: B,
+    ): These<E, B> {
+        return go(function* () {
+            let acc = z;
+            for (const x of xs) {
+                acc = yield* f(acc, x);
+            }
+            return acc;
+        });
+    }
+
+    /**
+     * Evaluate the These in an array or a tuple literal from left to right and
+     * collect the second values in an array or a tuple literal, respectively.
+     */
+    export function collect<E extends Semigroup<E>, A0, A1>(
+        xs: readonly [These<E, A0>, These<E, A1>],
+    ): These<E, readonly [A0, A1]>;
+
+    export function collect<E extends Semigroup<E>, A0, A1, A2>(
+        xs: readonly [These<E, A0>, These<E, A1>, These<E, A2>],
+    ): These<E, readonly [A0, A1, A2]>;
+
+    export function collect<E extends Semigroup<E>, A0, A1, A2, A3>(
+        xs: readonly [These<E, A0>, These<E, A1>, These<E, A2>, These<E, A3>],
+    ): These<E, readonly [A0, A1, A2, A3]>;
+
+    export function collect<E extends Semigroup<E>, A0, A1, A2, A3, A4>(
+        xs: readonly [
+            These<E, A0>,
+            These<E, A1>,
+            These<E, A2>,
+            These<E, A3>,
+            These<E, A4>,
+        ],
+    ): These<E, readonly [A0, A1, A2, A3, A4]>;
+
+    export function collect<E extends Semigroup<E>, A0, A1, A2, A3, A4, A5>(
+        xs: readonly [
+            These<E, A0>,
+            These<E, A1>,
+            These<E, A2>,
+            These<E, A3>,
+            These<E, A4>,
+            These<E, A5>,
+        ],
+    ): These<E, readonly [A0, A1, A2, A3, A4, A5]>;
+
+    export function collect<E extends Semigroup<E>, A0, A1, A2, A3, A4, A5, A6>(
+        xs: readonly [
+            These<E, A0>,
+            These<E, A1>,
+            These<E, A2>,
+            These<E, A3>,
+            These<E, A4>,
+            These<E, A5>,
+            These<E, A6>,
+        ],
+    ): These<E, readonly [A0, A1, A2, A3, A4, A5, A6]>;
+
+    // prettier-ignore
+    export function collect<E extends Semigroup<E>, A0, A1, A2, A3, A4, A5, A6, A7>(
+        xs: readonly [
+            These<E, A0>,
+            These<E, A1>,
+            These<E, A2>,
+            These<E, A3>,
+            These<E, A4>,
+            These<E, A5>,
+            These<E, A6>,
+            These<E, A7>,
+        ],
+    ): These<E, readonly [A0, A1, A2, A3, A4, A5, A6, A7]>;
+
+    // prettier-ignore
+    export function collect<E extends Semigroup<E>, A0, A1, A2, A3, A4, A5, A6, A7, A8>(
+        xs: readonly [
+            These<E, A0>,
+            These<E, A1>,
+            These<E, A2>,
+            These<E, A3>,
+            These<E, A4>,
+            These<E, A5>,
+            These<E, A6>,
+            These<E, A7>,
+            These<E, A8>,
+        ],
+    ): These<E, readonly [A0, A1, A2, A3, A4, A5, A6, A7, A8]>;
+
+    // prettier-ignore
+    export function collect<E extends Semigroup<E>, A0, A1, A2, A3, A4, A5, A6, A7, A8, A9>(
+        xs: readonly [
+            These<E, A0>,
+            These<E, A1>,
+            These<E, A2>,
+            These<E, A3>,
+            These<E, A4>,
+            These<E, A5>,
+            These<E, A6>,
+            These<E, A7>,
+            These<E, A8>,
+            These<E, A9>,
+        ],
+    ): These<E, readonly [A0, A1, A2, A3, A4, A5, A6, A7, A8, A9]>;
+
+    export function collect<E extends Semigroup<E>, A>(
+        xs: readonly These<E, A>[],
+    ): These<E, readonly A[]>;
+
+    export function collect<E extends Semigroup<E>, A>(
+        xs: readonly These<E, A>[],
+    ): These<E, readonly A[]> {
+        return go(function* () {
+            const l = xs.length;
+            const ys: A[] = new Array(l);
+            for (let ix = 0; ix < l; ix++) {
+                ys[ix] = yield* xs[ix];
+            }
+            return ys;
+        });
+    }
+
+    /**
+     * Evaluate a series of These from left to right and collect the second
+     * values in a tuple literal.
+     */
+    export function tupled<E extends Semigroup<E>, A0, A1>(
+        ...xs: [These<E, A0>, These<E, A1>]
+    ): These<E, readonly [A0, A1]>;
+
+    export function tupled<E extends Semigroup<E>, A0, A1, A2>(
+        ...xs: [These<E, A0>, These<E, A1>, These<E, A2>]
+    ): These<E, readonly [A0, A1, A2]>;
+
+    export function tupled<E extends Semigroup<E>, A0, A1, A2, A3>(
+        ...xs: [These<E, A0>, These<E, A1>, These<E, A2>, These<E, A3>]
+    ): These<E, readonly [A0, A1, A2, A3]>;
+
+    export function tupled<E extends Semigroup<E>, A0, A1, A2, A3, A4>(
+        ...xs: [
+            These<E, A0>,
+            These<E, A1>,
+            These<E, A2>,
+            These<E, A3>,
+            These<E, A4>,
+        ]
+    ): These<E, readonly [A0, A1, A2, A3, A4]>;
+
+    export function tupled<E extends Semigroup<E>, A0, A1, A2, A3, A4, A5>(
+        ...xs: [
+            These<E, A0>,
+            These<E, A1>,
+            These<E, A2>,
+            These<E, A3>,
+            These<E, A4>,
+            These<E, A5>,
+        ]
+    ): These<E, readonly [A0, A1, A2, A3, A4, A5]>;
+
+    export function tupled<E extends Semigroup<E>, A0, A1, A2, A3, A4, A5, A6>(
+        ...xs: [
+            These<E, A0>,
+            These<E, A1>,
+            These<E, A2>,
+            These<E, A3>,
+            These<E, A4>,
+            These<E, A5>,
+            These<E, A6>,
+        ]
+    ): These<E, readonly [A0, A1, A2, A3, A4, A5, A6]>;
+
+    // prettier-ignore
+    export function tupled<E extends Semigroup<E>, A0, A1, A2, A3, A4, A5, A6, A7>(
+        ...xs: [
+            These<E, A0>,
+            These<E, A1>,
+            These<E, A2>,
+            These<E, A3>,
+            These<E, A4>,
+            These<E, A5>,
+            These<E, A6>,
+            These<E, A7>,
+        ]
+    ): These<E, readonly [A0, A1, A2, A3, A4, A5, A6, A7]>;
+
+    // prettier-ignore
+    export function tupled<E extends Semigroup<E>, A0, A1, A2, A3, A4, A5, A6, A7, A8>(
+        ...xs: [
+            These<E, A0>,
+            These<E, A1>,
+            These<E, A2>,
+            These<E, A3>,
+            These<E, A4>,
+            These<E, A5>,
+            These<E, A6>,
+            These<E, A7>,
+            These<E, A8>,
+        ]
+    ): These<E, readonly [A0, A1, A2, A3, A4, A5, A6, A7, A8]>;
+
+    // prettier-ignore
+    export function tupled<E extends Semigroup<E>, A0, A1, A2, A3, A4, A5, A6, A7, A8, A9>(
+        ...xs: [
+            These<E, A0>,
+            These<E, A1>,
+            These<E, A2>,
+            These<E, A3>,
+            These<E, A4>,
+            These<E, A5>,
+            These<E, A6>,
+            These<E, A7>,
+            These<E, A8>,
+            These<E, A9>,
+        ]
+    ): These<E, readonly [A0, A1, A2, A3, A4, A5, A6, A7, A8, A9]>;
+
+    export function tupled<E extends Semigroup<E>, A>(
+        ...xs: These<E, A>[]
+    ): These<E, readonly A[]> {
+        return collect(xs);
+    }
+
+    /**
+     * Construct a Promise that fulfills with a These using an async generator
+     * comprehension.
+     */
+    export async function goAsync<E extends Semigroup<E>, A>(
+        f: () => AsyncGenerator<readonly [These<E, any>, YieldTkn], A, any>,
+    ): Promise<These<E, A>> {
+        const nxs = f();
+        let nx = await nxs.next();
+        let e: E | undefined;
+
+        while (!nx.done) {
+            const t = nx.value[0];
+            if (t.isSecond()) {
+                nx = await nxs.next(t.val);
+            } else if (t.isBoth()) {
+                e = e !== undefined ? cmb(e, t.fst) : t.fst;
+                nx = await nxs.next(t.snd);
+            } else {
+                return e !== undefined ? first(cmb(e, t.val)) : t;
+            }
+        }
+        return e !== undefined ? both(e, nx.value) : second(nx.value);
+    }
 
     /**
      * The fluent syntax for These.
@@ -78,18 +377,18 @@ export namespace These {
             that: These<A, B>,
         ): Ordering {
             if (this.isFirst()) {
-                return that.isFirst() ? cmp(this.val, that.val) : less;
+                return that.isFirst() ? cmp(this.val, that.val) : Ordering.less;
             }
             if (this.isSecond()) {
                 if (that.isSecond()) {
                     return cmp(this.val, that.val);
                 }
-                return that.isFirst() ? greater : less;
+                return that.isFirst() ? Ordering.greater : Ordering.less;
             }
             if (that.isBoth()) {
                 return cmb(cmp(this.fst, that.fst), cmp(this.snd, that.snd));
             }
-            return greater;
+            return Ordering.greater;
         }
 
         /**
@@ -385,305 +684,4 @@ export namespace These {
             return (yield [this, yieldTkn]) as B;
         }
     }
-}
-
-/**
- * Construct a These with only a first value, with an optional type witness for
- * the second value.
- */
-export function first<A, B = never>(x: A): These<A, B> {
-    return new These.First(x);
-}
-
-/**
- * Construct a These with only a second value, with an optional type witness for
- * the first value.
- */
-export function second<B, A = never>(x: B): These<A, B> {
-    return new These.Second(x);
-}
-
-/**
- * Construct a These with a first and second value.
- */
-export function both<A, B>(x: A, y: B): These<A, B> {
-    return new These.Both(x, y);
-}
-
-/**
- * Construct a These using a generator comprehension.
- */
-export function doThese<E extends Semigroup<E>, A>(
-    f: () => Generator<readonly [These<E, any>, These.YieldTkn], A, any>,
-): These<E, A> {
-    const nxs = f();
-    let nx = nxs.next();
-    let e: E | undefined;
-
-    while (!nx.done) {
-        const t = nx.value[0];
-        if (t.isSecond()) {
-            nx = nxs.next(t.val);
-        } else if (t.isBoth()) {
-            e = e !== undefined ? cmb(e, t.fst) : t.fst;
-            nx = nxs.next(t.snd);
-        } else {
-            return e !== undefined ? first(cmb(e, t.val)) : t;
-        }
-    }
-    return e !== undefined ? both(e, nx.value) : second(nx.value);
-}
-
-/**
- * Reduce a finite iterable from left to right in the context of These.
- */
-export function reduceThese<A, B, E extends Semigroup<E>>(
-    xs: Iterable<A>,
-    f: (acc: B, x: A) => These<E, B>,
-    z: B,
-): These<E, B> {
-    return doThese(function* () {
-        let acc = z;
-        for (const x of xs) {
-            acc = yield* f(acc, x);
-        }
-        return acc;
-    });
-}
-
-/**
- * Evaluate the These in an array or a tuple literal from left to right and
- * collect the second values in an array or a tuple literal, respectively.
- */
-export function collectThese<E extends Semigroup<E>, A0, A1>(
-    xs: readonly [These<E, A0>, These<E, A1>],
-): These<E, readonly [A0, A1]>;
-
-export function collectThese<E extends Semigroup<E>, A0, A1, A2>(
-    xs: readonly [These<E, A0>, These<E, A1>, These<E, A2>],
-): These<E, readonly [A0, A1, A2]>;
-
-export function collectThese<E extends Semigroup<E>, A0, A1, A2, A3>(
-    xs: readonly [These<E, A0>, These<E, A1>, These<E, A2>, These<E, A3>],
-): These<E, readonly [A0, A1, A2, A3]>;
-
-export function collectThese<E extends Semigroup<E>, A0, A1, A2, A3, A4>(
-    xs: readonly [
-        These<E, A0>,
-        These<E, A1>,
-        These<E, A2>,
-        These<E, A3>,
-        These<E, A4>,
-    ],
-): These<E, readonly [A0, A1, A2, A3, A4]>;
-
-export function collectThese<E extends Semigroup<E>, A0, A1, A2, A3, A4, A5>(
-    xs: readonly [
-        These<E, A0>,
-        These<E, A1>,
-        These<E, A2>,
-        These<E, A3>,
-        These<E, A4>,
-        These<E, A5>,
-    ],
-): These<E, readonly [A0, A1, A2, A3, A4, A5]>;
-
-// prettier-ignore
-export function collectThese<E extends Semigroup<E>, A0, A1, A2, A3, A4, A5, A6>(
-    xs: readonly [
-        These<E, A0>,
-        These<E, A1>,
-        These<E, A2>,
-        These<E, A3>,
-        These<E, A4>,
-        These<E, A5>,
-        These<E, A6>,
-    ],
-): These<E, readonly [A0, A1, A2, A3, A4, A5, A6]>;
-
-// prettier-ignore
-export function collectThese<E extends Semigroup<E>, A0, A1, A2, A3, A4, A5, A6, A7>(
-    xs: readonly [
-        These<E, A0>,
-        These<E, A1>,
-        These<E, A2>,
-        These<E, A3>,
-        These<E, A4>,
-        These<E, A5>,
-        These<E, A6>,
-        These<E, A7>,
-    ],
-): These<E, readonly [A0, A1, A2, A3, A4, A5, A6, A7]>;
-
-// prettier-ignore
-export function collectThese<E extends Semigroup<E>, A0, A1, A2, A3, A4, A5, A6, A7, A8>(
-    xs: readonly [
-        These<E, A0>,
-        These<E, A1>,
-        These<E, A2>,
-        These<E, A3>,
-        These<E, A4>,
-        These<E, A5>,
-        These<E, A6>,
-        These<E, A7>,
-        These<E, A8>,
-    ],
-): These<E, readonly [A0, A1, A2, A3, A4, A5, A6, A7, A8]>;
-
-// prettier-ignore
-export function collectThese<E extends Semigroup<E>, A0, A1, A2, A3, A4, A5, A6, A7, A8, A9>(
-    xs: readonly [
-        These<E, A0>,
-        These<E, A1>,
-        These<E, A2>,
-        These<E, A3>,
-        These<E, A4>,
-        These<E, A5>,
-        These<E, A6>,
-        These<E, A7>,
-        These<E, A8>,
-        These<E, A9>,
-    ],
-): These<E, readonly [A0, A1, A2, A3, A4, A5, A6, A7, A8, A9]>;
-
-export function collectThese<E extends Semigroup<E>, A>(
-    xs: readonly These<E, A>[],
-): These<E, readonly A[]>;
-
-export function collectThese<E extends Semigroup<E>, A>(
-    xs: readonly These<E, A>[],
-): These<E, readonly A[]> {
-    return doThese(function* () {
-        const l = xs.length;
-        const ys: A[] = new Array(l);
-        for (let ix = 0; ix < l; ix++) {
-            ys[ix] = yield* xs[ix];
-        }
-        return ys;
-    });
-}
-
-/**
- * Evaluate a series of These from left to right and collect the second values
- * in a tuple literal.
- */
-export function tupledThese<E extends Semigroup<E>, A0, A1>(
-    ...xs: [These<E, A0>, These<E, A1>]
-): These<E, readonly [A0, A1]>;
-
-export function tupledThese<E extends Semigroup<E>, A0, A1, A2>(
-    ...xs: [These<E, A0>, These<E, A1>, These<E, A2>]
-): These<E, readonly [A0, A1, A2]>;
-
-export function tupledThese<E extends Semigroup<E>, A0, A1, A2, A3>(
-    ...xs: [These<E, A0>, These<E, A1>, These<E, A2>, These<E, A3>]
-): These<E, readonly [A0, A1, A2, A3]>;
-
-export function tupledThese<E extends Semigroup<E>, A0, A1, A2, A3, A4>(
-    ...xs: [
-        These<E, A0>,
-        These<E, A1>,
-        These<E, A2>,
-        These<E, A3>,
-        These<E, A4>,
-    ]
-): These<E, readonly [A0, A1, A2, A3, A4]>;
-
-export function tupledThese<E extends Semigroup<E>, A0, A1, A2, A3, A4, A5>(
-    ...xs: [
-        These<E, A0>,
-        These<E, A1>,
-        These<E, A2>,
-        These<E, A3>,
-        These<E, A4>,
-        These<E, A5>,
-    ]
-): These<E, readonly [A0, A1, A2, A3, A4, A5]>;
-
-export function tupledThese<E extends Semigroup<E>, A0, A1, A2, A3, A4, A5, A6>(
-    ...xs: [
-        These<E, A0>,
-        These<E, A1>,
-        These<E, A2>,
-        These<E, A3>,
-        These<E, A4>,
-        These<E, A5>,
-        These<E, A6>,
-    ]
-): These<E, readonly [A0, A1, A2, A3, A4, A5, A6]>;
-
-// prettier-ignore
-export function tupledThese<E extends Semigroup<E>, A0, A1, A2, A3, A4, A5, A6, A7>(
-    ...xs: [
-        These<E, A0>,
-        These<E, A1>,
-        These<E, A2>,
-        These<E, A3>,
-        These<E, A4>,
-        These<E, A5>,
-        These<E, A6>,
-        These<E, A7>,
-    ]
-): These<E, readonly [A0, A1, A2, A3, A4, A5, A6, A7]>;
-
-// prettier-ignore
-export function tupledThese<E extends Semigroup<E>, A0, A1, A2, A3, A4, A5, A6, A7, A8>(
-    ...xs: [
-        These<E, A0>,
-        These<E, A1>,
-        These<E, A2>,
-        These<E, A3>,
-        These<E, A4>,
-        These<E, A5>,
-        These<E, A6>,
-        These<E, A7>,
-        These<E, A8>,
-    ]
-): These<E, readonly [A0, A1, A2, A3, A4, A5, A6, A7, A8]>;
-
-// prettier-ignore
-export function tupledThese<E extends Semigroup<E>, A0, A1, A2, A3, A4, A5, A6, A7, A8, A9>(
-    ...xs: [
-        These<E, A0>,
-        These<E, A1>,
-        These<E, A2>,
-        These<E, A3>,
-        These<E, A4>,
-        These<E, A5>,
-        These<E, A6>,
-        These<E, A7>,
-        These<E, A8>,
-        These<E, A9>,
-    ]
-): These<E, readonly [A0, A1, A2, A3, A4, A5, A6, A7, A8, A9]>;
-
-export function tupledThese<E extends Semigroup<E>, A>(
-    ...xs: These<E, A>[]
-): These<E, readonly A[]> {
-    return collectThese(xs);
-}
-
-/**
- * Construct a Promise that fulfills with a These using an async generator
- * comprehension.
- */
-export async function doTheseAsync<E extends Semigroup<E>, A>(
-    f: () => AsyncGenerator<readonly [These<E, any>, These.YieldTkn], A, any>,
-): Promise<These<E, A>> {
-    const nxs = f();
-    let nx = await nxs.next();
-    let e: E | undefined;
-
-    while (!nx.done) {
-        const t = nx.value[0];
-        if (t.isSecond()) {
-            nx = await nxs.next(t.val);
-        } else if (t.isBoth()) {
-            e = e !== undefined ? cmb(e, t.fst) : t.fst;
-            nx = await nxs.next(t.snd);
-        } else {
-            return e !== undefined ? first(cmb(e, t.val)) : t;
-        }
-    }
-    return e !== undefined ? both(e, nx.value) : second(nx.value);
 }

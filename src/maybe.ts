@@ -21,21 +21,12 @@
  */
 
 import { cmb, Semigroup } from "./cmb.js";
-import {
-    cmp,
-    Eq,
-    eq,
-    equal,
-    greater,
-    less,
-    Ord,
-    type Ordering,
-} from "./cmp.js";
+import { cmp, Eq, eq, Ord, Ordering } from "./cmp.js";
 import { id } from "./fn.js";
 
 /**
- * A type that represents either an absent value ({@link Maybe.Nothing Nothing})
- * or a present value ({@link Maybe.Just Just}).
+ * A type that represents either an absent value (`Nothing`) or a present value
+ * (`Just`).
  */
 export type Maybe<A> = Maybe.Nothing | Maybe.Just<A>;
 
@@ -53,6 +44,134 @@ export namespace Maybe {
      * @hidden
      */
     export type YieldTkn = typeof yieldTkn;
+
+    /**
+     * Construct a present Maybe.
+     */
+    export function just<A>(x: A): Maybe<A> {
+        return new Just(x);
+    }
+
+    /**
+     * Consruct a Maybe, converting null and undefined to nothing.
+     */
+    export function fromMissing<A>(x: A | null | undefined): Maybe<A> {
+        return x === null || x === undefined ? nothing : just(x);
+    }
+
+    /**
+     * Apply a predicate function to a value. If the predicate returns true,
+     * return a Just containing the value; otherwise return nothing.
+     */
+    export function guard<A, A1 extends A>(
+        x: A,
+        f: (x: A) => x is A1,
+    ): Maybe<A1>;
+
+    export function guard<A>(x: A, f: (x: A) => boolean): Maybe<A>;
+
+    export function guard<A>(x: A, f: (x: A) => boolean): Maybe<A> {
+        return f(x) ? just(x) : nothing;
+    }
+
+    /**
+     * Construct a Maybe using a generator comprehension.
+     */
+    export function go<A>(
+        f: () => Generator<readonly [Maybe<any>, YieldTkn], A, any>,
+    ): Maybe<A> {
+        const nxs = f();
+        let nx = nxs.next();
+        while (!nx.done) {
+            const x = nx.value[0];
+            if (x.isJust()) {
+                nx = nxs.next(x.val);
+            } else {
+                return x;
+            }
+        }
+        return just(nx.value);
+    }
+
+    /**
+     * Reduce a finite iterable from left to right in the context of Maybe.
+     */
+    export function reduce<A, B>(
+        xs: Iterable<A>,
+        f: (acc: B, x: A) => Maybe<B>,
+        z: B,
+    ): Maybe<B> {
+        return go(function* () {
+            let acc = z;
+            for (const x of xs) {
+                acc = yield* f(acc, x);
+            }
+            return acc;
+        });
+    }
+
+    /**
+     * Evaluate the Maybes in an array or a tuple literal from left to right and
+     * collect the present values in an array or a tuple literal, respectively.
+     */
+    export function collect<T extends readonly Maybe<any>[]>(
+        xs: T,
+    ): Maybe<Readonly<JustsT<T>>> {
+        return go(function* () {
+            const l = xs.length;
+            const ys = new Array(l);
+            for (let ix = 0; ix < l; ix++) {
+                ys[ix] = yield* xs[ix];
+            }
+            return ys as unknown as JustsT<T>;
+        });
+    }
+
+    /**
+     * Evaluate a series of Maybes from left to right and collect the present
+     * values in a tuple literal.
+     */
+    export function tupled<T extends [Maybe<any>, Maybe<any>, ...Maybe<any>[]]>(
+        ...xs: T
+    ): Maybe<Readonly<JustsT<T>>> {
+        return collect(xs);
+    }
+
+    /**
+     * Evaluate the Maybes in an object literal and collect the present values
+     * in an object literal.
+     */
+    export function gather<T extends Record<any, Maybe<any>>>(
+        xs: T,
+    ): Maybe<{ readonly [K in keyof T]: JustT<T[K]> }> {
+        return go(function* () {
+            const ys: Record<any, unknown> = {};
+            for (const [kx, x] of Object.entries(xs)) {
+                ys[kx] = yield* x;
+            }
+            return ys as JustsT<T>;
+        });
+    }
+
+    /**
+     * Construct a Promise that fulfills with a Maybe using an async generator
+     * comprehension.
+     */
+    export async function goAsync<A>(
+        f: () => AsyncGenerator<readonly [Maybe<any>, YieldTkn], A, any>,
+    ): Promise<Maybe<A>> {
+        const nxs = f();
+        let nx = await nxs.next();
+        while (!nx.done) {
+            const x = nx.value[0];
+            if (x.isJust()) {
+                nx = await nxs.next(x.val);
+            } else {
+                return x;
+            }
+        }
+        return just(nx.value);
+    }
 
     /**
      * The fluent syntax for Maybe.
@@ -73,9 +192,11 @@ export namespace Maybe {
          */
         [Ord.cmp]<A extends Ord<A>>(this: Maybe<A>, that: Maybe<A>): Ordering {
             if (this.isNothing()) {
-                return that.isNothing() ? equal : less;
+                return that.isNothing() ? Ordering.equal : Ordering.less;
             }
-            return that.isNothing() ? greater : cmp(this.val, that.val);
+            return that.isNothing()
+                ? Ordering.greater
+                : cmp(this.val, that.val);
         }
 
         /**
@@ -235,6 +356,11 @@ export namespace Maybe {
     }
 
     /**
+     * The absent Maybe.
+     */
+    export const nothing = Maybe.Nothing.singleton as Maybe<never>;
+
+    /**
      * A present Maybe.
      */
     export class Just<out A> extends Syntax {
@@ -283,146 +409,13 @@ export namespace Maybe {
      *
      * ```ts
      * type T0 = [Maybe<1>, Maybe<2>, Maybe<3>];
-     * type T1 = Maybe.JustsT<T0>; // readonly [1, 2, 3]
+     * type T1 = JustsT<T0>; // readonly [1, 2, 3]
      *
      * type T2 = { x: Maybe<1>, y: Maybe<2>, z: Maybe<3> };
-     * type T3 = Maybe.JustsT<T2>; // { x: 1, y: 2, z: 3 }
+     * type T3 = JustsT<T2>; // { x: 1, y: 2, z: 3 }
      * ```
      */
     export type JustsT<
         T extends readonly Maybe<any>[] | Record<any, Maybe<any>>,
     > = { [K in keyof T]: T[K] extends Maybe<infer A> ? A : never };
-}
-
-/**
- * The absent Maybe.
- */
-export const nothing = Maybe.Nothing.singleton as Maybe<never>;
-
-/**
- * Construct a present Maybe.
- */
-export function just<A>(x: A): Maybe<A> {
-    return new Maybe.Just(x);
-}
-
-/**
- * Consruct a Maybe, converting null and undefined to nothing.
- */
-export function maybe<A>(x: A | null | undefined): Maybe<A> {
-    return x === null || x === undefined ? nothing : just(x);
-}
-
-/**
- * Apply a predicate function to a value. If the predicate returns true, return
- * a Just containing the value; otherwise return nothing.
- */
-export function guardMaybe<A, A1 extends A>(
-    x: A,
-    f: (x: A) => x is A1,
-): Maybe<A1>;
-
-export function guardMaybe<A>(x: A, f: (x: A) => boolean): Maybe<A>;
-
-export function guardMaybe<A>(x: A, f: (x: A) => boolean): Maybe<A> {
-    return f(x) ? just(x) : nothing;
-}
-
-/**
- * Construct a Maybe using a generator comprehension.
- */
-export function doMaybe<A>(
-    f: () => Generator<readonly [Maybe<any>, Maybe.YieldTkn], A, any>,
-): Maybe<A> {
-    const nxs = f();
-    let nx = nxs.next();
-    while (!nx.done) {
-        const x = nx.value[0];
-        if (x.isJust()) {
-            nx = nxs.next(x.val);
-        } else {
-            return x;
-        }
-    }
-    return just(nx.value);
-}
-
-/**
- * Reduce a finite iterable from left to right in the context of Maybe.
- */
-export function reduceMaybe<A, B>(
-    xs: Iterable<A>,
-    f: (acc: B, x: A) => Maybe<B>,
-    z: B,
-): Maybe<B> {
-    return doMaybe(function* () {
-        let acc = z;
-        for (const x of xs) {
-            acc = yield* f(acc, x);
-        }
-        return acc;
-    });
-}
-
-/**
- * Evaluate the Maybes in an array or a tuple literal from left to right and
- * collect the present values in an array or a tuple literal, respectively.
- */
-export function collectMaybe<T extends readonly Maybe<any>[]>(
-    xs: T,
-): Maybe<Readonly<Maybe.JustsT<T>>> {
-    return doMaybe(function* () {
-        const l = xs.length;
-        const ys = new Array(l);
-        for (let ix = 0; ix < l; ix++) {
-            ys[ix] = yield* xs[ix];
-        }
-        return ys as unknown as Maybe.JustsT<T>;
-    });
-}
-
-/**
- * Evaluate a series of Maybes from left to right and collect the present values
- * in a tuple literal.
- */
-export function tupledMaybe<
-    T extends [Maybe<any>, Maybe<any>, ...Maybe<any>[]],
->(...xs: T): Maybe<Readonly<Maybe.JustsT<T>>> {
-    return collectMaybe(xs);
-}
-
-/**
- * Evaluate the Maybes in an object literal and collect the present values in an
- * object literal.
- */
-export function gatherMaybe<T extends Record<any, Maybe<any>>>(
-    xs: T,
-): Maybe<{ readonly [K in keyof T]: Maybe.JustT<T[K]> }> {
-    return doMaybe(function* () {
-        const ys: Record<any, unknown> = {};
-        for (const [kx, x] of Object.entries(xs)) {
-            ys[kx] = yield* x;
-        }
-        return ys as Maybe.JustsT<T>;
-    });
-}
-
-/**
- * Construct a Promise that fulfills with a Maybe using an async generator
- * comprehension.
- */
-export async function doMaybeAsync<A>(
-    f: () => AsyncGenerator<readonly [Maybe<any>, Maybe.YieldTkn], A, any>,
-): Promise<Maybe<A>> {
-    const nxs = f();
-    let nx = await nxs.next();
-    while (!nx.done) {
-        const x = nx.value[0];
-        if (x.isJust()) {
-            nx = await nxs.next(x.val);
-        } else {
-            return x;
-        }
-    }
-    return just(nx.value);
 }

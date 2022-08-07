@@ -1,20 +1,13 @@
 import * as fc from "fast-check";
 import { assert } from "chai";
-import { arbNum, arbStr, mkStr, pair } from "./common.js";
-import { left, right } from "../src/either.js";
+import { arbNum, arbStr, pair, Str } from "./common.js";
+import { Either } from "../src/either.js";
 import { cmb } from "../src/cmb.js";
-import { cmp, eq, greater, less } from "../src/cmp.js";
-import {
-    accept,
-    collectValidated,
-    dispute,
-    tupledValidated,
-    type Validated,
-    viewValidated,
-} from "../src/validated.js";
+import { cmp, eq, Ordering } from "../src/cmp.js";
+import { Validated } from "../src/validated.js";
 
 function mk<A, B>(t: "D" | "A", x: A, y: B): Validated<A, B> {
-    return t === "D" ? dispute(x) : accept(y);
+    return t === "D" ? Validated.dispute(x) : Validated.accept(y);
 }
 
 const _1 = 1 as const;
@@ -22,65 +15,108 @@ const _2 = 2 as const;
 const _3 = 3 as const;
 const _4 = 4 as const;
 
-const sa = mkStr("a");
-const sc = mkStr("c");
+const sa = new Str("a");
+const sc = new Str("c");
 
 describe("Validated", () => {
-    specify("[Eq.eq]", () => {
+    specify("Validated.fromEither", () => {
+        const t0 = Validated.fromEither(Either.left<1, 2>(_1));
+        assert.deepEqual(t0, Validated.dispute(_1));
+
+        const t1 = Validated.fromEither(Either.right<2, 1>(_2));
+        assert.deepEqual(t1, Validated.accept(_2));
+    });
+
+    specify("Validated.collect", () => {
+        const t0 = Validated.collect([mk("D", sa, _2), mk("D", sc, _4)]);
+        assert.deepEqual(t0, Validated.dispute(cmb(sa, sc)));
+
+        const t1 = Validated.collect([mk("D", sa, _2), mk("A", sc, _4)]);
+        assert.deepEqual(t1, Validated.dispute(sa));
+
+        const t2 = Validated.collect([mk("A", sa, _2), mk("D", sc, _4)]);
+        assert.deepEqual(t2, Validated.dispute(sc));
+
+        const t3 = Validated.collect([mk("A", sa, _2), mk("A", sc, _4)]);
+        assert.deepEqual(t3, Validated.accept([_2, _4] as const));
+    });
+
+    specify("Validated.tupled", () => {
+        const t4 = Validated.tupled(mk("A", sa, _2), mk("A", sc, _4));
+        assert.deepEqual(t4, Validated.accept([_2, _4] as const));
+    });
+
+    specify("#[Eq.eq]", () => {
         fc.assert(
             fc.property(arbNum(), arbNum(), (x, y) => {
-                const t0 = eq(dispute(x), dispute(y));
+                const t0 = eq(Validated.dispute(x), Validated.dispute(y));
                 assert.strictEqual(t0, eq(x, y));
 
-                const t1 = eq(dispute(x), accept(y));
+                const t1 = eq(Validated.dispute(x), Validated.accept(y));
                 assert.strictEqual(t1, false);
 
-                const t2 = eq(accept(x), dispute(y));
+                const t2 = eq(Validated.accept(x), Validated.dispute(y));
                 assert.strictEqual(t2, false);
 
-                const t3 = eq(accept(x), accept(y));
+                const t3 = eq(Validated.accept(x), Validated.accept(y));
                 assert.strictEqual(t3, eq(x, y));
             }),
         );
     });
 
-    specify("[Ord.cmp]", () => {
+    specify("#[Ord.cmp]", () => {
         fc.assert(
             fc.property(arbNum(), arbNum(), (x, y) => {
-                const t0 = cmp(dispute(x), dispute(y));
+                const t0 = cmp(Validated.dispute(x), Validated.dispute(y));
                 assert.strictEqual(t0, cmp(x, y));
 
-                const t1 = cmp(dispute(x), accept(y));
-                assert.strictEqual(t1, less);
+                const t1 = cmp(Validated.dispute(x), Validated.accept(y));
+                assert.strictEqual(t1, Ordering.less);
 
-                const t2 = cmp(accept(x), dispute(y));
-                assert.strictEqual(t2, greater);
+                const t2 = cmp(Validated.accept(x), Validated.dispute(y));
+                assert.strictEqual(t2, Ordering.greater);
 
-                const t3 = cmp(accept(x), accept(y));
+                const t3 = cmp(Validated.accept(x), Validated.accept(y));
                 assert.strictEqual(t3, cmp(x, y));
             }),
         );
     });
 
-    specify("[Semigroup.cmb]", () => {
+    specify("#[Semigroup.cmb]", () => {
         fc.assert(
             fc.property(arbStr(), arbStr(), (x, y) => {
-                const t0 = cmb(dispute(x), dispute(y));
-                assert.deepEqual(t0, dispute(cmb(x, y)));
+                const t0 = cmb(Validated.dispute(x), Validated.dispute(y));
+                assert.deepEqual(t0, Validated.dispute(cmb(x, y)));
 
-                const t1 = cmb(dispute(x), accept(y));
-                assert.deepEqual(t1, dispute(x));
+                const t1 = cmb(Validated.dispute(x), Validated.accept(y));
+                assert.deepEqual(t1, Validated.dispute(x));
 
-                const t2 = cmb(accept(x), dispute(y));
-                assert.deepEqual(t2, dispute(y));
+                const t2 = cmb(Validated.accept(x), Validated.dispute(y));
+                assert.deepEqual(t2, Validated.dispute(y));
 
-                const t3 = cmb(accept(x), accept(y));
-                assert.deepEqual(t3, accept(cmb(x, y)));
+                const t3 = cmb(Validated.accept(x), Validated.accept(y));
+                assert.deepEqual(t3, Validated.accept(cmb(x, y)));
             }),
         );
     });
 
-    specify("fold", () => {
+    specify("#isDisputed", () => {
+        const t0 = mk("D", _1, _2).isDisputed();
+        assert.strictEqual(t0, true);
+
+        const t1 = mk("A", _1, _2).isDisputed();
+        assert.strictEqual(t1, false);
+    });
+
+    specify("#isAccepted", () => {
+        const t0 = mk("D", _1, _2).isAccepted();
+        assert.strictEqual(t0, false);
+
+        const t1 = mk("A", _1, _2).isAccepted();
+        assert.strictEqual(t1, true);
+    });
+
+    specify("#fold", () => {
         const t0 = mk("D", _1, _2).fold(
             (x) => pair(x, _3),
             (x) => pair(x, _4),
@@ -94,91 +130,7 @@ describe("Validated", () => {
         assert.deepEqual(t1, [_2, _4]);
     });
 
-    specify("bindAccepted", () => {
-        const t0 = mk("D", _1, _2).bindAccepted((x) => {
-            return mk("D", _3, pair(x, _4));
-        });
-        assert.deepEqual(t0, dispute(_1));
-
-        const t1 = mk("D", _1, _2).bindAccepted((x) => {
-            return mk("A", _3, pair(x, _4));
-        });
-        assert.deepEqual(t1, dispute(_1));
-
-        const t2 = mk("A", _1, _2).bindAccepted((x) => {
-            return mk("D", _3, pair(x, _4));
-        });
-        assert.deepEqual(t2, dispute(_3));
-
-        const t3 = mk("A", _1, _2).bindAccepted((x) => {
-            return mk("A", _3, pair(x, _4));
-        });
-        assert.deepEqual(t3, accept([_2, _4] as const));
-    });
-
-    specify("zipWith", () => {
-        const t0 = mk("D", sa, _2).zipWith(mk("D", sc, _4), pair);
-        assert.deepEqual(t0, dispute(cmb(sa, sc)));
-
-        const t1 = mk("D", sa, _2).zipWith(mk("A", sc, _4), pair);
-        assert.deepEqual(t1, dispute(sa));
-
-        const t2 = mk("A", sa, _2).zipWith(mk("D", sc, _4), pair);
-        assert.deepEqual(t2, dispute(sc));
-
-        const t3 = mk("A", sa, _2).zipWith(mk("A", sc, _4), pair);
-        assert.deepEqual(t3, accept([_2, _4] as const));
-    });
-
-    specify("zipFst", () => {
-        const t0 = mk("A", sa, _2).zipFst(mk("A", sc, _4));
-        assert.deepEqual(t0, accept(_2));
-    });
-
-    specify("zipSnd", () => {
-        const t0 = mk("A", sa, _2).zipSnd(mk("A", sc, _4));
-        assert.deepEqual(t0, accept(_4));
-    });
-
-    specify("map", () => {
-        const t0 = mk("D", _1, _2).map((x) => pair(x, _4));
-        assert.deepEqual(t0, dispute(_1));
-
-        const t1 = mk("A", _1, _2).map((x) => pair(x, _4));
-        assert.deepEqual(t1, accept([_2, _4] as const));
-    });
-
-    specify("mapTo", () => {
-        const t0 = mk("D", _1, _2).mapTo(_4);
-        assert.deepEqual(t0, dispute(_1));
-
-        const t1 = mk("A", _1, _2).mapTo(_4);
-        assert.deepEqual(t1, accept(_4));
-    });
-
-    specify("mapDisputed", () => {
-        const t0 = mk("D", _1, _2).mapDisputed((x) => pair(x, _3));
-        assert.deepEqual(t0, dispute([_1, _3] as const));
-
-        const t1 = mk("A", _1, _2).mapDisputed((x) => pair(x, _3));
-        assert.deepEqual(t1, accept(_2));
-    });
-
-    specify("bimap", () => {
-        const t0 = mk("D", _1, _2).bimap(
-            (x) => pair(x, _3),
-            (x) => pair(x, _4),
-        );
-        assert.deepEqual(t0, dispute([_1, _3] as const));
-
-        const t1 = mk("A", _1, _2).bimap(
-            (x) => pair(x, _3),
-            (x) => pair(x, _4),
-        );
-        assert.deepEqual(t1, accept([_2, _4] as const));
-    });
-
-    specify("disputedOrFold", () => {
+    specify("#disputedOrFold", () => {
         const t0 = mk("D", _1, _2).disputedOrFold((x) => pair(x, _4));
         assert.strictEqual(t0, _1);
 
@@ -186,7 +138,7 @@ describe("Validated", () => {
         assert.deepEqual(t1, [_2, _4]);
     });
 
-    specify("acceptedOrFold", () => {
+    specify("#acceptedOrFold", () => {
         const t0 = mk("D", _1, _2).acceptedOrFold((x) => pair(x, _3));
         assert.deepEqual(t0, [_1, _3]);
 
@@ -194,46 +146,87 @@ describe("Validated", () => {
         assert.strictEqual(t1, _2);
     });
 
-    specify("isDisputed", () => {
-        const t0 = mk("D", _1, _2).isDisputed();
-        assert.strictEqual(t0, true);
+    specify("#bindAccepted", () => {
+        const t0 = mk("D", _1, _2).bindAccepted((x) => {
+            return mk("D", _3, pair(x, _4));
+        });
+        assert.deepEqual(t0, Validated.dispute(_1));
 
-        const t1 = mk("A", _1, _2).isDisputed();
-        assert.strictEqual(t1, false);
+        const t1 = mk("D", _1, _2).bindAccepted((x) => {
+            return mk("A", _3, pair(x, _4));
+        });
+        assert.deepEqual(t1, Validated.dispute(_1));
+
+        const t2 = mk("A", _1, _2).bindAccepted((x) => {
+            return mk("D", _3, pair(x, _4));
+        });
+        assert.deepEqual(t2, Validated.dispute(_3));
+
+        const t3 = mk("A", _1, _2).bindAccepted((x) => {
+            return mk("A", _3, pair(x, _4));
+        });
+        assert.deepEqual(t3, Validated.accept([_2, _4] as const));
     });
 
-    specify("isAccepted", () => {
-        const t0 = mk("D", _1, _2).isAccepted();
-        assert.strictEqual(t0, false);
+    specify("#zipWith", () => {
+        const t0 = mk("D", sa, _2).zipWith(mk("D", sc, _4), pair);
+        assert.deepEqual(t0, Validated.dispute(cmb(sa, sc)));
 
-        const t1 = mk("A", _1, _2).isAccepted();
-        assert.strictEqual(t1, true);
+        const t1 = mk("D", sa, _2).zipWith(mk("A", sc, _4), pair);
+        assert.deepEqual(t1, Validated.dispute(sa));
+
+        const t2 = mk("A", sa, _2).zipWith(mk("D", sc, _4), pair);
+        assert.deepEqual(t2, Validated.dispute(sc));
+
+        const t3 = mk("A", sa, _2).zipWith(mk("A", sc, _4), pair);
+        assert.deepEqual(t3, Validated.accept([_2, _4] as const));
     });
 
-    specify("viewValidated", () => {
-        const t0 = viewValidated(left<1, 2>(_1));
-        assert.deepEqual(t0, dispute(_1));
-
-        const t1 = viewValidated(right<2, 1>(_2));
-        assert.deepEqual(t1, accept(_2));
+    specify("#zipFst", () => {
+        const t0 = mk("A", sa, _2).zipFst(mk("A", sc, _4));
+        assert.deepEqual(t0, Validated.accept(_2));
     });
 
-    specify("collectValidated", () => {
-        const t0 = collectValidated([mk("D", sa, _2), mk("D", sc, _4)]);
-        assert.deepEqual(t0, dispute(cmb(sa, sc)));
-
-        const t1 = collectValidated([mk("D", sa, _2), mk("A", sc, _4)]);
-        assert.deepEqual(t1, dispute(sa));
-
-        const t2 = collectValidated([mk("A", sa, _2), mk("D", sc, _4)]);
-        assert.deepEqual(t2, dispute(sc));
-
-        const t3 = collectValidated([mk("A", sa, _2), mk("A", sc, _4)]);
-        assert.deepEqual(t3, accept([_2, _4] as const));
+    specify("#zipSnd", () => {
+        const t0 = mk("A", sa, _2).zipSnd(mk("A", sc, _4));
+        assert.deepEqual(t0, Validated.accept(_4));
     });
 
-    specify("tupledValidated", () => {
-        const t4 = tupledValidated(mk("A", sa, _2), mk("A", sc, _4));
-        assert.deepEqual(t4, accept([_2, _4] as const));
+    specify("#map", () => {
+        const t0 = mk("D", _1, _2).map((x) => pair(x, _4));
+        assert.deepEqual(t0, Validated.dispute(_1));
+
+        const t1 = mk("A", _1, _2).map((x) => pair(x, _4));
+        assert.deepEqual(t1, Validated.accept([_2, _4] as const));
+    });
+
+    specify("#mapTo", () => {
+        const t0 = mk("D", _1, _2).mapTo(_4);
+        assert.deepEqual(t0, Validated.dispute(_1));
+
+        const t1 = mk("A", _1, _2).mapTo(_4);
+        assert.deepEqual(t1, Validated.accept(_4));
+    });
+
+    specify("#mapDisputed", () => {
+        const t0 = mk("D", _1, _2).mapDisputed((x) => pair(x, _3));
+        assert.deepEqual(t0, Validated.dispute([_1, _3] as const));
+
+        const t1 = mk("A", _1, _2).mapDisputed((x) => pair(x, _3));
+        assert.deepEqual(t1, Validated.accept(_2));
+    });
+
+    specify("#bimap", () => {
+        const t0 = mk("D", _1, _2).bimap(
+            (x) => pair(x, _3),
+            (x) => pair(x, _4),
+        );
+        assert.deepEqual(t0, Validated.dispute([_1, _3] as const));
+
+        const t1 = mk("A", _1, _2).bimap(
+            (x) => pair(x, _3),
+            (x) => pair(x, _4),
+        );
+        assert.deepEqual(t1, Validated.accept([_2, _4] as const));
     });
 });

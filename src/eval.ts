@@ -36,15 +36,125 @@ export class Eval<out A> {
     static readonly yieldTkn = Symbol();
 
     /**
-     * @internal
+     *
      */
-    readonly i: Instr;
+    static now<A>(x: A): Eval<A> {
+        return new Eval({ t: Instr.Tag.Now, x });
+    }
 
     /**
-     * @internal
+     *
      */
-    constructor(i: Instr) {
-        this.i = i;
+    static once<A>(f: () => A): Eval<A> {
+        return new Eval({ t: Instr.Tag.Once, f, d: false });
+    }
+
+    /**
+     *
+     */
+    static always<A>(f: () => A): Eval<A> {
+        return new Eval({ t: Instr.Tag.Always, f });
+    }
+
+    /**
+     *
+     */
+    static defer<A>(f: () => Eval<A>): Eval<A> {
+        return Eval.now(undefined).flatMap(f);
+    }
+
+    static #step<A>(
+        nxs: Iterator<readonly [Eval<any>, Eval.YieldTkn], A>,
+        nx: IteratorResult<readonly [Eval<any>, Eval.YieldTkn], A>,
+    ): Eval<A> {
+        if (nx.done) {
+            return Eval.now(nx.value);
+        }
+        return nx.value[0].flatMap((x) => Eval.#step(nxs, nxs.next(x)));
+    }
+
+    static #stepGen<A>(
+        nxs: Generator<readonly [Eval<any>, Eval.YieldTkn], A, any>,
+    ): Eval<A> {
+        return Eval.#step(nxs, nxs.next());
+    }
+
+    /**
+     * Construct an Eval using a generator comprehension.
+     */
+    static go<A>(
+        f: () => Generator<readonly [Eval<any>, Eval.YieldTkn], A, any>,
+    ): Eval<A> {
+        return Eval.defer(() => Eval.#stepGen(f()));
+    }
+
+    /**
+     * Reduce a finite iterable from left to right in the context of Eval.
+     */
+    static reduce<A, B>(
+        xs: Iterable<A>,
+        f: (acc: B, x: A) => Eval<B>,
+        z: B,
+    ): Eval<B> {
+        return Eval.go(function* () {
+            let acc = z;
+            for (const x of xs) {
+                acc = yield* f(acc, x);
+            }
+            return acc;
+        });
+    }
+
+    /**
+     * Evaluate the Evals in an array or a tuple literal from left to right and
+     * collect the results in an array or a tuple literal, respectively.
+     */
+    static collect<T extends readonly Eval<any>[]>(
+        xs: T,
+    ): Eval<Eval.ResultsT<T>> {
+        return Eval.go(function* () {
+            const l = xs.length;
+            const ys = new Array(l);
+            for (let ix = 0; ix < l; ix++) {
+                ys[ix] = yield* xs[ix];
+            }
+            return ys as unknown as Eval.ResultsT<T>;
+        });
+    }
+
+    /**
+     * Evaluate a series of Evals from left to right and collect the results in
+     * a tuple literal.
+     */
+    static tupled<T extends [Eval<any>, Eval<any>, ...Eval<any>[]]>(
+        ...xs: T
+    ): Eval<Eval.ResultsT<T>> {
+        return Eval.collect(xs);
+    }
+
+    /**
+     * Evaluate the Evals in an object literal and collect the results in an
+     * object literal.
+     */
+    static gather<T extends Record<any, Eval<any>>>(
+        xs: T,
+    ): Eval<{ readonly [K in keyof T]: Eval.ResultT<T[K]> }> {
+        return Eval.go(function* () {
+            const ys: Record<any, unknown> = {};
+            for (const [kx, x] of Object.entries(xs)) {
+                ys[kx] = yield* x;
+            }
+            return ys as Eval.ResultsT<T>;
+        });
+    }
+
+    /**
+     * An instruction used to build an evaluation tree for Eval.
+     */
+    #i: Instr;
+
+    private constructor(i: Instr) {
+        this.#i = i;
     }
 
     /**
@@ -75,7 +185,7 @@ export class Eval<out A> {
      * Apply a function to this Eval's result to produce a new Eval.
      */
     flatMap<B>(f: (x: A) => Eval<B>): Eval<B> {
-        return flatMap(this, f);
+        return new Eval(Instr.flatMap(this, f));
     }
 
     /**
@@ -110,14 +220,57 @@ export class Eval<out A> {
      * Apply a function to this Eval's result.
      */
     map<B>(f: (a: A) => B): Eval<B> {
-        return this.flatMap((x) => evalNow(f(x)));
+        return this.flatMap((x) => Eval.now(f(x)));
     }
 
     /**
      * Overwrite this Eval's result.
      */
     mapTo<B>(value: B): Eval<B> {
-        return this.flatMap(() => evalNow(value));
+        return this.flatMap(() => Eval.now(value));
+    }
+
+    /**
+     *
+     */
+    run(): A {
+        type Bind = (x: any) => Eval<any>;
+        const ks = new MutStack<Bind>();
+        // eslint-disable-next-line @typescript-eslint/no-this-alias
+        let c: Eval<any> = this;
+
+        // eslint-disable-next-line no-constant-condition
+        while (true) {
+            // prettier-ignore
+            switch (c.#i.t) {
+                case Instr.Tag.Now: {
+                    const k = ks.pop();
+                    if (!k) {
+                        return c.#i.x;
+                    }
+                    c = k(c.#i.x);
+                } break;
+
+                case Instr.Tag.FlatMap: {
+                    ks.push(c.#i.f);
+                    c = c.#i.eff;
+                } break;
+
+                case Instr.Tag.Once: {
+                    if (!c.#i.d) {
+                        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+                        c.#i.x = c.#i.f!();
+                        delete c.#i.f;
+                        c.#i.d = true;
+                    }
+                    c = Eval.now(c.#i.x);
+                } break;
+
+                case Instr.Tag.Always: {
+                    c = Eval.now(c.#i.f());
+                } break;
+            }
+        }
     }
 }
 
@@ -154,167 +307,6 @@ export namespace Eval {
     > = { [K in keyof T]: T[K] extends Eval<infer A> ? A : never };
 }
 
-/**
- * Construct an Eval whose value is resolved immediately.
- */
-export function evalNow<A>(x: A): Eval<A> {
-    return new Eval({ t: Instr.Tag.Now, x });
-}
-
-/**
- * Construct an Eval from a thunk; the produced value will be memoized upon
- * first evaluation.
- */
-export function evalOnce<A>(f: () => A): Eval<A> {
-    return new Eval({ t: Instr.Tag.Once, f, d: false });
-}
-
-/**
- * Construct an eval from a thunk; the value will be reproduced on every
- * evaluation.
- */
-export function evalAlways<A>(f: () => A): Eval<A> {
-    return new Eval({ t: Instr.Tag.Always, f });
-}
-
-/**
- * Construct an Eval from a function that produces an Eval.
- */
-export function deferEval<A>(f: () => Eval<A>): Eval<A> {
-    return evalNow(undefined).flatMap(f);
-}
-
-/**
- * Run an Eval to extract its result.
- */
-export function runEval<A>(ev: Eval<A>): A {
-    type Bind = (x: any) => Eval<any>;
-    const ks = new MutStack<Bind>();
-    let c: Eval<any> = ev;
-
-    // eslint-disable-next-line no-constant-condition
-    while (true) {
-        // prettier-ignore
-        switch (c.i.t) {
-            case Instr.Tag.Now: {
-                const k = ks.pop();
-                if (!k) {
-                    return c.i.x;
-                }
-                c = k(c.i.x);
-            } break;
-
-            case Instr.Tag.FlatMap: {
-                ks.push(c.i.f);
-                c = c.i.eff;
-            } break;
-
-            case Instr.Tag.Once: {
-                if (!c.i.d) {
-                // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-                c.i.x = c.i.f!();
-                    delete c.i.f;
-                    c.i.d = true;
-                }
-                c = evalNow(c.i.x);
-            } break;
-
-            case Instr.Tag.Always: {
-                c = evalNow(c.i.f());
-            } break;
-        }
-    }
-}
-
-function step<A>(
-    nxs: Iterator<readonly [Eval<any>, Eval.YieldTkn], A>,
-    nx: IteratorResult<readonly [Eval<any>, Eval.YieldTkn], A>,
-): Eval<A> {
-    if (nx.done) {
-        return evalNow(nx.value);
-    }
-    return nx.value[0].flatMap((x) => step(nxs, nxs.next(x)));
-}
-
-function stepGen<A>(
-    nxs: Generator<readonly [Eval<any>, Eval.YieldTkn], A, any>,
-): Eval<A> {
-    return step(nxs, nxs.next());
-}
-
-/**
- * Construct an Eval using a generator comprehension.
- */
-export function doEval<A>(
-    f: () => Generator<readonly [Eval<any>, Eval.YieldTkn], A, any>,
-): Eval<A> {
-    return deferEval(() => stepGen(f()));
-}
-
-/**
- * Reduce a finite iterable from left to right in the context of Eval.
- */
-export function reduceEval<A, B>(
-    xs: Iterable<A>,
-    f: (acc: B, x: A) => Eval<B>,
-    z: B,
-): Eval<B> {
-    return doEval(function* () {
-        let acc = z;
-        for (const x of xs) {
-            acc = yield* f(acc, x);
-        }
-        return acc;
-    });
-}
-
-/**
- * Evaluate the Evals in an array or a tuple literal from left to right and
- * collect the results in an array or a tuple literal, respectively.
- */
-export function collectEval<T extends readonly Eval<any>[]>(
-    xs: T,
-): Eval<Eval.ResultsT<T>> {
-    return doEval(function* () {
-        const l = xs.length;
-        const ys = new Array(l);
-        for (let ix = 0; ix < l; ix++) {
-            ys[ix] = yield* xs[ix];
-        }
-        return ys as unknown as Eval.ResultsT<T>;
-    });
-}
-
-/**
- * Evaluate a series of Evals from left to right and collect the results in a
- * tuple literal.
- */
-export function tupledEval<T extends [Eval<any>, Eval<any>, ...Eval<any>[]]>(
-    ...xs: T
-): Eval<Eval.ResultsT<T>> {
-    return collectEval(xs);
-}
-
-/**
- * Evaluate the Evals in an object literal and collect the results in an object
- * literal.
- */
-export function gatherEval<T extends Record<any, Eval<any>>>(
-    xs: T,
-): Eval<{ readonly [K in keyof T]: Eval.ResultT<T[K]> }> {
-    return doEval(function* () {
-        const ys: Record<any, unknown> = {};
-        for (const [kx, x] of Object.entries(xs)) {
-            ys[kx] = yield* x;
-        }
-        return ys as Eval.ResultsT<T>;
-    });
-}
-
-function flatMap<A, B>(eff: Eval<A>, f: (x: A) => Eval<B>): Eval<B> {
-    return new Eval({ t: Instr.Tag.FlatMap, eff, f });
-}
-
 type Instr = Instr.Now | Instr.FlatMap | Instr.Once | Instr.Always;
 
 namespace Instr {
@@ -346,5 +338,9 @@ namespace Instr {
     export interface Always {
         readonly t: Tag.Always;
         readonly f: () => any;
+    }
+
+    export function flatMap<A, B>(eff: Eval<A>, f: (x: A) => Eval<B>): Instr {
+        return { t: Tag.FlatMap, eff, f };
     }
 }

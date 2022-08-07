@@ -1,35 +1,32 @@
 import * as fc from "fast-check";
 import { assert } from "chai";
-import { arbNum, arbStr, mkNum, type Num, type Str } from "./common.js";
+import { arbNum, arbStr, Num, Str } from "./common.js";
 import { cmb } from "../src/cmb.js";
 import {
     clamp,
     cmp,
     Eq,
     eq,
-    equal,
     ge,
-    greater,
     gt,
     icmp,
     ieq,
     le,
-    less,
     lt,
     max,
     min,
-    mkReverse,
     ne,
     Ord,
-    type Reverse,
+    Ordering,
+    Reverse,
 } from "../src/cmp.js";
 
 function arbRevNum(): fc.Arbitrary<Reverse<Num>> {
-    return arbNum().map(mkReverse);
+    return arbNum().map((x) => new Reverse(x));
 }
 
 function arbRevStr(): fc.Arbitrary<Reverse<Str>> {
-    return arbStr().map(mkReverse);
+    return arbStr().map((x) => new Reverse(x));
 }
 
 describe("Eq", () => {
@@ -88,13 +85,16 @@ describe("Ord", () => {
                 arbNum(),
                 arbNum(),
                 (a, x, b, y) => {
-                    assert.strictEqual(icmp([a], []), greater);
-                    assert.strictEqual(icmp([], [b]), less);
+                    assert.strictEqual(icmp([a], []), Ordering.greater);
+                    assert.strictEqual(icmp([], [b]), Ordering.less);
                     assert.strictEqual(
                         icmp([a, x], [b]),
-                        cmb(cmp(a, b), greater),
+                        cmb(cmp(a, b), Ordering.greater),
                     );
-                    assert.strictEqual(icmp([a], [b, y]), cmb(cmp(a, b), less));
+                    assert.strictEqual(
+                        icmp([a], [b, y]),
+                        cmb(cmp(a, b), Ordering.less),
+                    );
                     assert.strictEqual(
                         icmp([a, x], [b, y]),
                         cmb(cmp(a, b), cmp(x, y)),
@@ -139,7 +139,7 @@ describe("Ord", () => {
     specify("min", () => {
         fc.assert(
             fc.property(arbNum(), arbNum(), (x, y) => {
-                assert.deepEqual(min(x, y), mkNum(Math.min(x.val, y.val)));
+                assert.deepEqual(min(x, y), new Num(Math.min(x.val, y.val)));
             }),
         );
     });
@@ -147,7 +147,7 @@ describe("Ord", () => {
     specify("max", () => {
         fc.assert(
             fc.property(arbNum(), arbNum(), (x, y) => {
-                assert.deepEqual(max(x, y), mkNum(Math.max(x.val, y.val)));
+                assert.deepEqual(max(x, y), new Num(Math.max(x.val, y.val)));
             }),
         );
     });
@@ -163,167 +163,167 @@ describe("Ord", () => {
 
 describe("Ordering", () => {
     specify("[Eq.eq]", () => {
-        const t0 = eq(less, less);
+        const t0 = eq(Ordering.less, Ordering.less);
         assert.strictEqual(t0, true);
 
-        const t1 = eq(less, equal);
+        const t1 = eq(Ordering.less, Ordering.equal);
         assert.strictEqual(t1, false);
 
-        const t2 = eq(less, greater);
+        const t2 = eq(Ordering.less, Ordering.greater);
         assert.strictEqual(t2, false);
 
-        const t3 = eq(equal, less);
+        const t3 = eq(Ordering.equal, Ordering.less);
         assert.strictEqual(t3, false);
 
-        const t4 = eq(equal, equal);
+        const t4 = eq(Ordering.equal, Ordering.equal);
         assert.strictEqual(t4, true);
 
-        const t5 = eq(equal, greater);
+        const t5 = eq(Ordering.equal, Ordering.greater);
         assert.strictEqual(t5, false);
 
-        const t6 = eq(greater, less);
+        const t6 = eq(Ordering.greater, Ordering.less);
         assert.strictEqual(t6, false);
 
-        const t7 = eq(greater, equal);
+        const t7 = eq(Ordering.greater, Ordering.equal);
         assert.strictEqual(t7, false);
 
-        const t8 = eq(greater, greater);
+        const t8 = eq(Ordering.greater, Ordering.greater);
         assert.strictEqual(t8, true);
     });
 
     specify("[Ord.cmp]", () => {
-        const t0 = cmp(less, less);
-        assert.strictEqual(t0, equal);
+        const t0 = cmp(Ordering.less, Ordering.less);
+        assert.strictEqual(t0, Ordering.equal);
 
-        const t1 = cmp(less, equal);
-        assert.strictEqual(t1, less);
+        const t1 = cmp(Ordering.less, Ordering.equal);
+        assert.strictEqual(t1, Ordering.less);
 
-        const t2 = cmp(less, greater);
-        assert.strictEqual(t2, less);
+        const t2 = cmp(Ordering.less, Ordering.greater);
+        assert.strictEqual(t2, Ordering.less);
 
-        const t3 = cmp(equal, less);
-        assert.strictEqual(t3, greater);
+        const t3 = cmp(Ordering.equal, Ordering.less);
+        assert.strictEqual(t3, Ordering.greater);
 
-        const t4 = cmp(equal, equal);
-        assert.strictEqual(t4, equal);
+        const t4 = cmp(Ordering.equal, Ordering.equal);
+        assert.strictEqual(t4, Ordering.equal);
 
-        const t5 = cmp(equal, greater);
-        assert.strictEqual(t5, less);
+        const t5 = cmp(Ordering.equal, Ordering.greater);
+        assert.strictEqual(t5, Ordering.less);
 
-        const t6 = cmp(greater, less);
-        assert.strictEqual(t6, greater);
+        const t6 = cmp(Ordering.greater, Ordering.less);
+        assert.strictEqual(t6, Ordering.greater);
 
-        const t7 = cmp(greater, equal);
-        assert.strictEqual(t7, greater);
+        const t7 = cmp(Ordering.greater, Ordering.equal);
+        assert.strictEqual(t7, Ordering.greater);
 
-        const t8 = cmp(greater, greater);
-        assert.strictEqual(t8, equal);
+        const t8 = cmp(Ordering.greater, Ordering.greater);
+        assert.strictEqual(t8, Ordering.equal);
     });
 
     specify("[Semigroup.cmb]", () => {
-        const t0 = cmb(less, less);
-        assert.strictEqual(t0, less);
+        const t0 = cmb(Ordering.less, Ordering.less);
+        assert.strictEqual(t0, Ordering.less);
 
-        const t1 = cmb(less, equal);
-        assert.strictEqual(t1, less);
+        const t1 = cmb(Ordering.less, Ordering.equal);
+        assert.strictEqual(t1, Ordering.less);
 
-        const t2 = cmb(less, greater);
-        assert.strictEqual(t2, less);
+        const t2 = cmb(Ordering.less, Ordering.greater);
+        assert.strictEqual(t2, Ordering.less);
 
-        const t3 = cmb(equal, less);
-        assert.strictEqual(t3, less);
+        const t3 = cmb(Ordering.equal, Ordering.less);
+        assert.strictEqual(t3, Ordering.less);
 
-        const t4 = cmb(equal, equal);
-        assert.strictEqual(t4, equal);
+        const t4 = cmb(Ordering.equal, Ordering.equal);
+        assert.strictEqual(t4, Ordering.equal);
 
-        const t5 = cmb(equal, greater);
-        assert.strictEqual(t5, greater);
+        const t5 = cmb(Ordering.equal, Ordering.greater);
+        assert.strictEqual(t5, Ordering.greater);
 
-        const t6 = cmb(greater, less);
-        assert.strictEqual(t6, greater);
+        const t6 = cmb(Ordering.greater, Ordering.less);
+        assert.strictEqual(t6, Ordering.greater);
 
-        const t7 = cmb(greater, equal);
-        assert.strictEqual(t7, greater);
+        const t7 = cmb(Ordering.greater, Ordering.equal);
+        assert.strictEqual(t7, Ordering.greater);
 
-        const t8 = cmb(greater, greater);
-        assert.strictEqual(t8, greater);
+        const t8 = cmb(Ordering.greater, Ordering.greater);
+        assert.strictEqual(t8, Ordering.greater);
     });
 
     specify("isEq", () => {
-        const t0 = less.isEq();
+        const t0 = Ordering.less.isEq();
         assert.strictEqual(t0, false);
 
-        const t1 = equal.isEq();
+        const t1 = Ordering.equal.isEq();
         assert.strictEqual(t1, true);
 
-        const t2 = greater.isEq();
+        const t2 = Ordering.greater.isEq();
         assert.strictEqual(t2, false);
     });
 
     specify("isNe", () => {
-        const t0 = less.isNe();
+        const t0 = Ordering.less.isNe();
         assert.strictEqual(t0, true);
 
-        const t1 = equal.isNe();
+        const t1 = Ordering.equal.isNe();
         assert.strictEqual(t1, false);
 
-        const t2 = greater.isNe();
+        const t2 = Ordering.greater.isNe();
         assert.strictEqual(t2, true);
     });
 
     specify("isLt", () => {
-        const t0 = less.isLt();
+        const t0 = Ordering.less.isLt();
         assert.strictEqual(t0, true);
 
-        const t1 = equal.isLt();
+        const t1 = Ordering.equal.isLt();
         assert.strictEqual(t1, false);
 
-        const t2 = greater.isLt();
+        const t2 = Ordering.greater.isLt();
         assert.strictEqual(t2, false);
     });
 
     specify("isGt", () => {
-        const t0 = less.isGt();
+        const t0 = Ordering.less.isGt();
         assert.strictEqual(t0, false);
 
-        const t1 = equal.isGt();
+        const t1 = Ordering.equal.isGt();
         assert.strictEqual(t1, false);
 
-        const t2 = greater.isGt();
+        const t2 = Ordering.greater.isGt();
         assert.strictEqual(t2, true);
     });
 
     specify("isLe", () => {
-        const t0 = less.isLe();
+        const t0 = Ordering.less.isLe();
         assert.strictEqual(t0, true);
 
-        const t1 = equal.isLe();
+        const t1 = Ordering.equal.isLe();
         assert.strictEqual(t1, true);
 
-        const t2 = greater.isLe();
+        const t2 = Ordering.greater.isLe();
         assert.strictEqual(t2, false);
     });
 
     specify("isGe", () => {
-        const t0 = less.isGe();
+        const t0 = Ordering.less.isGe();
         assert.strictEqual(t0, false);
 
-        const t1 = equal.isGe();
+        const t1 = Ordering.equal.isGe();
         assert.strictEqual(t1, true);
 
-        const t2 = greater.isGe();
+        const t2 = Ordering.greater.isGe();
         assert.strictEqual(t2, true);
     });
 
     specify("reverse", () => {
-        const t0 = less.reverse();
-        assert.strictEqual(t0, greater);
+        const t0 = Ordering.less.reverse();
+        assert.strictEqual(t0, Ordering.greater);
 
-        const t1 = equal.reverse();
-        assert.strictEqual(t1, equal);
+        const t1 = Ordering.equal.reverse();
+        assert.strictEqual(t1, Ordering.equal);
 
-        const t2 = greater.reverse();
-        assert.strictEqual(t2, less);
+        const t2 = Ordering.greater.reverse();
+        assert.strictEqual(t2, Ordering.less);
     });
 });
 
@@ -347,7 +347,7 @@ describe("Reverse", () => {
     specify("[Semigroup.cmb]", () => {
         fc.assert(
             fc.property(arbRevStr(), arbRevStr(), (x, y) => {
-                assert.deepEqual(cmb(x, y), mkReverse(cmb(x.val, y.val)));
+                assert.deepEqual(cmb(x, y), new Reverse(cmb(x.val, y.val)));
             }),
         );
     });

@@ -21,18 +21,261 @@
  */
 
 import { cmb, Semigroup } from "./cmb.js";
-import { cmp, Eq, eq, greater, less, Ord, type Ordering } from "./cmp.js";
+import { cmp, Eq, eq, Ord, Ordering } from "./cmp.js";
 import { type Either } from "./either.js";
 import { id } from "./fn.js";
 
 /**
- * A type that represents either an accumulating failure
- * ({@link Validated.Disputed Disputed}) or a success
- * ({@link Validated.Accepted Accepted}).
+ * A type that represents either accumulating failure (`Disputed`) or success
+ * (`Accepted`).
  */
 export type Validated<E, A> = Validated.Disputed<E> | Validated.Accepted<A>;
 
 export namespace Validated {
+    /**
+     * Construct a disputed Validated.
+     */
+    export function dispute<E, A = never>(x: E): Validated<E, A> {
+        return new Disputed(x);
+    }
+
+    /**
+     * Construct an accepted Validated.
+     */
+    export function accept<A, E = never>(x: A): Validated<E, A> {
+        return new Accepted(x);
+    }
+
+    /**
+     * Convert an Either to a Validated.
+     */
+    export function fromEither<E, A>(either: Either<E, A>): Validated<E, A> {
+        return either.fold(dispute, accept);
+    }
+
+    /**
+     * Evaluate the Validateds in an array or a tuple literal from left to right
+     * and collect the accepted values in an array or a tuple literal,
+     * respectively.
+     */
+    export function collect<E extends Semigroup<E>, A0, A1>(
+        xs: readonly [Validated<E, A0>, Validated<E, A1>],
+    ): Validated<E, readonly [A0, A1]>;
+
+    export function collect<E extends Semigroup<E>, A0, A1, A2>(
+        xs: readonly [Validated<E, A0>, Validated<E, A1>, Validated<E, A2>],
+    ): Validated<E, readonly [A0, A1, A2]>;
+
+    export function collect<E extends Semigroup<E>, A0, A1, A2, A3>(
+        xs: readonly [
+            Validated<E, A0>,
+            Validated<E, A1>,
+            Validated<E, A2>,
+            Validated<E, A3>,
+        ],
+    ): Validated<E, readonly [A0, A1, A2, A3]>;
+
+    export function collect<E extends Semigroup<E>, A0, A1, A2, A3, A4>(
+        xs: readonly [
+            Validated<E, A0>,
+            Validated<E, A1>,
+            Validated<E, A2>,
+            Validated<E, A3>,
+            Validated<E, A4>,
+        ],
+    ): Validated<E, readonly [A0, A1, A2, A3, A4]>;
+
+    // prettier-ignore
+    export function collect<E extends Semigroup<E>, A0, A1, A2, A3, A4, A5>(
+        xs: readonly [
+            Validated<E, A0>,
+            Validated<E, A1>,
+            Validated<E, A2>,
+            Validated<E, A3>,
+            Validated<E, A4>,
+            Validated<E, A5>,
+        ],
+    ): Validated<E, readonly [A0, A1, A2, A3, A4, A5]>;
+
+    // prettier-ignore
+    export function collect<E extends Semigroup<E>, A0, A1, A2, A3, A4, A5, A6>(
+        xs: readonly [
+            Validated<E, A0>,
+            Validated<E, A1>,
+            Validated<E, A2>,
+            Validated<E, A3>,
+            Validated<E, A4>,
+            Validated<E, A5>,
+            Validated<E, A6>,
+        ],
+    ): Validated<E, readonly [A0, A1, A2, A3, A4, A5, A6]>;
+
+    // prettier-ignore
+    export function collect<E extends Semigroup<E>, A0, A1, A2, A3, A4, A5, A6, A7>(
+        xs: readonly [
+            Validated<E, A0>,
+            Validated<E, A1>,
+            Validated<E, A2>,
+            Validated<E, A3>,
+            Validated<E, A4>,
+            Validated<E, A5>,
+            Validated<E, A6>,
+            Validated<E, A7>,
+        ],
+    ): Validated<E, readonly [A0, A1, A2, A3, A4, A5, A6, A7]>;
+
+    // prettier-ignore
+    export function collect<E extends Semigroup<E>, A0, A1, A2, A3, A4, A5, A6, A7, A8>(
+        xs: readonly [
+            Validated<E, A0>,
+            Validated<E, A1>,
+            Validated<E, A2>,
+            Validated<E, A3>,
+            Validated<E, A4>,
+            Validated<E, A5>,
+            Validated<E, A6>,
+            Validated<E, A7>,
+            Validated<E, A8>,
+        ],
+    ): Validated<E, readonly [A0, A1, A2, A3, A4, A5, A6, A7, A8]>;
+
+    // prettier-ignore
+    export function collect<E extends Semigroup<E>, A0, A1, A2, A3, A4, A5, A6, A7, A8, A9>(
+        xs: readonly [
+            Validated<E, A0>,
+            Validated<E, A1>,
+            Validated<E, A2>,
+            Validated<E, A3>,
+            Validated<E, A4>,
+            Validated<E, A5>,
+            Validated<E, A6>,
+            Validated<E, A7>,
+            Validated<E, A8>,
+            Validated<E, A9>,
+        ],
+    ): Validated<E, readonly [A0, A1, A2, A3, A4, A5, A6, A7, A8, A9]>;
+
+    export function collect<E extends Semigroup<E>, A>(
+        xs: readonly Validated<E, A>[],
+    ): Validated<E, readonly A[]>;
+
+    export function collect<E extends Semigroup<E>, A>(
+        xs: readonly Validated<E, A>[],
+    ): Validated<E, readonly A[]> {
+        return xs.reduce((acc, v, iv) => {
+            return acc.zipWith(v, (ys, x) => {
+                ys[iv] = x;
+                return ys;
+            });
+        }, accept<A[], E>(new Array(xs.length)));
+    }
+
+    /**
+     * Evaluate a series of Validateds from left to right and collect the
+     * accepted values in a tuple literal.
+     */
+    export function tupled<E extends Semigroup<E>, A0, A1>(
+        ...xs: [Validated<E, A0>, Validated<E, A1>]
+    ): Validated<E, readonly [A0, A1]>;
+
+    export function tupled<E extends Semigroup<E>, A0, A1, A2>(
+        ...xs: [Validated<E, A0>, Validated<E, A1>, Validated<E, A2>]
+    ): Validated<E, readonly [A0, A1, A2]>;
+
+    export function tupled<E extends Semigroup<E>, A0, A1, A2, A3>(
+        ...xs: [
+            Validated<E, A0>,
+            Validated<E, A1>,
+            Validated<E, A2>,
+            Validated<E, A3>,
+        ]
+    ): Validated<E, readonly [A0, A1, A2, A3]>;
+
+    export function tupled<E extends Semigroup<E>, A0, A1, A2, A3, A4>(
+        ...xs: [
+            Validated<E, A0>,
+            Validated<E, A1>,
+            Validated<E, A2>,
+            Validated<E, A3>,
+            Validated<E, A4>,
+        ]
+    ): Validated<E, readonly [A0, A1, A2, A3, A4]>;
+
+    export function tupled<E extends Semigroup<E>, A0, A1, A2, A3, A4, A5>(
+        ...xs: [
+            Validated<E, A0>,
+            Validated<E, A1>,
+            Validated<E, A2>,
+            Validated<E, A3>,
+            Validated<E, A4>,
+            Validated<E, A5>,
+        ]
+    ): Validated<E, readonly [A0, A1, A2, A3, A4, A5]>;
+
+    // prettier-ignore
+    export function tupled<E extends Semigroup<E>, A0, A1, A2, A3, A4, A5, A6>(
+        ...xs: [
+            Validated<E, A0>,
+            Validated<E, A1>,
+            Validated<E, A2>,
+            Validated<E, A3>,
+            Validated<E, A4>,
+            Validated<E, A5>,
+            Validated<E, A6>,
+        ]
+    ): Validated<E, readonly [A0, A1, A2, A3, A4, A5, A6]>;
+
+    // prettier-ignore
+    export function tupled<E extends Semigroup<E>, A0, A1, A2, A3, A4, A5, A6, A7>(
+        ...xs: [
+            Validated<E, A0>,
+            Validated<E, A1>,
+            Validated<E, A2>,
+            Validated<E, A3>,
+            Validated<E, A4>,
+            Validated<E, A5>,
+            Validated<E, A6>,
+            Validated<E, A7>,
+        ]
+    ): Validated<E, readonly [A0, A1, A2, A3, A4, A5, A6, A7]>;
+
+    // prettier-ignore
+    export function tupled<E extends Semigroup<E>, A0, A1, A2, A3, A4, A5, A6, A7, A8>(
+        ...xs: [
+            Validated<E, A0>,
+            Validated<E, A1>,
+            Validated<E, A2>,
+            Validated<E, A3>,
+            Validated<E, A4>,
+            Validated<E, A5>,
+            Validated<E, A6>,
+            Validated<E, A7>,
+            Validated<E, A8>,
+        ]
+    ): Validated<E, readonly [A0, A1, A2, A3, A4, A5, A6, A7, A8]>;
+
+    // prettier-ignore
+    export function tupled<E extends Semigroup<E>, A0, A1, A2, A3, A4, A5, A6, A7, A8, A9>(
+        ...xs: [
+            Validated<E, A0>,
+            Validated<E, A1>,
+            Validated<E, A2>,
+            Validated<E, A3>,
+            Validated<E, A4>,
+            Validated<E, A5>,
+            Validated<E, A6>,
+            Validated<E, A7>,
+            Validated<E, A8>,
+            Validated<E, A9>,
+        ]
+    ): Validated<E, readonly [A0, A1, A2, A3, A4, A5, A6, A7, A8, A9]>;
+
+    export function tupled<E extends Semigroup<E>, A>(
+        ...xs: Validated<E, A>[]
+    ): Validated<E, readonly A[]> {
+        return collect(xs);
+    }
+
     /**
      * The fluent syntax for Validated.
      */
@@ -58,9 +301,13 @@ export namespace Validated {
             that: Validated<E, A>,
         ): Ordering {
             if (this.isDisputed()) {
-                return that.isDisputed() ? cmp(this.val, that.val) : less;
+                return that.isDisputed()
+                    ? cmp(this.val, that.val)
+                    : Ordering.less;
             }
-            return that.isAccepted() ? cmp(this.val, that.val) : greater;
+            return that.isAccepted()
+                ? cmp(this.val, that.val)
+                : Ordering.greater;
         }
 
         /**
@@ -251,247 +498,4 @@ export namespace Validated {
             super();
         }
     }
-}
-
-/**
- * Construct a disputed Validated.
- */
-export function dispute<E, A = never>(x: E): Validated<E, A> {
-    return new Validated.Disputed(x);
-}
-
-/**
- * Construct an accepted Validated.
- */
-export function accept<A, E = never>(x: A): Validated<E, A> {
-    return new Validated.Accepted(x);
-}
-
-/**
- * Convert an Either to a Validated.
- */
-export function viewValidated<E, A>(either: Either<E, A>): Validated<E, A> {
-    return either.fold(dispute, accept);
-}
-
-/**
- * Evaluate the Validateds in an array or a tuple literal from left to right and
- * collect the accepted values in an array or a tuple literal, respectively.
- */
-export function collectValidated<E extends Semigroup<E>, A0, A1>(
-    xs: readonly [Validated<E, A0>, Validated<E, A1>],
-): Validated<E, readonly [A0, A1]>;
-
-export function collectValidated<E extends Semigroup<E>, A0, A1, A2>(
-    xs: readonly [Validated<E, A0>, Validated<E, A1>, Validated<E, A2>],
-): Validated<E, readonly [A0, A1, A2]>;
-
-export function collectValidated<E extends Semigroup<E>, A0, A1, A2, A3>(
-    xs: readonly [
-        Validated<E, A0>,
-        Validated<E, A1>,
-        Validated<E, A2>,
-        Validated<E, A3>,
-    ],
-): Validated<E, readonly [A0, A1, A2, A3]>;
-
-export function collectValidated<E extends Semigroup<E>, A0, A1, A2, A3, A4>(
-    xs: readonly [
-        Validated<E, A0>,
-        Validated<E, A1>,
-        Validated<E, A2>,
-        Validated<E, A3>,
-        Validated<E, A4>,
-    ],
-): Validated<E, readonly [A0, A1, A2, A3, A4]>;
-
-// prettier-ignore
-export function collectValidated<E extends Semigroup<E>, A0, A1, A2, A3, A4, A5>(
-    xs: readonly [
-        Validated<E, A0>,
-        Validated<E, A1>,
-        Validated<E, A2>,
-        Validated<E, A3>,
-        Validated<E, A4>,
-        Validated<E, A5>,
-    ],
-): Validated<E, readonly [A0, A1, A2, A3, A4, A5]>;
-
-// prettier-ignore
-export function collectValidated<E extends Semigroup<E>, A0, A1, A2, A3, A4, A5, A6>(
-    xs: readonly [
-        Validated<E, A0>,
-        Validated<E, A1>,
-        Validated<E, A2>,
-        Validated<E, A3>,
-        Validated<E, A4>,
-        Validated<E, A5>,
-        Validated<E, A6>,
-    ],
-): Validated<E, readonly [A0, A1, A2, A3, A4, A5, A6]>;
-
-// prettier-ignore
-export function collectValidated<E extends Semigroup<E>, A0, A1, A2, A3, A4, A5, A6, A7>(
-    xs: readonly [
-        Validated<E, A0>,
-        Validated<E, A1>,
-        Validated<E, A2>,
-        Validated<E, A3>,
-        Validated<E, A4>,
-        Validated<E, A5>,
-        Validated<E, A6>,
-        Validated<E, A7>,
-    ],
-): Validated<E, readonly [A0, A1, A2, A3, A4, A5, A6, A7]>;
-
-// prettier-ignore
-export function collectValidated<E extends Semigroup<E>, A0, A1, A2, A3, A4, A5, A6, A7, A8>(
-    xs: readonly [
-        Validated<E, A0>,
-        Validated<E, A1>,
-        Validated<E, A2>,
-        Validated<E, A3>,
-        Validated<E, A4>,
-        Validated<E, A5>,
-        Validated<E, A6>,
-        Validated<E, A7>,
-        Validated<E, A8>,
-    ],
-): Validated<E, readonly [A0, A1, A2, A3, A4, A5, A6, A7, A8]>;
-
-// prettier-ignore
-export function collectValidated<E extends Semigroup<E>, A0, A1, A2, A3, A4, A5, A6, A7, A8, A9>(
-    xs: readonly [
-        Validated<E, A0>,
-        Validated<E, A1>,
-        Validated<E, A2>,
-        Validated<E, A3>,
-        Validated<E, A4>,
-        Validated<E, A5>,
-        Validated<E, A6>,
-        Validated<E, A7>,
-        Validated<E, A8>,
-        Validated<E, A9>,
-    ],
-): Validated<E, readonly [A0, A1, A2, A3, A4, A5, A6, A7, A8, A9]>;
-
-export function collectValidated<E extends Semigroup<E>, A>(
-    xs: readonly Validated<E, A>[],
-): Validated<E, readonly A[]>;
-
-export function collectValidated<E extends Semigroup<E>, A>(
-    xs: readonly Validated<E, A>[],
-): Validated<E, readonly A[]> {
-    return xs.reduce((acc, v, iv) => {
-        return acc.zipWith(v, (ys, x) => {
-            ys[iv] = x;
-            return ys;
-        });
-    }, accept<A[], E>(new Array(xs.length)));
-}
-
-/**
- * Evaluate a series of Validateds from left to right and collect the accepted
- * values in a tuple literal.
- */
-export function tupledValidated<E extends Semigroup<E>, A0, A1>(
-    ...xs: [Validated<E, A0>, Validated<E, A1>]
-): Validated<E, readonly [A0, A1]>;
-
-export function tupledValidated<E extends Semigroup<E>, A0, A1, A2>(
-    ...xs: [Validated<E, A0>, Validated<E, A1>, Validated<E, A2>]
-): Validated<E, readonly [A0, A1, A2]>;
-
-export function tupledValidated<E extends Semigroup<E>, A0, A1, A2, A3>(
-    ...xs: [
-        Validated<E, A0>,
-        Validated<E, A1>,
-        Validated<E, A2>,
-        Validated<E, A3>,
-    ]
-): Validated<E, readonly [A0, A1, A2, A3]>;
-
-export function tupledValidated<E extends Semigroup<E>, A0, A1, A2, A3, A4>(
-    ...xs: [
-        Validated<E, A0>,
-        Validated<E, A1>,
-        Validated<E, A2>,
-        Validated<E, A3>,
-        Validated<E, A4>,
-    ]
-): Validated<E, readonly [A0, A1, A2, A3, A4]>;
-
-export function tupledValidated<E extends Semigroup<E>, A0, A1, A2, A3, A4, A5>(
-    ...xs: [
-        Validated<E, A0>,
-        Validated<E, A1>,
-        Validated<E, A2>,
-        Validated<E, A3>,
-        Validated<E, A4>,
-        Validated<E, A5>,
-    ]
-): Validated<E, readonly [A0, A1, A2, A3, A4, A5]>;
-
-// prettier-ignore
-export function tupledValidated<E extends Semigroup<E>, A0, A1, A2, A3, A4, A5, A6>(
-    ...xs: [
-        Validated<E, A0>,
-        Validated<E, A1>,
-        Validated<E, A2>,
-        Validated<E, A3>,
-        Validated<E, A4>,
-        Validated<E, A5>,
-        Validated<E, A6>,
-    ]
-): Validated<E, readonly [A0, A1, A2, A3, A4, A5, A6]>;
-
-// prettier-ignore
-export function tupledValidated<E extends Semigroup<E>, A0, A1, A2, A3, A4, A5, A6, A7>(
-    ...xs: [
-        Validated<E, A0>,
-        Validated<E, A1>,
-        Validated<E, A2>,
-        Validated<E, A3>,
-        Validated<E, A4>,
-        Validated<E, A5>,
-        Validated<E, A6>,
-        Validated<E, A7>,
-    ]
-): Validated<E, readonly [A0, A1, A2, A3, A4, A5, A6, A7]>;
-
-// prettier-ignore
-export function tupledValidated<E extends Semigroup<E>, A0, A1, A2, A3, A4, A5, A6, A7, A8>(
-    ...xs: [
-        Validated<E, A0>,
-        Validated<E, A1>,
-        Validated<E, A2>,
-        Validated<E, A3>,
-        Validated<E, A4>,
-        Validated<E, A5>,
-        Validated<E, A6>,
-        Validated<E, A7>,
-        Validated<E, A8>,
-    ]
-): Validated<E, readonly [A0, A1, A2, A3, A4, A5, A6, A7, A8]>;
-
-// prettier-ignore
-export function tupledValidated<E extends Semigroup<E>, A0, A1, A2, A3, A4, A5, A6, A7, A8, A9>(
-    ...xs: [
-        Validated<E, A0>,
-        Validated<E, A1>,
-        Validated<E, A2>,
-        Validated<E, A3>,
-        Validated<E, A4>,
-        Validated<E, A5>,
-        Validated<E, A6>,
-        Validated<E, A7>,
-        Validated<E, A8>,
-        Validated<E, A9>,
-    ]
-): Validated<E, readonly [A0, A1, A2, A3, A4, A5, A6, A7, A8, A9]>;
-
-export function tupledValidated<E extends Semigroup<E>, A>(
-    ...xs: Validated<E, A>[]
-): Validated<E, readonly A[]> {
-    return collectValidated(xs);
 }

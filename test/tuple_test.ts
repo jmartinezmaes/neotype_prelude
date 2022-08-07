@@ -3,9 +3,7 @@ import { assert } from "chai";
 import { arbNum, arbStr } from "./common.js";
 import { cmp, eq } from "../src/cmp.js";
 import { cmb } from "../src/cmb.js";
-import { mkTuple } from "../src/tuple.js";
-
-const mk = mkTuple;
+import { Tuple } from "../src/tuple.js";
 
 describe("Tuple", () => {
     specify("[Eq.eq]", () => {
@@ -16,7 +14,7 @@ describe("Tuple", () => {
                 arbNum(),
                 arbNum(),
                 (a, x, b, y) => {
-                    const t0 = eq(mk([a, x]), mk([b, y]));
+                    const t0 = eq(new Tuple([a, x]), new Tuple([b, y]));
                     assert.strictEqual(t0, eq(a, b) && eq(x, y));
                 },
             ),
@@ -31,7 +29,7 @@ describe("Tuple", () => {
                 arbNum(),
                 arbNum(),
                 (a, x, b, y) => {
-                    const t0 = cmp(mk([a, x]), mk([b, y]));
+                    const t0 = cmp(new Tuple([a, x]), new Tuple([b, y]));
                     assert.strictEqual(t0, cmb(cmp(a, b), cmp(x, y)));
                 },
             ),
@@ -46,8 +44,11 @@ describe("Tuple", () => {
                 arbStr(),
                 arbStr(),
                 (a, x, b, y) => {
-                    const t0 = cmb(mk([a, x]), mk([b, y]));
-                    assert.deepEqual(t0, mk([cmb(a, b), cmb(x, y)]));
+                    const t0 = cmb(
+                        new Tuple([a, x] as const),
+                        new Tuple([b, y]),
+                    );
+                    assert.deepEqual(t0, new Tuple([cmb(a, b), cmb(x, y)]));
                 },
             ),
         );
