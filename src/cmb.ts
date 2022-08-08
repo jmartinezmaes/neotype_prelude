@@ -29,7 +29,7 @@
  *
  * __Associativity__
  *
- * `cmb (x, cmb (y, z)) ≡ cmb (cmb (x, y), z)`
+ * `cmb(x, cmb(y, z)) ≡ cmb(cmb(x, y), z)`
  */
 export interface Semigroup<in out A> {
     [Semigroup.cmb](that: A): A;
@@ -47,7 +47,7 @@ export namespace Semigroup {
  * Combine two values of the same Semigroup.
  *
  * ```ts
- * cmb (x, y) = x[Semigroup.cmb](y)
+ * cmb(x, y) = x[Semigroup.cmb](y)
  * ```
  */
 export function cmb<A extends Semigroup<A>>(x: A, y: A): A {

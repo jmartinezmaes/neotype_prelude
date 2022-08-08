@@ -31,20 +31,20 @@ import { cmb, Semigroup } from "./cmb.js";
  *
  * __Reflexivity__
  *
- * `eq (x, x) === true`
+ * `eq(x, x) === true`
  *
  * __Symmetry__
  *
- * `eq (x, y) === eq (y, x)`
+ * `eq(x, y) === eq(y, x)`
  *
  * __Transitivity__
  *
- * If `eq (x, y) && eq (y, z) === true` then `eq (x, z) === true`
+ * If `eq(x, y) && eq(y, z) === true` then `eq(x, z) === true`
  *
  * __Extensionality__
  *
- * If `eq (x, y) === true` and `f` is a function whose return type is an
- * instance of Eq, then `eq (f (x), f (y)) === true`
+ * If `eq(x, y) === true` and `f` is a function whose return type is an
+ * instance of Eq, then `eq(f(x), f(y)) === true`
  */
 export interface Eq<in A> {
     [Eq.eq](that: A): boolean;
@@ -61,7 +61,7 @@ export namespace Eq {
  * Test two values for equality.
  *
  * ```ts
- * eq (x, y) ≡ x[Eq.eq](y)
+ * eq(x, y) ≡ x[Eq.eq](y)
  * ```
  */
 export function eq<A extends Eq<A>>(x: A, y: A): boolean {
@@ -72,7 +72,7 @@ export function eq<A extends Eq<A>>(x: A, y: A): boolean {
  * Test two values for inequality.
  *
  * ```ts
- * ne (x, y) ≡ !x[Eq.eq](y)
+ * ne(x, y) ≡ !x[Eq.eq](y)
  * ```
  */
 export function ne<A extends Eq<A>>(x: A, y: A): boolean {
@@ -118,19 +118,19 @@ export function ieq<A extends Eq<A>>(
  *
  * __Comparability__
  *
- * `le (x, y) || le (y, x) === true`
+ * `le(x, y) || le(y, x) === true`
  *
  * __Transitivity__
  *
- * If `le (x, y) && le (y, z) === true` then `le (x, z) === true`
+ * If `le(x, y) && le(y, z) === true` then `le(x, z) === true`
  *
  * __Reflexivity__
  *
- * `le (x, x) === true`
+ * `le(x, x) === true`
  *
  * __Antisymmetry__
  *
- * If `le (x, y) && le (y, x) === true` then `eq (x, y) === true`
+ * If `le(x, y) && le(y, x) === true` then `eq(x, y) === true`
  */
 export interface Ord<in A> extends Eq<A> {
     [Ord.cmp](that: A): Ordering;
@@ -147,7 +147,7 @@ export namespace Ord {
  * Determine the ordering of two values.
  *
  * ```ts
- * cmp (x, y) ≡ x[Ord.cmp](y)
+ * cmp(x, y) ≡ x[Ord.cmp](y)
  * ```
  */
 export function cmp<A extends Ord<A>>(x: A, y: A): Ordering {
