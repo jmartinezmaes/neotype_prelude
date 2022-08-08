@@ -32,6 +32,14 @@ export type Maybe<A> = Maybe.Nothing | Maybe.Just<A>;
 
 export namespace Maybe {
     /**
+     * An enumeration used to discriminate Maybe.
+     */
+    export enum Typ {
+        Nothing = 0,
+        Just = 1,
+    }
+
+    /**
      * A unique symbol used in Maybe generator comprehensions.
      *
      * @hidden
@@ -218,14 +226,14 @@ export namespace Maybe {
          * Test whether this Maybe is `Nothing`.
          */
         isNothing(this: Maybe<any>): this is Nothing {
-            return this.typ === "Nothing";
+            return this.typ === Typ.Nothing;
         }
 
         /**
          * Test whether this Maybe is a `Just`.
          */
         isJust<A>(this: Maybe<A>): this is Just<A> {
-            return this.typ === "Just";
+            return this.typ === Typ.Just;
         }
 
         /**
@@ -324,7 +332,7 @@ export namespace Maybe {
         /**
          * The property that discriminates Maybe.
          */
-        readonly typ = "Nothing";
+        readonly typ = Typ.Nothing;
 
         /**
          * The singleton instance of the absent Maybe.
@@ -358,7 +366,7 @@ export namespace Maybe {
         /**
          * The property that discriminates Maybe.
          */
-        readonly typ = "Just";
+        readonly typ = Typ.Just;
 
         /**
          * This Maybe's value.

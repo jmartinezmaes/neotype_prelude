@@ -32,6 +32,15 @@ export type These<A, B> = These.First<A> | These.Second<B> | These.Both<A, B>;
 
 export namespace These {
     /**
+     * An enumeration used to discriminate These.
+     */
+    export enum Typ {
+        First = 0,
+        Second = 1,
+        Both = 2,
+    }
+
+    /**
      * A unique symbol used in These generator comprehensions.
      *
      * @hidden
@@ -432,21 +441,21 @@ export namespace These {
          * Test whether this These is a `First`.
          */
         isFirst<A>(this: These<A, any>): this is First<A> {
-            return this.typ === "First";
+            return this.typ === Typ.First;
         }
 
         /**
          * Test whether this These is a `Second`.
          */
         isSecond<B>(this: These<any, B>): this is Second<B> {
-            return this.typ === "Second";
+            return this.typ === Typ.Second;
         }
 
         /**
          * Test whether this These is a `Both`.
          */
         isBoth<A, B>(this: These<A, B>): this is Both<A, B> {
-            return this.typ === "Both";
+            return this.typ === Typ.Both;
         }
 
         /**
@@ -587,7 +596,7 @@ export namespace These {
         /**
          * The property that discriminates These.
          */
-        readonly typ = "First";
+        readonly typ = Typ.First;
 
         /**
          * This These's value.
@@ -622,7 +631,7 @@ export namespace These {
         /**
          * The property that discriminates These.
          */
-        readonly typ = "Second";
+        readonly typ = Typ.Second;
 
         /**
          * This These's value.
@@ -657,7 +666,7 @@ export namespace These {
         /**
          * The property that discriminates These.
          */
-        readonly typ = "Both";
+        readonly typ = Typ.Both;
 
         /**
          * This These's first value.

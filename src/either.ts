@@ -32,6 +32,14 @@ export type Either<A, B> = Either.Left<A> | Either.Right<B>;
 
 export namespace Either {
     /**
+     * An enumeration used to discriminate Either.
+     */
+    export enum Typ {
+        Left = 0,
+        Right = 1,
+    }
+
+    /**
      * A unique symbol used in Either generator comprehensions.
      *
      * @hidden
@@ -229,14 +237,14 @@ export namespace Either {
          * Test whether this Either is a `Left`.
          */
         isLeft<A>(this: Either<A, any>): this is Left<A> {
-            return this.typ === "Left";
+            return this.typ === Typ.Left;
         }
 
         /**
          * Test whether this Either is a `Right`.
          */
         isRight<B>(this: Either<any, B>): this is Right<B> {
-            return this.typ === "Right";
+            return this.typ === Typ.Right;
         }
 
         /**
@@ -388,7 +396,7 @@ export namespace Either {
         /**
          * The property that discriminates Either.
          */
-        readonly typ = "Left";
+        readonly typ = Typ.Left;
 
         /**
          * This Either's value.
@@ -423,7 +431,7 @@ export namespace Either {
         /**
          * The property that discriminates Either.
          */
-        readonly typ = "Right";
+        readonly typ = Typ.Right;
 
         /**
          * This Either's value.

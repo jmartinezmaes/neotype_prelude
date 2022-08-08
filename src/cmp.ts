@@ -241,6 +241,15 @@ export type Ordering = Ordering.Less | Ordering.Equal | Ordering.Greater;
 
 export namespace Ordering {
     /**
+     * An enumeration used to discriminate Ordering.
+     */
+    export enum Typ {
+        Less = -1,
+        Equal = 0,
+        Greater = 1,
+    }
+
+    /**
      * The fluent syntax for Ordering.
      */
     export abstract class Syntax {
@@ -248,7 +257,7 @@ export namespace Ordering {
          * Test this and that Ordering for equality.
          */
         [Eq.eq](this: Ordering, that: Ordering): boolean {
-            return this.val === that.val;
+            return this.typ === that.typ;
         }
 
         /**
@@ -277,7 +286,7 @@ export namespace Ordering {
          * Test whether this Ordering is `Equal`.
          */
         isEq(this: Ordering): this is Equal {
-            return this.val === 0;
+            return this.typ === Typ.Equal;
         }
 
         /**
@@ -291,14 +300,14 @@ export namespace Ordering {
          * Test whether this Ordering is `Less`.
          */
         isLt(this: Ordering): this is Less {
-            return this.val === -1;
+            return this.typ === Typ.Less;
         }
 
         /**
          * Test whether this Ordering is `Greater`.
          */
         isGt(this: Ordering): this is Greater {
-            return this.val === 1;
+            return this.typ === Typ.Greater;
         }
 
         /**
@@ -338,9 +347,10 @@ export namespace Ordering {
      */
     export class Less extends Syntax {
         /**
-         * The numerical representation of this Ordering.
+         * The numerical representation of this Ordering, and the property that
+         * discriminates Ordering.
          */
-        readonly val = -1;
+        readonly typ = Typ.Less;
 
         /**
          * The singleton instance of the Less Ordering.
@@ -357,9 +367,10 @@ export namespace Ordering {
      */
     export class Equal extends Syntax {
         /**
-         * The numerical representation of this Ordering.
+         * The numerical representation of this Ordering, and the property that
+         * discriminates Ordering.
          */
-        readonly val = 0;
+        readonly typ = Typ.Equal;
 
         /**
          * The singleton instance of the Equal Ordering.
@@ -376,9 +387,10 @@ export namespace Ordering {
      */
     export class Greater extends Syntax {
         /**
-         * The numerical representation of this Ordering.
+         * The numerical representation of this Ordering, and the property that
+         * discriminates Ordering.
          */
-        readonly val = 1;
+        readonly typ = Typ.Greater;
 
         /**
          * The singleton instance of the Greater Ordering.

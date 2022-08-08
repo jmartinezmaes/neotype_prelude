@@ -33,6 +33,14 @@ export type Validated<E, A> = Validated.Disputed<E> | Validated.Accepted<A>;
 
 export namespace Validated {
     /**
+     * An enumeration that discriminates Validated.
+     */
+    export enum Typ {
+        Disputed = 0,
+        Accepted = 1,
+    }
+
+    /**
      * Construct a disputed Validated.
      */
     export function dispute<E, A = never>(x: E): Validated<E, A> {
@@ -327,14 +335,14 @@ export namespace Validated {
          * Test whether this Validated is `Disputed`.
          */
         isDisputed<E>(this: Validated<E, any>): this is Disputed<E> {
-            return this.typ === "Disputed";
+            return this.typ === Typ.Disputed;
         }
 
         /**
          * Test whether this Validated is `Accepted`.
          */
         isAccepted<A>(this: Validated<any, A>): this is Accepted<A> {
-            return this.typ === "Accepted";
+            return this.typ === Typ.Accepted;
         }
 
         /**
@@ -468,7 +476,7 @@ export namespace Validated {
         /**
          * The property that discriminates Validated.
          */
-        readonly typ = "Disputed";
+        readonly typ = Typ.Disputed;
 
         /**
          * This Validated's value.
@@ -488,7 +496,7 @@ export namespace Validated {
         /**
          * The property that discriminates Validated.
          */
-        readonly typ = "Accepted";
+        readonly typ = Typ.Accepted;
 
         /**
          * This Validated's value.
