@@ -36,28 +36,30 @@ export class Eval<out A> {
     static readonly yieldTkn = Symbol();
 
     /**
-     *
+     * Construct an Eval with an immediately known value.
      */
     static now<A>(x: A): Eval<A> {
-        return new Eval({ t: Instr.Tag.Now, x });
+        return new Eval(Instr.now(x));
     }
 
     /**
-     *
+     * Construct an Eval from a thunk. The thunk will be called at most once,
+     * and all evaluations after the first will return a memoized value.
      */
     static once<A>(f: () => A): Eval<A> {
-        return new Eval({ t: Instr.Tag.Once, f, d: false });
+        return new Eval(Instr.once(f));
     }
 
     /**
-     *
+     * Construct an Eval from a thunk. The thunk will be called on every
+     * evaluation.
      */
     static always<A>(f: () => A): Eval<A> {
-        return new Eval({ t: Instr.Tag.Always, f });
+        return new Eval(Instr.always(f));
     }
 
     /**
-     *
+     * Construct an Eval from function that produces an Eval.
      */
     static defer<A>(f: () => Eval<A>): Eval<A> {
         return Eval.now(undefined).flatMap(f);
@@ -231,7 +233,7 @@ export class Eval<out A> {
     }
 
     /**
-     *
+     * Evaluate this Eval to produce a result.
      */
     run(): A {
         type Bind = (x: any) => Eval<any>;
@@ -340,7 +342,19 @@ namespace Instr {
         readonly f: () => any;
     }
 
-    export function flatMap<A, B>(eff: Eval<A>, f: (x: A) => Eval<B>): Instr {
+    export function now<A>(x: A): Now {
+        return { t: Tag.Now, x };
+    }
+
+    export function flatMap<A, B>(eff: Eval<A>, f: (x: A) => Eval<B>): FlatMap {
         return { t: Tag.FlatMap, eff, f };
+    }
+
+    export function once<A>(f: () => A): Once {
+        return { t: Tag.Once, f, d: false };
+    }
+
+    export function always<A>(f: () => A): Always {
+        return { t: Tag.Always, f };
     }
 }
