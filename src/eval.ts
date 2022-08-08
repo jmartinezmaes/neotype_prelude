@@ -153,7 +153,7 @@ export class Eval<out A> {
     /**
      * An instruction used to build an evaluation tree for Eval.
      */
-    #i: Instr;
+    readonly #i: Instr;
 
     private constructor(i: Instr) {
         this.#i = i;
