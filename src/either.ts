@@ -391,13 +391,13 @@ export namespace Either {
         readonly typ = "Left";
 
         /**
-         * Construct an instance of `Left`.
-         *
-         * Explicit use of this constructor should be avoided; use the
-         * {@link left} function instead.
+         * This Either's value.
          */
-        constructor(readonly val: A) {
+        readonly val: A;
+
+        constructor(val: A) {
             super();
+            this.val = val;
         }
 
         /**
@@ -426,13 +426,13 @@ export namespace Either {
         readonly typ = "Right";
 
         /**
-         * Construct an instance of `Right`.
-         *
-         * Explicit use of this constructor should be avoided; use the
-         * {@link right} function instead.
+         * This Either's value.
          */
-        constructor(readonly val: B) {
+        readonly val: B;
+
+        constructor(val: B) {
             super();
+            this.val = val;
         }
 
         /**

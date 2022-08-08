@@ -471,13 +471,13 @@ export namespace Validated {
         readonly typ = "Disputed";
 
         /**
-         * Construct an instance of `Validated.Disputed`.
-         *
-         * Explicit use of this constructor should be avoided; use the
-         * {@link dispute} function instead.
+         * This Validated's value.
          */
-        constructor(readonly val: E) {
+        readonly val: E;
+
+        constructor(val: E) {
             super();
+            this.val = val;
         }
     }
 
@@ -491,13 +491,13 @@ export namespace Validated {
         readonly typ = "Accepted";
 
         /**
-         * Construct an instance of `Validated.Accepted`.
-         *
-         * Explicit use of this constructor should be avoided; use the
-         * {@link accept} function instead.
+         * This Validated's value.
          */
-        constructor(readonly val: A) {
+        readonly val: A;
+
+        constructor(val: A) {
             super();
+            this.val = val;
         }
     }
 }

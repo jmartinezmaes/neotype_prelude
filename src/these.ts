@@ -590,13 +590,13 @@ export namespace These {
         readonly typ = "First";
 
         /**
-         * Construct an instance of `These.First`.
-         *
-         * Explicit use of this constructor should be avoided; use the
-         * {@link first} function instead.
+         * This These's value.
          */
-        constructor(readonly val: A) {
+        readonly val: A;
+
+        constructor(val: A) {
             super();
+            this.val = val;
         }
 
         /**
@@ -625,13 +625,13 @@ export namespace These {
         readonly typ = "Second";
 
         /**
-         * Construct an instance of `These.Second`.
-         *
-         * Explicit use of this constructor should be avoided; use the
-         * {@link second} function instead.
+         * This These's value.
          */
-        constructor(readonly val: B) {
+        readonly val: B;
+
+        constructor(val: B) {
             super();
+            this.val = val;
         }
 
         /**
@@ -660,13 +660,19 @@ export namespace These {
         readonly typ = "Both";
 
         /**
-         * Construct an instance of `These.Both`.
-         *
-         * Explicit use of this constructor should be avoided; use the
-         * {@link both} function instead.
+         * This These's first value.
          */
-        constructor(readonly fst: A, readonly snd: B) {
+        readonly fst: A;
+
+        /**
+         * This These's second value.
+         */
+        readonly snd: B;
+
+        constructor(fst: A, snd: B) {
             super();
+            this.fst = fst;
+            this.snd = snd;
         }
 
         /**

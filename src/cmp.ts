@@ -347,9 +347,6 @@ export namespace Ordering {
          */
         static readonly singleton = new Less();
 
-        /**
-         * `Less` is not constructable; use the {@link less} constant instead.
-         */
         private constructor() {
             super();
         }
@@ -369,9 +366,6 @@ export namespace Ordering {
          */
         static readonly singleton = new Equal();
 
-        /**
-         * `Equal` is not constructable; use the {@link equal} constant instead.
-         */
         private constructor() {
             super();
         }
@@ -391,10 +385,6 @@ export namespace Ordering {
          */
         static readonly singleton = new Greater();
 
-        /**
-         * `Greater` is not constructable; use the {@link greater} constant
-         * instead.
-         */
         private constructor() {
             super();
         }
@@ -421,9 +411,16 @@ export namespace Ordering {
  */
 export class Reverse<A> {
     /**
+     * This Reverse's value.
+     */
+    readonly val: A;
+
+    /**
      * Construct an instance of Reverse.
      */
-    constructor(readonly val: A) {}
+    constructor(val: A) {
+        this.val = val;
+    }
 
     /**
      * Test this and that Reverse for equality using thier values' behavior as

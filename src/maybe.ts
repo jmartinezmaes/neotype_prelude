@@ -331,10 +331,6 @@ export namespace Maybe {
          */
         static readonly singleton = new Nothing();
 
-        /**
-         * `Nothing` is not constructable; use the {@link nothing} constant
-         * instead.
-         */
         private constructor() {
             super();
         }
@@ -356,11 +352,6 @@ export namespace Maybe {
     }
 
     /**
-     * The absent Maybe.
-     */
-    export const nothing = Maybe.Nothing.singleton as Maybe<never>;
-
-    /**
      * A present Maybe.
      */
     export class Just<out A> extends Syntax {
@@ -370,13 +361,13 @@ export namespace Maybe {
         readonly typ = "Just";
 
         /**
-         * Construct an instance of `Maybe.Just`.
-         *
-         * Explicit use of this constructor should be avoided; use the
-         * {@link just} function instead.
+         * This Maybe's value.
          */
-        constructor(readonly val: A) {
+        readonly val: A;
+
+        constructor(val: A) {
             super();
+            this.val = val;
         }
 
         /**
@@ -394,6 +385,11 @@ export namespace Maybe {
             return (yield [this, yieldTkn]) as A;
         }
     }
+
+    /**
+     * The absent Maybe.
+     */
+    export const nothing = Maybe.Nothing.singleton as Maybe<never>;
 
     /**
      * Extract the present type `A` from the type `Maybe<A>`.
