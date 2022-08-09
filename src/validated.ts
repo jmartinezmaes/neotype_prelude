@@ -290,9 +290,6 @@ export namespace Validated {
      * The fluent syntax for Validated.
      */
     export abstract class Syntax {
-        /**
-         * Test whether this and that Validated are equal using Eq comparison.
-         */
         [Eq.eq]<E extends Eq<E>, A extends Eq<A>>(
             this: Validated<E, A>,
             that: Validated<E, A>,
@@ -303,9 +300,6 @@ export namespace Validated {
             return that.isAccepted() && eq(this.val, that.val);
         }
 
-        /**
-         * Compare this and that Validated using Ord comparison.
-         */
         [Ord.cmp]<E extends Ord<E>, A extends Ord<A>>(
             this: Validated<E, A>,
             that: Validated<E, A>,
@@ -320,10 +314,6 @@ export namespace Validated {
                 : Ordering.greater;
         }
 
-        /**
-         * If this and that Validated are both accepted and their values are a
-         * Semigroup, combine the values.
-         */
         [Semigroup.cmb]<E extends Semigroup<E>, A extends Semigroup<A>>(
             this: Validated<E, A>,
             that: Validated<E, A>,
@@ -478,9 +468,6 @@ export namespace Validated {
          */
         readonly typ = Typ.Disputed;
 
-        /**
-         * This Validated's value.
-         */
         readonly val: E;
 
         constructor(val: E) {
@@ -498,9 +485,6 @@ export namespace Validated {
          */
         readonly typ = Typ.Accepted;
 
-        /**
-         * This Validated's value.
-         */
         readonly val: A;
 
         constructor(val: A) {

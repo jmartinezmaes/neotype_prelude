@@ -32,7 +32,7 @@ export type These<A, B> = These.First<A> | These.Second<B> | These.Both<A, B>;
 
 export namespace These {
     /**
-     * An enumeration used to discriminate These.
+     * An enumeration that discriminates These.
      */
     export enum Typ {
         First = 0,
@@ -358,9 +358,6 @@ export namespace These {
      * The fluent syntax for These.
      */
     export abstract class Syntax {
-        /**
-         * Test whether this and that These are equal using Eq comparison.
-         */
         [Eq.eq]<A extends Eq<A>, B extends Eq<B>>(
             this: These<A, B>,
             that: These<A, B>,
@@ -378,9 +375,6 @@ export namespace These {
             );
         }
 
-        /**
-         * Compare this and that These using Ord comparison.
-         */
         [Ord.cmp]<A extends Ord<A>, B extends Ord<B>>(
             this: These<A, B>,
             that: These<A, B>,
@@ -400,10 +394,6 @@ export namespace These {
             return Ordering.greater;
         }
 
-        /**
-         * Combine this and that These, accumulating both first and second
-         * values using Semigroup combination.
-         */
         [Semigroup.cmb]<A extends Semigroup<A>, B extends Semigroup<B>>(
             this: These<A, B>,
             that: These<A, B>,
@@ -517,7 +507,7 @@ export namespace These {
         }
 
         /**
-         * If this and that These have a second value keep only this These's
+         * If this and that These have a second value, keep only this These's
          * value.
          */
         zipFst<E extends Semigroup<E>, A>(
@@ -528,7 +518,7 @@ export namespace These {
         }
 
         /**
-         * If this and that These have a second value keep only that These's
+         * If this and that These have a second value, keep only that These's
          * value.
          */
         zipSnd<E extends Semigroup<E>, B>(
@@ -598,9 +588,6 @@ export namespace These {
          */
         readonly typ = Typ.First;
 
-        /**
-         * This These's value.
-         */
         readonly val: A;
 
         constructor(val: A) {
@@ -633,9 +620,6 @@ export namespace These {
          */
         readonly typ = Typ.Second;
 
-        /**
-         * This These's value.
-         */
         readonly val: B;
 
         constructor(val: B) {
@@ -668,14 +652,7 @@ export namespace These {
          */
         readonly typ = Typ.Both;
 
-        /**
-         * This These's first value.
-         */
         readonly fst: A;
-
-        /**
-         * This These's second value.
-         */
         readonly snd: B;
 
         constructor(fst: A, snd: B) {

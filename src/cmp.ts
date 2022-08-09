@@ -29,31 +29,31 @@ import { cmb, Semigroup } from "./cmb.js";
  *
  * Instances of Eq are encouraged to satisfy the following properties:
  *
- * __Reflexivity__
+ * **Reflexivity**
  *
  * `eq(x, x) === true`
  *
- * __Symmetry__
+ * **Symmetry**
  *
  * `eq(x, y) === eq(y, x)`
  *
- * __Transitivity__
+ * **Transitivity**
  *
  * If `eq(x, y) && eq(y, z) === true` then `eq(x, z) === true`
  *
- * __Extensionality__
+ * **Extensionality**
  *
  * If `eq(x, y) === true` and `f` is a function whose return type is an
  * instance of Eq, then `eq(f(x), f(y)) === true`
  */
 export interface Eq<in A> {
+    /**
+     * Test whether this and that value are considered equal.
+     */
     [Eq.eq](that: A): boolean;
 }
 
 export namespace Eq {
-    /**
-     * A unique symbol for a method that tests two values for equality.
-     */
     export const eq = Symbol();
 }
 
@@ -114,37 +114,37 @@ export function ieq<A extends Eq<A>>(
  *
  * ## Properties
  *
- * Instances of Ord __must__ satisfy the following properties:
+ * Instances of Ord **must** satisfy the following properties:
  *
- * __Comparability__
+ * **Comparability**
  *
  * `le(x, y) || le(y, x) === true`
  *
- * __Transitivity__
+ * **Transitivity**
  *
  * If `le(x, y) && le(y, z) === true` then `le(x, z) === true`
  *
- * __Reflexivity__
+ * **Reflexivity**
  *
  * `le(x, x) === true`
  *
- * __Antisymmetry__
+ * **Antisymmetry**
  *
  * If `le(x, y) && le(y, x) === true` then `eq(x, y) === true`
  */
 export interface Ord<in A> extends Eq<A> {
+    /**
+     * Compare this and that value to determine an Ordering.
+     */
     [Ord.cmp](that: A): Ordering;
 }
 
 export namespace Ord {
-    /**
-     * A unique symbol for a method that determines the ordering of two values.
-     */
     export const cmp = Symbol();
 }
 
 /**
- * Determine the ordering of two values.
+ * Compare two values to determine an Ordering.
  *
  * ```ts
  * cmp(x, y) ≡ x[Ord.cmp](y)
@@ -155,7 +155,7 @@ export function cmp<A extends Ord<A>>(x: A, y: A): Ordering {
 }
 
 /**
- * Determine the ordering of two iterables.
+ * Compare two iterables to determine an Ordering.
  */
 export function icmp<A extends Ord<A>>(
     xs: Iterable<A>,
@@ -214,21 +214,25 @@ export function ge<A extends Ord<A>>(x: A, y: A): boolean {
 }
 
 /**
- * Find the minimum of two values.
+ * Return the lesser of two values.
+ *
+ * If the values are equal, return the first value.
  */
 export function min<A extends Ord<A>>(x: A, y: A): A {
     return le(x, y) ? x : y;
 }
 
 /**
- * Find the maximum of two values.
+ * Return the greater of two values.
+ *
+ * If the values are equal, return the first value.
  */
 export function max<A extends Ord<A>>(x: A, y: A): A {
     return ge(x, y) ? x : y;
 }
 
 /**
- * Restrict a value to an inclusive bounds.
+ * Restrict a value to an inclusive interval.
  */
 export function clamp<A extends Ord<A>>(x: A, lo: A, hi: A) {
     return min(max(x, lo), hi);
@@ -241,7 +245,7 @@ export type Ordering = Ordering.Less | Ordering.Equal | Ordering.Greater;
 
 export namespace Ordering {
     /**
-     * An enumeration used to discriminate Ordering.
+     * An enumeration that discriminates Ordering.
      */
     export enum Typ {
         Less = -1,
@@ -253,17 +257,10 @@ export namespace Ordering {
      * The fluent syntax for Ordering.
      */
     export abstract class Syntax {
-        /**
-         * Test this and that Ordering for equality.
-         */
         [Eq.eq](this: Ordering, that: Ordering): boolean {
             return this.typ === that.typ;
         }
 
-        /**
-         * Determine the ordering of this and that Ordering, where
-         * `Less < Equal < Greater`.
-         */
         [Ord.cmp](this: Ordering, that: Ordering): Ordering {
             if (this.isLt()) {
                 return that.isLt() ? equal : less;
@@ -274,10 +271,6 @@ export namespace Ordering {
             return that.isEq() ? equal : that.isLt() ? greater : less;
         }
 
-        /**
-         * If this Ordering is `Equal`, return this; otherwise, return the other
-         * Ordering.
-         */
         [Semigroup.cmb](this: Ordering, that: Ordering): Ordering {
             return this.isEq() ? that : this;
         }
@@ -327,9 +320,9 @@ export namespace Ordering {
         /**
          * Reverse this Ordering.
          *
-         * - `Less` becomes `Greater`.
-         * - `Greater` becomes `Less`.
-         * - `Equal` remains `Equal`.
+         * -   `Less` becomes `Greater`.
+         * -   `Greater` becomes `Less`.
+         * -   `Equal` remains `Equal`.
          */
         reverse(this: Ordering): Ordering {
             if (this.isLt()) {
@@ -343,18 +336,14 @@ export namespace Ordering {
     }
 
     /**
-     * An Ordering that models a "less than" relationship between two values.
+     * An Ordering that models a "less than" comparison result.
      */
     export class Less extends Syntax {
         /**
-         * The numerical representation of this Ordering, and the property that
-         * discriminates Ordering.
+         * The property that discriminates Ordering.
          */
         readonly typ = Typ.Less;
 
-        /**
-         * The singleton instance of the Less Ordering.
-         */
         static readonly singleton = new Less();
 
         private constructor() {
@@ -363,18 +352,14 @@ export namespace Ordering {
     }
 
     /**
-     * An Ordering that models an "equal" relationship between two values.
+     * An Ordering that models an "equal" comparison result.
      */
     export class Equal extends Syntax {
         /**
-         * The numerical representation of this Ordering, and the property that
-         * discriminates Ordering.
+         * The property that discriminates Ordering.
          */
         readonly typ = Typ.Equal;
 
-        /**
-         * The singleton instance of the Equal Ordering.
-         */
         static readonly singleton = new Equal();
 
         private constructor() {
@@ -383,18 +368,14 @@ export namespace Ordering {
     }
 
     /**
-     * An Ordering that models a "greater than" relationship between two values.
+     * An Ordering that models a "greater than" comparison result.
      */
     export class Greater extends Syntax {
         /**
-         * The numerical representation of this Ordering, and the property that
-         * discriminates Ordering.
+         * The property that discriminates Ordering.
          */
         readonly typ = Typ.Greater;
 
-        /**
-         * The singleton instance of the Greater Ordering.
-         */
         static readonly singleton = new Greater();
 
         private constructor() {
@@ -403,17 +384,17 @@ export namespace Ordering {
     }
 
     /**
-     * The Ordering that models a "less than" relationship between two values.
+     * The Ordering that models a "less than" comparison result.
      */
     export const less = Ordering.Less.singleton as Ordering;
 
     /**
-     * The Ordering that models an "equal" relationship between two values.
+     * The Ordering that models an "equal" comparison result.
      */
     export const equal = Ordering.Equal.singleton as Ordering;
 
     /**
-     * The Ordering that models a "greater than" relationship between two values.
+     * The Ordering that models a "greater than" comparison result.
      */
     export const greater = Ordering.Greater.singleton as Ordering;
 }
@@ -422,38 +403,20 @@ export namespace Ordering {
  * A helper type for reverse ordering.
  */
 export class Reverse<A> {
-    /**
-     * This Reverse's value.
-     */
     readonly val: A;
 
-    /**
-     * Construct an instance of Reverse.
-     */
     constructor(val: A) {
         this.val = val;
     }
 
-    /**
-     * Test this and that Reverse for equality using thier values' behavior as
-     * instances of Eq.
-     */
     [Eq.eq]<A extends Eq<A>>(this: Reverse<A>, that: Reverse<A>): boolean {
         return eq(this.val, that.val);
     }
 
-    /**
-     * Determine the ordering of this and that Reverse, reversing the ordering
-     * of their underlying Ord values.
-     */
     [Ord.cmp]<A extends Ord<A>>(this: Reverse<A>, that: Reverse<A>): Ordering {
         return cmp(this.val, that.val).reverse();
     }
 
-    /**
-     * Combine this and that Reverse using their values' behavior as instances
-     * of Semigroup.
-     */
     [Semigroup.cmb]<A extends Semigroup<A>>(
         this: Reverse<A>,
         that: Reverse<A>,

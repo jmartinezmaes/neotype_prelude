@@ -32,7 +32,7 @@ export type Either<A, B> = Either.Left<A> | Either.Right<B>;
 
 export namespace Either {
     /**
-     * An enumeration used to discriminate Either.
+     * An enumeration that discriminates Either.
      */
     export enum Typ {
         Left = 0,
@@ -196,9 +196,6 @@ export namespace Either {
      * The fluent syntax for Either.
      */
     export abstract class Syntax {
-        /**
-         * Test whether this and that Either are equal using Eq comparison.
-         */
         [Eq.eq]<A extends Eq<A>, B extends Eq<B>>(
             this: Either<A, B>,
             that: Either<A, B>,
@@ -209,9 +206,6 @@ export namespace Either {
             return that.isRight() && eq(this.val, that.val);
         }
 
-        /**
-         * Compare this and that Either using Ord comparison.
-         */
         [Ord.cmp]<A extends Ord<A>, B extends Ord<B>>(
             this: Either<A, B>,
             that: Either<A, B>,
@@ -222,10 +216,6 @@ export namespace Either {
             return that.isRight() ? cmp(this.val, that.val) : Ordering.greater;
         }
 
-        /**
-         * If this and that Either are both rightsided and their values are a
-         * Semigroup, combine the values.
-         */
         [Semigroup.cmb]<E, A extends Semigroup<A>>(
             this: Either<E, A>,
             that: Either<E, A>,
@@ -262,7 +252,7 @@ export namespace Either {
 
         /**
          * If this Either is leftsided, extract its value; otherwise, apply a
-         * function to the right value.
+         * function to the rightsided value.
          */
         leftOrFold<A, B, C>(
             this: Either<A, B>,
@@ -273,7 +263,7 @@ export namespace Either {
 
         /**
          * If this Either is rightsided, extract its value; otherwise, apply a
-         * function to the left value.
+         * function to the leftsided value.
          */
         rightOrFold<A, B, C>(
             this: Either<A, B>,
@@ -285,8 +275,6 @@ export namespace Either {
         /**
          * If this Either is leftsided, apply a function to its value to produce
          * a new Either.
-         *
-         * The equivalent of {@link flatMap} for leftsided values.
          */
         bindLeft<E, A, E1, B>(
             this: Either<E, A>,
@@ -317,7 +305,7 @@ export namespace Either {
         }
 
         /**
-         * If this Either's right value is an Either, flatten this Either.
+         * If this Either is rightsided with an Either, return the inner Either.
          */
         flat<E, E1, A>(this: Either<E, Either<E1, A>>): Either<E | E1, A> {
             return this.flatMap(id);
@@ -336,7 +324,8 @@ export namespace Either {
         }
 
         /**
-         * If this and that Either are rightsided, keep only this Either's value.
+         * If this and that Either are rightsided, keep only this Either's
+         * value.
          */
         zipFst<E, A, E1>(
             this: Either<E, A>,
@@ -346,7 +335,8 @@ export namespace Either {
         }
 
         /**
-         * If this and that Either are rightsided, keep only that Either's value.
+         * If this and that Either are rightsided, keep only that Either's
+         * value.
          */
         zipSnd<E, E1, B>(
             this: Either<E, any>,
@@ -398,9 +388,6 @@ export namespace Either {
          */
         readonly typ = Typ.Left;
 
-        /**
-         * This Either's value.
-         */
         readonly val: A;
 
         constructor(val: A) {
@@ -433,9 +420,6 @@ export namespace Either {
          */
         readonly typ = Typ.Right;
 
-        /**
-         * This Either's value.
-         */
         readonly val: B;
 
         constructor(val: B) {

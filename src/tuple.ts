@@ -27,12 +27,12 @@ import { Eq, icmp, ieq, Ord, type Ordering } from "./cmp.js";
  * A helper type for tuple literals of arity 2 through 10.
  */
 export class Tuple<out T extends readonly [any, any, ...any[]]> {
-    constructor(readonly val: T) {}
+    readonly val: T;
 
-    /**
-     * Test this and that Tuple for pairwise equality using their elements'
-     * behavior as instances of Eq.
-     */
+    constructor(val: T) {
+        this.val = val;
+    }
+
     [Eq.eq]<A0 extends Eq<A0>, A1 extends Eq<A1>>(
         this: Tuple<readonly [A0, A1]>,
         that: Tuple<readonly [A0, A1]>,
@@ -92,10 +92,6 @@ export class Tuple<out T extends readonly [any, any, ...any[]]> {
         return ieq(this.val, that.val);
     }
 
-    /**
-     * Compare this and that Tuple pairwise using their elements' behavior as
-     * instance of Ord.
-     */
     [Ord.cmp]<A0 extends Ord<A0>, A1 extends Ord<A1>>(
         this: Tuple<readonly [A0, A1]>,
         that: Tuple<readonly [A0, A1]>,
@@ -155,10 +151,6 @@ export class Tuple<out T extends readonly [any, any, ...any[]]> {
         return icmp(this.val, that.val);
     }
 
-    /**
-     * Combine this and that Tuple's elements pairwise using their elements'
-     * behavior as instances of Semigroup.
-     */
     [Semigroup.cmb]<A0 extends Semigroup<A0>, A1 extends Semigroup<A1>>(
         this: Tuple<readonly [A0, A1]>,
         that: Tuple<readonly [A0, A1]>,

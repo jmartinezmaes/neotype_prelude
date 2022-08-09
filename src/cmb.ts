@@ -25,21 +25,20 @@
  *
  * ## Properties
  *
- * Instances of Semigroup __must__ satisfy the following property:
+ * Instances of Semigroup **must** satisfy the following property:
  *
- * __Associativity__
+ * **Associativity**
  *
  * `cmb(x, cmb(y, z)) ≡ cmb(cmb(x, y), z)`
  */
 export interface Semigroup<in out A> {
+    /**
+     * Combines this and that value using an associative operation.
+     */
     [Semigroup.cmb](that: A): A;
 }
 
 export namespace Semigroup {
-    /**
-     * A unique symbol for a method that combines two Semigroup values using an
-     * associative operation.
-     */
     export const cmb = Symbol();
 }
 

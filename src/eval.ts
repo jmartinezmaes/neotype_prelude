@@ -151,7 +151,7 @@ export class Eval<out A> {
     }
 
     /**
-     * An instruction used to build an evaluation tree for Eval.
+     * An instruction that builds an evaluation tree for Eval.
      */
     readonly #i: Instr;
 
@@ -191,7 +191,7 @@ export class Eval<out A> {
     }
 
     /**
-     * If this Eval's result is an Eval, flatten this Eval.
+     * If this Eval's result is an Eval, return the inner Eval.
      */
     flat<A>(this: Eval<Eval<A>>): Eval<A> {
         return this.flatMap(id);
@@ -205,14 +205,14 @@ export class Eval<out A> {
     }
 
     /**
-     * Evaluate this Eval then that Eval and keep only this Eval's result.
+     * Evaluate this Eval then that Eval, then keep only this Eval's result.
      */
     zipFst(that: Eval<any>): Eval<A> {
         return this.zipWith(that, id);
     }
 
     /**
-     * Evaluate this Eval then that Eval and keep only that Eval's result.
+     * Evaluate this Eval then that Eval, then keep only that Eval's result.
      */
     zipSnd<B>(that: Eval<B>): Eval<B> {
         return this.flatMap(() => that);

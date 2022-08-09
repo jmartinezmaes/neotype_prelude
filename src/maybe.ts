@@ -32,7 +32,7 @@ export type Maybe<A> = Maybe.Nothing | Maybe.Just<A>;
 
 export namespace Maybe {
     /**
-     * An enumeration used to discriminate Maybe.
+     * An enumeration that discriminates Maybe.
      */
     export enum Typ {
         Nothing = 0,
@@ -61,7 +61,7 @@ export namespace Maybe {
     }
 
     /**
-     * Consruct a Maybe, converting null and undefined to nothing.
+     * Consruct a Maybe, converting `null` and `undefined` to nothing.
      */
     export function fromMissing<A>(x: A | null | undefined): Maybe<A> {
         return x === null || x === undefined ? nothing : just(x);
@@ -69,7 +69,7 @@ export namespace Maybe {
 
     /**
      * Apply a predicate function to a value. If the predicate returns true,
-     * return a Just containing the value; otherwise return nothing.
+     * return the value in a `Just`; otherwise, return `Nothing`.
      */
     export function guard<A, A1 extends A>(
         x: A,
@@ -185,9 +185,6 @@ export namespace Maybe {
      * The fluent syntax for Maybe.
      */
     export abstract class Syntax {
-        /**
-         * Test whether this and that Maybe are equal using Eq comparison.
-         */
         [Eq.eq]<A extends Eq<A>>(this: Maybe<A>, that: Maybe<A>): boolean {
             if (this.isNothing()) {
                 return that.isNothing();
@@ -195,9 +192,6 @@ export namespace Maybe {
             return that.isJust() && eq(this.val, that.val);
         }
 
-        /**
-         * Compare this and that Maybe using Ord comparison.
-         */
         [Ord.cmp]<A extends Ord<A>>(this: Maybe<A>, that: Maybe<A>): Ordering {
             if (this.isNothing()) {
                 return that.isNothing() ? Ordering.equal : Ordering.less;
@@ -207,11 +201,6 @@ export namespace Maybe {
                 : cmp(this.val, that.val);
         }
 
-        /**
-         * If this or that Maybe is absent, return the first non-absent Maybe.
-         * If this and that are both present and their values are a Semigroup,
-         * combine the values.
-         */
         [Semigroup.cmb]<A extends Semigroup<A>>(
             this: Maybe<A>,
             that: Maybe<A>,
@@ -279,7 +268,7 @@ export namespace Maybe {
         }
 
         /**
-         * If this Maybe contains another Maybe, flatten this Maybe.
+         * If this Maybe is present with a Maybe, return the inner Maybe.
          */
         flat<A>(this: Maybe<Maybe<A>>): Maybe<A> {
             return this.flatMap(id);
@@ -334,9 +323,6 @@ export namespace Maybe {
          */
         readonly typ = Typ.Nothing;
 
-        /**
-         * The singleton instance of the absent Maybe.
-         */
         static readonly singleton = new Nothing();
 
         private constructor() {
@@ -368,9 +354,6 @@ export namespace Maybe {
          */
         readonly typ = Typ.Just;
 
-        /**
-         * This Maybe's value.
-         */
         readonly val: A;
 
         constructor(val: A) {
