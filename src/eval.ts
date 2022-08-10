@@ -117,8 +117,8 @@ export class Eval<out A> {
         return Eval.go(function* () {
             const l = xs.length;
             const ys = new Array(l);
-            for (let ix = 0; ix < l; ix++) {
-                ys[ix] = yield* xs[ix];
+            for (const [ix, x] of xs.entries()) {
+                ys[ix] = yield* x;
             }
             return ys as unknown as Eval.ResultsT<T>;
         });

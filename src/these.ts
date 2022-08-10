@@ -222,8 +222,8 @@ export namespace These {
         return go(function* () {
             const l = xs.length;
             const ys: A[] = new Array(l);
-            for (let ix = 0; ix < l; ix++) {
-                ys[ix] = yield* xs[ix];
+            for (const [ix, x] of xs.entries()) {
+                ys[ix] = yield* x;
             }
             return ys;
         });
