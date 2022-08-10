@@ -248,9 +248,9 @@ export namespace Ordering {
      * An enumeration that discriminates Ordering.
      */
     export enum Typ {
-        Less = -1,
-        Equal = 0,
-        Greater = 1,
+        Less = 0,
+        Equal = 1,
+        Greater = 2,
     }
 
     /**
