@@ -753,12 +753,12 @@ export type Ordering = Ordering.Less | Ordering.Equal | Ordering.Greater;
  *
  * -   The `Less`, `Equal`, and `Greater` variant classes.
  * -   The `less`, `equal`, and `greater` constants.
- * -   An abstract `Syntax` class that provides the fluent API for Ordering.
- * -   A `Typ` enumeration that discriminates Ordering.
+ * -   An abstract `Syntax` class that provides the fluent API for `Ordering`.
+ * -   A `Typ` enumeration that discriminates `Ordering`.
  */
 export namespace Ordering {
     /**
-     * An enumeration that discriminates Ordering.
+     * An enumeration that discriminates `Ordering`.
      */
     export enum Typ {
         Less = 0,
@@ -788,7 +788,7 @@ export namespace Ordering {
     }
 
     /**
-     * The fluent syntax for Ordering.
+     * The fluent syntax for `Ordering`.
      */
     export abstract class Syntax {
         [Eq.eq](this: Ordering, that: Ordering): boolean {
@@ -893,7 +893,7 @@ export namespace Ordering {
         static readonly singleton = new Less();
 
         /**
-         * The property that discriminates Ordering.
+         * The property that discriminates `Ordering`.
          */
         readonly typ = Typ.Less;
 
@@ -909,7 +909,7 @@ export namespace Ordering {
         static readonly singleton = new Equal();
 
         /**
-         * The property that discriminates Ordering.
+         * The property that discriminates `Ordering`.
          */
         readonly typ = Typ.Equal;
 
@@ -925,7 +925,7 @@ export namespace Ordering {
         static readonly singleton = new Greater();
 
         /**
-         * The property that discriminates Ordering.
+         * The property that discriminates `Ordering`.
          */
         readonly typ = Typ.Greater;
 
