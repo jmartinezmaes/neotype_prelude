@@ -767,6 +767,27 @@ export namespace Ordering {
     }
 
     /**
+     * Construct an Ordering from a number `n`.
+     *
+     * -   If `n < 0`, return `Less`.
+     * -   If `n > 0`, return `Greater`.
+     * -   If `n === 0`, return `Equal`.
+     * -   If `n` is `NaN`, throw an Error.
+     */
+    export function fromNumber(n: number): Ordering {
+        if (Number.isNaN(n)) {
+            throw new Error("cannot construct an Ordering from NaN");
+        }
+        if (n < 0) {
+            return less;
+        }
+        if (n > 0) {
+            return greater;
+        }
+        return equal;
+    }
+
+    /**
      * The fluent syntax for Ordering.
      */
     export abstract class Syntax {
@@ -845,6 +866,23 @@ export namespace Ordering {
                 return less;
             }
             return this;
+        }
+
+        /**
+         * Convert this Ordering to a number.
+         *
+         * -   If this is `Less`, return -1.
+         * -   If this is `Greater`, return 1.
+         * -   If this is `Equal`, return 0.
+         */
+        toNumber(this: Ordering): -1 | 0 | 1 {
+            if (this.isLt()) {
+                return -1;
+            }
+            if (this.isGt()) {
+                return 1;
+            }
+            return 0;
         }
     }
 

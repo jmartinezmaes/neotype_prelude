@@ -162,7 +162,28 @@ describe("Ord", () => {
 });
 
 describe("Ordering", () => {
-    specify("[Eq.eq]", () => {
+    specify("fromNumber", () => {
+        fc.assert(
+            fc.property(fc.integer(), (x) => {
+                const t0 = Ordering.fromNumber(x);
+                if (x < 0) {
+                    assert.strictEqual(t0, Ordering.less);
+                } else if (x > 0) {
+                    assert.strictEqual(t0, Ordering.greater);
+                } else {
+                    assert.strictEqual(t0, Ordering.equal);
+                }
+            }),
+        );
+
+        function testNaN(): Ordering {
+            return Ordering.fromNumber(NaN);
+        }
+
+        assert.throws(testNaN, "cannot construct an Ordering from NaN");
+    });
+
+    specify("#[Eq.eq]", () => {
         const t0 = eq(Ordering.less, Ordering.less);
         assert.strictEqual(t0, true);
 
@@ -191,7 +212,7 @@ describe("Ordering", () => {
         assert.strictEqual(t8, true);
     });
 
-    specify("[Ord.cmp]", () => {
+    specify("#[Ord.cmp]", () => {
         const t0 = cmp(Ordering.less, Ordering.less);
         assert.strictEqual(t0, Ordering.equal);
 
@@ -220,7 +241,7 @@ describe("Ordering", () => {
         assert.strictEqual(t8, Ordering.equal);
     });
 
-    specify("[Semigroup.cmb]", () => {
+    specify("#[Semigroup.cmb]", () => {
         const t0 = cmb(Ordering.less, Ordering.less);
         assert.strictEqual(t0, Ordering.less);
 
@@ -249,7 +270,7 @@ describe("Ordering", () => {
         assert.strictEqual(t8, Ordering.greater);
     });
 
-    specify("isEq", () => {
+    specify("#isEq", () => {
         const t0 = Ordering.less.isEq();
         assert.strictEqual(t0, false);
 
@@ -260,7 +281,7 @@ describe("Ordering", () => {
         assert.strictEqual(t2, false);
     });
 
-    specify("isNe", () => {
+    specify("#isNe", () => {
         const t0 = Ordering.less.isNe();
         assert.strictEqual(t0, true);
 
@@ -271,7 +292,7 @@ describe("Ordering", () => {
         assert.strictEqual(t2, true);
     });
 
-    specify("isLt", () => {
+    specify("#isLt", () => {
         const t0 = Ordering.less.isLt();
         assert.strictEqual(t0, true);
 
@@ -282,7 +303,7 @@ describe("Ordering", () => {
         assert.strictEqual(t2, false);
     });
 
-    specify("isGt", () => {
+    specify("#isGt", () => {
         const t0 = Ordering.less.isGt();
         assert.strictEqual(t0, false);
 
@@ -293,7 +314,7 @@ describe("Ordering", () => {
         assert.strictEqual(t2, true);
     });
 
-    specify("isLe", () => {
+    specify("#isLe", () => {
         const t0 = Ordering.less.isLe();
         assert.strictEqual(t0, true);
 
@@ -304,7 +325,7 @@ describe("Ordering", () => {
         assert.strictEqual(t2, false);
     });
 
-    specify("isGe", () => {
+    specify("#isGe", () => {
         const t0 = Ordering.less.isGe();
         assert.strictEqual(t0, false);
 
@@ -315,7 +336,7 @@ describe("Ordering", () => {
         assert.strictEqual(t2, true);
     });
 
-    specify("reverse", () => {
+    specify("#reverse", () => {
         const t0 = Ordering.less.reverse();
         assert.strictEqual(t0, Ordering.greater);
 
@@ -325,10 +346,21 @@ describe("Ordering", () => {
         const t2 = Ordering.greater.reverse();
         assert.strictEqual(t2, Ordering.less);
     });
+
+    specify("#toNumber", () => {
+        const t0 = Ordering.less.toNumber();
+        assert.strictEqual(t0, -1);
+
+        const t1 = Ordering.equal.toNumber();
+        assert.strictEqual(t1, 0);
+
+        const t2 = Ordering.greater.toNumber();
+        assert.strictEqual(t2, 1);
+    });
 });
 
 describe("Reverse", () => {
-    specify("[Eq.eq]", () => {
+    specify("#[Eq.eq]", () => {
         fc.assert(
             fc.property(arbRevNum(), arbRevNum(), (x, y) =>
                 assert.strictEqual(eq(x, y), eq(x.val, y.val)),
@@ -336,7 +368,7 @@ describe("Reverse", () => {
         );
     });
 
-    specify("[Ord.cmp]", () => {
+    specify("#[Ord.cmp]", () => {
         fc.assert(
             fc.property(arbRevNum(), arbRevNum(), (x, y) =>
                 assert.strictEqual(cmp(x, y), cmp(x.val, y.val).reverse()),
@@ -344,7 +376,7 @@ describe("Reverse", () => {
         );
     });
 
-    specify("[Semigroup.cmb]", () => {
+    specify("#[Semigroup.cmb]", () => {
         fc.assert(
             fc.property(arbRevStr(), arbRevStr(), (x, y) =>
                 assert.deepEqual(cmb(x, y), new Reverse(cmb(x.val, y.val))),

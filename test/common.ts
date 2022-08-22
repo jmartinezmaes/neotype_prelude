@@ -21,7 +21,7 @@ export class Num implements Ord<Num> {
 }
 
 export function arbNum(): fc.Arbitrary<Num> {
-    return fc.integer({ min: 0, max: 10 }).map((x) => new Num(x));
+    return fc.integer().map((x) => new Num(x));
 }
 
 export class Str implements Semigroup<Str> {
