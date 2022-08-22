@@ -17,70 +17,345 @@
 /**
  * Functionality for ordering and comparison.
  *
+ * This module provides tools for ordering and comparing values.
+ *
+ * ## Implementing equivalence relations and total orders
+ *
+ * -   The `Eq` and `Ord` interfaces provide contracts for implementing
+ *     [equivalence relations] and [total orders], respectively. See their
+ *     respective documentation for implementation patterns.
+ * -   The `Eq` and `Ord` companion namespaces provide the unique symbols
+ *     required to implement their associated interfaces.
+ *
+ * ## Comparing values
+ *
+ * `Eq` values are compared using:
+ *
+ * -   `eq` to test for equality; and
+ * -   `ne` to test for inequality.
+ *
+ * In addition to the functions above, `Ord` values are compared using:
+ *
+ * -   `cmp` to determine an ordering;
+ * -   `lt` to test for a "less than" ordering;
+ * -   `gt` to test for a "greater than" ordering;
+ * -   `le` to test for a "less than or equal" ordering; and
+ * -   `ge` to test for a "greater than or equal" ordering.
+ *
+ * Furthermore:
+ *
+ * -   `min` and `max` use `Ord` behavior to find a minimum and maximum value,
+ *     respectively; and
+ * -   `clamp` uses `Ord` behavior to restrict a value to an inclusive interval.
+ *
+ * ## Comparing Iterables
+ *
+ * Iterables of `Eq` and `Ord` values are compared using:
+ *
+ * -   `ieq` to test for equivalance; and
+ * -   `icmp` to determine an ordering.
+ *
+ * These functions are useful for implementing `Eq` and `Ord` for collections
+ * and containers.
+ *
+ * ### Lexicographical comparison
+ *
+ * Iterables are compared [lexicographically], which means:
+ *
+ * -   Two Iterables are compared element by element.
+ * -   Two empty Iterables are lexicographically equal.
+ * -   If two Iterables have equivalent elements and are of the same length,
+ *     then the Iterables are lexicographically equal.
+ * -   An empty Iterable is lexicographically less than any non-empty Iterable.
+ * -   If one Iterable is a prefix of another, the shorter Iterable is
+ *     lexicographically less than the other.
+ * -   The first mismatching element defines which Iterable is lexicographically
+ *     less or greater than the other.
+ *
+ * ## Orderings
+ *
+ * The `Ordering` type represents a comparison between two values and is used to
+ * implement `Ord`. An `Ordering` can be one of:
+ *
+ * -   `Less` indicating a "less than" comparison;
+ * -   `Equal` indicating an "equal" comparison; or
+ * -   `Greater` indicating a "greater than" comparison.
+ *
+ * These variants are represented by the `less`, `equal`, and `greater`
+ * constants, respectively.
+ *
+ * ### Comparing `Ordering`
+ *
+ * `Ordering` defines an equivalance relation and a total order:
+ *
+ * -   two Orderings are equal if they are the same variant; and
+ * -   `Less < Equal < Greater` when ordered.
+ *
+ * ### Combining `Ordering`
+ *
+ * `Ordering` is also a semigroup: when combined, the first non-`Equal` Ordering
+ * defines the overall ordering. This behavior is useful for implementing
+ * lexicographical ordering.
+ *
+ * ### Other methods
+ *
+ * -   `reverse` reverses the Ordering, changing `Less` to `Greater` and
+ *     `Greater` to `Less` while keeping `Equal` the same.
+ * -   `toNumber` converts the Ordering to a number value.
+ *
+ * ## Reversing orderings
+ *
+ * The `Reverse` helper type reverses the ordering of an underlying `Ord` value,
+ * and provides pass-through implementations for `Eq` and `Semigroup`.
+ *
+ * [equivalence relations]: https://mathworld.wolfram.com/EquivalenceRelation.html
+ * [total orders]: https://mathworld.wolfram.com/TotalOrder.html
+ * [lexicographically]: https://mathworld.wolfram.com/LexicographicOrder.html
+ *
  * @module
  */
 
 import { cmb, Semigroup } from "./cmb.js";
 
 /**
- * An interface that provides evidence of an equivalance relation.
+ * An interface that provides evidence of an [equivalence relation].
  *
  * ## Properties
  *
- * Instances of Eq are encouraged to satisfy the following properties:
+ * Instances of `Eq` must implement an equality comparison that is:
  *
- * **Reflexivity**
+ * -   reflexive: `eq(x, x)`;
+ * -   symmetric: `eq(x, y)` implies `eq(y, x)`; and
+ * -   transitive: `eq(x, y)` and `eq(y, z)` implies `eq(x, z)`
  *
- * `eq(x, x) === true`
+ * for all `x`, `y`, and `z`.
  *
- * **Symmetry**
+ * ## Implementing `Eq`
  *
- * `eq(x, y) === eq(y, x)`
+ * `Eq` requires an implementation for `[Eq.eq]`.
  *
- * **Transitivity**
+ * The most common implementation strategies are writing classes and patching
+ * existing prototypes.
  *
- * If `eq(x, y) && eq(y, z) === true` then `eq(x, z) === true`
+ * >Implementation is implicit and does not require an `implements` clause.
+ * >TypeScript uses [structural subtyping] to determine whether a value has
+ * >implemented `Eq`.
  *
- * **Extensionality**
+ * Working with generic types requires additional consideration: in some cases,
+ * a generic type implements `Eq` *only* when one or more of its type parameters
+ * implements `Eq`; in these cases, we must require an `Eq` implementation for
+ * the parameter(s). In other cases, there are no such requirements.
  *
- * If `eq(x, y) === true` and `f` is a function whose return type is an
- * instance of Eq, then `eq(f(x), f(y)) === true`
+ * ### Writing classes
+ *
+ * Classes and objects can implement `Eq`. This strategy works best for types
+ * that:
+ *
+ * -   are already modeled using classes or objects.
+ * -   provide direct access to their implementation.
+ * -   have a single, specific behavior as an equivalence relation.
+ *
+ * Additionally, classes can easily wrap existing types to provide a variety of
+ * `Eq` implementations. These "helper" classes are useful for types that:
+ *
+ * -   have more than one behavior as an equivalence relation, or already have a
+ *     default implementation for `Eq` and can have alternative implementations.
+ * -   do not provide access to their implementation, and where patching the
+ *     implementation is undesireable.
+ *
+ * `Maybe`, `Either`, `These`, `Validated`, and `Tuple` involve classes that
+ * provide unique implementations for `Eq`. See the documentation in the
+ * associated modules for more details.
+ *
+ * #### Example: non-generic type
+ *
+ * Consider a `Book` type that determines equality by comparing ISBNs:
+ *
+ * ```ts
+ * enum BookFormat { Hardcopy, Paperback, Digital }
+ *
+ * class Book {
+ *     constructor(readonly isbn: number, readonly fmt: BookFormat) {}
+ *
+ *     [Eq.eq](that: Book): boolean {
+ *         return this.isbn === that.isbn;
+ *     }
+ * }
+ * ```
+ *
+ * If desired, we can also require the same `BookFormat` for two Books to be
+ * considered equal:
+ *
+ * ```ts
+ * enum BookFormat { Hardcopy, Paperback, Digital }
+ *
+ * class Book {
+ *     constructor(readonly isbn: number, readonly fmt: BookFormat) {}
+ *
+ *     [Eq.eq](that: Book): boolean {
+ *         return this.isbn === that.isbn && this.fmt === that.fmt;
+ *     }
+ * }
+ * ```
+ *
+ * #### Example: generic type with no `Eq` requirements
+ *
+ * Consider a type that determines equality by comparing the lengths of Arrays:
+ *
+ * ```ts
+ * class Len<A> {
+ *     constructor(readonly val: A[]) {}
+ *
+ *     [Eq.eq](that: Len<A>): boolean {
+ *         return this.val.length === that.val.length;
+ *     }
+ * }
+ * ```
+ *
+ * Notice how `Len` is generic, but there are no special requirements for
+ * implementing `[Eq.eq]`.
+ *
+ * #### Example: generic type with an `Eq` requirement
+ *
+ * Consider a type that determines equality by comparing the elements of Arrays
+ * by index:
+ *
+ * ```ts
+ * class Arr<A> {
+ *     constructor(readonly val: A[]) {}
+ *
+ *     [Eq.eq]<A extends Eq<A>>(this: Arr<A>, that: Arr<A>): boolean {
+ *         return ieq(this.val, that.val);
+ *     }
+ * }
+ * ```
+ *
+ * Notice the extra syntax when implementing `[Eq.eq]`. We introduce a
+ * *method-scoped* type parameter `A` and require that it has an `Eq`
+ * implementation by writing `A extends Eq<A>` (the name `A` is arbitrary).
+ *
+ * Then, we require that `this` and `that` are `Arr<A>` where `A extends Eq<A>`.
+ * This allows us to use `ieq` to implement our desired behavior.
+ *
+ * #### Example: generic type with multiple `Eq` requirements
+ *
+ * Consider a type that determines equality by comparing values pairwise, which
+ * requires that each value in the pair implement `Eq`:
+ *
+ * ```ts
+ * class Pair<A, B> {
+ *     constructor(readonly fst: A, readonly snd: B) {}
+ *
+ *     [Eq.eq]<A extends Eq<A>, B extends Eq<B>>(
+ *         this: Pair<A, B>,
+ *         that: Pair<A, B>,
+ *     ): boolean {
+ *         return eq(this.fst, that.fst) && eq(this.snd, that.snd);
+ *     }
+ * }
+ * ```
+ *
+ * The syntax is similar to the `Arr` implementation above. Notice there are now
+ * two method-scoped type parameters that are each required to implement `Eq`.
+ *
+ * ### Patching existing prototypes
+ *
+ * Existing types can be patched to implement `Eq`. This strategy works well for
+ * types that:
+ *
+ * -   are built-in or imported from external modules.
+ * -   do not provide access to their implementation.
+ * -   have a single, specific behavior as an equivalence relation, or where the
+ *     programmer wishes to implement a default behavior.
+ *
+ * Patching a type in TypeScript requires two steps:
+ *
+ * 1.   an [augmentation] for a module or the global scope that patches the
+ *      type-level representation; and
+ * 2.   a concrete implementation for `[Eq.eq]`.
+ *
+ * The concrete implementation logic is similar to writing a method body for a
+ * class or object, and the same practices apply for requiring generic
+ * parameters to implement `Eq`.
+ *
+ * #### Examples
+ *
+ * Consider a module augmentation for an externally defined `Book` type:
+ *
+ * ```ts
+ * import { Book } from "path_to/book.js";
+ *
+ * declare module "path_to/book.js" {
+ *     interface Book {
+ *         [Eq.eq](that: Book): boolean
+ *     }
+ * }
+ *
+ * Book.prototype[Eq.eq] = function (that: Book): boolean {
+ *     return this.isbn === that.isbn;
+ * };
+ * ```
+ *
+ * Consider a global augmentation for the `Array` prototype:
+ *
+ * ```ts
+ * declare global {
+ *     interface Array<T> {
+ *         [Eq.eq]<A extends Eq<A>>(this: A[], that: A[]): boolean
+ *     }
+ * }
+ *
+ * Array.prototype[Eq.eq] = function <A extends Eq<A>>(
+ *     this: A[],
+ *     that: A[],
+ * ): boolean {
+ *     return ieq(this, that);
+ * };
+ * ```
+ *
+ * [equivalence relation]: https://mathworld.wolfram.com/EquivalenceRelation.html
+ * [structural subtyping]: https://www.typescriptlang.org/docs/handbook/type-compatibility.html#site-content
+ * [augmentation]: https://www.typescriptlang.org/docs/handbook/declaration-merging.html#module-augmentation
  */
 export interface Eq<in A> {
     /**
-     * Test whether this and that value are considered equal.
+     * Test whether this and that instance of `Eq` are considered equivalent.
      */
     [Eq.eq](that: A): boolean;
 }
 
+/**
+ * The companion namespace for the `Eq` interface.
+ *
+ * This namespace provides the unique symbol `eq` required to implement `Eq`.
+ */
 export namespace Eq {
     export const eq = Symbol();
 }
 
 /**
- * Test two values for equality.
+ * Test whether two values are equal.
  *
- * ```ts
- * eq(x, y) ≡ x[Eq.eq](y)
- * ```
+ * `eq(x, y)` is equivalent to `x[Eq.eq](y)`.
  */
 export function eq<A extends Eq<A>>(x: A, y: A): boolean {
     return x[Eq.eq](y);
 }
 
 /**
- * Test two values for inequality.
+ * Test whether two values are inequal.
  *
- * ```ts
- * ne(x, y) ≡ !x[Eq.eq](y)
- * ```
+ * `ne(x, y)` is equivalent to `!x[Eq.eq](y)`.
  */
 export function ne<A extends Eq<A>>(x: A, y: A): boolean {
     return !x[Eq.eq](y);
 }
 
 /**
- * Test two iterables for equality.
+ * Test whether two iterables are lexicographically equal.
+ *
+ * If two Iterables have equivalent elements and are of the same length, then
+ * the Iterables are lexicographically equal.
  */
 export function ieq<A extends Eq<A>>(
     xs: Iterable<A>,
@@ -110,52 +385,280 @@ export function ieq<A extends Eq<A>>(
 }
 
 /**
- * An interface that provides evidence of a total order.
+ * An interface that provides evidence of a [total order].
  *
  * ## Properties
  *
- * Instances of Ord **must** satisfy the following properties:
+ * In addition to being equivalence relations, instances of `Ord` must define a
+ * method of comparison such that an instance is also:
  *
- * **Comparability**
+ * -   reflexive: `le(x, x)`;
+ * -   antisymmetric: `le(x, y)` and `le(y, x)` implies `eq(x, y)`;
+ * -   transitive: `le(x, y)` and `le(y, z)` implies `le(x, z)`; and
+ * -   comparable: either `le(x, y)` or `le(y, x)`
  *
- * `le(x, y) || le(y, x) === true`
+ * for all `x`, `y`, and `z`.
  *
- * **Transitivity**
+ * ## Implementing `Ord`
  *
- * If `le(x, y) && le(y, z) === true` then `le(x, z) === true`
+ * `Ord` extends `Eq`, and therefore requires an implementation for both
+ * `[Eq.eq]` and `[Ord.cmp]`.
  *
- * **Reflexivity**
+ * The most common implementation strategies are writing classes and patching
+ * existing prototypes.
  *
- * `le(x, x) === true`
+ * >Implementation is implicit and does not require an `implements` clause.
+ * >TypeScript uses [structural subtyping] to determine whether a value has
+ * >implemented `Ord`.
  *
- * **Antisymmetry**
+ * Working with generic types requires additional consideration: in some cases,
+ * a generic type implements `Ord` *only* when one or more of its type
+ * parameters implements `Ord`; in these cases, we must require an `Ord`
+ * implementation for the parameter(s). In other cases, there are no such
+ * requirements.
  *
- * If `le(x, y) && le(y, x) === true` then `eq(x, y) === true`
+ * ### Writing classes
+ *
+ * Classes and objects can implement `Ord`. This strategy works best for types
+ * that:
+ *
+ * -   are already modeled using classes or objects.
+ * -   provide direct access to their implementation.
+ * -   have a single, specific behavior as a total order.
+ *
+ * Additionally, classes can easily wrap existing types to provide a variety of
+ * `Ord` implementations. These "helper" classes are useful for types that:
+ *
+ * -   have more than one behavior as a total order, or already have a default
+ *     implementation for `Ord` and can have alternative implementations.
+ * -   do not provide access to their implementation, and where patching the
+ *     implementation is undesireable.
+ *
+ * `Maybe`, `Either`, `These`, `Validated`, and `Tuple` involve classes that
+ * provide unique implementations for `Ord`. See the documentation in the
+ * associated modules for more details.
+ *
+ * #### Example: non-generic type
+ *
+ * Consider a Book type that determines ordering by comparing ISBNs:
+ *
+ * ```ts
+ * enum BookFormat { Hardcopy, Paperback, Digital }
+ *
+ * class Book {
+ *     constructor(readonly isbn: number, readonly fmt: BookFormat) {}
+ *
+ *     [Eq.eq](that: Book): boolean {
+ *         // An exercise for the reader...
+ *     }
+ *
+ *     [Ord.cmp](that: Book): Ordering {
+ *         return Ordering.fromNumber(this.isbn - that.isbn);
+ *     }
+ * }
+ * ```
+ *
+ * If desired, we can also consider a Book's `BookFormat` property that helps
+ * determine ordering:
+ *
+ * ```ts
+ * enum BookFormat { Hardcopy, Paperback, Digital }
+ *
+ * class Book {
+ *     constructor(readonly isbn: number, readonly fmt: BookFormat) {}
+ *
+ *     [Eq.eq](that: Book): boolean {
+ *         // An exercise for the reader...
+ *     }
+ *
+ *     [Ord.cmp](that: Book): Ordering {
+ *         return cmb(
+ *             Ordering.fromNumber(this.isbn - that.isbn),
+ *             Ordering.fromNumber(this.fmt - that.fmt),
+ *         );
+ *     }
+ * }
+ * ```
+ *
+ * In this example, Books are ordered first by their ISBN, then by their format.
+ * Notice how the semigroup behavior of `Ordering` along with `cmb` is used here
+ * to combine two Orderings.
+ *
+ * #### Example: generic type with no `Ord` requirements
+ *
+ * Consider a type that determines ordering by comparing the length of Arrays:
+ *
+ * ```ts
+ * class Len<A> {
+ *     constructor(readonly val: A[]) {}
+ *
+ *     [Eq.eq](that: Len<A>): boolean {
+ *         // An exercise for the reader...
+ *     }
+ *
+ *     [Ord.cmp](that: Len<A>): Ordering {
+ *         return Ordering.fromNumber(this.val.length - that.val.length);
+ *     }
+ * }
+ * ```
+ *
+ * Notice how `Len` is generic, but there are no special requirements for
+ * implementing `[Ord.cmp]`.
+ *
+ * #### Example: generic type with an `Ord` requirement
+ *
+ * Consider a type that determines ordering by comparing Arrays
+ * lexicographically, which requires that the Array's elements implement `Ord`:
+ *
+ * ```ts
+ * class Arr<A> {
+ *     constructor(readonly val: A[]) {}
+ *
+ *     [Eq.eq]<A extends Eq<A>>(this: Arr<A>, that: Arr<A>): boolean {
+ *         // An exercise for the reader...
+ *     }
+ *
+ *     [Ord.cmp]<A extends Ord<A>>(this: Arr<A>): Ordering {
+ *         return icmp(this.val, that.val);
+ *     }
+ * }
+ * ```
+ *
+ * Notice the extra syntax when implementing `[Ord.cmp]`. We introduce a
+ * *method-scoped* type parameter `A` and require that it has a `Ord`
+ * implementation by writing `A extends Ord<A>` (the name `A` is arbitrary).
+ *
+ * Then, we require that `this` and `that` are `Arr<A>` where
+ * `A extends Ord<A>`. This allows us to use `cmp` to implement our desired
+ * behavior.
+ *
+ * #### Example: generic type with multiple `Ord` requirements
+ *
+ * Consider a type that determines ordering by comparing a first then second
+ * value, which requires that each value implement `Ord`:
+ *
+ * ```ts
+ * class Pair<A, B> {
+ *     constructor(readonly fst: A, readonly snd: B) {}
+ *
+ *     [Eq.eq]<A extends Eq<A>, B extends Eq<B>>(
+ *         this: Pair<A, B>,
+ *         that: Pair<A, B>,
+ *     ): boolean {
+ *         // An exercise for the reader...
+ *     }
+ *
+ *     [Ord.cmp]<A exends Ord<A>, B extends Ord<B>>(
+ *         this: Pair<A, B>,
+ *         that: Pair<A, B>,
+ *     ): Ordering {
+ *         return cmb(cmp(this.fst, that.fst), cmp(this.snd, that.snd));
+ *     }
+ * }
+ * ```
+ *
+ * The syntax is similar to the `Arr` implementation above. Notice there are now
+ * two method-scoped type parameters that are each required to implement `Ord`.
+ *
+ * ### Patching existing prototypes
+ *
+ * Existing types can be patched to implement `Ord`. This strategy works well
+ * for types that:
+ *
+ * -   are built-in or imported from external modules.
+ * -   do not provide access to their implementation.
+ * -   have a single, specific behavior as a total order, or where the
+ *     programmer wishes to implement a default behavior.
+ *
+ * Patching a type in TypeScript requires two steps:
+ *
+ * 1.   an [augmentation] for a module or the global scope that patches the
+ *      type-level representation; and
+ * 2.   a concrete implementation for `[Ord.cmp]` and `[Eq.eq]`.
+ *
+ * The concrete implementation logic is similar to writing a method body for a
+ * class or object, and the same practices apply for requiring generic
+ * parameters to implement `Ord`.
+ *
+ * #### Examples
+ *
+ * Consider a module augmentation for an externally defined `Book` type:
+ *
+ * ```ts
+ * import { Book } from "path_to/book.js";
+ *
+ * declare module "path_to/book.js" {
+ *     interface Book {
+ *         [Eq.eq](that: Book): boolean
+ *         [Ord.cmp](that: Book): Ordering
+ *     }
+ * }
+ *
+ * Book.prototype[Eq.eq] = function (that: Book): boolean {
+ *     // An exercise for the reader...
+ * };
+ *
+ * Book.prototype[Ord.cmp] = function (that: Book): Ordering {
+ *     return Ordering.fromNumber(this.isbn - that.isbn);
+ * };
+ * ```
+ *
+ * Consider a global augmentation for the `Array` prototype:
+ *
+ * ```ts
+ * declare global {
+ *     interface Array<T> {
+ *         [Eq.eq]<A extends Eq<A>>(this: A[], that: A[]): boolean
+ *         [Ord.cmp]<A extends Ord<A>>(this: A[], that: A[]): Ordering
+ *     }
+ * }
+ *
+ * Array.prototype[Eq.eq] = function <A extends Eq<A>>(
+ *     this: A[],
+ *     that: A[],
+ * ): boolean {
+ *     // An exercise for the reader...
+ * }
+ *
+ * Array.prototype[Ord.cmp] = function <A extends Ord<A>>(
+ *     this: A[],
+ *     that: A[],
+ * ): boolean {
+ *     return icmp(this, that);
+ * };
+ * ```
+ *
+ * [total order]: https://mathworld.wolfram.com/TotalOrder.html
+ * [structural subtyping]: https://www.typescriptlang.org/docs/handbook/type-compatibility.html#site-content
+ * [augmentation]: https://www.typescriptlang.org/docs/handbook/declaration-merging.html#module-augmentation
  */
 export interface Ord<in A> extends Eq<A> {
     /**
-     * Compare this and that value to determine an Ordering.
+     * Compare this and that instance of `Ord` to determine their ordering.
      */
     [Ord.cmp](that: A): Ordering;
 }
 
+/**
+ * The companion namespace for the `Ord` interface.
+ *
+ * This namespace provides the unique symbol `cmp` required to implement `Ord`.
+ */
 export namespace Ord {
     export const cmp = Symbol();
 }
 
 /**
- * Compare two values to determine an Ordering.
+ * Compare two values to determine their ordering.
  *
- * ```ts
- * cmp(x, y) ≡ x[Ord.cmp](y)
- * ```
+ * `cmp(x, y)` is equivalent to `x[Ord.cmp](y)`
  */
 export function cmp<A extends Ord<A>>(x: A, y: A): Ordering {
     return x[Ord.cmp](y);
 }
 
 /**
- * Compare two iterables to determine an Ordering.
+ * Compare two Iterables to determine their lexicographical ordering.
  */
 export function icmp<A extends Ord<A>>(
     xs: Iterable<A>,
@@ -243,6 +746,16 @@ export function clamp<A extends Ord<A>>(x: A, lo: A, hi: A) {
  */
 export type Ordering = Ordering.Less | Ordering.Equal | Ordering.Greater;
 
+/**
+ * The companion namespace for the `Ordering` type.
+ *
+ * The namespace provides:
+ *
+ * -   The `Less`, `Equal`, and `Greater` variant classes.
+ * -   The `less`, `equal`, and `greater` constants.
+ * -   An abstract `Syntax` class that provides the fluent API for Ordering.
+ * -   A `Typ` enumeration that discriminates Ordering.
+ */
 export namespace Ordering {
     /**
      * An enumeration that discriminates Ordering.
@@ -339,12 +852,12 @@ export namespace Ordering {
      * An Ordering that models a "less than" comparison result.
      */
     export class Less extends Syntax {
+        static readonly singleton = new Less();
+
         /**
          * The property that discriminates Ordering.
          */
         readonly typ = Typ.Less;
-
-        static readonly singleton = new Less();
 
         private constructor() {
             super();
@@ -355,12 +868,12 @@ export namespace Ordering {
      * An Ordering that models an "equal" comparison result.
      */
     export class Equal extends Syntax {
+        static readonly singleton = new Equal();
+
         /**
          * The property that discriminates Ordering.
          */
         readonly typ = Typ.Equal;
-
-        static readonly singleton = new Equal();
 
         private constructor() {
             super();
@@ -371,12 +884,12 @@ export namespace Ordering {
      * An Ordering that models a "greater than" comparison result.
      */
     export class Greater extends Syntax {
+        static readonly singleton = new Greater();
+
         /**
          * The property that discriminates Ordering.
          */
         readonly typ = Typ.Greater;
-
-        static readonly singleton = new Greater();
 
         private constructor() {
             super();
