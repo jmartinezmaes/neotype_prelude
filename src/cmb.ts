@@ -28,8 +28,29 @@
  *
  * ## Combining semigroups
  *
- * -   `cmb` combines two instances of the same `Semigroup` according to the
- *     behavior defined in their implementation.
+ * The `cmb` function combines two instances of the same `Semigroup`.
+ *
+ * ## Working with semigroups
+ *
+ * Often, code must be written to accept arbitrary semigroups. To require that
+ * a generic type `A` implements `Semigroup`, we write `A extends Semigroup<A>`.
+ *
+ * Consider a function that combines an arbitrary semigroup with itself a finite
+ * number of times:
+ *
+ * ```ts
+ * function cmbTimes<A extends Semigroup<A>>(x: A, n: number): A {
+ *     if (n < 2 || n === Infinity) {
+ *         return x;
+ *     }
+ *
+ *     let acc = x;
+ *     for (let i = 0; i < n; i++) {
+ *         acc = cmb(acc, x);
+ *     }
+ *     return acc;
+ * }
+ * ```
  *
  * [semigroups]: https://mathworld.wolfram.com/Semigroup.html
  *
@@ -55,13 +76,15 @@
  * The most common implementation strategies are writing classes and patching
  * existing prototypes.
  *
- * >Implementation is implicit and does not require an `implements` clause.
- * >TypeScript uses [structural subtyping] to determine whether a value has
- * >implemented `Semigroup`.
+ * Implementation is implicit and does not require an `implements` clause.
+ * TypeScript uses [structural subtyping] to determine whether a value
+ * implements `Semigroup`.
+ *
+ * ### Conditional implementation
  *
  * Working with generic types requires additional consideration: in some cases,
- * a generic type implements `Semigroup` *only* when one or more of its type
- * parameters implements `Semigroup`; in these cases, we must require a
+ * a generic type implements `Semigroup` **only** when one or more of its type
+ * parameters implement `Semigroup`; in these cases, we must require a
  * `Semigroup` implementation for the parameter(s). In other cases, there are no
  * such requirements.
  *

@@ -29,12 +29,12 @@
  *
  * ## Comparing values
  *
- * `Eq` values are compared using:
+ * Instances of `Eq` are compared using:
  *
  * -   `eq` to test for equality; and
  * -   `ne` to test for inequality.
  *
- * In addition to the functions above, `Ord` values are compared using:
+ * In addition to the functions above, instances of `Ord` are compared using:
  *
  * -   `cmp` to determine an ordering;
  * -   `lt` to test for a "less than" ordering;
@@ -52,7 +52,7 @@
  *
  * Iterables of `Eq` and `Ord` values are compared using:
  *
- * -   `ieq` to test for equivalance; and
+ * -   `ieq` to test for equality; and
  * -   `icmp` to determine an ordering.
  *
  * These functions are useful for implementing `Eq` and `Ord` for collections
@@ -77,36 +77,51 @@
  * The `Ordering` type represents a comparison between two values and is used to
  * implement `Ord`. An `Ordering` can be one of:
  *
- * -   `Less` indicating a "less than" comparison;
- * -   `Equal` indicating an "equal" comparison; or
- * -   `Greater` indicating a "greater than" comparison.
+ * -   `Less`, indicating a "less than" comparison;
+ * -   `Equal`, indicating an "equal" comparison; or
+ * -   `Greater`, indicating a "greater than" comparison.
  *
  * These variants are represented by the `less`, `equal`, and `greater`
  * constants, respectively.
  *
  * ### Comparing `Ordering`
  *
- * `Ordering` defines an equivalance relation and a total order:
+ * `Ordering` implements `Eq` and `Ord`.
  *
- * -   two Orderings are equal if they are the same variant; and
- * -   `Less < Equal < Greater` when ordered.
+ * -   Two Orderings are equal if they are the same variant.
+ * -   When ordered, `Less` is less than `Equal`, and `Equal` is less than
+ *     `Greater`.
  *
- * ### Combining `Ordering`
+ * ### `Ordering` as a semigroup
  *
- * `Ordering` is also a semigroup: when combined, the first non-`Equal` Ordering
- * defines the overall ordering. This behavior is useful for implementing
- * lexicographical ordering.
+ * `Ordering` implements `Semigroup`. When combined, the first non-`Equal`
+ * Ordering determines the overall ordering. This behavior is useful for
+ * implementing lexicographical ordering.
  *
- * ### Other methods
+ * ### More methods
  *
- * -   `reverse` reverses the Ordering, changing `Less` to `Greater` and
- *     `Greater` to `Less` while keeping `Equal` the same.
- * -   `toNumber` converts the Ordering to a number value.
+ * -   `reverse` reverses an Ordering: `Less` becomes `Greater` and `Greater`
+ *     becomes `Less`, while `Equal` remains the same.
+ * -   `toNumber` converts an Ordering to a number value.
  *
  * ## Reversing orderings
  *
  * The `Reverse` helper type reverses the ordering of an underlying `Ord` value,
  * and provides pass-through implementations for `Eq` and `Semigroup`.
+ *
+ * ## Working with equivalence relations and total orders
+ *
+ * Often, code must be written to accept arbitrary equivalence relations and
+ * total orders. To require that a generic type `A` implements `Eq` or `Ord`, we
+ * write `A extends Eq<A>` or `A extends Ord<A>`, respectively.
+ *
+ * Consider a function that finds the minimum value in a series of `Ord` values:
+ *
+ * ```ts
+ * function minOf<A extends Ord<A>>(...values: [A, ...A[]]): A {
+ *     return values.reduce(min);
+ * }
+ * ```
  *
  * [equivalence relations]: https://mathworld.wolfram.com/EquivalenceRelation.html
  * [total orders]: https://mathworld.wolfram.com/TotalOrder.html
@@ -137,14 +152,17 @@ import { cmb, Semigroup } from "./cmb.js";
  * The most common implementation strategies are writing classes and patching
  * existing prototypes.
  *
- * >Implementation is implicit and does not require an `implements` clause.
- * >TypeScript uses [structural subtyping] to determine whether a value has
- * >implemented `Eq`.
+ * Implementation is implicit and does not require an `implements` clause.
+ * TypeScript uses [structural subtyping] to determine whether a value
+ * implements `Eq`.
+ *
+ * ### Conditional implementation
  *
  * Working with generic types requires additional consideration: in some cases,
- * a generic type implements `Eq` *only* when one or more of its type parameters
- * implements `Eq`; in these cases, we must require an `Eq` implementation for
- * the parameter(s). In other cases, there are no such requirements.
+ * a generic type implements `Eq` **only** when one or more of its type
+ * parameters implement `Eq`; in these cases, we must require an `Eq`
+ * implementation for the parameter(s). In other cases, there are no such
+ * requirements.
  *
  * ### Writing classes
  *
@@ -172,7 +190,7 @@ import { cmb, Semigroup } from "./cmb.js";
  * Consider a `Book` type that determines equality by comparing ISBNs:
  *
  * ```ts
- * enum BookFormat { Hardcopy, Paperback, Digital }
+ * enum BookFormat { Hardback, Paperback, Digital }
  *
  * class Book {
  *     constructor(readonly isbn: number, readonly fmt: BookFormat) {}
@@ -187,7 +205,7 @@ import { cmb, Semigroup } from "./cmb.js";
  * considered equal:
  *
  * ```ts
- * enum BookFormat { Hardcopy, Paperback, Digital }
+ * enum BookFormat { Hardback, Paperback, Digital }
  *
  * class Book {
  *     constructor(readonly isbn: number, readonly fmt: BookFormat) {}
@@ -407,15 +425,24 @@ export function ieq<A extends Eq<A>>(
  * The most common implementation strategies are writing classes and patching
  * existing prototypes.
  *
- * >Implementation is implicit and does not require an `implements` clause.
- * >TypeScript uses [structural subtyping] to determine whether a value has
- * >implemented `Ord`.
+ * Implementation is implicit and does not require an `implements` clause.
+ * TypeScript uses [structural subtyping] to determine whether a value
+ * implements `Ord`.
+ *
+ * ### Conditional implementation
  *
  * Working with generic types requires additional consideration: in some cases,
- * a generic type implements `Ord` *only* when one or more of its type
- * parameters implements `Ord`; in these cases, we must require an `Ord`
+ * a generic type implements `Ord` **only** when one or more of its type
+ * parameters implement `Ord`; in these cases, we must require an `Ord`
  * implementation for the parameter(s). In other cases, there are no such
  * requirements.
+ *
+ * ### Deriving `[Eq.eq]` from `[Ord.cmp]`
+ *
+ * Implementing `[Eq.eq]` for a type that has already implemented `[Ord.cmp]` is
+ * trivial: simply check whether the result of comparing two instances is the
+ * `Equal` Ordering. Sometimes, checking for equality can be done in a more
+ * efficient manner without relying on `[Ord.cmp]`.
  *
  * ### Writing classes
  *
@@ -443,7 +470,7 @@ export function ieq<A extends Eq<A>>(
  * Consider a Book type that determines ordering by comparing ISBNs:
  *
  * ```ts
- * enum BookFormat { Hardcopy, Paperback, Digital }
+ * enum BookFormat { Hardback, Paperback, Digital }
  *
  * class Book {
  *     constructor(readonly isbn: number, readonly fmt: BookFormat) {}
@@ -462,7 +489,7 @@ export function ieq<A extends Eq<A>>(
  * determine ordering:
  *
  * ```ts
- * enum BookFormat { Hardcopy, Paperback, Digital }
+ * enum BookFormat { Hardback, Paperback, Digital }
  *
  * class Book {
  *     constructor(readonly isbn: number, readonly fmt: BookFormat) {}
