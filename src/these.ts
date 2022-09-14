@@ -120,7 +120,7 @@
  * -   Two These are equal if they are the same variant and their value(s) is
  *     (are) equal.
  * -   When compared, `Left` is less than `Right`, and `Right` is less than
- *     `Both`. If the These are equal, their values determine the ordering.
+ *     `Both`. If the variants are equal, their values determine the ordering.
  *     `Both` compares its `fst` and `snd` properties lexicographically.
  *
  * ## `These` as a semigroup

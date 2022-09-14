@@ -97,7 +97,7 @@
  *
  * -   Two Eithers are equal if they are the same variant and their values are
  *     equal.
- * -   When ordered, `Left` is always less than `Right`. If the Eithers are
+ * -   When ordered, `Left` is always less than `Right`. If the variants are
  *     equal, their values will determine the ordering.
  *
  * ## `Either` as a semigroup
