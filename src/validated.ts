@@ -635,17 +635,6 @@ export namespace Validated {
         }
 
         /**
-         * If this Validated is `Accepted`, apply a function to its value to
-         * return a new Validated.
-         */
-        bindAccepted<E, A, E1, B>(
-            this: Validated<E, A>,
-            f: (x: A) => Validated<E1, B>,
-        ): Validated<E | E1, B> {
-            return this.isDisputed() ? this : f(this.val);
-        }
-
-        /**
          * If this and that Validated are `Accepted`, apply a function to their
          * values.
          */
