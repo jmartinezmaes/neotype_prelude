@@ -14,19 +14,19 @@
  * limitations under the License.
  */
 
-type Node<A> = null | readonly [A, Node<A>];
+type Node<A> = undefined | readonly [A, Node<A>];
 
 export class MutStack<A> {
-    private hd: Node<A> = null;
+    #hd: Node<A> = undefined;
 
     push(x: A): void {
-        this.hd = [x, this.hd];
+        this.#hd = [x, this.#hd];
     }
 
     pop(): A | undefined {
-        if (this.hd) {
-            const [x, xs] = this.hd;
-            this.hd = xs;
+        if (this.#hd) {
+            const [x, xs] = this.#hd;
+            this.#hd = xs;
             return x;
         }
         return;
