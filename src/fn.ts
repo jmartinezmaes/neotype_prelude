@@ -15,7 +15,7 @@
  */
 
 /**
- * Utility functions and function application.
+ * Utility functions.
  *
  * @module
  */
@@ -28,14 +28,28 @@ export function id<A>(x: A): A {
 }
 
 /**
+ * Return a function that always returns a provided value.
+ *
+ * This function is useful for eagerly memoizing a value that would otherwise be
+ * suspended behind a function.
+ */
+export function constant<A>(x: A): (...args: any[]) => A {
+    return () => x;
+}
+
+/**
  * Reverse a refinement function or a predicate function.
  */
 export function negate<A, A1 extends A>(
     f: (x: A) => x is A1,
 ): (x: A) => x is Exclude<A, A1>;
 
-export function negate<A>(f: (x: A) => boolean): (x: A) => boolean;
+export function negate<T extends unknown[]>(
+    f: (...args: T) => boolean,
+): (...args: T) => boolean;
 
-export function negate<A>(f: (x: A) => boolean): (x: A) => boolean {
-    return (x) => !f(x);
+export function negate<T extends unknown[]>(
+    f: (...args: T) => boolean,
+): (...args: T) => boolean {
+    return (...args) => !f(...args);
 }
