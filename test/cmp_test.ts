@@ -162,7 +162,7 @@ describe("Ord", () => {
 });
 
 describe("Ordering", () => {
-    specify("fromNumber", () => {
+    specify("Ordering.fromNumber", () => {
         fc.assert(
             fc.property(fc.integer(), (x) => {
                 const t0 = Ordering.fromNumber(x);

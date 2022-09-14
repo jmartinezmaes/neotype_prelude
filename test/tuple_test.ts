@@ -6,7 +6,7 @@ import { cmb } from "../src/cmb.js";
 import { Tuple } from "../src/tuple.js";
 
 describe("Tuple", () => {
-    specify("[Eq.eq]", () => {
+    specify("#[Eq.eq]", () => {
         fc.assert(
             fc.property(
                 arbNum(),
@@ -21,7 +21,7 @@ describe("Tuple", () => {
         );
     });
 
-    specify("[Ord.cmp]", () => {
+    specify("#[Ord.cmp]", () => {
         fc.assert(
             fc.property(
                 arbNum(),
@@ -36,7 +36,7 @@ describe("Tuple", () => {
         );
     });
 
-    specify("[Semigroup.cmb]", () => {
+    specify("#[Semigroup.cmb]", () => {
         fc.assert(
             fc.property(
                 arbStr(),
