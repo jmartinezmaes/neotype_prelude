@@ -17,6 +17,46 @@
 /**
  * Functionality for comparing and combining tuple literals.
  *
+ * This module provides the `Tuple` type, a wrapper class that provides evidence
+ * of an equivalence relation, a total ordering, and a semigroup for between 2
+ * and 10 elements.
+ *
+ * Using a Tuple as an `Eq`, an `Ord`, and a `Semigroup` requires the respective
+ * implementations from all elements of the Tuple. This documentation will use
+ * the following elements in all examples:
+ *
+ * ## Importing from this module
+ *
+ * This module exposes `Tuple` as a class. It is recommended to import the type
+ * as named:
+ *
+ * ```ts
+ * import { Tuple } from "@neotype/prelude/tuple.js";
+ *
+ * const example = new Tuple(["a", 1] as const);
+ * ```
+ *
+ * ## Constructing `Tuple`
+ *
+ * `Tuple` can be constructed as a class using the `new` keyword. It receives a
+ * tuple literal as its single argument.
+ *
+ * ## Comparing `Tuple`
+ *
+ * `Tuple` implements `Eq` and `Ord` when its elements each implement `Eq` and
+ * `Ord`, respectively. Tuples are compared lexicographically.
+ *
+ * -   Two Tuples are equal when they are the same length and their respective
+ *     elements are equal.
+ * -   When compared, the first mismatching element defines which Tuple is
+ *     lexicographically less or greater than the other.
+ *
+ * ## `Tuple` as a semigroup
+ *
+ * `Tuple` implements `Semigroup` when its elements each implement `Semigroup`.
+ * Two Tuples combine their elements pairwise to return a new Tuples of the same
+ * length.
+ *
  * @module
  */
 
