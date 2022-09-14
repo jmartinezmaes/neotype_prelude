@@ -17,6 +17,195 @@
 /**
  * Control over synchronous evaluation.
  *
+ * This module provides the `Eval` type and associated operations.
+ *
+ * `Eval<A>` is a type that controls the execution of a synchronous computation
+ * that returns a result `A`. `Eval` can suspend and memoize evaluation for a
+ * variety of use cases, and it provides stack-safe execution for recursive
+ * programs.
+ *
+ * ## Importing from this module
+ *
+ * This module exposes `Eval` as a class. It can be imported as a single alias:
+ *
+ * ```ts
+ * import { Eval } from "@neotype/prelude/eval.js";
+ *
+ * const example: Eval<number> = Eval.now(1);
+ * ```
+ *
+ * Or, the type and class can be imported and aliased separately:
+ *
+ * ```ts
+ * import { type Eval, Eval as Ev } from "@neotype/prelude/eval.js";
+ *
+ * const example: Eval<number> = Ev.now(1);
+ * ```
+ *
+ * ## Constructing `Eval`
+ *
+ * `Eval` has three static methods for constructing computations from values:
+ *
+ * -   `now` for eager, memoized evaluation;
+ * -   `once` for lazy, memoized evaluation; and
+ * -   `always` for lazy, non-memoized evaluation.
+ *
+ * Additionally, `defer` suspends the evaluation of any Eval, and is useful for
+ * implementing mutual and self-referential recursion.
+ *
+ * ## Running computations
+ *
+ * The `run` method evaluates an Eval and returns its result.
+ *
+ * ```ts
+ * const tuple3 = Eval.tupled(
+ *     Eval.now(1),
+ *     Eval.once(() => 2),
+ *     Eval.always(() => 3),
+ * );
+ * console.log(tuple3.run());
+ * ```
+ *
+ * ## `Eval` as a semigroup
+ *
+ * `Eval` implements `Semigroup` when its result type parameter implements
+ * `Semigroup`. When combined, the Evals will be evaluated from left to right,
+ * then their results will be combined.
+ *
+ * In other words, `cmb(x, y)` is equivalent to `x.zipWith(y, cmb)` for all
+ * Evals `x` and `y`.
+ *
+ * ## Transforming values
+ *
+ * These methods transform an Eval's result:
+ *
+ * -   `map` applies a function to the result.
+ * -   `mapTo` overwrites the result.
+ *
+ * ## Chaining `Eval`
+ *
+ * The `flatMap` method chains together computations that return `Eval`. Upon
+ * calling `flatMap`, a function is applied to an Eval's result and evaluated to
+ * return another Eval. Composing Evals with `flatMap` is stack safe, even for
+ * recursive programs.
+ *
+ * Consider a program that uses `Eval` to fold over a recursive `Tree` data
+ * structure:
+ *
+ * ```ts
+ * type Tree<A> = Tip | Bin<A>;
+ * type Tip = { typ: "Tip" };
+ * type Bin<A> = { typ: "Bin", val: A, ltree: Tree<A>, rtree: Tree<A> };
+ *
+ * const tip: Tree<never> = { typ: "Tip" };
+ *
+ * function bin<A>(val: A, ltree: Tree<A>, rtree: Tree<A>): Tree<A> {
+ *     return { typ: "Bin", val, ltree, rtree };
+ * }
+ *
+ * function foldTree<A, B>(
+ *     xs: Tree<A>,
+ *     onTip: B,
+ *     foldBin: (val: A, l: B, r: B) => B
+ * ): Eval<B> {
+ *     if (xs.typ === "Tip") {
+ *         return Eval.now(onTip);
+ *     }
+ *     // Challenge for the reader: why is `defer` needed here?
+ *     // Hint: it pertains to stack safety and eager evaluation.
+ *     return Eval.defer(() =>
+ *         foldTree(xs.ltree, onTip, foldBin).flatMap((l) =>
+ *             foldTree(xs.rtree, onTip, foldBin).map((r) =>
+ *                 foldBin(xs.val, l, r),
+ *             ),
+ *         ),
+ *     );
+ * }
+ *
+ * function traverseInOrder(xs: Tree<A>): A[] {
+ *     return foldTree(xs, [], (x, lxs, rxs) => [...lxs, x, ...rxs]).run();
+ * }
+ *
+ * const oneToSeven: Tree<number> = bin(
+ *     4,
+ *     bin(2, bin(1, tip, tip), bin(3, tip, tip)),
+ *     bin(6, bin(5, tip, tip), bin(7, tip, tip)),
+ * );
+ *
+ * console.log(traverseInOrder(oneToSeven));
+ * ```
+ *
+ * ### Generator comprehensions
+ *
+ * Generator comprehensions provide an alternative syntax for chaining together
+ * computations that return `Eval`. Instead of `flatMap`, a generator is used
+ * to unwrap Evals' results and apply functions to their values.
+ *
+ * The `go` static method evaluates a generator to return an Eval. Within the
+ * generator, Evals are yielded using the `yield*` keyword. This binds the
+ * results to specified variables. When the computation is complete, a final
+ * value can be computed and returned from the generator.
+ *
+ * Generator comprehensions support all syntax that would otherwise be valid
+ * within a generator, including:
+ *
+ * -   Variable declarations, assignment, and mutation
+ * -   Function declarations
+ * -   `for` loops
+ * -   `while` and `do...while` loops
+ * -   `if`/`else if`/`else` blocks
+ * -   `switch` blocks
+ * -   `try`/`catch` blocks
+ *
+ * `Eval` is "suspended" in its implementation of `go`, which means that the
+ * body of the provided generator function will not run until the Eval is
+ * evaluated using `run`. This behavior helps ensure stack safety, especially
+ * for recursive programs.
+ *
+ * Consider the generator comprehension equivalent of the `foldTree` function
+ * above:
+ *
+ * ```ts
+ * function foldTree<A, B>(
+ *     xs: Tree<A>,
+ *     onTip: B,
+ *     foldBin: (val: A, l: B, r: B) => B
+ * ): Eval<B> {
+ *     return Eval.go(function* () {
+ *         if (xs.typ === "Tip") {
+ *             return onTip;
+ *         }
+ *         // Challenge for the reader: why is `defer` not needed here?
+ *         // Hint: it pertains to the behavior of `go`.
+ *         const l = yield* foldTree(xs.ltree, onTip, foldBin);
+ *         const r = yield* foldTree(xs.rtree, onTip, foldBin);
+ *         return foldBin(xs.val, l, r);
+ *     });
+ * }
+ * ```
+ *
+ * ## Collecting into `Eval`
+ *
+ * `Eval` provides several functions for working with collections of Evals.
+ * Sometimes, a collection of Evals must be turned "inside out" into an Eval
+ * that contains a "mapped" collection of results.
+ *
+ * These methods will traverse a collection of Evals to extract the results.
+ *
+ * -   `collect` turns an Array or a tuple literal of Evals inside out.
+ * -   `tupled` turns a series of two or more individual Evals inside out.
+ * -   `gather` turns a Record or an object literal of Evals inside out.
+ *
+ * ```ts
+ * console.log(Eval.collect([Eval.now(42), Eval.once(() => "ok")]));
+ * console.log(Eval.tupled(Eval.always(() => 42), Eval.now("ok")));
+ * console.log(Eval.gather({ x: Eval.once(42), y: Eval.always(() => "ok") }));
+ * ```
+ *
+ * Additionally, the `reduce` function reduces a finite Iterable from left to
+ * right in the context of `Eval`. This is useful for mapping, filtering, and
+ * accumulating values using `Eval`.
+ *
  * @module
  */
 
@@ -59,26 +248,20 @@ export class Eval<out A> {
     }
 
     /**
-     * Construct an Eval from function that produces an Eval.
+     * Construct an Eval from function that returns an Eval.
      */
     static defer<A>(f: () => Eval<A>): Eval<A> {
         return Eval.now(undefined).flatMap(f);
     }
 
     static #step<A>(
-        nxs: Iterator<readonly [Eval<any>, Eval.YieldTkn], A>,
-        nx: IteratorResult<readonly [Eval<any>, Eval.YieldTkn], A>,
+        gen: Iterator<readonly [Eval<any>, Eval.YieldTkn], A>,
+        nxt: IteratorResult<readonly [Eval<any>, Eval.YieldTkn], A>,
     ): Eval<A> {
-        if (nx.done) {
-            return Eval.now(nx.value);
+        if (nxt.done) {
+            return Eval.now(nxt.value);
         }
-        return nx.value[0].flatMap((x) => Eval.#step(nxs, nxs.next(x)));
-    }
-
-    static #stepGen<A>(
-        nxs: Generator<readonly [Eval<any>, Eval.YieldTkn], A, any>,
-    ): Eval<A> {
-        return Eval.#step(nxs, nxs.next());
+        return nxt.value[0].flatMap((x) => Eval.#step(gen, gen.next(x)));
     }
 
     /**
@@ -87,19 +270,22 @@ export class Eval<out A> {
     static go<A>(
         f: () => Generator<readonly [Eval<any>, Eval.YieldTkn], A, any>,
     ): Eval<A> {
-        return Eval.defer(() => Eval.#stepGen(f()));
+        return Eval.defer(() => {
+            const gen = f();
+            return Eval.#step(gen, gen.next());
+        });
     }
 
     /**
-     * Reduce a finite iterable from left to right in the context of Eval.
+     * Reduce a finite Iterable from left to right in the context of Eval.
      */
     static reduce<A, B>(
         xs: Iterable<A>,
         f: (acc: B, x: A) => Eval<B>,
-        z: B,
+        initial: B,
     ): Eval<B> {
         return Eval.go(function* () {
-            let acc = z;
+            let acc = initial;
             for (const x of xs) {
                 acc = yield* f(acc, x);
             }
@@ -108,19 +294,18 @@ export class Eval<out A> {
     }
 
     /**
-     * Evaluate the Evals in an array or a tuple literal from left to right and
-     * collect the results in an array or a tuple literal, respectively.
+     * Evaluate the Evals in an Array or a tuple literal from left to right and
+     * collect the results in an Array or a tuple literal, respectively.
      */
     static collect<T extends readonly Eval<any>[]>(
-        xs: T,
+        evals: T,
     ): Eval<Eval.ResultsT<T>> {
         return Eval.go(function* () {
-            const l = xs.length;
-            const ys = new Array(l);
-            for (const [ix, x] of xs.entries()) {
-                ys[ix] = yield* x;
+            const results = new Array(evals.length);
+            for (const [idx, ev] of evals.entries()) {
+                results[idx] = yield* ev;
             }
-            return ys as unknown as Eval.ResultsT<T>;
+            return results as unknown as Eval.ResultsT<T>;
         });
     }
 
@@ -129,24 +314,24 @@ export class Eval<out A> {
      * a tuple literal.
      */
     static tupled<T extends [Eval<any>, Eval<any>, ...Eval<any>[]]>(
-        ...xs: T
+        ...evals: T
     ): Eval<Eval.ResultsT<T>> {
-        return Eval.collect(xs);
+        return Eval.collect(evals);
     }
 
     /**
-     * Evaluate the Evals in an object literal and collect the results in an
-     * object literal.
+     * Evaluate the Evals in a Record or an object literal and collect the
+     * results in a Record or an object literal, respectively.
      */
     static gather<T extends Record<any, Eval<any>>>(
-        xs: T,
+        evals: T,
     ): Eval<{ readonly [K in keyof T]: Eval.ResultT<T[K]> }> {
         return Eval.go(function* () {
-            const ys: Record<any, unknown> = {};
-            for (const [kx, x] of Object.entries(xs)) {
-                ys[kx] = yield* x;
+            const results: Record<any, unknown> = {};
+            for (const [key, ev] of Object.entries(evals)) {
+                results[key] = yield* ev;
             }
-            return ys as Eval.ResultsT<T>;
+            return results as Eval.ResultsT<T>;
         });
     }
 
@@ -160,7 +345,7 @@ export class Eval<out A> {
     }
 
     /**
-     * Defining iterable behavior for Eval allows TypeScript to infer result
+     * Defining Iterable behavior for Eval allows TypeScript to infer result
      * types when yielding Eithers in generator comprehensions using `yield*`.
      *
      * @hidden
@@ -184,14 +369,14 @@ export class Eval<out A> {
     }
 
     /**
-     * Apply a function to this Eval's result to produce a new Eval.
+     * Apply a function to this Eval's result to return a new Eval.
      */
     flatMap<B>(f: (x: A) => Eval<B>): Eval<B> {
         return new Eval(Instr.flatMap(this, f));
     }
 
     /**
-     * If this Eval's result is an Eval, return the inner Eval.
+     * If this Eval's result is another Eval, return the inner Eval.
      */
     flat<A>(this: Eval<Eval<A>>): Eval<A> {
         return this.flatMap(id);
@@ -233,17 +418,15 @@ export class Eval<out A> {
     }
 
     /**
-     * Evaluate this Eval to produce a result.
+     * Evaluate this Eval to return a result.
      */
     run(): A {
-        type Bind = (x: any) => Eval<any>;
-        const ks = new MutStack<Bind>();
+        const ks = new MutStack<(x: any) => Eval<any>>();
         // eslint-disable-next-line @typescript-eslint/no-this-alias
         let c: Eval<any> = this;
 
         // eslint-disable-next-line no-constant-condition
         while (true) {
-            // prettier-ignore
             switch (c.#i.t) {
                 case Instr.Tag.Now: {
                     const k = ks.pop();
@@ -251,14 +434,15 @@ export class Eval<out A> {
                         return c.#i.x;
                     }
                     c = k(c.#i.x);
-                } break;
+                    break;
+                }
 
-                case Instr.Tag.FlatMap: {
+                case Instr.Tag.FlatMap:
                     ks.push(c.#i.f);
-                    c = c.#i.eff;
-                } break;
+                    c = c.#i.ev;
+                    break;
 
-                case Instr.Tag.Once: {
+                case Instr.Tag.Once:
                     if (!c.#i.d) {
                         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
                         c.#i.x = c.#i.f!();
@@ -266,11 +450,11 @@ export class Eval<out A> {
                         c.#i.d = true;
                     }
                     c = Eval.now(c.#i.x);
-                } break;
+                    break;
 
-                case Instr.Tag.Always: {
+                case Instr.Tag.Always:
                     c = Eval.now(c.#i.f());
-                } break;
+                    break;
             }
         }
     }
@@ -292,9 +476,9 @@ export namespace Eval {
         T extends Eval<infer A> ? A : never;
 
     /**
-     * Given a tuple literal or an object literal of Eval types, map over the
-     * structure to produce a tuple literal or an object literal of the result
-     * types.
+     * Given an Array, a tuple literal, a Record, or an object literal of Eval
+     * types, map over the structure to return an equivalent structure of the
+     * result types.
      *
      * ```ts
      * type T0 = [Eval<1>, Eval<2>, Eval<3>];
@@ -306,7 +490,9 @@ export namespace Eval {
      */
     export type ResultsT<
         T extends readonly Eval<any>[] | Record<any, Eval<any>>,
-    > = { [K in keyof T]: T[K] extends Eval<infer A> ? A : never };
+    > = {
+        [K in keyof T]: T[K] extends Eval<infer A> ? A : never;
+    };
 }
 
 type Instr = Instr.Now | Instr.FlatMap | Instr.Once | Instr.Always;
@@ -326,7 +512,7 @@ namespace Instr {
 
     export interface FlatMap {
         readonly t: Tag.FlatMap;
-        readonly eff: Eval<any>;
+        readonly ev: Eval<any>;
         readonly f: (x: any) => Eval<any>;
     }
 
@@ -346,8 +532,8 @@ namespace Instr {
         return { t: Tag.Now, x };
     }
 
-    export function flatMap<A, B>(eff: Eval<A>, f: (x: A) => Eval<B>): FlatMap {
-        return { t: Tag.FlatMap, eff, f };
+    export function flatMap<A, B>(ev: Eval<A>, f: (x: A) => Eval<B>): FlatMap {
+        return { t: Tag.FlatMap, ev, f };
     }
 
     export function once<A>(f: () => A): Once {
