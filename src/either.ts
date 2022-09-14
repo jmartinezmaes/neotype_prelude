@@ -559,7 +559,7 @@ export namespace Either {
          * If this Either is `Left`, apply a function to its value to return
          * a new Either.
          */
-        bindLeft<E, A, E1, B>(
+        recover<E, A, E1, B>(
             this: Either<E, A>,
             f: (x: E) => Either<E1, B>,
         ): Either<E1, A | B> {
@@ -573,7 +573,7 @@ export namespace Either {
             this: Either<any, A>,
             that: Either<E1, B>,
         ): Either<E1, A | B> {
-            return this.bindLeft(() => that);
+            return this.recover(() => that);
         }
 
         /**
@@ -643,7 +643,7 @@ export namespace Either {
          * If this Either is `Left`, apply a function to its value.
          */
         mapLeft<A, B, C>(this: Either<A, B>, f: (x: A) => C): Either<C, B> {
-            return this.bindLeft((x) => left(f(x)));
+            return this.recover((x) => left(f(x)));
         }
 
         /**

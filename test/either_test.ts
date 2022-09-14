@@ -236,16 +236,16 @@ describe("Either", () => {
     });
 
     specify("#bindLeft", () => {
-        const t0 = mk("L", _1, _2).bindLeft((x) => mk("L", pair(x, _3), _4));
+        const t0 = mk("L", _1, _2).recover((x) => mk("L", pair(x, _3), _4));
         assert.deepEqual(t0, Either.left([_1, _3] as const));
 
-        const t1 = mk("L", _1, _2).bindLeft((x) => mk("R", pair(x, _3), _4));
+        const t1 = mk("L", _1, _2).recover((x) => mk("R", pair(x, _3), _4));
         assert.deepEqual(t1, Either.right(_4));
 
-        const t2 = mk("R", _1, _2).bindLeft((x) => mk("L", pair(x, _3), _4));
+        const t2 = mk("R", _1, _2).recover((x) => mk("L", pair(x, _3), _4));
         assert.deepEqual(t2, Either.right(_2));
 
-        const t3 = mk("R", _1, _2).bindLeft((x) => mk("R", pair(x, _3), _4));
+        const t3 = mk("R", _1, _2).recover((x) => mk("R", pair(x, _3), _4));
         assert.deepEqual(t3, Either.right(_2));
     });
 
