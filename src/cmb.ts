@@ -122,7 +122,7 @@
  *         return new Str(this.val + that.val);
  *     }
  * }
- *```
+ * ```
  *
  * #### Example: generic type with no `Semigroup` requirements
  *
@@ -136,7 +136,7 @@
  *         return new Concat([...this.val, ...that.val]);
  *     }
  * }
- *```
+ * ```
  *
  * Notice how `Concat` is generic, but there are no special requirements for
  * implementing `[Semigroup.cmb]`.
@@ -159,7 +159,7 @@
  *         );
  *     }
  * }
- *```
+ * ```
  *
  * Notice the extra syntax when implementing `[Semigroup.cmb]`. We introduce
  * a *method-scoped* type parameter `A` and require that it has a `Semigroup`
