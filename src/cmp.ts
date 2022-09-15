@@ -716,28 +716,36 @@ export function icmp<A extends Ord<A>>(
 }
 
 /**
- * Test whether `x` is less than `y`.
+ * Test for a "less than" ordering between two values.
+ *
+ * Return `true` if `x` is less than `y`.
  */
 export function lt<A extends Ord<A>>(x: A, y: A): boolean {
     return cmp(x, y).isLt();
 }
 
 /**
- * Test whether `x` is greater than `y`.
+ * Test for a "greater than" ordering between two values.
+ *
+ * Return `true` `x` is greater than `y`.
  */
 export function gt<A extends Ord<A>>(x: A, y: A): boolean {
     return cmp(x, y).isGt();
 }
 
 /**
- * Test whether `x` is less than or equal to `y`.
+ * Test for a "less than or equal" ordering between two values.
+ *
+ * Return `true` if `x` is less than or equal to `y`.
  */
 export function le<A extends Ord<A>>(x: A, y: A): boolean {
     return cmp(x, y).isLe();
 }
 
 /**
- * Test whether `x` is greater than or equal to `y`.
+ * Test for a "greater than or equal" ordering between two values.
+ *
+ * Return `true` if `x` is greater than or equal to `y`.
  */
 export function ge<A extends Ord<A>>(x: A, y: A): boolean {
     return cmp(x, y).isGe();
@@ -763,6 +771,8 @@ export function max<A extends Ord<A>>(x: A, y: A): A {
 
 /**
  * Restrict a value to an inclusive interval.
+ *
+ * `clamp(x, lo, hi)` is equivalent to `min(max(x, lo, hi))`.
  */
 export function clamp<A extends Ord<A>>(x: A, lo: A, hi: A) {
     return min(max(x, lo), hi);
