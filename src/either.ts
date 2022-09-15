@@ -34,8 +34,14 @@
  *
  * ## Importing from this module
  *
- * This module exposes `Either` as both a type and a namespace. The namespace
- * provides functions and other utilities for the `Either` type.
+ * This module exposes `Either` as both a type and a namespace. The `Either`
+ * type is an alias for a discriminated union, and the `Either` namespace
+ * provides:
+ *
+ * -   The `Left` and `Right` variant classes
+ * -   An abstract `Syntax` class that provides the fluent API for `Either`
+ * -   A `Typ` enumeration that discriminates `Either`
+ * -   Functions for constructing, chaining, and collecting into `Either`
  *
  * The type and namespace can be imported under the same alias:
  *
@@ -306,13 +312,6 @@ export type Either<A, B> = Either.Left<A> | Either.Right<B>;
 
 /**
  * The companion namespace for the `Either` type.
- *
- * The namespace provides:
- *
- * -   The `Left` and `Right` variant classes.
- * -   An abstract `Syntax` class that provides the fluent API for `Either`.
- * -   A `Typ` enumeration that discriminates `Either`.
- * -   Functions for constructing, chaining, and collecting into `Either`.
  */
 export namespace Either {
     /**

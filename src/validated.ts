@@ -51,8 +51,14 @@
  *
  * ## Importing from this module
  *
- * This module exposes `Validated` as both a type and a namespace. The namespace
- * provides functions and other utilities for the `Validated` type.
+ * This module exposes `Validated` as both a type and a namespace. The
+ * `Validated` type is an alias for a discriminated union, and the `Validated`
+ * namespace provides:
+ *
+ * -   The `Disputed` and `Accepted` variant classes
+ * -   An abstract `Syntax` class that provides the fluent API for `Validated`
+ * -   A `Typ` enumeration that discriminates `Validated`
+ * -   Functions for constructing and collecting into `Validated`
  *
  * The type and namespace can be imported under the same alias:
  *
@@ -287,13 +293,6 @@ export type Validated<E, A> = Validated.Disputed<E> | Validated.Accepted<A>;
 
 /**
  * The companion namespace for the `Validated` type.
- *
- * The namespace provides:
- *
- * -   The `Disputed` and `Accepted` variant classes.
- * -   An abstract `Syntax` class that provides the fluent API for `Validated`.
- * -   A `Typ` enumeration that discriminates `Validated`.
- * -   Functions for constructing and collecting into `Validated`.
  */
 export namespace Validated {
     /**

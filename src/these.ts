@@ -70,8 +70,13 @@
  *
  * ## Importing from this module
  *
- * This module exposes `These` as both a type and a namespace. The namespace
- * provides functions and other utilities for the `These` type.
+ * This module exposes `These` as both a type and a namespace. The `These` type
+ * is an alias for a discriminated union, and the `These` namespace provides:
+ *
+ * -   The `Left`, `Right`, and `Both` variant classes
+ * -   An abstract `Syntax` class that provides the fluent API for `These`
+ * -   A `Typ` enumeration that discriminates `These`
+ * -   Functions for constructing, chaining, and collecting into `These`
  *
  * The type and namespace can be imported under the same alias:
  *
@@ -346,13 +351,6 @@ export type These<A, B> = These.Left<A> | These.Right<B> | These.Both<A, B>;
 
 /**
  * The companion namespace for the `These` type.
- *
- * The namespace provides:
- *
- * -   The `Left`, `Right`, and `Both` variant classes.
- * -   An abstract `Syntax` class that provides the fluent API for `These`.
- * -   A `Typ` enumeration that discriminates `These`.
- * -   Functions for constructing, chaining, and collecting into `These`.
  */
 export namespace These {
     /**

@@ -27,8 +27,7 @@
  *
  * ## Importing from this module
  *
- * This module exposes `Tuple` as a class. It is recommended to import the type
- * as named:
+ * This module exposes `Tuple` as a class, and can be imported as named:
  *
  * ```ts
  * import { Tuple } from "@neotype/prelude/tuple.js";
@@ -39,7 +38,7 @@
  * ## Constructing `Tuple`
  *
  * `Tuple` can be constructed as a class using the `new` keyword. It receives a
- * tuple literal as its single argument.
+ * tuple literal of at least two elements as its single argument.
  *
  * ## Comparing `Tuple`
  *
@@ -54,7 +53,7 @@
  * ## `Tuple` as a semigroup
  *
  * `Tuple` implements `Semigroup` when its elements each implement `Semigroup`.
- * Two Tuples combine their elements pairwise to return a new Tuples of the same
+ * Two Tuples combine their elements pairwise to return a new Tuple of the same
  * length.
  *
  * @module

@@ -36,8 +36,14 @@
  *
  * ## Importing from this module
  *
- * This module exports `Maybe` as both a type and a namespace. The namespace
- * provides functions and other utilities for the `Maybe` type.
+ * This module exports `Maybe` as both a type and a namespace. The `Maybe` type
+ * is an alias for a discriminated union, and the `Maybe` namespace provides:
+ *
+ * -   The `Nothing` and `Just` variant classes
+ * -   An abstract `Syntax` class that provides the fluent API for `Maybe`
+ * -   A `Typ` enumeration that discriminates `Maybe`
+ * -   The `nothing` constant
+ * -   Functions for constructing, chaining, and collecting into `Maybe`
  *
  * The type and namespce can be imported under the same alias:
  *
@@ -292,13 +298,6 @@ export type Maybe<A> = Maybe.Nothing | Maybe.Just<A>;
 
 /**
  * The companion namespace for the `Maybe` type.
- *
- * The namespace provides:
- *
- * -   The `Nothing` and `Just` variant classes.
- * -   An abstract `Syntax` class that provides the fluent API for `Maybe`.
- * -   A `Typ` enumeration that discriminates `Maybe`.
- * -   Functions for constructing, chaining, and collecting into `Maybe`.
  */
 export namespace Maybe {
     /**

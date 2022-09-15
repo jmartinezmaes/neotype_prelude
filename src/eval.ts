@@ -26,7 +26,9 @@
  *
  * ## Importing from this module
  *
- * This module exposes `Eval` as a class. It can be imported as a single alias:
+ * This module exposes `Eval` as a class.
+ *
+ * The class can be imported as named:
  *
  * ```ts
  * import { Eval } from "@neotype/prelude/eval.js";
