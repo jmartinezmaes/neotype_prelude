@@ -218,13 +218,6 @@ import { MutStack } from "./internal/mut_stack.js";
  */
 export class Eval<out A> {
     /**
-     * A unique symbol used in Eval generator comprehensions.
-     *
-     * @hidden
-     */
-    static readonly yieldTkn = Symbol();
-
-    /**
      * Construct an Eval with an immediately known value.
      */
     static now<A>(x: A): Eval<A> {
@@ -255,8 +248,8 @@ export class Eval<out A> {
     }
 
     static #step<A>(
-        gen: Iterator<readonly [Eval<any>, Eval.YieldTkn], A>,
-        nxt: IteratorResult<readonly [Eval<any>, Eval.YieldTkn], A>,
+        gen: Iterator<readonly [Eval<any>], A>,
+        nxt: IteratorResult<readonly [Eval<any>], A>,
     ): Eval<A> {
         if (nxt.done) {
             return Eval.now(nxt.value);
@@ -267,9 +260,7 @@ export class Eval<out A> {
     /**
      * Construct an Eval using a generator comprehension.
      */
-    static go<A>(
-        f: () => Generator<readonly [Eval<any>, Eval.YieldTkn], A, any>,
-    ): Eval<A> {
+    static go<A>(f: () => Generator<readonly [Eval<any>], A, any>): Eval<A> {
         return Eval.defer(() => {
             const gen = f();
             return Eval.#step(gen, gen.next());
@@ -350,12 +341,8 @@ export class Eval<out A> {
      *
      * @hidden
      */
-    *[Symbol.iterator](): Iterator<
-        readonly [Eval<A>, Eval.YieldTkn],
-        A,
-        unknown
-    > {
-        return (yield [this, Eval.yieldTkn]) as A;
+    *[Symbol.iterator](): Iterator<readonly [Eval<A>], A, unknown> {
+        return (yield [this]) as A;
     }
 
     /**
@@ -461,13 +448,6 @@ export class Eval<out A> {
 }
 
 export namespace Eval {
-    /**
-     * A unique symbol used in Eval generator comprehensions.
-     *
-     * @hidden
-     */
-    export type YieldTkn = typeof Eval.yieldTkn;
-
     /**
      * Extract the result type `A` from the type `Eval<A>`.
      */

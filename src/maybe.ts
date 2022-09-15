@@ -310,20 +310,6 @@ export namespace Maybe {
     }
 
     /**
-     * A unique symbol used in Maybe generator comprehensions.
-     *
-     * @hidden
-     */
-    export const yieldTkn = Symbol();
-
-    /**
-     * A unique symbol used in Maybe generator comprehensions.
-     *
-     * @hidden
-     */
-    export type YieldTkn = typeof yieldTkn;
-
-    /**
      * Construct a `Just` Maybe.
      */
     export function just<A>(x: A): Maybe<A> {
@@ -356,7 +342,7 @@ export namespace Maybe {
      * Construct a Maybe using a generator comprehension.
      */
     export function go<A>(
-        f: () => Generator<readonly [Maybe<any>, YieldTkn], A, any>,
+        f: () => Generator<readonly [Maybe<any>], A, any>,
     ): Maybe<A> {
         const gen = f();
         let nxt = gen.next();
@@ -435,7 +421,7 @@ export namespace Maybe {
      * comprehension.
      */
     export async function goAsync<A>(
-        f: () => AsyncGenerator<readonly [Maybe<any>, YieldTkn], A, any>,
+        f: () => AsyncGenerator<readonly [Maybe<any>], A, any>,
     ): Promise<Maybe<A>> {
         const gen = f();
         let nxt = await gen.next();
@@ -607,11 +593,11 @@ export namespace Maybe {
          * @hidden
          */
         *[Symbol.iterator](): Iterator<
-            readonly [Maybe<never>, YieldTkn],
+            readonly [Maybe<never>],
             never,
             unknown
         > {
-            return (yield [this, yieldTkn]) as never;
+            return (yield [this]) as never;
         }
     }
 
@@ -638,12 +624,8 @@ export namespace Maybe {
          *
          * @hidden
          */
-        *[Symbol.iterator](): Iterator<
-            readonly [Maybe<A>, YieldTkn],
-            A,
-            unknown
-        > {
-            return (yield [this, yieldTkn]) as A;
+        *[Symbol.iterator](): Iterator<readonly [Maybe<A>], A, unknown> {
+            return (yield [this]) as A;
         }
     }
 

@@ -365,20 +365,6 @@ export namespace These {
     }
 
     /**
-     * A unique symbol used in `These` generator comprehensions.
-     *
-     * @hidden
-     */
-    export const yieldTkn = Symbol();
-
-    /**
-     * A unique symbol used in `These` generator comprehensions.
-     *
-     * @hidden
-     */
-    export type YieldTkn = typeof yieldTkn;
-
-    /**
      * Construct a `Left` These with an optional type witness for the right-hand
      * value.
      */
@@ -405,7 +391,7 @@ export namespace These {
      * Construct a These using a generator comprehension.
      */
     export function go<E extends Semigroup<E>, A>(
-        f: () => Generator<readonly [These<E, any>, These.YieldTkn], A, any>,
+        f: () => Generator<readonly [These<E, any>], A, any>,
     ): These<E, A> {
         const gen = f();
         let nxt = gen.next();
@@ -663,7 +649,7 @@ export namespace These {
      * comprehension.
      */
     export async function goAsync<E extends Semigroup<E>, A>(
-        f: () => AsyncGenerator<readonly [These<E, any>, YieldTkn], A, any>,
+        f: () => AsyncGenerator<readonly [These<E, any>], A, any>,
     ): Promise<These<E, A>> {
         const gen = f();
         let nxt = await gen.next();
@@ -931,11 +917,11 @@ export namespace These {
          * @hidden
          */
         *[Symbol.iterator](): Iterator<
-            readonly [These<A, never>, YieldTkn],
+            readonly [These<A, never>],
             never,
             unknown
         > {
-            return (yield [this, yieldTkn]) as never;
+            return (yield [this]) as never;
         }
     }
 
@@ -962,12 +948,8 @@ export namespace These {
          *
          * @hidden
          */
-        *[Symbol.iterator](): Iterator<
-            readonly [These<never, B>, YieldTkn],
-            B,
-            unknown
-        > {
-            return (yield [this, yieldTkn]) as B;
+        *[Symbol.iterator](): Iterator<readonly [These<never, B>], B, unknown> {
+            return (yield [this]) as B;
         }
     }
 
@@ -996,12 +978,8 @@ export namespace These {
          *
          * @hidden
          */
-        *[Symbol.iterator](): Iterator<
-            readonly [These<A, B>, YieldTkn],
-            B,
-            unknown
-        > {
-            return (yield [this, yieldTkn]) as B;
+        *[Symbol.iterator](): Iterator<readonly [These<A, B>], B, unknown> {
+            return (yield [this]) as B;
         }
     }
 }

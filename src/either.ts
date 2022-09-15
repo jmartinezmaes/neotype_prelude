@@ -324,20 +324,6 @@ export namespace Either {
     }
 
     /**
-     * A unique symbol used in `Either` generator comprehensions.
-     *
-     * @hidden
-     */
-    export const yieldTkn = Symbol();
-
-    /**
-     * A unique symbol used in `Either` generator comprehensions.
-     *
-     * @hidden
-     */
-    export type YieldTkn = typeof yieldTkn;
-
-    /**
      * Construct a `Left` Either with an optional type witness for the `Right`
      * value.
      */
@@ -378,7 +364,7 @@ export namespace Either {
     /**
      * Construct an Either using a generator comprehension.
      */
-    export function go<T extends readonly [Either<any, any>, YieldTkn], A>(
+    export function go<T extends readonly [Either<any, any>], A>(
         f: () => Generator<T, A, any>,
     ): Either<LeftT<T[0]>, A> {
         const gen = f();
@@ -458,10 +444,9 @@ export namespace Either {
      * Construct a Promise that fulfills with an Either using an async generator
      * comprehension.
      */
-    export async function goAsync<
-        T extends readonly [Either<any, any>, YieldTkn],
-        A,
-    >(f: () => AsyncGenerator<T, A, any>): Promise<Either<LeftT<T[0]>, A>> {
+    export async function goAsync<T extends readonly [Either<any, any>], A>(
+        f: () => AsyncGenerator<T, A, any>,
+    ): Promise<Either<LeftT<T[0]>, A>> {
         const gen = f();
         let nxt = await gen.next();
         while (!nxt.done) {
@@ -685,11 +670,11 @@ export namespace Either {
          * @hidden
          */
         *[Symbol.iterator](): Iterator<
-            readonly [Either<A, never>, YieldTkn],
+            readonly [Either<A, never>],
             never,
             unknown
         > {
-            return (yield [this, yieldTkn]) as never;
+            return (yield [this]) as never;
         }
     }
 
@@ -717,11 +702,11 @@ export namespace Either {
          * @hidden
          */
         *[Symbol.iterator](): Iterator<
-            readonly [Either<never, B>, YieldTkn],
+            readonly [Either<never, B>],
             B,
             unknown
         > {
-            return (yield [this, yieldTkn]) as B;
+            return (yield [this]) as B;
         }
     }
 
