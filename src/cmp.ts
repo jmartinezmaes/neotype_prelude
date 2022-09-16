@@ -798,9 +798,9 @@ export namespace Ordering {
      * An enumeration that discriminates `Ordering`.
      */
     export enum Typ {
-        Less = 0,
-        Equal = 1,
-        Greater = 2,
+        Less,
+        Equal,
+        Greater,
     }
 
     /**
@@ -833,13 +833,7 @@ export namespace Ordering {
         }
 
         [Ord.cmp](this: Ordering, that: Ordering): Ordering {
-            if (this.isLt()) {
-                return that.isLt() ? equal : less;
-            }
-            if (this.isGt()) {
-                return that.isGt() ? equal : greater;
-            }
-            return that.isEq() ? equal : that.isLt() ? greater : less;
+            return fromNumber(this.typ - that.typ);
         }
 
         [Semigroup.cmb](this: Ordering, that: Ordering): Ordering {
