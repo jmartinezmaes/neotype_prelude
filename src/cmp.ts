@@ -727,7 +727,7 @@ export function lt<A extends Ord<A>>(x: A, y: A): boolean {
 /**
  * Test for a "greater than" ordering between two values.
  *
- * Return `true` `x` is greater than `y`.
+ * Return `true` if `x` is greater than `y`.
  */
 export function gt<A extends Ord<A>>(x: A, y: A): boolean {
     return cmp(x, y).isGt();
