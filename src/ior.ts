@@ -17,20 +17,19 @@
 /**
  * Hybrid functionality of `Either` and `Validated`.
  *
- * This module provides the `These` type and associated operations.
+ * This module provides the `Ior` type and associated operations.
  *
- * `These<A, B>` is a type that represents *one or both* of two values `A` and
- * `B`; thus, `These` is represented by three variants: `Left<A>`, `Right<B>`,
+ * `Ior<A, B>` is a type that represents *one or both* of two values `A` and
+ * `B`; thus, `Ior` is represented by three variants: `Left<A>`, `Right<B>`,
  * and `Both<A, B>`.
  *
- * `These` is often used to represent states of failure or success similar to
- * `Either` and `Validated`. However, `These` is capable of also representing a
+ * `Ior` is often used to represent states of failure or success similar to
+ * `Either` and `Validated`. However, `Ior` is capable of also representing a
  * unique state using the `Both` variant. `Both` can represent a success that
  * carries additional information, or a state of *partial failure*.
  *
- * When composed, the behavior of `These` is a combination of the
- * short-circuiting behavior of `Either` and the failure-accumulating behavior
- * of `Validated`:
+ * When composed, the behavior of `Ior` is a combination of the short-circuiting
+ * behavior of `Either` and the failure-accumulating behavior of `Validated`:
  *
  * -   `Left` short-circuits a computation completely and combines its value
  *     with any existing left-hand value.
@@ -70,77 +69,77 @@
  *
  * ## Importing from this module
  *
- * This module exposes `These` as both a type and a namespace. The `These` type
- * is an alias for a discriminated union, and the `These` namespace provides:
+ * This module exposes `Ior` as both a type and a namespace. The `Ior` type is
+ * an alias for a discriminated union, and the `Ior` namespace provides:
  *
  * -   The `Left`, `Right`, and `Both` variant classes
- * -   An abstract `Syntax` class that provides the fluent API for `These`
- * -   A `Typ` enumeration that discriminates `These`
- * -   Functions for constructing, chaining, and collecting into `These`
+ * -   An abstract `Syntax` class that provides the fluent API for `Ior`
+ * -   A `Typ` enumeration that discriminates `Ior`
+ * -   Functions for constructing, chaining, and collecting into `Ior`
  *
  * The type and namespace can be imported under the same alias:
  *
  * ```ts
- * import { These } from "@neotype/prelude/these.js";
+ * import { Ior } from "@neotype/prelude/ior.js";
  *
- * const example: These<List<string>, number> = These.both(new List("a"), 1);
+ * const example: Ior<List<string>, number> = Ior.both(new List("a"), 1);
  * ```
  *
  * Or, the type and namespace can be imported and aliased separately:
  *
  * ```ts
- * import { type These, These as T } from "@neotype/prelude/these.js";
+ * import { type Ior, Ior as I } from "@neotype/prelude/ior.js";
  *
- * const example: These<List<string>, number> = T.both(new List("a"), 1);
+ * const example: Ior<List<string>, number> = I.both(new List("a"), 1);
  * ```
  *
- * ## Constructing `These`
+ * ## Constructing `Ior`
  *
  * The `left`, `right`, and `both` functions construct the `Left`, `Right`,
- * and `Both` variants of `These`, respectively.
+ * and `Both` variants of `Ior`, respectively.
  *
  * ## Querying and narrowing the variant
  *
- * The `isLeft`, `isRight`, and `isBoth` methods return `true` if a These is
- * the `Left`, `Right`, or `Both`  variant, respectively. These methods will
- * also narrow the type of a These to its queried variant.
+ * The `isLeft`, `isRight`, and `isBoth` methods return `true` if an Ior is the
+ * `Left`, `Right`, or `Both`  variant, respectively. These methods will also
+ * narrow the type of an Ior to its queried variant.
  *
- * A These's variant can also be queried and narrowed via the `typ` property,
+ * An Ior's variant can also be queried and narrowed via the `typ` property,
  * which returns a member of the `Typ` enumeration.
  *
  * ## Extracting values
  *
- * When a These is `Left` or `Right`, its value can be accessed via the `val`
- * property. When a These is `Both`, its left-hand and right-hand values can be
+ * When an Ior is `Left` or `Right`, its value can be accessed via the `val`
+ * property. When an Ior is `Both`, its left-hand and right-hand values can be
  * accessed via the `fst` and `snd` properties, respectively.
  *
- * Alternatively, the `fold` method will unwrap an These by applying one of
- * three functions to its left-hand and/or right-hand value(s).
+ * Alternatively, the `fold` method will unwrap an Ior by applying one of three
+ * functions to its left-hand and/or right-hand value(s).
  *
- * ## Comparing `These`
+ * ## Comparing `Ior`
  *
- * `These` implements `Eq` and `Ord` when both its left-hand and right-hand
- * values implement `Eq` and `Ord`.
+ * `Ior` implements `Eq` and `Ord` when both its left-hand and right-hand values
+ * implement `Eq` and `Ord`.
  *
- * -   Two These are equal if they are the same variant and their value(s) is
+ * -   Two Iors are equal if they are the same variant and their value(s) is
  *     (are) equal.
  * -   When compared, `Left` is less than `Right`, and `Right` is less than
  *     `Both`. If the variants are equal, their values determine the ordering.
  *     `Both` compares its `fst` and `snd` properties lexicographically.
  *
- * ## `These` as a semigroup
+ * ## `Ior` as a semigroup
  *
- * `These` implements `Semigroup` when both its left-hand and right-hand values
+ * `Ior` implements `Semigroup` when both its left-hand and right-hand values
  * implement `Semigroup`. Left-hand and right-hand values are combined pairwise,
  * and will accumulate into `Both`:
  *
  * ```ts
  * import { cmb } from "@neotype/prelude/cmb.js";
  *
- * const combined: These<List<string>, List<string>> = [
- *     These.left(new List("a")),
- *     These.both(new List("b"), new List("x")),
- *     These.right(new List("y")),
+ * const combined: Ior<List<string>, List<string>> = [
+ *     Ior.left(new List("a")),
+ *     Ior.both(new List("b"), new List("x")),
+ *     Ior.right(new List("y")),
  * ].reduce(cmb);
  *
  * console.log(combined);
@@ -148,10 +147,10 @@
  *
  * ## Transforming values
  *
- * These methods transform a These's value(s):
+ * These methods transform an Ior's value(s):
  *
  * -   `bimap` applies one or two functions to the left-hand and/or right-hand
- *     value(s) depending on the These's variant.
+ *     value(s) depending on the Ior's variant.
  * -   `mapLeft` applies a function to the left-hand value, leaving the
  *     right-hand value unaffected.
  * -   `map` applies a function to the right-hand value, leaving the left-hand
@@ -166,33 +165,33 @@
  * -   `zipFst` keeps only the first value, and discards the second.
  * -   `zipSnd` keeps only the second value, and discards the first.
  *
- * ## Chaining `These`
+ * ## Chaining `Ior`
  *
- * The `flatMap` method chains together computations that return `These`. If a
- * These is `Right` or `Both`, a function is applied to its right-hand value and
- * evaluated to return another These. Left-hand values are accumulated along the
- * way and require an implementation for `Semigroup`. If any These is `Left`,
- * the computation is halted and the `Left` is returned instead.
+ * The `flatMap` method chains together computations that return `Ior`. If an
+ * Ior is `Right` or `Both`, a function is applied to its right-hand value and
+ * evaluated to return another Ior. Left-hand values are accumulated along the
+ * way and require an implementation for `Semigroup`. If any Ior is `Left`, the
+ * computation is halted and the `Left` is returned instead.
  *
- * Consider a program that uses `These` to parse an even integer:
+ * Consider a program that uses `Ior` to parse an even integer:
  *
  * ```ts
- * function parseInt(input: string): These<Log, number> {
+ * function parseInt(input: string): Ior<Log, number> {
  *     const n = Number.parseInt(input);
  *     if (Number.isNaN(n)) {
- *         return These.left(err(`cannot parse integer from ${input}`));
+ *         return Ior.left(err(`cannot parse integer from ${input}`));
  *     }
- *     return These.both(info(`parse integer ${n}`), n);
+ *     return Ior.both(info(`parse integer ${n}`), n);
  * }
  *
- * function guardEven(n: number): These<Log, number> {
+ * function guardEven(n: number): Ior<Log, number> {
  *     if (n % 2 === 0) {
- *         return These.both(info(`assert ${n} is even`), n);
+ *         return Ior.both(info(`assert ${n} is even`), n);
  *     }
- *     return These.left(err(`${n} is not even`));
+ *     return Ior.left(err(`${n} is not even`));
  * }
  *
- * function parseEvenInt(input: string): These<Log, number> {
+ * function parseEvenInt(input: string): Ior<Log, number> {
  *     return parseInt(input).flatMap(guardEven);
  * }
  *
@@ -204,12 +203,12 @@
  * ### Generator comprehensions
  *
  * Generator comprehensions provide an alternative syntax for chaining together
- * computations that return `These`. Instead of `flatMap`, a generator is used
+ * computations that return `Ior`. Instead of `flatMap`, a generator is used
  * to unwrap `Right` and `Both` variants, and apply functions to their
  * right-hand values.
  *
- * The `go` function evaluates a generator to return a These. Within the
- * generator, These are yielded using the `yield*` keyword. This binds the
+ * The `go` function evaluates a generator to return an Ior. Within the
+ * generator, Iors are yielded using the `yield*` keyword. This binds the
  * right-hand values to specified variables. When the computation is complete, a
  * final value can be computed and returned from the generator.
  *
@@ -228,8 +227,8 @@
  * function above:
  *
  * ```ts
- * function parseEvenInt(input: string): These<Log, number> {
- *     return These.go(function* () {
+ * function parseEvenInt(input: string): Ior<Log, number> {
+ *     return Ior.go(function* () {
  *         const n = yield* parseInt(input);
  *         const even = yield* guardEven(n);
  *         return even;
@@ -238,11 +237,11 @@
  * ```
  *
  * Async generator comprehensions provide `async/await` syntax and Promises to
- * `These` generator comprehensions. Async computations that return `These` can
+ * `Ior` generator comprehensions. Async computations that return `Ior` can
  * be chained together using the familiar generator syntax.
  *
  * The `goAsync` function evaluates an async generator to return a Promise that
- * fulfills with a `These`. The semantics of `yield*` and `return` within async
+ * fulfills with a `Ior`. The semantics of `yield*` and `return` within async
  * comprehensions are identical to their synchronous counterparts.
  *
  * In addition to the syntax permitted in synchronous generator comprehensions,
@@ -251,7 +250,7 @@
  * -   the `await` keyword
  * -   `for await` loops (asynchronous iteration)
  *
- * Consider a program that uses requests data from a remote API and uses `These`
+ * Consider a program that uses requests data from a remote API and uses `Ior`
  * to guard against unlocatable resources:
  *
  * ```ts
@@ -265,20 +264,20 @@
  *
  * async function fetchUsernameByUserId(
  *     id: number
- * ): Promise<These<Log, string>> {
+ * ): Promise<Ior<Log, string>> {
  *     const response = await fetch(`${usersEndpoint}/${id}`);
  *     if (!response.ok) {
- *         return These.left(err(`user with id ${id} not found`));
+ *         return Ior.left(err(`user with id ${id} not found`));
  *     }
  *     const user: User = await response.json();
- *     return These.both(info(`found user with id ${id}`), user.username);
+ *     return Ior.both(info(`found user with id ${id}`), user.username);
  * }
  *
  * function fetchUsernamesByUserIds(
  *     id1: number,
  *     id2: number,
- * ): Promise<These<Log, readonly [string, string]>> {
- *     return These.goAsync(async function* () {
+ * ): Promise<Ior<Log, readonly [string, string]>> {
+ *     return Ior.goAsync(async function* () {
  *         const uname1 = yield* await fetchUsernameByUserId(id1);
  *         const uname2 = yield* await fetchUsernameByUserId(id2);
  *         return [uname1, uname2] as const;
@@ -290,34 +289,34 @@
  * console.log(await fetchUsernamesByUserIds(6, 3));
  * ```
  *
- * ## Collecting into `These`
+ * ## Collecting into `Ior`
  *
- * `These` provides several functions for working with collections of These.
- * Sometimes, a collection of These must be turned "inside out" into a These
- * that contains a "mapped" collection of right-hand values.
+ * `Ior` provides several functions for working with collections of Iors.
+ * Sometimes, a collection of Iors must be turned "inside out" into an Ior that
+ * contains a "mapped" collection of right-hand values.
  *
- * These methods will traverse a collection of These to extract the right-hand
- * values. If any These in the collection is `Left`, the traversal is halted
+ * These methods will traverse a collection of Iors to extract the right-hand
+ * values. If any Ior in the collection is `Left`, the traversal is halted and
  * and the `Left` is returned instead. An implementation for `Semigroup` is
  * required for left-hand values so they may accumulate.
  *
- * -   `collect` turns an Array or a tuple literal of These inside out.
- * -   `tupled` turns a series of two or more individual These inside out.
+ * -   `collect` turns an Array or a tuple literal of Iors inside out.
+ * -   `tupled` turns a series of two or more individual Iors inside out.
  *
  * Additionally, the `reduce` function reduces a finite Iterable from left to
- * right in the context of `These`. This is useful for mapping, filtering, and
- * accumulating values using `These`:
+ * right in the context of `Ior`. This is useful for mapping, filtering, and
+ * accumulating values using `Ior`:
  *
  * ```ts
- * function sumOnlyEvens(nums: number[]): These<Log, number> {
- *     return These.reduce(
+ * function sumOnlyEvens(nums: number[]): Ior<Log, number> {
+ *     return Ior.reduce(
  *         nums,
  *         (total, num) => {
  *             const newTotal = total + num;
  *             if (newTotal % 2 !== 0) {
- *                 return These.left(err(`encountered odd number ${num}`));
+ *                 return Ior.left(err(`encountered odd number ${num}`));
  *             }
- *             return These.both(info(`add ${total} and ${num}`), newTotal);
+ *             return Ior.both(info(`add ${total} and ${num}`), newTotal);
  *         },
  *         0,
  *     );
@@ -332,20 +331,21 @@
 
 import { cmb, Semigroup } from "./cmb.js";
 import { cmp, Eq, eq, Ord, Ordering } from "./cmp.js";
+import { type Either } from "./either.js";
 import { id } from "./fn.js";
 
 /**
  * A type that represents one or both of two values (`Left`, `Right`, or
  * `Both`).
  */
-export type These<A, B> = These.Left<A> | These.Right<B> | These.Both<A, B>;
+export type Ior<A, B> = Ior.Left<A> | Ior.Right<B> | Ior.Both<A, B>;
 
 /**
- * The companion namespace for the `These` type.
+ * The companion namespace for the `Ior` type.
  */
-export namespace These {
+export namespace Ior {
     /**
-     * An enumeration that discriminates `These`.
+     * An enumeration that discriminates `Ior`.
      */
     export enum Typ {
         Left,
@@ -354,60 +354,70 @@ export namespace These {
     }
 
     /**
-     * Construct a `Left` These with an optional type witness for the right-hand
+     * Construct a `Left` Ior with an optional type witness for the right-hand
      * value.
      */
-    export function left<A, B = never>(x: A): These<A, B> {
+    export function left<A, B = never>(x: A): Ior<A, B> {
         return new Left(x);
     }
 
     /**
-     * Construct a `Right` These with an optional type witness for the left-hand
+     * Construct a `Right` Ior with an optional type witness for the left-hand
      * value.
      */
-    export function right<B, A = never>(x: B): These<A, B> {
+    export function right<B, A = never>(x: B): Ior<A, B> {
         return new Right(x);
     }
 
     /**
-     * Construct a `Both` These.
+     * Construct a `Both` Ior.
      */
-    export function both<A, B>(x: A, y: B): These<A, B> {
+    export function both<A, B>(x: A, y: B): Ior<A, B> {
         return new Both(x, y);
     }
 
     /**
-     * Construct a These using a generator comprehension.
+     * Construct an Ior from an Either.
+     *
+     * `Right` and `Left` Eithers will become `Right` and `Left` Iors,
+     * respectively.
+     */
+    export function fromEither<A, B>(either: Either<A, B>): Ior<A, B> {
+        return either.fold(left, right);
+    }
+
+    /**
+     * Construct an Ior using a generator comprehension.
      */
     export function go<E extends Semigroup<E>, A>(
-        f: () => Generator<readonly [These<E, any>], A, any>,
-    ): These<E, A> {
+        f: () => Generator<readonly [Ior<E, any>], A, any>,
+    ): Ior<E, A> {
         const gen = f();
         let nxt = gen.next();
         let acc: E | undefined;
 
         while (!nxt.done) {
-            const these = nxt.value[0];
-            if (these.isRight()) {
-                nxt = gen.next(these.val);
-            } else if (these.isBoth()) {
-                acc = acc !== undefined ? cmb(acc, these.fst) : these.fst;
-                nxt = gen.next(these.snd);
+            const ior = nxt.value[0];
+            if (ior.isRight()) {
+                nxt = gen.next(ior.val);
+            } else if (ior.isBoth()) {
+                acc = acc !== undefined ? cmb(acc, ior.fst) : ior.fst;
+                nxt = gen.next(ior.snd);
             } else {
-                return acc !== undefined ? left(cmb(acc, these.val)) : these;
+                return acc !== undefined ? left(cmb(acc, ior.val)) : ior;
             }
         }
         return acc !== undefined ? both(acc, nxt.value) : right(nxt.value);
     }
 
     /**
-     * Reduce a finite Iterable from left to right in the context of `These`.
+     * Reduce a finite Iterable from left to right in the context of `Ior`.
      */
     export function reduce<A, B, E extends Semigroup<E>>(
         xs: Iterable<A>,
-        f: (acc: B, x: A) => These<E, B>,
+        f: (acc: B, x: A) => Ior<E, B>,
         initial: B,
-    ): These<E, B> {
+    ): Ior<E, B> {
         return go(function* () {
             let acc = initial;
             for (const x of xs) {
@@ -418,253 +428,242 @@ export namespace These {
     }
 
     /**
-     * Evaluate the These in an Array or a tuple literal from left to right and
+     * Evaluate the Iors in an Array or a tuple literal from left to right and
      * collect the right-hand values in an Array or a tuple literal,
      * respectively.
      */
     export function collect<E extends Semigroup<E>, A0, A1>(
-        these: readonly [These<E, A0>, These<E, A1>],
-    ): These<E, readonly [A0, A1]>;
+        iors: readonly [Ior<E, A0>, Ior<E, A1>],
+    ): Ior<E, readonly [A0, A1]>;
 
     export function collect<E extends Semigroup<E>, A0, A1, A2>(
-        these: readonly [These<E, A0>, These<E, A1>, These<E, A2>],
-    ): These<E, readonly [A0, A1, A2]>;
+        iors: readonly [Ior<E, A0>, Ior<E, A1>, Ior<E, A2>],
+    ): Ior<E, readonly [A0, A1, A2]>;
 
     export function collect<E extends Semigroup<E>, A0, A1, A2, A3>(
-        these: readonly [
-            These<E, A0>,
-            These<E, A1>,
-            These<E, A2>,
-            These<E, A3>,
-        ],
-    ): These<E, readonly [A0, A1, A2, A3]>;
+        iors: readonly [Ior<E, A0>, Ior<E, A1>, Ior<E, A2>, Ior<E, A3>],
+    ): Ior<E, readonly [A0, A1, A2, A3]>;
 
     export function collect<E extends Semigroup<E>, A0, A1, A2, A3, A4>(
-        these: readonly [
-            These<E, A0>,
-            These<E, A1>,
-            These<E, A2>,
-            These<E, A3>,
-            These<E, A4>,
+        iors: readonly [
+            Ior<E, A0>,
+            Ior<E, A1>,
+            Ior<E, A2>,
+            Ior<E, A3>,
+            Ior<E, A4>,
         ],
-    ): These<E, readonly [A0, A1, A2, A3, A4]>;
+    ): Ior<E, readonly [A0, A1, A2, A3, A4]>;
 
     export function collect<E extends Semigroup<E>, A0, A1, A2, A3, A4, A5>(
-        these: readonly [
-            These<E, A0>,
-            These<E, A1>,
-            These<E, A2>,
-            These<E, A3>,
-            These<E, A4>,
-            These<E, A5>,
+        iors: readonly [
+            Ior<E, A0>,
+            Ior<E, A1>,
+            Ior<E, A2>,
+            Ior<E, A3>,
+            Ior<E, A4>,
+            Ior<E, A5>,
         ],
-    ): These<E, readonly [A0, A1, A2, A3, A4, A5]>;
+    ): Ior<E, readonly [A0, A1, A2, A3, A4, A5]>;
 
     export function collect<E extends Semigroup<E>, A0, A1, A2, A3, A4, A5, A6>(
-        these: readonly [
-            These<E, A0>,
-            These<E, A1>,
-            These<E, A2>,
-            These<E, A3>,
-            These<E, A4>,
-            These<E, A5>,
-            These<E, A6>,
+        iors: readonly [
+            Ior<E, A0>,
+            Ior<E, A1>,
+            Ior<E, A2>,
+            Ior<E, A3>,
+            Ior<E, A4>,
+            Ior<E, A5>,
+            Ior<E, A6>,
         ],
-    ): These<E, readonly [A0, A1, A2, A3, A4, A5, A6]>;
+    ): Ior<E, readonly [A0, A1, A2, A3, A4, A5, A6]>;
 
     // prettier-ignore
     export function collect<E extends Semigroup<E>, A0, A1, A2, A3, A4, A5, A6, A7>(
-        these: readonly [
-            These<E, A0>,
-            These<E, A1>,
-            These<E, A2>,
-            These<E, A3>,
-            These<E, A4>,
-            These<E, A5>,
-            These<E, A6>,
-            These<E, A7>,
+        iors: readonly [
+            Ior<E, A0>,
+            Ior<E, A1>,
+            Ior<E, A2>,
+            Ior<E, A3>,
+            Ior<E, A4>,
+            Ior<E, A5>,
+            Ior<E, A6>,
+            Ior<E, A7>,
         ],
-    ): These<E, readonly [A0, A1, A2, A3, A4, A5, A6, A7]>;
+    ): Ior<E, readonly [A0, A1, A2, A3, A4, A5, A6, A7]>;
 
     // prettier-ignore
     export function collect<E extends Semigroup<E>, A0, A1, A2, A3, A4, A5, A6, A7, A8>(
-        these: readonly [
-            These<E, A0>,
-            These<E, A1>,
-            These<E, A2>,
-            These<E, A3>,
-            These<E, A4>,
-            These<E, A5>,
-            These<E, A6>,
-            These<E, A7>,
-            These<E, A8>,
+        iors: readonly [
+            Ior<E, A0>,
+            Ior<E, A1>,
+            Ior<E, A2>,
+            Ior<E, A3>,
+            Ior<E, A4>,
+            Ior<E, A5>,
+            Ior<E, A6>,
+            Ior<E, A7>,
+            Ior<E, A8>,
         ],
-    ): These<E, readonly [A0, A1, A2, A3, A4, A5, A6, A7, A8]>;
+    ): Ior<E, readonly [A0, A1, A2, A3, A4, A5, A6, A7, A8]>;
 
     // prettier-ignore
     export function collect<E extends Semigroup<E>, A0, A1, A2, A3, A4, A5, A6, A7, A8, A9>(
-        these: readonly [
-            These<E, A0>,
-            These<E, A1>,
-            These<E, A2>,
-            These<E, A3>,
-            These<E, A4>,
-            These<E, A5>,
-            These<E, A6>,
-            These<E, A7>,
-            These<E, A8>,
-            These<E, A9>,
+        iors: readonly [
+            Ior<E, A0>,
+            Ior<E, A1>,
+            Ior<E, A2>,
+            Ior<E, A3>,
+            Ior<E, A4>,
+            Ior<E, A5>,
+            Ior<E, A6>,
+            Ior<E, A7>,
+            Ior<E, A8>,
+            Ior<E, A9>,
         ],
-    ): These<E, readonly [A0, A1, A2, A3, A4, A5, A6, A7, A8, A9]>;
+    ): Ior<E, readonly [A0, A1, A2, A3, A4, A5, A6, A7, A8, A9]>;
 
     export function collect<E extends Semigroup<E>, A>(
-        these: readonly These<E, A>[],
-    ): These<E, readonly A[]>;
+        iors: readonly Ior<E, A>[],
+    ): Ior<E, readonly A[]>;
 
     export function collect<E extends Semigroup<E>, A>(
-        these: readonly These<E, A>[],
-    ): These<E, readonly A[]> {
+        iors: readonly Ior<E, A>[],
+    ): Ior<E, readonly A[]> {
         return go(function* () {
-            const results: A[] = new Array(these.length);
-            for (const [idx, these1] of these.entries()) {
-                results[idx] = yield* these1;
+            const results: A[] = new Array(iors.length);
+            for (const [idx, ior] of iors.entries()) {
+                results[idx] = yield* ior;
             }
             return results;
         });
     }
 
     /**
-     * Evaluate a series of These from left to right and collect the right-hand
+     * Evaluate a series of Iors from left to right and collect the right-hand
      * values in a tuple literal.
      */
     export function tupled<E extends Semigroup<E>, A0, A1>(
-        ...these: [These<E, A0>, These<E, A1>]
-    ): These<E, readonly [A0, A1]>;
+        ...iors: [Ior<E, A0>, Ior<E, A1>]
+    ): Ior<E, readonly [A0, A1]>;
 
     export function tupled<E extends Semigroup<E>, A0, A1, A2>(
-        ...these: [These<E, A0>, These<E, A1>, These<E, A2>]
-    ): These<E, readonly [A0, A1, A2]>;
+        ...iors: [Ior<E, A0>, Ior<E, A1>, Ior<E, A2>]
+    ): Ior<E, readonly [A0, A1, A2]>;
 
     export function tupled<E extends Semigroup<E>, A0, A1, A2, A3>(
-        ...these: [These<E, A0>, These<E, A1>, These<E, A2>, These<E, A3>]
-    ): These<E, readonly [A0, A1, A2, A3]>;
+        ...iors: [Ior<E, A0>, Ior<E, A1>, Ior<E, A2>, Ior<E, A3>]
+    ): Ior<E, readonly [A0, A1, A2, A3]>;
 
     export function tupled<E extends Semigroup<E>, A0, A1, A2, A3, A4>(
-        ...these: [
-            These<E, A0>,
-            These<E, A1>,
-            These<E, A2>,
-            These<E, A3>,
-            These<E, A4>,
-        ]
-    ): These<E, readonly [A0, A1, A2, A3, A4]>;
+        ...iors: [Ior<E, A0>, Ior<E, A1>, Ior<E, A2>, Ior<E, A3>, Ior<E, A4>]
+    ): Ior<E, readonly [A0, A1, A2, A3, A4]>;
 
     export function tupled<E extends Semigroup<E>, A0, A1, A2, A3, A4, A5>(
-        ...these: [
-            These<E, A0>,
-            These<E, A1>,
-            These<E, A2>,
-            These<E, A3>,
-            These<E, A4>,
-            These<E, A5>,
+        ...iors: [
+            Ior<E, A0>,
+            Ior<E, A1>,
+            Ior<E, A2>,
+            Ior<E, A3>,
+            Ior<E, A4>,
+            Ior<E, A5>,
         ]
-    ): These<E, readonly [A0, A1, A2, A3, A4, A5]>;
+    ): Ior<E, readonly [A0, A1, A2, A3, A4, A5]>;
 
     export function tupled<E extends Semigroup<E>, A0, A1, A2, A3, A4, A5, A6>(
-        ...these: [
-            These<E, A0>,
-            These<E, A1>,
-            These<E, A2>,
-            These<E, A3>,
-            These<E, A4>,
-            These<E, A5>,
-            These<E, A6>,
+        ...iors: [
+            Ior<E, A0>,
+            Ior<E, A1>,
+            Ior<E, A2>,
+            Ior<E, A3>,
+            Ior<E, A4>,
+            Ior<E, A5>,
+            Ior<E, A6>,
         ]
-    ): These<E, readonly [A0, A1, A2, A3, A4, A5, A6]>;
+    ): Ior<E, readonly [A0, A1, A2, A3, A4, A5, A6]>;
 
     // prettier-ignore
     export function tupled<E extends Semigroup<E>, A0, A1, A2, A3, A4, A5, A6, A7>(
-        ...these: [
-            These<E, A0>,
-            These<E, A1>,
-            These<E, A2>,
-            These<E, A3>,
-            These<E, A4>,
-            These<E, A5>,
-            These<E, A6>,
-            These<E, A7>,
+        ...iors: [
+            Ior<E, A0>,
+            Ior<E, A1>,
+            Ior<E, A2>,
+            Ior<E, A3>,
+            Ior<E, A4>,
+            Ior<E, A5>,
+            Ior<E, A6>,
+            Ior<E, A7>,
         ]
-    ): These<E, readonly [A0, A1, A2, A3, A4, A5, A6, A7]>;
+    ): Ior<E, readonly [A0, A1, A2, A3, A4, A5, A6, A7]>;
 
     // prettier-ignore
     export function tupled<E extends Semigroup<E>, A0, A1, A2, A3, A4, A5, A6, A7, A8>(
-        ...these: [
-            These<E, A0>,
-            These<E, A1>,
-            These<E, A2>,
-            These<E, A3>,
-            These<E, A4>,
-            These<E, A5>,
-            These<E, A6>,
-            These<E, A7>,
-            These<E, A8>,
+        ...iors: [
+            Ior<E, A0>,
+            Ior<E, A1>,
+            Ior<E, A2>,
+            Ior<E, A3>,
+            Ior<E, A4>,
+            Ior<E, A5>,
+            Ior<E, A6>,
+            Ior<E, A7>,
+            Ior<E, A8>,
         ]
-    ): These<E, readonly [A0, A1, A2, A3, A4, A5, A6, A7, A8]>;
+    ): Ior<E, readonly [A0, A1, A2, A3, A4, A5, A6, A7, A8]>;
 
     // prettier-ignore
     export function tupled<E extends Semigroup<E>, A0, A1, A2, A3, A4, A5, A6, A7, A8, A9>(
-        ...these: [
-            These<E, A0>,
-            These<E, A1>,
-            These<E, A2>,
-            These<E, A3>,
-            These<E, A4>,
-            These<E, A5>,
-            These<E, A6>,
-            These<E, A7>,
-            These<E, A8>,
-            These<E, A9>,
+        ...iors: [
+            Ior<E, A0>,
+            Ior<E, A1>,
+            Ior<E, A2>,
+            Ior<E, A3>,
+            Ior<E, A4>,
+            Ior<E, A5>,
+            Ior<E, A6>,
+            Ior<E, A7>,
+            Ior<E, A8>,
+            Ior<E, A9>,
         ]
-    ): These<E, readonly [A0, A1, A2, A3, A4, A5, A6, A7, A8, A9]>;
+    ): Ior<E, readonly [A0, A1, A2, A3, A4, A5, A6, A7, A8, A9]>;
 
     export function tupled<E extends Semigroup<E>, A>(
-        ...these: These<E, A>[]
-    ): These<E, readonly A[]> {
-        return collect(these);
+        ...iors: Ior<E, A>[]
+    ): Ior<E, readonly A[]> {
+        return collect(iors);
     }
 
     /**
-     * Construct a Promise that fulfills with a These using an async generator
+     * Construct a Promise that fulfills with an Ior using an async generator
      * comprehension.
      */
     export async function goAsync<E extends Semigroup<E>, A>(
-        f: () => AsyncGenerator<readonly [These<E, any>], A, any>,
-    ): Promise<These<E, A>> {
+        f: () => AsyncGenerator<readonly [Ior<E, any>], A, any>,
+    ): Promise<Ior<E, A>> {
         const gen = f();
         let nxt = await gen.next();
         let acc: E | undefined;
 
         while (!nxt.done) {
-            const these = nxt.value[0];
-            if (these.isRight()) {
-                nxt = await gen.next(these.val);
-            } else if (these.isBoth()) {
-                acc = acc !== undefined ? cmb(acc, these.fst) : these.fst;
-                nxt = await gen.next(these.snd);
+            const ior = nxt.value[0];
+            if (ior.isRight()) {
+                nxt = await gen.next(ior.val);
+            } else if (ior.isBoth()) {
+                acc = acc !== undefined ? cmb(acc, ior.fst) : ior.fst;
+                nxt = await gen.next(ior.snd);
             } else {
-                return acc !== undefined ? left(cmb(acc, these.val)) : these;
+                return acc !== undefined ? left(cmb(acc, ior.val)) : ior;
             }
         }
         return acc !== undefined ? both(acc, nxt.value) : right(nxt.value);
     }
 
     /**
-     * The fluent syntax for These.
+     * The fluent syntax for `Ior`.
      */
     export abstract class Syntax {
         [Eq.eq]<A extends Eq<A>, B extends Eq<B>>(
-            this: These<A, B>,
-            that: These<A, B>,
+            this: Ior<A, B>,
+            that: Ior<A, B>,
         ): boolean {
             if (this.isLeft()) {
                 return that.isLeft() && eq(this.val, that.val);
@@ -680,8 +679,8 @@ export namespace These {
         }
 
         [Ord.cmp]<A extends Ord<A>, B extends Ord<B>>(
-            this: These<A, B>,
-            that: These<A, B>,
+            this: Ior<A, B>,
+            that: Ior<A, B>,
         ): Ordering {
             if (this.isLeft()) {
                 return that.isLeft() ? cmp(this.val, that.val) : Ordering.less;
@@ -699,9 +698,9 @@ export namespace These {
         }
 
         [Semigroup.cmb]<A extends Semigroup<A>, B extends Semigroup<B>>(
-            this: These<A, B>,
-            that: These<A, B>,
-        ): These<A, B> {
+            this: Ior<A, B>,
+            that: Ior<A, B>,
+        ): Ior<A, B> {
             if (this.isLeft()) {
                 if (that.isLeft()) {
                     return left(cmb(this.val, that.val));
@@ -732,34 +731,34 @@ export namespace These {
         }
 
         /**
-         * Test whether this These is `Left`.
+         * Test whether this Ior is `Left`.
          */
-        isLeft<A>(this: These<A, any>): this is Left<A> {
+        isLeft<A>(this: Ior<A, any>): this is Left<A> {
             return this.typ === Typ.Left;
         }
 
         /**
-         * Test whether this These is `Right`.
+         * Test whether this Ior is `Right`.
          */
-        isRight<B>(this: These<any, B>): this is Right<B> {
+        isRight<B>(this: Ior<any, B>): this is Right<B> {
             return this.typ === Typ.Right;
         }
 
         /**
-         * Test whether this These is `Both`.
+         * Test whether this Ior is `Both`.
          */
-        isBoth<A, B>(this: These<A, B>): this is Both<A, B> {
+        isBoth<A, B>(this: Ior<A, B>): this is Both<A, B> {
             return this.typ === Typ.Both;
         }
 
         /**
-         * Case analysis for These.
+         * Case analysis for `Ior`.
          */
         fold<A, B, C, D, E>(
-            this: These<A, B>,
-            foldL: (x: A, these: Left<A>) => C,
-            foldR: (x: B, these: Right<B>) => D,
-            foldB: (x: A, y: B, these: Both<A, B>) => E,
+            this: Ior<A, B>,
+            foldL: (x: A, ior: Left<A>) => C,
+            foldR: (x: B, ior: Right<B>) => D,
+            foldB: (x: A, y: B, ior: Both<A, B>) => E,
         ): C | D | E {
             if (this.isLeft()) {
                 return foldL(this.val, this);
@@ -771,13 +770,13 @@ export namespace These {
         }
 
         /**
-         * If this These has a right-hand value, apply a function to the value
-         * to return a new These.
+         * If this Ior has a right-hand value, apply a function to the value
+         * to return a new Ior.
          */
         flatMap<E extends Semigroup<E>, A, B>(
-            this: These<E, A>,
-            f: (x: A) => These<E, B>,
-        ): These<E, B> {
+            this: Ior<E, A>,
+            f: (x: A) => Ior<E, B>,
+        ): Ior<E, B> {
             if (this.isLeft()) {
                 return this;
             }
@@ -788,57 +787,54 @@ export namespace These {
         }
 
         /**
-         * If this These's right-hand value is another These, return the inner
-         * These.
+         * If this Ior's right-hand value is another Ior, return the inner Ior.
          */
-        flat<E extends Semigroup<E>, A>(
-            this: These<E, These<E, A>>,
-        ): These<E, A> {
+        flat<E extends Semigroup<E>, A>(this: Ior<E, Ior<E, A>>): Ior<E, A> {
             return this.flatMap(id);
         }
 
         /**
-         * If this and that These have a right-hand value, apply a function to
+         * If this and that Ior have a right-hand value, apply a function to
          * the values.
          */
         zipWith<E extends Semigroup<E>, A, B, C>(
-            this: These<E, A>,
-            that: These<E, B>,
+            this: Ior<E, A>,
+            that: Ior<E, B>,
             f: (x: A, y: B) => C,
-        ): These<E, C> {
+        ): Ior<E, C> {
             return this.flatMap((x) => that.map((y) => f(x, y)));
         }
 
         /**
-         * If this and that These have a right-hand value, keep only this
-         * These's value.
+         * If this and that Ior have a right-hand value, keep only this Ior's
+         * value.
          */
         zipFst<E extends Semigroup<E>, A>(
-            this: These<E, A>,
-            that: These<E, any>,
-        ): These<E, A> {
+            this: Ior<E, A>,
+            that: Ior<E, any>,
+        ): Ior<E, A> {
             return this.zipWith(that, id);
         }
 
         /**
-         * If this and that These have a right-hand value, keep only that
-         * These's value.
+         * If this and that Ior have a right-hand value, keep only that Ior's
+         * value.
          */
         zipSnd<E extends Semigroup<E>, B>(
-            this: These<E, any>,
-            that: These<E, B>,
-        ): These<E, B> {
+            this: Ior<E, any>,
+            that: Ior<E, B>,
+        ): Ior<E, B> {
             return this.flatMap(() => that);
         }
 
         /**
-         * Apply functions to this These's left and right values.
+         * Apply functions to this Ior's left and right values.
          */
         bimap<A, B, C, D>(
-            this: These<A, B>,
+            this: Ior<A, B>,
             mapL: (x: A) => C,
             mapR: (x: B) => D,
-        ): These<C, D> {
+        ): Ior<C, D> {
             if (this.isLeft()) {
                 return left(mapL(this.val));
             }
@@ -849,9 +845,9 @@ export namespace These {
         }
 
         /**
-         * If this These has a left-hand value, apply a function to the value.
+         * If this Ior has a left-hand value, apply a function to the value.
          */
-        mapLeft<A, B, C>(this: These<A, B>, f: (x: A) => C): These<C, B> {
+        mapLeft<A, B, C>(this: Ior<A, B>, f: (x: A) => C): Ior<C, B> {
             if (this.isRight()) {
                 return this;
             }
@@ -862,9 +858,9 @@ export namespace These {
         }
 
         /**
-         * If this These has a right-hand value, apply a function to the value.
+         * If this Ior has a right-hand value, apply a function to the value.
          */
-        map<A, B, D>(this: These<A, B>, f: (x: B) => D): These<A, D> {
+        map<A, B, D>(this: Ior<A, B>, f: (x: B) => D): Ior<A, D> {
             if (this.isLeft()) {
                 return this;
             }
@@ -875,19 +871,19 @@ export namespace These {
         }
 
         /**
-         * If this These has a right-hand value, overwrite the value.
+         * If this Ior has a right-hand value, overwrite the value.
          */
-        mapTo<A, D>(this: These<A, any>, value: D): These<A, D> {
+        mapTo<A, D>(this: Ior<A, any>, value: D): Ior<A, D> {
             return this.map(() => value);
         }
     }
 
     /**
-     * A These with a left-hand value.
+     * An Ior with a left-hand value.
      */
     export class Left<out A> extends Syntax {
         /**
-         * The property that discriminates These.
+         * The property that discriminates `Ior`.
          */
         readonly typ = Typ.Left;
 
@@ -899,14 +895,14 @@ export namespace These {
         }
 
         /**
-         * Defining Iterable behavior for These allows TypeScript to infer
-         * right-hand value types when yielding These in generator
-         * comprehensions using `yield*`.
+         * Defining Iterable behavior for `Ior` allows TypeScript to infer
+         * right-hand value types when yielding Iors in generator comprehensions
+         * using `yield*`.
          *
          * @hidden
          */
         *[Symbol.iterator](): Iterator<
-            readonly [These<A, never>],
+            readonly [Ior<A, never>],
             never,
             unknown
         > {
@@ -915,11 +911,11 @@ export namespace These {
     }
 
     /**
-     * A These with a right-hand value.
+     * An Ior with a right-hand value.
      */
     export class Right<out B> extends Syntax {
         /**
-         * The property that discriminates These.
+         * The property that discriminates `Ior`.
          */
         readonly typ = Typ.Right;
 
@@ -931,23 +927,23 @@ export namespace These {
         }
 
         /**
-         * Defining Iterable behavior for These allows TypeScript to infer
-         * right-hand value types when yielding These in generator
-         * comprehensions using `yield*`.
+         * Defining Iterable behavior for `Ior` allows TypeScript to infer
+         * right-hand value types when yielding Iors in generator comprehensions
+         * using `yield*`.
          *
          * @hidden
          */
-        *[Symbol.iterator](): Iterator<readonly [These<never, B>], B, unknown> {
+        *[Symbol.iterator](): Iterator<readonly [Ior<never, B>], B, unknown> {
             return (yield [this]) as B;
         }
     }
 
     /**
-     * A These with a left-hand and a right-hand value.
+     * An Ior with a left-hand and a right-hand value.
      */
     export class Both<out A, out B> extends Syntax {
         /**
-         * The property that discriminates These.
+         * The property that discriminates `Ior`.
          */
         readonly typ = Typ.Both;
 
@@ -961,13 +957,13 @@ export namespace These {
         }
 
         /**
-         * Defining Iterable behavior for These allows TypeScript to infer
-         * right-hand value types when yielding These in generator
-         * comprehensions using `yield*`.
+         * Defining Iterable behavior for `Ior` allows TypeScript to infer
+         * right-hand value types when yielding Iors in generator comprehensions
+         * using `yield*`.
          *
          * @hidden
          */
-        *[Symbol.iterator](): Iterator<readonly [These<A, B>], B, unknown> {
+        *[Symbol.iterator](): Iterator<readonly [Ior<A, B>], B, unknown> {
             return (yield [this]) as B;
         }
     }
