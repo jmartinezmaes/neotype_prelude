@@ -198,12 +198,6 @@
  * -   `tupled` turns a series of two or more individual Evals inside out.
  * -   `gather` turns a Record or an object literal of Evals inside out.
  *
- * ```ts
- * console.log(Eval.collect([Eval.now(42), Eval.once(() => "ok")]));
- * console.log(Eval.tupled(Eval.always(() => 42), Eval.now("ok")));
- * console.log(Eval.gather({ x: Eval.once(42), y: Eval.always(() => "ok") }));
- * ```
- *
  * Additionally, the `reduce` function reduces a finite Iterable from left to
  * right in the context of `Eval`. This is useful for mapping, filtering, and
  * accumulating values using `Eval`.

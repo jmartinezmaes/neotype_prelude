@@ -304,15 +304,6 @@
  * -   `collect` turns an Array or a tuple literal of These inside out.
  * -   `tupled` turns a series of two or more individual These inside out.
  *
- * ```ts
- * console.log(
- *     These.collect([These.both(new List("a"), 2), These.right("ok")]),
- * );
- * console.log(
- *     These.tupled(These.both(new List("a"), 2), These.right("ok")),
- * );
- * ```
- *
  * Additionally, the `reduce` function reduces a finite Iterable from left to
  * right in the context of `These`. This is useful for mapping, filtering, and
  * accumulating values using `These`:

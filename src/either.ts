@@ -271,12 +271,6 @@
  * -   `tupled` turns a series of two or more individual Eithers inside out.
  * -   `gather` turns a Record or an object literal of Eithers inside out.
  *
- * ```ts
- * console.log(Either.collect([Either.right(42), Either.right("ok")]));
- * console.log(Either.tupled(Either.right(42), Either.right("ok")));
- * console.log(Either.gather({ x: Either.right(42), y: Either.right("ok") }));
- * ```
- *
  * Additionally, the `reduce` function reduces a finite Iterable from left to
  * right in the context of `Either`. This is useful for mapping, filtering, and
  * accumulating values using `Either`:

@@ -260,12 +260,6 @@
  * -   `tupled` turns a series of two or more individual Maybes inside out.
  * -   `gather` turns a Record or an object literal of Maybes inside out.
  *
- * ```ts
- * console.log(Maybe.collect([Maybe.just(42), Maybe.just("ok")]));
- * console.log(Maybe.tupled(Maybe.just(42), Maybe.just("ok")));
- * console.log(Maybe.gather({ x: Maybe.just(42), y: Maybe.just("ok") }));
- * ```
- *
  * Additionally, the `reduce` function reduces a finite Iterable from left to
  * right in the context of `Maybe`. This is useful for mapping, filtering, and
  * accumulating values using `Maybe`:

@@ -165,13 +165,6 @@
  * -   `collect` turns an Array or a tuple literal of Validateds inside out.
  * -   `tupled` turns a series of two or more individual Validateds inside out.
  *
- * ```ts
- * console.log(
- *     Validated.collect([Validated.accept(42), Validated.accept("ok")]),
- * );
- * console.log(Validated.tupled(Validated.accept(42), Validated.accept("ok")));
- * ```
- *
  * ## Examples
  *
  * ### Validating a single property
