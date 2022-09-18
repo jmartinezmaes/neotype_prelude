@@ -1,8 +1,8 @@
-import * as fc from "fast-check";
 import { assert } from "chai";
-import { arbStr, pair } from "./common.js";
+import * as fc from "fast-check";
 import { cmb } from "../src/cmb.js";
 import { Eval } from "../src/eval.js";
+import { arbStr, pair } from "./common.js";
 
 const mk = Eval.now;
 

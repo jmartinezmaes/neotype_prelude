@@ -1,9 +1,9 @@
-import * as fc from "fast-check";
 import { assert } from "chai";
-import { arbNum, arbStr, pair, Str } from "./common.js";
+import * as fc from "fast-check";
 import { cmb } from "../src/cmb.js";
 import { cmp, eq, Ordering } from "../src/cmp.js";
 import { Ior } from "../src/ior.js";
+import { arbNum, arbStr, pair, Str } from "./common.js";
 
 function mk<A, B>(t: "L" | "R" | "B", x: A, y: B): Ior<A, B> {
     return t === "L" ? Ior.left(x) : t === "R" ? Ior.right(y) : Ior.both(x, y);

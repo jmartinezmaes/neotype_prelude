@@ -1,10 +1,10 @@
-import * as fc from "fast-check";
 import { assert } from "chai";
-import { arbNum, arbStr, pair, Str } from "./common.js";
-import { Either } from "../src/either.js";
+import * as fc from "fast-check";
 import { cmb } from "../src/cmb.js";
 import { cmp, eq, Ordering } from "../src/cmp.js";
+import { Either } from "../src/either.js";
 import { Validated } from "../src/validated.js";
+import { arbNum, arbStr, pair, Str } from "./common.js";
 
 function mk<A, B>(t: "D" | "A", x: A, y: B): Validated<A, B> {
     return t === "D" ? Validated.dispute(x) : Validated.accept(y);

@@ -1,5 +1,5 @@
-import * as fc from "fast-check";
 import { assert } from "chai";
+import * as fc from "fast-check";
 import { id, negate } from "../src/fn.js";
 
 describe("Functions", () => {

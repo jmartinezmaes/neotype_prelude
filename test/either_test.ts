@@ -1,10 +1,10 @@
-import * as fc from "fast-check";
 import { assert } from "chai";
-import { arbNum, arbStr, pair } from "./common.js";
+import * as fc from "fast-check";
 import { cmb } from "../src/cmb.js";
 import { cmp, eq, Ordering } from "../src/cmp.js";
 import { Either } from "../src/either.js";
 import { Validated } from "../src/validated.js";
+import { arbNum, arbStr, pair } from "./common.js";
 
 function mk<A, B>(t: "L" | "R", x: A, y: B): Either<A, B> {
     return t === "L" ? Either.left(x) : Either.right(y);

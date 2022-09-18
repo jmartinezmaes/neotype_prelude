@@ -1,7 +1,7 @@
-import * as fc from "fast-check";
 import { assert } from "chai";
-import { arbStr } from "./common.js";
+import * as fc from "fast-check";
 import { cmb, Semigroup } from "../src/cmb.js";
+import { arbStr } from "./common.js";
 
 describe("Semigroup", () => {
     specify("cmb", () => {

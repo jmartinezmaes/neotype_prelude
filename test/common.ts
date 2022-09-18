@@ -1,6 +1,6 @@
 import * as fc from "fast-check";
-import { Eq, Ord, Ordering } from "../src/cmp.js";
 import { Semigroup } from "../src/cmb.js";
+import { Eq, Ord, Ordering } from "../src/cmp.js";
 
 export class Num implements Ord<Num> {
     constructor(readonly val: number) {}

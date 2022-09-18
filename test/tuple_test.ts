@@ -1,9 +1,9 @@
-import * as fc from "fast-check";
 import { assert } from "chai";
-import { arbNum, arbStr } from "./common.js";
-import { cmp, eq } from "../src/cmp.js";
+import * as fc from "fast-check";
 import { cmb } from "../src/cmb.js";
+import { cmp, eq } from "../src/cmp.js";
 import { Tuple } from "../src/tuple.js";
+import { arbNum, arbStr } from "./common.js";
 
 describe("Tuple", () => {
     specify("#[Eq.eq]", () => {

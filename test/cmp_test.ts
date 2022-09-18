@@ -1,6 +1,5 @@
-import * as fc from "fast-check";
 import { assert } from "chai";
-import { arbNum, arbStr, Num, Str } from "./common.js";
+import * as fc from "fast-check";
 import { cmb } from "../src/cmb.js";
 import {
     clamp,
@@ -20,6 +19,7 @@ import {
     Ordering,
     Reverse,
 } from "../src/cmp.js";
+import { arbNum, arbStr, Num, Str } from "./common.js";
 
 function arbRevNum(): fc.Arbitrary<Reverse<Num>> {
     return arbNum().map((x) => new Reverse(x));

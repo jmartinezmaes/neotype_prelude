@@ -1,9 +1,9 @@
-import * as fc from "fast-check";
 import { assert } from "chai";
-import { arbNum, arbStr, pair } from "./common.js";
+import * as fc from "fast-check";
 import { cmb } from "../src/cmb.js";
 import { cmp, eq, Ordering } from "../src/cmp.js";
 import { Maybe } from "../src/maybe.js";
+import { arbNum, arbStr, pair } from "./common.js";
 
 function mk<A>(t: "N" | "J", x: A): Maybe<A> {
     return t === "N" ? Maybe.nothing : Maybe.just(x);
