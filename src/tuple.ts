@@ -17,9 +17,8 @@
 /**
  * Functionality for comparing and combining tuple literals.
  *
- * This module provides the `Tuple` type, a wrapper class that provides evidence
- * of an equivalence relation, a total ordering, and a semigroup for between 2
- * and 10 elements.
+ * `Tuple` is a wrapper class that provides evidence of an equivalance relation,
+ * a total order, and a semigroup for between 2 and 10 elements.
  *
  * Using a Tuple as an `Eq`, an `Ord`, and a `Semigroup` requires the respective
  * implementations from all elements of the Tuple. This documentation will use

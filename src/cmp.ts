@@ -17,8 +17,6 @@
 /**
  * Functionality for ordering and comparison.
  *
- * This module provides tools for ordering and comparing values.
- *
  * ## Implementing equivalence relations and total orders
  *
  * -   The `Eq` and `Ord` interfaces provide contracts for implementing

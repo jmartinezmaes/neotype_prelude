@@ -15,9 +15,7 @@
  */
 
 /**
- * Hybrid functionality of `Either` and `Validated`.
- *
- * This module provides the `Ior` type and associated operations.
+ * Functionality for "inclusive-or" relationships.
  *
  * `Ior<A, B>` is a type that represents *one or both* of two values `A` and
  * `B`; thus, `Ior` is represented by three variants: `Left<A>`, `Right<B>`,
@@ -215,8 +213,8 @@
  * Generator comprehensions support all syntax that would otherwise be valid
  * within a generator, including:
  *
- * -   Variable declarations, assignment, and mutation
- * -   Function declarations
+ * -   Variable declarations, assignments, and mutations
+ * -   Function and class declarations
  * -   `for` loops
  * -   `while` and `do...while` loops
  * -   `if`/`else if`/`else` blocks
@@ -312,11 +310,10 @@
  *     return Ior.reduce(
  *         nums,
  *         (total, num) => {
- *             const newTotal = total + num;
- *             if (newTotal % 2 !== 0) {
+ *             if (num % 2 !== 0) {
  *                 return Ior.left(err(`encountered odd number ${num}`));
  *             }
- *             return Ior.both(info(`add ${total} and ${num}`), newTotal);
+ *             return Ior.both(info(`add ${total} and ${num}`), total + num);
  *         },
  *         0,
  *     );

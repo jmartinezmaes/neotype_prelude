@@ -17,8 +17,6 @@
 /**
  * Optional values.
  *
- * This module provides the `Maybe` type and associated operations.
- *
  * `Maybe<A>` is a type that represents an optional value `A`, and is
  * represented by two variants: `Nothing` describes an absent value, and
  * `Just<A>` describes a present value.
@@ -172,8 +170,8 @@
  * Generator comprehensions support all syntax that would otherwise be valid
  * within a generator, including:
  *
- * -   Variable declarations, assignment, and mutation
- * -   Function declarations
+ * -   Variable declarations, assignments, and mutations
+ * -   Function and class declarations
  * -   `for` loops
  * -   `while` and `do...while` loops
  * -   `if`/`else if`/`else` blocks

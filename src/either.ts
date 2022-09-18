@@ -17,8 +17,6 @@
 /**
  * Functional unions and railway-oriented programming.
  *
- * This module provides the `Either` type and associated operations.
- *
  * `Either<A, B>` is a type that represents one of two values `A` and `B`; thus,
  * `Either` is represented by two variants: `Left<A>` and `Right<B>`.
  *
@@ -181,8 +179,8 @@
  * Generator comprehensions support all syntax that would otherwise be valid
  * within a generator, including:
  *
- * -   Variable declarations, assignment, and mutation
- * -   Function declarations
+ * -   Variable declarations, assignments, and mutations
+ * -   Function and class declarations
  * -   `for` loops
  * -   `while` and `do...while` loops
  * -   `if`/`else if`/`else` blocks

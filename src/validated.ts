@@ -17,8 +17,6 @@
 /**
  * Validation with accumulating failures.
  *
- * This module provides the `Validated` type and associated operations.
- *
  * `Validated<E, A>` is a type that represents a state of accumulated failure or
  * success; thus, `Validated` is represented by two variants: `Disputed<E>` and
  * `Accepted<A>`.

@@ -17,8 +17,6 @@
 /**
  * Control over synchronous evaluation.
  *
- * This module provides the `Eval` type and associated operations.
- *
  * `Eval<A>` is a type that controls the execution of a synchronous computation
  * that returns a result `A`. `Eval` can suspend and memoize evaluation for a
  * variety of use cases, and it provides stack-safe execution for recursive
@@ -151,8 +149,8 @@
  * Generator comprehensions support all syntax that would otherwise be valid
  * within a generator, including:
  *
- * -   Variable declarations, assignment, and mutation
- * -   Function declarations
+ * -   Variable declarations, assignments, and mutations
+ * -   Function and class declarations
  * -   `for` loops
  * -   `while` and `do...while` loops
  * -   `if`/`else if`/`else` blocks
@@ -437,7 +435,6 @@ export class Eval<out A> {
 
                 case Instr.Tag.Always:
                     c = Eval.now(c.#i.f());
-                    break;
             }
         }
     }

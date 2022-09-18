@@ -17,8 +17,6 @@
 /**
  * Functionality for associative combination.
  *
- * This module provides tools for working with semigroups.
- *
  * ## Implementing semigroups
  *
  * -   The `Semigroup` interface provides a contract for implementing
