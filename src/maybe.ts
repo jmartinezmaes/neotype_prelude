@@ -94,9 +94,9 @@
  * These methods will extract the value from a `Just` Maybe. If the Maybe is
  * `Nothing`:
  *
- * -   `getOrFold` returns the result of evaluating a provided fallback
+ * -   `justOrFold` returns the result of evaluating a provided fallback
  *     function.
- * -   `getOrElse` returns a provided fallback value.
+ * -   `justOrElse` returns a provided fallback value.
  *
  * ## Comparing `Maybe`
  *
@@ -476,17 +476,17 @@ export namespace Maybe {
          */
         fold<A, B, C>(
             this: Maybe<A>,
-            foldL: () => B,
-            foldR: (x: A, maybe: Just<A>) => C,
+            foldN: () => B,
+            foldJ: (x: A, maybe: Just<A>) => C,
         ): B | C {
-            return this.isNothing() ? foldL() : foldR(this.val, this);
+            return this.isNothing() ? foldN() : foldJ(this.val, this);
         }
 
         /**
          * If this Maybe is `Just`, extract its value; otherwise, return a
          * fallback value.
          */
-        getOrFold<A, B>(this: Maybe<A>, f: () => B): A | B {
+        justOrFold<A, B>(this: Maybe<A>, f: () => B): A | B {
             return this.fold(f, id);
         }
 
@@ -494,7 +494,7 @@ export namespace Maybe {
          * If this Maybe is `Just`, extract its value; otherwise, return a
          * fallback value.
          */
-        getOrElse<A, B>(this: Maybe<A>, fallback: B): A | B {
+        justOrElse<A, B>(this: Maybe<A>, fallback: B): A | B {
             return this.fold(() => fallback, id);
         }
 
