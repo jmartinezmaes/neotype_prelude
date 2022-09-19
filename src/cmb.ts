@@ -17,6 +17,15 @@
 /**
  * Functionality for associative combination.
  *
+ * ## Importing from this module
+ *
+ * This module exposes named exports, and it is recommended to import them as
+ * they are named:
+ *
+ * ```ts
+ * import { cmb, Semigroup } from "@neotype/prelude/cmb.js";
+ * ```
+ *
  * ## Implementing semigroups
  *
  * -   The `Semigroup` interface provides a contract for implementing

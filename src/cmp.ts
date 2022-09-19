@@ -17,6 +17,16 @@
 /**
  * Functionality for ordering and comparison.
  *
+ * ## Importing from this module
+ *
+ * This module exposes named exports, and it is recommended to import them as
+ * they are named:
+ *
+ * ```ts
+ * import { clamp, cmp, Eq, eq, ge, gt, icmp, ieq, le, lt, max, min, ne, Ord,
+ *          Ordering, Reverse } from "@neotype/prelude/cmp.js";
+ * ```
+ *
  * ## Implementing equivalence relations and total orders
  *
  * -   The `Eq` and `Ord` interfaces provide contracts for implementing
