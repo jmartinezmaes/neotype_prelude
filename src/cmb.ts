@@ -20,7 +20,7 @@
  * ## Importing from this module
  *
  * This module exposes named exports, and it is recommended to import them as
- * they are named:
+ * named:
  *
  * ```ts
  * import { cmb, Semigroup } from "@neotype/prelude/cmb.js";
@@ -28,10 +28,10 @@
  *
  * ## Implementing semigroups
  *
- * -   The `Semigroup` interface provides a contract for implementing
- *     [semigroups]. See the documentation for implementation patterns.
- * -   The `Semigroup` companion namespace provides the unique symbol required
- *     to implement the associated interface.
+ * - The `Semigroup` interface provides a contract for implementing
+ *   [semigroups]. See the documentation for implementation patterns.
+ * - The `Semigroup` companion namespace provides the unique symbol required
+ *   to implement the associated interface.
  *
  * ## Combining semigroups
  *
@@ -72,7 +72,7 @@
  * Instances of `Semigroup` must implement an operation that satisfies the
  * [associative property], such that:
  *
- * -   `cmb(x, cmb(y, z))` is equivalent to `cmb(cmb(x, y), z)`
+ * - `cmb(x, cmb(y, z))` is equivalent to `cmb(cmb(x, y), z)`
  *
  * for all `x`, `y`, and `z`.
  *
@@ -100,18 +100,18 @@
  * Classes and objects can implement `Semigroup`. This strategy works best for
  * types that:
  *
- * -   are already modeled using classes or objects.
- * -   provide direct access to their implementation.
- * -   have a single, specific behavior as a semigroup.
+ * - are already modeled using classes or objects.
+ * - provide direct access to their implementation.
+ * - have a single, specific behavior as a semigroup.
  *
  * Additionally, classes can easily wrap existing types to provide a variety of
  * `Semigroup` implementations. These "helper" classes are useful for types
  * that:
  *
- * -   have more than one behavior as a semigroup, or already have a default
- *     implementation for `Semigroup` and can have alternative implementations.
- * -   do not provide access to their implementation, and where patching the
- *     implementation is undesireable.
+ * - have more than one behavior as a semigroup, or already have a default
+ *   implementation for `Semigroup` and can have alternative implementations.
+ * - do not provide access to their implementation, and where patching the
+ *   implementation is undesireable.
  *
  * `Maybe`, `Either`, `These`, `Validated`, `Tuple` and `Ordering` involve
  * classes that provide unique implementations for `Semigroup`. See the
@@ -204,16 +204,16 @@
  * Existing types can be patched to implement `Semigroup`. This strategy works
  * well for types that:
  *
- * -   are built-in or imported from external modules.
- * -   do not provide access to their implementation.
- * -   have a single, specific behavior as a semigroup, or where the programmer
- *     wishes to implement a default behavior.
+ * - are built-in or imported from external modules.
+ * - do not provide access to their implementation.
+ * - have a single, specific behavior as a semigroup, or where the programmer
+ *   wishes to implement a default behavior.
  *
  * Patching a type in TypeScript requires two steps:
  *
- * 1.   an [augmentation] for a module or the global scope that patches the
- *      type-level representation; and
- * 2.   a concrete implementation for `[Semigroup.cmb]`.
+ * 1. an [augmentation] for a module or the global scope that patches the
+ *    type-level representation; and
+ * 1. a concrete implementation for `[Semigroup.cmb]`.
  *
  * The concrete implementation logic is similar to writing a method body for a
  * class or object, and the same practices apply when requiring generic type

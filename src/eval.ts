@@ -44,11 +44,11 @@
  *
  * ## Constructing `Eval`
  *
- * `Eval` has three static methods for constructing computations from values:
+ * `Eval` has three static methods for constructing Evals:
  *
- * -   `now` for eager, memoized evaluation;
- * -   `once` for lazy, memoized evaluation; and
- * -   `always` for lazy, non-memoized evaluation.
+ * - `now` for eager, memoized evaluation;
+ * - `once` for lazy, memoized evaluation; and
+ * - `always` for lazy, non-memoized evaluation.
  *
  * Additionally, `defer` suspends the evaluation of any Eval, and is useful for
  * implementing mutual and self-referential recursion.
@@ -79,8 +79,8 @@
  *
  * These methods transform an Eval's result:
  *
- * -   `map` applies a function to the result.
- * -   `mapTo` overwrites the result.
+ * - `map` applies a function to the result.
+ * - `mapTo` overwrites the result.
  *
  * ## Chaining `Eval`
  *
@@ -149,13 +149,13 @@
  * Generator comprehensions support all syntax that would otherwise be valid
  * within a generator, including:
  *
- * -   Variable declarations, assignments, and mutations
- * -   Function and class declarations
- * -   `for` loops
- * -   `while` and `do...while` loops
- * -   `if`/`else if`/`else` blocks
- * -   `switch` blocks
- * -   `try`/`catch` blocks
+ * - Variable declarations, assignments, and mutations
+ * - Function and class declarations
+ * - `for` loops
+ * - `while` and `do...while` loops
+ * - `if`/`else if`/`else` blocks
+ * - `switch` blocks
+ * - `try`/`catch` blocks
  *
  * `Eval` is "suspended" in its implementation of `go`, which means that the
  * body of the provided generator function will not run until the Eval is
@@ -192,9 +192,9 @@
  *
  * These methods will traverse a collection of Evals to extract the results.
  *
- * -   `collect` turns an Array or a tuple literal of Evals inside out.
- * -   `tupled` turns a series of two or more individual Evals inside out.
- * -   `gather` turns a Record or an object literal of Evals inside out.
+ * - `collect` turns an Array or a tuple literal of Evals inside out.
+ * - `tupled` turns a series of two or more individual Evals inside out.
+ * - `gather` turns a Record or an object literal of Evals inside out.
  *
  * Additionally, the `reduce` function reduces a finite Iterable from left to
  * right in the context of `Eval`. This is useful for mapping, filtering, and

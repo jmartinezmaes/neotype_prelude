@@ -1,10 +1,10 @@
 {
     "name": "@neotype/prelude",
-    "version": "0.0.1",
+    "version": "1.0.0-alpha.1",
     "description": "Functional programming essentials for TypeScript",
     "repository": {
         "type": "git",
-        "url": "git+https://github.com/jm4rtinez/neotype.git"
+        "url": "git+https://github.com/jm4rtinez/neotype_prelude.git"
     },
     "keywords": [
         "adt",
@@ -17,9 +17,9 @@
     ],
     "author": "Josh Martinez",
     "license": "Apache-2.0",
-    "homepage": "https://github.com/jm4rtinez/neotype#readme",
+    "homepage": "https://github.com/jm4rtinez/neotype_prelude#readme",
     "bugs": {
-        "url": "https://github.com/jm4rtinez/neotype/issues"
+        "url": "https://github.com/jm4rtinez/neotype_prelude/issues"
     },
     "type": "module",
     "sideEffects": false,
@@ -38,12 +38,13 @@
         "node": "14.* || 16.* || >= 18.*"
     },
     "scripts": {
-        "build": "npm run clean; npx tsc -p ./tsconfig.build.json",
-        "clean": "npx rimraf ./dist",
+        "build:dist": "npx rimraf ./dist && npx tsc --project ./tsconfig.build.json",
+        "build:docs": "npx typedoc",
+        "build": "npm run build:dist && npm run build:docs",
         "lint": "npx eslint --ext .ts .",
-        "prettier:check": "npx prettier --check --ignore-path ./.gitignore .",
-        "prettier:write": "npx prettier --write --ignore-path ./.gitignore .",
-        "test": "npm run lint -s && mocha"
+        "prettier:check": "npx prettier --check .",
+        "prettier:write": "npx prettier --write .",
+        "test": "npm run lint --silent && mocha"
     },
     "eslintConfig": {
         "env": {
@@ -107,9 +108,10 @@
         "fast-check": "^3.0.1",
         "mocha": "^10.0.0",
         "prettier": "2.7.1",
+        "prettier-plugin-organize-imports": "^3.1.1",
         "rimraf": "^3.0.2",
         "ts-node": "^10.8.2",
-        "typedoc": "^0.23.8",
+        "typedoc": "0.23.14",
         "typescript": "^4.7.4"
     }
 }

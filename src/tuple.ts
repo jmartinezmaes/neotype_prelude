@@ -44,10 +44,10 @@
  * `Tuple` implements `Eq` and `Ord` when its elements each implement `Eq` and
  * `Ord`, respectively. Tuples are compared lexicographically.
  *
- * -   Two Tuples are equal when they are the same length and their respective
- *     elements are equal.
- * -   When compared, the first mismatching element defines which Tuple is
- *     lexicographically less or greater than the other.
+ * - Two Tuples are equal when they are the same length and their respective
+ *   elements are equal.
+ * - When compared, the first mismatching element defines which Tuple is
+ *   lexicographically less or greater than the other.
  *
  * ## `Tuple` as a semigroup
  *

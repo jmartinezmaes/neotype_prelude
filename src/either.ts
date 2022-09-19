@@ -21,7 +21,7 @@
  * `Either` is represented by two variants: `Left<A>` and `Right<B>`.
  *
  * `Either` is often used to represent a value which is either correct or a
- * failure; by convention, `Left` contains failures and `Right` contains correct
+ * failure. By convention, `Left` contains failures and `Right` contains correct
  * values ("right" is a synonym for "correct").
  *
  * Some combinators for `Either` are specialized for this failure-handling
@@ -36,10 +36,10 @@
  * type is an alias for a discriminated union, and the `Either` namespace
  * provides:
  *
- * -   The `Left` and `Right` variant classes
- * -   An abstract `Syntax` class that provides the fluent API for `Either`
- * -   A `Typ` enumeration that discriminates `Either`
- * -   Functions for constructing, chaining, and collecting into `Either`
+ * - The `Left` and `Right` variant classes
+ * - An abstract `Syntax` class that provides the fluent API for `Either`
+ * - A `Typ` enumeration that discriminates `Either`
+ * - Functions for constructing, chaining, and collecting into `Either`
  *
  * The type and namespace can be imported under the same alias:
  *
@@ -64,11 +64,11 @@
  *
  * Furthermore:
  *
- * -   `guard` constructs an Either from applying a predicate function to a
- *     value; the value is returned in `Right` or `Left` if it satisfies or does
- *     not satisfy the predicate, respectively.
- * -   `fromValidated` converts a Validated to an Either; `Disputed` becomes
- *     `Left` and `Accepted` becomes `Right`.
+ * - `guard` constructs an Either from applying a predicate function to a value.
+ *   The value is returned in `Right` or `Left` if it satisfies or does not
+ *   satisfy the predicate, respectively.
+ * - `fromValidated` converts a Validated to an Either. `Disputed` becomes
+ *   `Left` and `Accepted` becomes `Right`.
  *
  * ## Querying and narrowing the variant
  *
@@ -89,20 +89,20 @@
  *
  * These methods will extract the value from an Either:
  *
- * -   `leftOrFold` extracts the value if the Either is `Left`; otherwise, it
- *     applies a function to the `Right` value to return a fallback result.
- * -   `rightOrFold` extracts the value if the Either is `Right`; otherwise, it
- *     applies a function to the `Left` value to return a fallback result.
+ * - `leftOrFold` extracts the value if the Either is `Left`; otherwise, it
+ *   applies a function to the `Right` value to return a fallback result.
+ * - `rightOrFold` extracts the value if the Either is `Right`; otherwise, it
+ *   applies a function to the `Left` value to return a fallback result.
  *
  * ## Comparing `Either`
  *
  * `Either` implements `Eq` and `Ord` when both its `Left` and `Right` values
  * implement `Eq` and `Ord`.
  *
- * -   Two Eithers are equal if they are the same variant and their values are
- *     equal.
- * -   When ordered, `Left` is always less than `Right`. If the variants are
- *     equal, their values will determine the ordering.
+ * - Two Eithers are equal if they are the same variant and their values are
+ *   equal.
+ * - When ordered, `Left` is always less than `Right`. If the variants are
+ *   equal, their values will determine the ordering.
  *
  * ## `Either` as a semigroup
  *
@@ -118,20 +118,20 @@
  *
  * These methods transform an Either's value:
  *
- * -   `bimap` applies one of two functions to the `Left` or `Right` value,
- *     depending on the Either's variant.
- * -   `mapLeft` applies a function to the `Left` value, and leaves the `Right`
- *     value unaffected.
- * -   `map` applies a function to the `Right` value, and leaves the `Left`
- *     value unaffected.
- * -   `mapTo` overwrites the `Right` value, and leaves the `Left` value
- *     unaffected.
+ * - `bimap` applies one of two functions to the `Left` or `Right` value,
+ *   depending on the Either's variant.
+ * - `mapLeft` applies a function to the `Left` value, and leaves the `Right`
+ *   value unaffected.
+ * - `map` applies a function to the `Right` value, and leaves the `Left` value
+ *   unaffected.
+ * - `mapTo` overwrites the `Right` value, and leaves the `Left` value
+ *   unaffected.
  *
  * These methods combine the values of two `Right` variants:
  *
- * -   `zipWith` applies a function to their values.
- * -   `zipFst` keeps only the first value, and discards the second.
- * -   `zipSnd` keeps only the second value, and discards the first.
+ * - `zipWith` applies a function to their values.
+ * - `zipFst` keeps only the first value, and discards the second.
+ * - `zipSnd` keeps only the second value, and discards the first.
  *
  * ## Chaining `Either`
  *
@@ -179,13 +179,13 @@
  * Generator comprehensions support all syntax that would otherwise be valid
  * within a generator, including:
  *
- * -   Variable declarations, assignments, and mutations
- * -   Function and class declarations
- * -   `for` loops
- * -   `while` and `do...while` loops
- * -   `if`/`else if`/`else` blocks
- * -   `switch` blocks
- * -   `try`/`catch` blocks
+ * - Variable declarations, assignments, and mutations
+ * - Function and class declarations
+ * - `for` loops
+ * - `while` and `do...while` loops
+ * - `if`/`else if`/`else` blocks
+ * - `switch` blocks
+ * - `try`/`catch` blocks
  *
  * Consider the generator comprehension equivalent of the `parseEvenInt`
  * function above:
@@ -213,8 +213,8 @@
  * In addition to the syntax permitted in synchronous generator comprehensions,
  * async comprehensions also support:
  *
- * -   the `await` keyword
- * -   `for await` loops (asynchronous iteration)
+ * - the `await` keyword
+ * - `for await` loops (asynchronous iteration)
  *
  * Consider a program that uses requests data from a remote API and uses
  * `Either` to guard against unlocatable resources:
@@ -265,9 +265,9 @@
  * values. If any Either in the collection is `Left`, the traversal is halted
  * and the `Left` is returned instead.
  *
- * -   `collect` turns an Array or a tuple literal of Eithers inside out.
- * -   `tupled` turns a series of two or more individual Eithers inside out.
- * -   `gather` turns a Record or an object literal of Eithers inside out.
+ * - `collect` turns an Array or a tuple literal of Eithers inside out.
+ * - `tupled` turns a series of two or more individual Eithers inside out.
+ * - `gather` turns a Record or an object literal of Eithers inside out.
  *
  * Additionally, the `reduce` function reduces a finite Iterable from left to
  * right in the context of `Either`. This is useful for mapping, filtering, and

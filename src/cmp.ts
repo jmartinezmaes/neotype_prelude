@@ -20,7 +20,7 @@
  * ## Importing from this module
  *
  * This module exposes named exports, and it is recommended to import them as
- * they are named:
+ * named:
  *
  * ```ts
  * import { clamp, cmp, Eq, eq, ge, gt, icmp, ieq, le, lt, max, min, ne, Ord,
@@ -29,65 +29,65 @@
  *
  * ## Implementing equivalence relations and total orders
  *
- * -   The `Eq` and `Ord` interfaces provide contracts for implementing
- *     [equivalence relations] and [total orders], respectively. See their
- *     respective documentation for implementation patterns.
- * -   The `Eq` and `Ord` companion namespaces provide the unique symbols
- *     required to implement their associated interfaces.
+ * - The `Eq` and `Ord` interfaces provide contracts for implementing
+ *   [equivalence relations] and [total orders], respectively. See their
+ *   respective documentation for implementation patterns.
+ * - The `Eq` and `Ord` companion namespaces provide the unique symbols required
+ *   to implement their associated interfaces.
  *
  * ## Comparing values
  *
- * Instances of `Eq` are compared using:
+ * These functions compare two instances of `Eq`:
  *
- * -   `eq` to test for equality; and
- * -   `ne` to test for inequality.
+ * - `eq` tests for equality.
+ * - `ne` tests for inequality.
  *
- * In addition to the functions above, instances of `Ord` are compared using:
+ * In addition to the functions above, these functions compare two instances of
+ * `Ord`:
  *
- * -   `cmp` to determine an ordering;
- * -   `lt` to test for a "less than" ordering;
- * -   `gt` to test for a "greater than" ordering;
- * -   `le` to test for a "less than or equal" ordering; and
- * -   `ge` to test for a "greater than or equal" ordering.
+ * - `cmp` determines their ordering.
+ * - `lt` tests for a "less than" ordering.
+ * - `gt` tests for a "greater than" ordering.
+ * - `le` tests for a "less than or equal" ordering.
+ * - `ge` tests for a "greater than or equal" ordering.
  *
- * Furthermore:
+ * These functions compare instances of `Ord` to determine extrema:
  *
- * -   `min` and `max` use `Ord` behavior to find a minimum and maximum value,
- *     respectively; and
- * -   `clamp` uses `Ord` behavior to restrict a value to an inclusive interval.
+ * - `min` returns the minimum of two values.
+ * - `max` returns the maximum of two values.
+ * - `clamp` restricts a value to an inclusive interval.
  *
  * ## Comparing Iterables
  *
- * Iterables of `Eq` and `Ord` values are compared using:
+ * These functions compare two Iterables of `Eq` and `Ord` values, and are
+ * useful for implementing equivalence relations and total orders for
+ * collections and containers:
  *
- * -   `ieq` to test for equality; and
- * -   `icmp` to determine an ordering.
- *
- * These functions are useful for implementing `Eq` and `Ord` for collections
- * and containers.
+ * - `ieq` tests for equality.
+ * - `icmp` determines their ordering.
  *
  * ### Lexicographical comparison
  *
  * Iterables are compared [lexicographically], which means:
  *
- * -   Two Iterables are compared element by element.
- * -   Two empty Iterables are lexicographically equal.
- * -   If two Iterables have equivalent elements and are of the same length,
- *     then the Iterables are lexicographically equal.
- * -   An empty Iterable is lexicographically less than any non-empty Iterable.
- * -   If one Iterable is a prefix of another, the shorter Iterable is
- *     lexicographically less than the other.
- * -   The first mismatching element defines which Iterable is lexicographically
- *     less or greater than the other.
+ * - Two Iterables are compared element by element.
+ * - Two empty Iterables are lexicographically equal.
+ * - If two Iterables have equivalent elements and are of the same length, then
+ *   the Iterables are lexicographically equal.
+ * - An empty Iterable is lexicographically less than any non-empty Iterable.
+ * - If one Iterable is a prefix of another, the shorter Iterable is
+ *   lexicographically less than the other.
+ * - The first mismatching element defines which Iterable is lexicographically
+ *   less or greater than the other.
  *
  * ## Orderings
  *
  * The `Ordering` type represents a comparison between two values and is used to
  * implement `Ord`. An `Ordering` can be one of:
  *
- * -   `Less`, indicating a "less than" comparison;
- * -   `Equal`, indicating an "equal" comparison; or
- * -   `Greater`, indicating a "greater than" comparison.
+ * - `Less`, indicating a "less than" comparison;
+ * - `Equal`, indicating an "equal" comparison; or
+ * - `Greater`, indicating a "greater than" comparison.
  *
  * These variants are represented by the `less`, `equal`, and `greater`
  * constants, respectively.
@@ -96,9 +96,9 @@
  *
  * `Ordering` implements `Eq` and `Ord`.
  *
- * -   Two Orderings are equal if they are the same variant.
- * -   When ordered, `Less` is less than `Equal`, and `Equal` is less than
- *     `Greater`.
+ * - Two Orderings are equal if they are the same variant.
+ * - When ordered, `Less` is less than `Equal`, and `Equal` is less than
+ *   `Greater`.
  *
  * ### `Ordering` as a semigroup
  *
@@ -108,9 +108,9 @@
  *
  * ### More methods
  *
- * -   `reverse` reverses an Ordering: `Less` becomes `Greater` and `Greater`
- *     becomes `Less`, while `Equal` remains the same.
- * -   `toNumber` converts an Ordering to a number value.
+ * - `reverse` reverses an Ordering: `Less` becomes `Greater` and `Greater`
+ *   becomes `Less`, while `Equal` remains the same.
+ * - `toNumber` converts an Ordering to a number value.
  *
  * ## Reversing orderings
  *
@@ -147,9 +147,9 @@ import { cmb, Semigroup } from "./cmb.js";
  *
  * Instances of `Eq` must implement an equality comparison that is:
  *
- * -   reflexive: `eq(x, x)`;
- * -   symmetric: `eq(x, y)` implies `eq(y, x)`; and
- * -   transitive: `eq(x, y)` and `eq(y, z)` implies `eq(x, z)`
+ * - reflexive: `eq(x, x)`;
+ * - symmetric: `eq(x, y)` implies `eq(y, x)`; and
+ * - transitive: `eq(x, y)` and `eq(y, z)` implies `eq(x, z)`
  *
  * for all `x`, `y`, and `z`.
  *
@@ -177,17 +177,17 @@ import { cmb, Semigroup } from "./cmb.js";
  * Classes and objects can implement `Eq`. This strategy works best for types
  * that:
  *
- * -   are already modeled using classes or objects.
- * -   provide direct access to their implementation.
- * -   have a single, specific behavior as an equivalence relation.
+ * - are already modeled using classes or objects.
+ * - provide direct access to their implementation.
+ * - have a single, specific behavior as an equivalence relation.
  *
  * Additionally, classes can easily wrap existing types to provide a variety of
  * `Eq` implementations. These "helper" classes are useful for types that:
  *
- * -   have more than one behavior as an equivalence relation, or already have a
- *     default implementation for `Eq` and can have alternative implementations.
- * -   do not provide access to their implementation, and where patching the
- *     implementation is undesireable.
+ * - have more than one behavior as an equivalence relation, or already have a
+ *   default implementation for `Eq` and can have alternative implementations.
+ * - do not provide access to their implementation, and where patching the
+ *   implementation is undesireable.
  *
  * `Maybe`, `Either`, `These`, `Validated`, and `Tuple` involve classes that
  * provide unique implementations for `Eq`. See the documentation in the
@@ -289,16 +289,16 @@ import { cmb, Semigroup } from "./cmb.js";
  * Existing types can be patched to implement `Eq`. This strategy works well for
  * types that:
  *
- * -   are built-in or imported from external modules.
- * -   do not provide access to their implementation.
- * -   have a single, specific behavior as an equivalence relation, or where the
- *     programmer wishes to implement a default behavior.
+ * - are built-in or imported from external modules.
+ * - do not provide access to their implementation.
+ * - have a single, specific behavior as an equivalence relation, or where the
+ *   programmer wishes to implement a default behavior.
  *
  * Patching a type in TypeScript requires two steps:
  *
- * 1.   an [augmentation] for a module or the global scope that patches the
- *      type-level representation; and
- * 2.   a concrete implementation for `[Eq.eq]`.
+ * 1. an [augmentation] for a module or the global scope that patches the
+ *    type-level representation; and
+ * 1. a concrete implementation for `[Eq.eq]`.
  *
  * The concrete implementation logic is similar to writing a method body for a
  * class or object, and the same practices apply for requiring generic
@@ -418,10 +418,10 @@ export function ieq<A extends Eq<A>>(
  * In addition to being equivalence relations, instances of `Ord` must define a
  * method of comparison such that an instance is also:
  *
- * -   reflexive: `le(x, x)`;
- * -   antisymmetric: `le(x, y)` and `le(y, x)` implies `eq(x, y)`;
- * -   transitive: `le(x, y)` and `le(y, z)` implies `le(x, z)`; and
- * -   comparable: either `le(x, y)` or `le(y, x)`
+ * - reflexive: `le(x, x)`;
+ * - antisymmetric: `le(x, y)` and `le(y, x)` implies `eq(x, y)`;
+ * - transitive: `le(x, y)` and `le(y, z)` implies `le(x, z)`; and
+ * - comparable: either `le(x, y)` or `le(y, x)`
  *
  * for all `x`, `y`, and `z`.
  *
@@ -457,17 +457,17 @@ export function ieq<A extends Eq<A>>(
  * Classes and objects can implement `Ord`. This strategy works best for types
  * that:
  *
- * -   are already modeled using classes or objects.
- * -   provide direct access to their implementation.
- * -   have a single, specific behavior as a total order.
+ * - are already modeled using classes or objects.
+ * - provide direct access to their implementation.
+ * - have a single, specific behavior as a total order.
  *
  * Additionally, classes can easily wrap existing types to provide a variety of
  * `Ord` implementations. These "helper" classes are useful for types that:
  *
- * -   have more than one behavior as a total order, or already have a default
- *     implementation for `Ord` and can have alternative implementations.
- * -   do not provide access to their implementation, and where patching the
- *     implementation is undesireable.
+ * - have more than one behavior as a total order, or already have a default
+ *   implementation for `Ord` and can have alternative implementations.
+ * - do not provide access to their implementation, and where patching the
+ *   implementation is undesireable.
  *
  * `Maybe`, `Either`, `These`, `Validated`, and `Tuple` involve classes that
  * provide unique implementations for `Ord`. See the documentation in the
@@ -600,16 +600,16 @@ export function ieq<A extends Eq<A>>(
  * Existing types can be patched to implement `Ord`. This strategy works well
  * for types that:
  *
- * -   are built-in or imported from external modules.
- * -   do not provide access to their implementation.
- * -   have a single, specific behavior as a total order, or where the
- *     programmer wishes to implement a default behavior.
+ * - are built-in or imported from external modules.
+ * - do not provide access to their implementation.
+ * - have a single, specific behavior as a total order, or where the programmer
+ *   wishes to implement a default behavior.
  *
  * Patching a type in TypeScript requires two steps:
  *
- * 1.   an [augmentation] for a module or the global scope that patches the
- *      type-level representation; and
- * 2.   a concrete implementation for `[Ord.cmp]` and `[Eq.eq]`.
+ * 1. an [augmentation] for a module or the global scope that patches the
+ *    type-level representation; and
+ * 1. a concrete implementation for `[Ord.cmp]` and `[Eq.eq]`.
  *
  * The concrete implementation logic is similar to writing a method body for a
  * class or object, and the same practices apply for requiring generic
@@ -796,10 +796,10 @@ export type Ordering = Ordering.Less | Ordering.Equal | Ordering.Greater;
  *
  * The namespace provides:
  *
- * -   The `Less`, `Equal`, and `Greater` variant classes.
- * -   The `less`, `equal`, and `greater` constants.
- * -   An abstract `Syntax` class that provides the fluent API for `Ordering`.
- * -   A `Typ` enumeration that discriminates `Ordering`.
+ * - The `Less`, `Equal`, and `Greater` variant classes.
+ * - The `less`, `equal`, and `greater` constants.
+ * - An abstract `Syntax` class that provides the fluent API for `Ordering`.
+ * - A `Typ` enumeration that discriminates `Ordering`.
  */
 export namespace Ordering {
     /**
@@ -814,10 +814,10 @@ export namespace Ordering {
     /**
      * Construct an Ordering from a number `n`.
      *
-     * -   If `n < 0`, return `Less`.
-     * -   If `n > 0`, return `Greater`.
-     * -   If `n === 0`, return `Equal`.
-     * -   If `n` is `NaN`, throw an Error.
+     * - If `n < 0`, return `Less`.
+     * - If `n > 0`, return `Greater`.
+     * - If `n === 0`, return `Equal`.
+     * - If `n` is `NaN`, throw an Error.
      */
     export function fromNumber(n: number): Ordering {
         if (Number.isNaN(n)) {
@@ -893,9 +893,9 @@ export namespace Ordering {
         /**
          * Reverse this Ordering.
          *
-         * -   `Less` becomes `Greater`.
-         * -   `Greater` becomes `Less`.
-         * -   `Equal` remains `Equal`.
+         * - `Less` becomes `Greater`.
+         * - `Greater` becomes `Less`.
+         * - `Equal` remains `Equal`.
          */
         reverse(this: Ordering): Ordering {
             if (this.isLt()) {
@@ -910,9 +910,9 @@ export namespace Ordering {
         /**
          * Convert this Ordering to a number.
          *
-         * -   If this is `Less`, return -1.
-         * -   If this is `Greater`, return 1.
-         * -   If this is `Equal`, return 0.
+         * - If this is `Less`, return -1.
+         * - If this is `Greater`, return 1.
+         * - If this is `Equal`, return 0.
          */
         toNumber(this: Ordering): -1 | 0 | 1 {
             if (this.isLt()) {

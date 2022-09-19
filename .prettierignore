@@ -1,0 +1,4 @@
+*.md
+.vscode
+dist
+docs
