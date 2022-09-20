@@ -197,7 +197,7 @@
  * be chained together using the familiar generator syntax.
  *
  * The `goAsync` function evaluates an async generator to return a Promise that
- * fulfills with a `Maybe`. The semantics of `yield*` and `return` within async
+ * fulfills with a Maybe. The semantics of `yield*` and `return` within async
  * comprehensions are identical to their synchronous counterparts.
  *
  * In addition to the syntax permitted in synchronous generator comprehensions,

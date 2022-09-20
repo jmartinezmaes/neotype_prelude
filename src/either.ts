@@ -207,7 +207,7 @@
  * can be chained together using the familiar generator syntax.
  *
  * The `goAsync` function evaluates an async generator to return a Promise that
- * fulfills with a `Either`. The semantics of `yield*` and `return` within async
+ * fulfills with an Either. The semantics of `yield*` and `return` within async
  * comprehensions are identical to their synchronous counterparts.
  *
  * In addition to the syntax permitted in synchronous generator comprehensions,
@@ -258,7 +258,7 @@
  * ## Collecting into `Either`
  *
  * `Either` provides several functions for working with collections of Eithers.
- * Sometimes, a collection of Eithers must be turned "inside out" into a Either
+ * Sometimes, a collection of Eithers must be turned "inside out" into an Either
  * that contains a "mapped" collection of `Right` values.
  *
  * These methods will traverse a collection of Eithers to extract the `Right`

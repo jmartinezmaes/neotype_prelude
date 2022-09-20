@@ -37,7 +37,7 @@
  *
  * Combinators with this behavior will require a `Semigroup` implementation for
  * the accumulating left-hand value. This documentation will use the following
- * semigroup ahd utility functions in all examples:
+ * semigroup and utility functions in all examples:
  *
  * ```ts
  * import { Semigroup } from "@neotype/prelude/cmb.js";
@@ -239,7 +239,7 @@
  * be chained together using the familiar generator syntax.
  *
  * The `goAsync` function evaluates an async generator to return a Promise that
- * fulfills with a `Ior`. The semantics of `yield*` and `return` within async
+ * fulfills with an Ior. The semantics of `yield*` and `return` within async
  * comprehensions are identical to their synchronous counterparts.
  *
  * In addition to the syntax permitted in synchronous generator comprehensions,
