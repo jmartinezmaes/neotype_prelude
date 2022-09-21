@@ -54,8 +54,8 @@
  * namespace provides:
  *
  * - The `Disputed` and `Accepted` variant classes
- * - An abstract `Syntax` class that provides the fluent API for `Validated`
- * - A `Typ` enumeration that discriminates `Validated`
+ * - The abstract `Syntax` class that provides the fluent API for `Validated`
+ * - The `Typ` enumeration that discriminates `Validated`
  * - Functions for constructing and collecting into `Validated`
  *
  * The type and namespace can be imported under the same alias:

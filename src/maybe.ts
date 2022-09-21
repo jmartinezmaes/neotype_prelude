@@ -38,8 +38,8 @@
  * is an alias for a discriminated union, and the `Maybe` namespace provides:
  *
  * - The `Nothing` and `Just` variant classes
- * - An abstract `Syntax` class that provides the fluent API for `Maybe`
- * - A `Typ` enumeration that discriminates `Maybe`
+ * - The abstract `Syntax` class that provides the fluent API for `Maybe`
+ * - The `Typ` enumeration that discriminates `Maybe`
  * - The `nothing` constant
  * - Functions for constructing, chaining, and collecting into `Maybe`
  *

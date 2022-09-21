@@ -30,8 +30,8 @@
  *
  * - The `Semigroup` interface provides a contract for implementing
  *   [semigroups]. See the documentation for implementation patterns.
- * - The `Semigroup` companion namespace provides the unique symbol required
- *   to implement the associated interface.
+ * - The `Semigroup` companion namespace provides the unique symbol required to
+ *   implement the associated interface.
  *
  * ## Combining semigroups
  *
@@ -109,7 +109,7 @@
  * that:
  *
  * - have more than one behavior as a semigroup, or already have a default
- *   implementation for `Semigroup` and can have alternative implementations.
+ *   implementation for `Semigroup` but can have alternative implementations.
  * - do not provide access to their implementation, and where patching the
  *   implementation is undesireable.
  *
@@ -273,7 +273,7 @@ export interface Semigroup<in out A> {
 /**
  * The companion namespace for the `Semigroup` interface.
  *
- * This namespace provides the unique symbol `cmb` required to implement
+ * The namespace provides the unique symbol `cmb` required to implement
  * `Semigroup`.
  */
 export namespace Semigroup {

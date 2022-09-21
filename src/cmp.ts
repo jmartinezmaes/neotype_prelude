@@ -89,8 +89,15 @@
  * - `Equal`, indicating an "equal" comparison; or
  * - `Greater`, indicating a "greater than" comparison.
  *
- * These variants are represented by the `less`, `equal`, and `greater`
- * constants, respectively.
+ * The companion `Ordering` namespace provides utilities for working with
+ * Orderings, including:
+ *
+ * - The `Less`, `Equal`, and `Greater` variant classes
+ * - The abstract `Syntax` class that provides the fluent API for `Ordering`
+ * - The `Typ` enumeration that discriminates `Ordering`
+ * - The `less`, `equal`, and `greater` constants, which each represent their
+ *   equivalent variant
+ * - The `fromNumber` function that constructs an Ordering from a number
  *
  * ### Comparing `Ordering`
  *
@@ -106,16 +113,18 @@
  * Ordering determines the overall ordering. This behavior is useful for
  * implementing lexicographical ordering.
  *
- * ### More methods
+ * ### Transforming Orderings
  *
- * - `reverse` reverses an Ordering: `Less` becomes `Greater` and `Greater`
- *   becomes `Less`, while `Equal` remains the same.
- * - `toNumber` converts an Ordering to a number value.
+ * These methods transform an Ordering:
+ *
+ * - `reverse` converts `Less` to `Greater` and `Greater` to `Less`, and leaves
+ *   `Equal` unaffected.
+ * - `toNumber` converts an Ordering to a number.
  *
  * ## Reversing orderings
  *
- * The `Reverse` helper type reverses the ordering of an underlying `Ord` value,
- * and provides pass-through implementations for `Eq` and `Semigroup`.
+ * The `Reverse` class reverses the ordering of an underlying `Ord` value, and
+ * provides pass-through implementations for `Eq` and `Semigroup`.
  *
  * ## Working with equivalence relations and total orders
  *
@@ -185,7 +194,7 @@ import { cmb, Semigroup } from "./cmb.js";
  * `Eq` implementations. These "helper" classes are useful for types that:
  *
  * - have more than one behavior as an equivalence relation, or already have a
- *   default implementation for `Eq` and can have alternative implementations.
+ *   default implementation for `Eq` but can have alternative implementations.
  * - do not provide access to their implementation, and where patching the
  *   implementation is undesireable.
  *
@@ -353,7 +362,7 @@ export interface Eq<in A> {
 /**
  * The companion namespace for the `Eq` interface.
  *
- * This namespace provides the unique symbol `eq` required to implement `Eq`.
+ * The namespace provides the unique symbol `eq` required to implement `Eq`.
  */
 export namespace Eq {
     export const eq = Symbol();
@@ -465,7 +474,7 @@ export function ieq<A extends Eq<A>>(
  * `Ord` implementations. These "helper" classes are useful for types that:
  *
  * - have more than one behavior as a total order, or already have a default
- *   implementation for `Ord` and can have alternative implementations.
+ *   implementation for `Ord` but can have alternative implementations.
  * - do not provide access to their implementation, and where patching the
  *   implementation is undesireable.
  *
@@ -677,7 +686,7 @@ export interface Ord<in A> extends Eq<A> {
 /**
  * The companion namespace for the `Ord` interface.
  *
- * This namespace provides the unique symbol `cmp` required to implement `Ord`.
+ * The namespace provides the unique symbol `cmp` required to implement `Ord`.
  */
 export namespace Ord {
     export const cmp = Symbol();

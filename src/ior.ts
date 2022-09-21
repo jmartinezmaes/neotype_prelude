@@ -71,8 +71,8 @@
  * an alias for a discriminated union, and the `Ior` namespace provides:
  *
  * - The `Left`, `Right`, and `Both` variant classes
- * - An abstract `Syntax` class that provides the fluent API for `Ior`
- * - A `Typ` enumeration that discriminates `Ior`
+ * - The abstract `Syntax` class that provides the fluent API for `Ior`
+ * - The `Typ` enumeration that discriminates `Ior`
  * - Functions for constructing, chaining, and collecting into `Ior`
  *
  * The type and namespace can be imported under the same alias:
@@ -233,6 +233,8 @@
  *     });
  * }
  * ```
+ *
+ * ## Async generator comprehensions
  *
  * Async generator comprehensions provide `async/await` syntax and Promises to
  * `Ior` generator comprehensions. Async computations that return `Ior` can

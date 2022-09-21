@@ -37,8 +37,8 @@
  * provides:
  *
  * - The `Left` and `Right` variant classes
- * - An abstract `Syntax` class that provides the fluent API for `Either`
- * - A `Typ` enumeration that discriminates `Either`
+ * - The abstract `Syntax` class that provides the fluent API for `Either`
+ * - The `Typ` enumeration that discriminates `Either`
  * - Functions for constructing, chaining, and collecting into `Either`
  *
  * The type and namespace can be imported under the same alias:
