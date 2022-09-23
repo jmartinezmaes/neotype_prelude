@@ -35,6 +35,10 @@
  * - The `Eq` and `Ord` companion namespaces provide the unique symbols required
  *   to implement their associated interfaces.
  *
+ * [equivalence relations]:
+ * https://mathworld.wolfram.com/EquivalenceRelation.html
+ * [total orders]: https://mathworld.wolfram.com/TotalOrder.html
+ *
  * ## Comparing values
  *
  * These functions compare two instances of `Eq`:
@@ -79,6 +83,8 @@
  *   lexicographically less than the other.
  * - The first mismatching element defines which Iterable is lexicographically
  *   less or greater than the other.
+ *
+ * [lexicographically]: https://mathworld.wolfram.com/LexicographicOrder.html
  *
  * ## Orderings
  *
@@ -140,10 +146,6 @@
  * }
  * ```
  *
- * [equivalence relations]: https://mathworld.wolfram.com/EquivalenceRelation.html
- * [total orders]: https://mathworld.wolfram.com/TotalOrder.html
- * [lexicographically]: https://mathworld.wolfram.com/LexicographicOrder.html
- *
  * @module
  */
 
@@ -151,6 +153,9 @@ import { cmb, Semigroup } from "./cmb.js";
 
 /**
  * An interface that provides evidence of an [equivalence relation].
+ *
+ * [equivalence relation]:
+ * https://mathworld.wolfram.com/EquivalenceRelation.html
  *
  * ## Properties
  *
@@ -172,6 +177,9 @@ import { cmb, Semigroup } from "./cmb.js";
  * Implementation is implicit and does not require an `implements` clause.
  * TypeScript uses [structural subtyping] to determine whether a value
  * implements `Eq`.
+ *
+ * [structural subtyping]:
+ * https://www.typescriptlang.org/docs/handbook/type-compatibility.html#site-content
  *
  * ### Conditional implementation
  *
@@ -313,6 +321,9 @@ import { cmb, Semigroup } from "./cmb.js";
  * class or object, and the same practices apply for requiring generic
  * parameters to implement `Eq`.
  *
+ * [augmentation]:
+ * https://www.typescriptlang.org/docs/handbook/declaration-merging.html#module-augmentation
+ *
  * #### Examples
  *
  * Consider a module augmentation for an externally defined `Book` type:
@@ -347,10 +358,6 @@ import { cmb, Semigroup } from "./cmb.js";
  *     return ieq(this, that);
  * };
  * ```
- *
- * [equivalence relation]: https://mathworld.wolfram.com/EquivalenceRelation.html
- * [structural subtyping]: https://www.typescriptlang.org/docs/handbook/type-compatibility.html#site-content
- * [augmentation]: https://www.typescriptlang.org/docs/handbook/declaration-merging.html#module-augmentation
  */
 export interface Eq<in A> {
     /**
@@ -361,8 +368,6 @@ export interface Eq<in A> {
 
 /**
  * The companion namespace for the `Eq` interface.
- *
- * The namespace provides the unique symbol `eq` required to implement `Eq`.
  */
 export namespace Eq {
     export const eq = Symbol();
@@ -422,6 +427,8 @@ export function ieq<A extends Eq<A>>(
 /**
  * An interface that provides evidence of a [total order].
  *
+ * [total order]: https://mathworld.wolfram.com/TotalOrder.html
+ *
  * ## Properties
  *
  * In addition to being equivalence relations, instances of `Ord` must define a
@@ -445,6 +452,9 @@ export function ieq<A extends Eq<A>>(
  * Implementation is implicit and does not require an `implements` clause.
  * TypeScript uses [structural subtyping] to determine whether a value
  * implements `Ord`.
+ *
+ * [structural subtyping]:
+ * https://www.typescriptlang.org/docs/handbook/type-compatibility.html#site-content
  *
  * ### Conditional implementation
  *
@@ -624,6 +634,9 @@ export function ieq<A extends Eq<A>>(
  * class or object, and the same practices apply for requiring generic
  * parameters to implement `Ord`.
  *
+ * [augmentation]:
+ * https://www.typescriptlang.org/docs/handbook/declaration-merging.html#module-augmentation
+ *
  * #### Examples
  *
  * Consider a module augmentation for an externally defined `Book` type:
@@ -671,10 +684,6 @@ export function ieq<A extends Eq<A>>(
  *     return icmp(this, that);
  * };
  * ```
- *
- * [total order]: https://mathworld.wolfram.com/TotalOrder.html
- * [structural subtyping]: https://www.typescriptlang.org/docs/handbook/type-compatibility.html#site-content
- * [augmentation]: https://www.typescriptlang.org/docs/handbook/declaration-merging.html#module-augmentation
  */
 export interface Ord<in A> extends Eq<A> {
     /**
@@ -685,8 +694,6 @@ export interface Ord<in A> extends Eq<A> {
 
 /**
  * The companion namespace for the `Ord` interface.
- *
- * The namespace provides the unique symbol `cmp` required to implement `Ord`.
  */
 export namespace Ord {
     export const cmp = Symbol();
@@ -802,13 +809,6 @@ export type Ordering = Ordering.Less | Ordering.Equal | Ordering.Greater;
 
 /**
  * The companion namespace for the `Ordering` type.
- *
- * The namespace provides:
- *
- * - The `Less`, `Equal`, and `Greater` variant classes.
- * - The `less`, `equal`, and `greater` constants.
- * - An abstract `Syntax` class that provides the fluent API for `Ordering`.
- * - A `Typ` enumeration that discriminates `Ordering`.
  */
 export namespace Ordering {
     /**
