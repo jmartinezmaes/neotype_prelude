@@ -15,7 +15,7 @@
  */
 
 /**
- * Control over synchronous evaluation.
+ * Control over synchronous execution.
  *
  * `Eval<A>` is a type that controls the execution of a synchronous computation
  * that returns a result `A`. `Eval` can suspend and memoize evaluation for a
@@ -24,53 +24,36 @@
  *
  * ## Importing from this module
  *
- * This module exposes `Eval` as a class.
- *
- * The class can be imported as named:
+ * This module exports `Eval` as a class. The class can be imported as named:
  *
  * ```ts
  * import { Eval } from "@neotype/prelude/eval.js";
- *
- * const example: Eval<number> = Eval.now(1);
  * ```
  *
  * Or, the type and class can be imported and aliased separately:
  *
  * ```ts
  * import { type Eval, Eval as Ev } from "@neotype/prelude/eval.js";
- *
- * const example: Eval<number> = Ev.now(1);
  * ```
  *
  * ## Constructing `Eval`
  *
- * `Eval` has three static methods for constructing Evals:
+ * `Eval` has four static methods for constructing Evals:
  *
  * - `now` for eager, memoized evaluation;
- * - `once` for lazy, memoized evaluation; and
- * - `always` for lazy, non-memoized evaluation.
- *
- * Additionally, `defer` suspends the evaluation of any Eval, and is useful for
- * implementing mutual and self-referential recursion.
+ * - `once` for lazy, memoized evaluation;
+ * - `always` for lazy, non-memoized evaluation; and
+ * - `defer` for suspended evaluation of another Eval.
  *
  * ## Running computations
  *
  * The `run` method evaluates an Eval and returns its result.
  *
- * ```ts
- * const tuple3 = Eval.tupled(
- *     Eval.now(1),
- *     Eval.once(() => 2),
- *     Eval.always(() => 3),
- * );
- * console.log(tuple3.run());
- * ```
- *
  * ## `Eval` as a semigroup
  *
- * `Eval` implements `Semigroup` when its result type parameter implements
- * `Semigroup`. When combined, the Evals will be evaluated from left to right,
- * then their results will be combined.
+ * `Eval` implements `Semigroup` when its generic type implements `Semigroup`.
+ * When combined, the Evals are evaluated from left to right, then their results
+ * are combined.
  *
  * In other words, `cmb(x, y)` is equivalent to `x.zipWith(y, cmb)` for all
  * Evals `x` and `y`.
@@ -89,8 +72,58 @@
  * return another Eval. Composing Evals with `flatMap` is stack safe, even for
  * recursive programs.
  *
- * Consider a program that uses `Eval` to fold over a recursive `Tree` data
- * structure:
+ * ### Generator comprehensions
+ *
+ * Generator comprehensions provide an imperative syntax for chaining together
+ * computations that return `Eval`. Instead of `flatMap`, a Generator is used
+ * to unwrap Evals' results and apply functions to their values.
+ *
+ * The `go` static method evaluates a Generator to return an Eval. Within the
+ * Generator, Evals are yielded using the `yield*` keyword. This binds the
+ * results to specified variables. When the computation is complete, a final
+ * value can be computed and returned from the Generator.
+ *
+ * Generator comprehensions may contain:
+ *
+ * - Variable declarations, assignments, and mutations
+ * - Function and class declarations
+ * - `for` loops
+ * - `while` and `do...while` loops
+ * - `if`/`else if`/`else` blocks
+ * - `switch` blocks
+ * - `try`/`catch` blocks
+ *
+ * `Eval` is automatically deferred in its implementation of `go`. The body of
+ * the provided Generator will not run until the Eval is evaluated using `run`.
+ * This behavior helps ensure stack safety, especially for recursive programs.
+ *
+ * ## Collecting into `Eval`
+ *
+ * `Eval` provides several functions for working with collections of Evals.
+ * Sometimes, a collection of Evals must be turned "inside out" into an Eval
+ * that contains an equivalent collection of results.
+ *
+ * These methods will traverse a collection of Evals to extract the results.
+ *
+ * - `collect` turns an Array or a tuple literal of Evals inside out.
+ * - `gather` turns a Record or an object literal of Evals inside out.
+ *
+ * Additionally, the `reduce` function reduces a finite Iterable from left to
+ * right in the context of `Eval`. This is useful for mapping, filtering, and
+ * accumulating values using `Eval`.
+ *
+ * ## Examples
+ *
+ * These examples assume the following imports:
+ *
+ * ```ts
+ * import { Eval } from "@neotype/prelude/eval.js";
+ * ```
+ *
+ * ### Recursive folds with `Eval`
+ *
+ * Consider a program that uses `Eval` to fold over and traverse a recursive
+ * `Tree` data structure:
  *
  * ```ts
  * type Tree<A> = Tip | Bin<A>;
@@ -122,8 +155,8 @@
  *     );
  * }
  *
- * function traverseInOrder(xs: Tree<A>): A[] {
- *     return foldTree(xs, [], (x, lxs, rxs) => [...lxs, x, ...rxs]).run();
+ * function inOrder<A>(xs: Tree<A>): Eval<A[]> {
+ *     return foldTree(xs, [] as A[], (x, lxs, rxs) => [...lxs, x, ...rxs]);
  * }
  *
  * const oneToSeven: Tree<number> = bin(
@@ -132,38 +165,13 @@
  *     bin(6, bin(5, tip, tip), bin(7, tip, tip)),
  * );
  *
- * console.log(traverseInOrder(oneToSeven));
+ * console.log(JSON.stringify(inOrder(oneToSeven).run()));
+ *
+ * // [1,2,3,4,5,6,7]
  * ```
  *
- * ### Generator comprehensions
- *
- * Generator comprehensions provide an alternative syntax for chaining together
- * computations that return `Eval`. Instead of `flatMap`, a generator is used
- * to unwrap Evals' results and apply functions to their values.
- *
- * The `go` static method evaluates a generator to return an Eval. Within the
- * generator, Evals are yielded using the `yield*` keyword. This binds the
- * results to specified variables. When the computation is complete, a final
- * value can be computed and returned from the generator.
- *
- * Generator comprehensions support all syntax that would otherwise be valid
- * within a generator, including:
- *
- * - Variable declarations, assignments, and mutations
- * - Function and class declarations
- * - `for` loops
- * - `while` and `do...while` loops
- * - `if`/`else if`/`else` blocks
- * - `switch` blocks
- * - `try`/`catch` blocks
- *
- * `Eval` is "suspended" in its implementation of `go`, which means that the
- * body of the provided generator function will not run until the Eval is
- * evaluated using `run`. This behavior helps ensure stack safety, especially
- * for recursive programs.
- *
- * Consider the generator comprehension equivalent of the `foldTree` function
- * above:
+ * We may refactor the `foldTree` function to use a generator comprehension
+ * instead:
  *
  * ```ts
  * function foldTree<A, B>(
@@ -184,21 +192,75 @@
  * }
  * ```
  *
- * ## Collecting into `Eval`
+ * Suppose we wanted to traverse a tree in multiple ways and collect the results
+ * of each traversal. We may write the following:
  *
- * `Eval` provides several functions for working with collections of Evals.
- * Sometimes, a collection of Evals must be turned "inside out" into an Eval
- * that contains a "mapped" collection of results.
+ * ```ts
+ * function preOrder<A>(tree: Tree<A>): Eval<A[]> {
+ *     return foldTree(tree, [] as A[], (x, lxs, rxs) => [x, ...lxs, ...rxs]);
+ * }
  *
- * These methods will traverse a collection of Evals to extract the results.
+ * function postOrder<A>(tree: Tree<A>): Eval<A[]> {
+ *     return foldTree(tree, [] as A[], (x, lxs, rxs) => [...lxs, ...rxs, x]);
+ * }
  *
- * - `collect` turns an Array or a tuple literal of Evals inside out.
- * - `tupled` turns a series of two or more individual Evals inside out.
- * - `gather` turns a Record or an object literal of Evals inside out.
+ * type Traversals<A> = readonly [in: A[], pre: A[], post: A[]];
  *
- * Additionally, the `reduce` function reduces a finite Iterable from left to
- * right in the context of `Eval`. This is useful for mapping, filtering, and
- * accumulating values using `Eval`.
+ * function traversals<A>(tree: Tree<A>): Eval<Traversals<A>> {
+ *     return Eval.collect([
+ *         inOrder(tree),
+ *         preOrder(tree),
+ *         postOrder(tree),
+ *     ] as const);
+ * }
+ *
+ * console.log(JSON.stringify(traversals(oneToSeven).run()));
+ *
+ * // [[1,2,3,4,5,6,7],[4,2,1,3,6,5,7],[1,3,2,5,7,6,4]]
+ * ```
+ *
+ * Perhaps we want to return an object instead, where the keys indicate the type
+ * of each traversal:
+ *
+ * ```ts
+ * interface TraversalsObj<A> {
+ *     readonly in: A[];
+ *     readonly pre: A[];
+ *     readonly post: A[];
+ * }
+ *
+ * function traversalsKeyed<A>(tree: Tree<A>): Eval<TraversalsObj<A>> {
+ *     return Eval.gather({
+ *         in: inOrder(tree),
+ *         pre: preOrder(tree),
+ *         post: postOrder(tree),
+ *     });
+ * }
+ *
+ * console.log(JSON.stringify(traversalsKeyed(oneToSeven).run()));
+ *
+ * // {"in":[1,2,3,4,5,6,7],"pre":[4,2,1,3,6,5,7],"post":[1,3,2,5,7,6,4]}
+ * ```
+ *
+ * Or, perhaps we want to return a Map instead:
+ *
+ * ```ts
+ * function traversalsMap(tree: Tree<A>): Eval<Map<string, A[]>> {
+ *     return Eval.go(function* () {
+ *         const results = new Map<string, A[]>();
+ *
+ *         results.set("in", yield* inOrder(tree));
+ *         results.set("pre", yield* preOrder(tree));
+ *         results.set("post", yield* postOrder(tree));
+ *
+ *         return results;
+ *     });
+ * }
+ *
+ * console.log(JSON.stringify(Array.from(traversalsMap(oneToSeven).run())));
+ *
+ * // [["in",[1,2,3,4,5,6,7]],["pre",[4,2,1,3,6,5,7]],["post",[1,3,2,5,7,6,4]]]
+ * ```
  *
  * @module
  */
@@ -242,8 +304,8 @@ export class Eval<out A> {
     }
 
     static #step<A>(
-        gen: Iterator<readonly [Eval<any>], A>,
-        nxt: IteratorResult<readonly [Eval<any>], A>,
+        gen: Iterator<[Eval<any>], A>,
+        nxt: IteratorResult<[Eval<any>], A>,
     ): Eval<A> {
         if (nxt.done) {
             return Eval.now(nxt.value);
@@ -254,7 +316,7 @@ export class Eval<out A> {
     /**
      * Construct an Eval using a generator comprehension.
      */
-    static go<A>(f: () => Generator<readonly [Eval<any>], A, any>): Eval<A> {
+    static go<A>(f: () => Generator<[Eval<any>], A, any>): Eval<A> {
         return Eval.defer(() => {
             const gen = f();
             return Eval.#step(gen, gen.next());
@@ -290,18 +352,8 @@ export class Eval<out A> {
             for (const [idx, ev] of evals.entries()) {
                 results[idx] = yield* ev;
             }
-            return results as unknown as Eval.ResultsT<T>;
+            return results as Eval.ResultsT<T>;
         });
-    }
-
-    /**
-     * Evaluate a series of Evals from left to right and collect the results in
-     * a tuple literal.
-     */
-    static tupled<T extends [Eval<any>, Eval<any>, ...Eval<any>[]]>(
-        ...evals: T
-    ): Eval<Eval.ResultsT<T>> {
-        return Eval.collect(evals);
     }
 
     /**
@@ -310,7 +362,7 @@ export class Eval<out A> {
      */
     static gather<T extends Record<any, Eval<any>>>(
         evals: T,
-    ): Eval<{ readonly [K in keyof T]: Eval.ResultT<T[K]> }> {
+    ): Eval<{ [K in keyof T]: Eval.ResultT<T[K]> }> {
         return Eval.go(function* () {
             const results: Record<any, unknown> = {};
             for (const [key, ev] of Object.entries(evals)) {
@@ -335,7 +387,7 @@ export class Eval<out A> {
      *
      * @hidden
      */
-    *[Symbol.iterator](): Iterator<readonly [Eval<A>], A, unknown> {
+    *[Symbol.iterator](): Iterator<[Eval<A>], A, unknown> {
         return (yield [this]) as A;
     }
 

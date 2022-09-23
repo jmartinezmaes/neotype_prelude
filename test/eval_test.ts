@@ -57,11 +57,6 @@ describe("Eval", () => {
         assert.deepEqual(t0.run(), [_1, _2]);
     });
 
-    specify("Eval.tupled", () => {
-        const t0 = Eval.tupled(mk(_1), mk(_2));
-        assert.deepEqual(t0.run(), [_1, _2]);
-    });
-
     specify("Eval.gather", () => {
         const t0 = Eval.gather({ x: mk(_1), y: mk(_2) });
         assert.deepEqual(t0.run(), { x: _1, y: _2 });
