@@ -33,6 +33,8 @@
  * - The `Semigroup` companion namespace provides the unique symbol required to
  *   implement the associated interface.
  *
+ * [semigroups]: https://mathworld.wolfram.com/Semigroup.html
+ *
  * ## Combining semigroups
  *
  * The `cmb` function combines two instances of the same `Semigroup`.
@@ -59,13 +61,13 @@
  * }
  * ```
  *
- * [semigroups]: https://mathworld.wolfram.com/Semigroup.html
- *
  * @module
  */
 
 /**
  * An interface that provides evidence of a [semigroup].
+ *
+ * [semigroup]: https://mathworld.wolfram.com/Semigroup.html
  *
  * ## Properties
  *
@@ -75,6 +77,8 @@
  * - `cmb(x, cmb(y, z))` is equivalent to `cmb(cmb(x, y), z)`
  *
  * for all `x`, `y`, and `z`.
+ *
+ * [associative property]: https://mathworld.wolfram.com/Associative.html
  *
  * ## Implementing `Semigroup`
  *
@@ -86,6 +90,9 @@
  * Implementation is implicit and does not require an `implements` clause.
  * TypeScript uses [structural subtyping] to determine whether a value
  * implements `Semigroup`.
+ *
+ * [structural subtyping]:
+ * https://www.typescriptlang.org/docs/handbook/type-compatibility.html#site-content
  *
  * ### Conditional implementation
  *
@@ -219,6 +226,9 @@
  * class or object, and the same practices apply when requiring generic type
  * parameters to implement `Semigroup`.
  *
+ * [augmentation]:
+ * https://www.typescriptlang.org/docs/handbook/declaration-merging.html#module-augmentation
+ *
  * #### Examples
  *
  * Consider a global augmentation for the `String` prototype:
@@ -256,11 +266,6 @@
  *     return new Pair(cmb(this.fst, that.fst), cmb(this.snd, that.snd));
  * };
  * ```
- *
- * [semigroup]: https://mathworld.wolfram.com/Semigroup.html
- * [associative property]: https://mathworld.wolfram.com/Associative.html
- * [structural subtyping]: https://www.typescriptlang.org/docs/handbook/type-compatibility.html#site-content
- * [augmentation]: https://www.typescriptlang.org/docs/handbook/declaration-merging.html#module-augmentation
  */
 export interface Semigroup<in out A> {
     /**
@@ -272,9 +277,6 @@ export interface Semigroup<in out A> {
 
 /**
  * The companion namespace for the `Semigroup` interface.
- *
- * The namespace provides the unique symbol `cmb` required to implement
- * `Semigroup`.
  */
 export namespace Semigroup {
     export const cmb = Symbol();
