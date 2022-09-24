@@ -19,8 +19,8 @@
  *
  * ## Importing from this module
  *
- * This module exposes named exports, and it is recommended to import them as
- * named:
+ * This module exports utilities for ordering and comparing values. It is
+ * recommended to import them as they are named:
  *
  * ```ts
  * import { clamp, cmp, Eq, eq, ge, gt, icmp, ieq, le, lt, max, min, ne, Ord,

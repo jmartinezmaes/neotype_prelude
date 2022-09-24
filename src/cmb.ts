@@ -19,8 +19,8 @@
  *
  * ## Importing from this module
  *
- * This module exposes named exports, and it is recommended to import them as
- * named:
+ * This module exposes utilities for working with semigroups. It is recommended
+ * to import them as they are named:
  *
  * ```ts
  * import { cmb, Semigroup } from "@neotype/prelude/cmb.js";
