@@ -240,31 +240,31 @@
  * function parseInt(input: string): Either<string, number> {
  *     const n = Number.parseInt(input);
  *     return Number.isNaN(n)
- *         ? Either.left(`cannot parse "${input}" as an integer`)
+ *         ? Either.left(`cannot parse '${input}' as int`)
  *         : Either.right(n);
  * }
  *
  * function guardEven(n: number): Either<string, number> {
  *     return n % 2 === 0
  *         ? Either.right(n)
- *         : Either.left(`number ${n} is not even`);
+ *         : Either.left(`${n} is not even`);
  * }
  *
  * function parseEvenInt(input: string): Either<string, number> {
  *     return parseInt(input).flatMap(guardEven);
  * }
  *
- * ["a", "1", "2", "-4", "+18", "0x12"].forEach((input) => {
+ * ["a", "1", "2", "-4", "+42", "0x2A"].forEach((input) => {
  *     const result = JSON.stringify(parseEvenInt(input).val);
  *     console.log(`input "${input}": ${result}`);
  * });
  *
- * // input "a": "cannot parse \"a\" as an integer"
- * // input "1": "number 1 is not even"
+ * // input "a": "cannot parse 'a' as int"
+ * // input "1": "1 is not even"
  * // input "2": 2
  * // input "-4": -4
- * // input "+18": 18
- * // input "0x12": 18
+ * // input "+42": 42
+ * // input "0x2A": 42
  * ```
  *
  * We can refactor the `parseEvenInt` function to use a generator comprehension
@@ -289,17 +289,17 @@
  * }
  *
  * [
- *     ["2", "-7", "+18", "0x12"],
- *     ["a", "-4", "+18", "0x12"],
- *     ["2", "-4", "+18", "0x12"],
+ *     ["a", "-4"],
+ *     ["2", "-7"],
+ *     ["+42", "0x2A"],
  * ].forEach((inputs) => {
  *     const result = JSON.stringify(parseEvenInts(inputs).val);
  *     console.log(`inputs ${JSON.stringify(inputs)}: ${result}`);
  * });
  *
- * // inputs ["2","-7","+18","0x12"]: "number -7 is not even"
- * // inputs ["a","-4","+18","0x12"]: "cannot parse \"a\" an an integer"
- * // inputs ["2","-4","+18","0x12"]: [2,-4,18,18]
+ * // inputs ["a","-4"]: "cannot parse 'a' as int"
+ * // inputs ["2","-7"]: "-7 is not even"
+ * // inputs ["+42","0x2A"]: [42,42]
  * ```
  *
  * Perhaps we want to collect only distinct even numbers using a Set:
@@ -316,9 +316,9 @@
  * }
  *
  * [
- *     ["2", "-7", "+18", "0x12"],
- *     ["a", "-4", "+18", "0x12"],
- *     ["2", "-4", "+18", "0x12"],
+ *     ["a", "-4"],
+ *     ["2", "-7"],
+ *     ["+42", "0x2A"],
  * ].forEach((inputs) => {
  *     const result = JSON.stringify(
  *         parseEvenIntsUniq(inputs).map(Array.from).val,
@@ -326,9 +326,9 @@
  *     console.log(`inputs ${JSON.stringify(inputs)}: ${result}`);
  * });
  *
- * // inputs ["2","-7","+18","0x12"]: "number -7 is not even"
- * // inputs ["a","-4","+18","0x12"]: "cannot parse \"a\" an an integer"
- * // inputs ["2","-4","+18","0x12"]: [2,-4,18]
+ * // inputs ["a","-4"]: "cannot parse 'a' as int"
+ * // inputs ["2","-7"]: "-7 is not even"
+ * // inputs ["+42","0x2A"]: [42]
  * ```
  *
  * Or, perhaps we want to associate the original input strings with our
@@ -346,17 +346,17 @@
  * }
  *
  * [
- *     ["2", "-7", "+18", "0x12"],
- *     ["a", "-4", "+18", "0x12"],
- *     ["2", "-4", "+18", "0x12"],
+ *     ["a", "-4"],
+ *     ["2", "-7"],
+ *     ["+42", "0x2A"],
  * ].forEach((inputs) => {
  *     const result = JSON.stringify(parseEvenIntsKeyed(inputs).val);
  *     console.log(`inputs ${JSON.stringify(inputs)}: ${result}`);
  * });
  *
- * // inputs ["2","-7","+18","0x12"]: "number -7 is not even"
- * // inputs ["a","-4","+18","0x12"]: "cannot parse \"a\" an an integer"
- * // inputs ["2","-4","+18","0x12"]: {"2":2,"-4":-4,"+18":18,"0x12":18}
+ * // inputs ["a","-4"]: "cannot parse 'a' as int"
+ * // inputs ["2","-7"]: "-7 is not even"
+ * // inputs ["+42","0x2A"]: {"+42":42,"0x2A":42}
  * ```
  *
  * Or, perhaps we want to sum our successful parses and return a total:
@@ -371,17 +371,17 @@
  * }
  *
  * [
- *     ["2", "-7", "+18", "0x12"],
- *     ["a", "-4", "+18", "0x12"],
- *     ["2", "-4", "+18", "0x12"],
+ *     ["a", "-4"],
+ *     ["2", "-7"],
+ *     ["+42", "0x2A"],
  * ].forEach((inputs) => {
  *     const result = JSON.strigify(parseEvenIntsAndSum(inputs).val);
  *     console.log(`inputs ${JSON.stringify(inputs)}: ${result}`);
  * });
  *
- * // inputs ["2","-7","+18","0x12"]: "number -7 is not even"
- * // inputs ["a","-4","+18","0x12"]: "cannot parse \"a\" an an integer"
- * // inputs ["2","-4","+18","0x12"]: 34
+ * // inputs ["a","-4"]: "cannot parse 'a' as int"
+ * // inputs ["2","-7"]: "-7 is not even"
+ * // inputs ["+42","0x2A"]: 84
  * ```
  *
  * ### Web requests with `Either`
