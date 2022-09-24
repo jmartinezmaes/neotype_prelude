@@ -82,11 +82,6 @@ describe("Either", () => {
         assert.deepEqual(t0, Either.right([_2, _4] as const));
     });
 
-    specify("Either.tupled", () => {
-        const t0 = Either.tupled(mk("R", _1, _2), mk("R", _3, _4));
-        assert.deepEqual(t0, Either.right([_2, _4] as const));
-    });
-
     specify("Either.gather", () => {
         const t0 = Either.gather({ x: mk("R", _1, _2), y: mk("R", _3, _4) });
         assert.deepEqual(t0, Either.right({ x: _2, y: _4 }));

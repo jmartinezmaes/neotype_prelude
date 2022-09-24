@@ -32,7 +32,7 @@
  *
  * ## Importing from this module
  *
- * This module exposes `Either` as both a type and a namespace. The `Either`
+ * This module exports `Either` as both a type and a namespace. The `Either`
  * type is an alias for a discriminated union, and the `Either` namespace
  * provides:
  *
@@ -45,25 +45,20 @@
  *
  * ```ts
  * import { Either } from "@neotype/prelude/either.js";
- *
- * const example: Either<string, number> = Either.right(1);
  * ```
  *
  * Or, the type and namespace can be imported and aliased separately:
  *
  * ```ts
  * import { type Either, Either as E } from "@neotype/prelude/either.js";
- *
- * const example: Either<string, number> = E.right(1);
  * ```
  *
  * ## Constructing `Either`
  *
- * The `left` and `right` functions construct the `Left` and `Right` variants
- * of `Either`, respectively.
+ * These functions construct an Either:
  *
- * Furthermore:
- *
+ * - `left` constructs a `Left` variant.
+ * - `right` constructs a `Right` variant.
  * - `guard` constructs an Either from applying a predicate function to a value.
  *   The value is returned in `Right` or `Left` if it satisfies or does not
  *   satisfy the predicate, respectively.
@@ -84,11 +79,10 @@
  * An Either's value can be accessed via the `val` property. The type of the
  * property can be narrowed by first querying the Either's variant.
  *
- * Alternatively, the `fold` method will unwrap an Either by applying one of two
- * functions to its `Left` or `Right` value.
+ * These methods also extract an Either's value:
  *
- * These methods will extract the value from an Either:
- *
+ * - `fold` applies one of two functions to the Either's value, depending on
+ *   the Either's variant.
  * - `leftOrFold` extracts the value if the Either is `Left`; otherwise, it
  *   applies a function to the `Right` value to return a fallback result.
  * - `rightOrFold` extracts the value if the Either is `Right`; otherwise, it
@@ -96,8 +90,8 @@
  *
  * ## Comparing `Either`
  *
- * `Either` implements `Eq` and `Ord` when both its `Left` and `Right` values
- * implement `Eq` and `Ord`.
+ * `Either` implements `Eq` and `Ord` when both of its generic types
+ * respectively implement `Eq` and `Ord`.
  *
  * - Two Eithers are equal if they are the same variant and their values are
  *   equal.
@@ -106,9 +100,9 @@
  *
  * ## `Either` as a semigroup
  *
- * `Either` implements `Semigroup` when its `Right` value implements
+ * `Either` implements `Semigroup` when its `Right` generic type implements
  * `Semigroup`. When combined, the first `Left` Either will short-circuit the
- * operation. If both Eithers are `Right`, their values will be combined and
+ * operation. If both variants are `Right`, their values will be combined and
  * returned in `Right`.
  *
  * In other words, `cmb(x, y)` is equivalent to `x.zipWith(y, cmb)` for all
@@ -140,44 +134,18 @@
  * return another Either. If any Either is `Left`, the computation is halted and
  * the `Left` is returned instead.
  *
- * Consider a program that uses `Either` to parse an even integer:
- *
- * ```ts
- * function parseInt(input: string): Either<string, number> {
- *     const n = Number.parseInt(input);
- *     return Number.isNaN(n)
- *         ? Either.left(`Value "${input}" is not an integer`)
- *         : Either.right(n);
- * }
- *
- * function guardEven(n: number): Either<string, number> {
- *     return n % 2 === 0
- *         ? Either.right(n)
- *         : Either.left(`Number ${n} is not even`);
- * }
- *
- * function parseEvenInt(input: string): Either<string, number> {
- *     return parseInt(input).flatMap(guardEven);
- * }
- *
- * console.log(parseEvenInt("a"));
- * console.log(parseEvenInt("1"));
- * console.log(parseEvenInt("2"));
- * ```
- *
  * ### Generator comprehenshions
  *
- * Generator comprehensions provide an alternative syntax for chaining together
- * computations that return `Either`. Instead of `flatMap`, a generator is used
+ * Generator comprehensions provide an imperative syntax for chaining together
+ * computations that return `Either`. Instead of `flatMap`, a Generator is used
  * to unwrap `Right` variants and apply functions to their values.
  *
- * The `go` function evaluates a generator to return an Either. Within the
- * generator, Eithers are yielded using the `yield*` keyword. This binds the
+ * The `go` function evaluates a Generator to return an Either. Within the
+ * Generator, Eithers are yielded using the `yield*` keyword. This binds the
  * `Right` values to specified variables. When the computation is complete, a
- * final value can be computed and returned from the generator.
+ * final value can be computed and returned from the Generator.
  *
- * Generator comprehensions support all syntax that would otherwise be valid
- * within a generator, including:
+ * Generator comprehensions may contain:
  *
  * - Variable declarations, assignments, and mutations
  * - Function and class declarations
@@ -187,8 +155,120 @@
  * - `switch` blocks
  * - `try`/`catch` blocks
  *
- * Consider the generator comprehension equivalent of the `parseEvenInt`
- * function above:
+ * ### Async generator comprehensions
+ *
+ * Async generator comprehensions provide `async`/`await` syntax and Promises to
+ * `Either` generator comprehensions. Async computations that return `Either`
+ * can be chained together using the familiar generator syntax.
+ *
+ * The `goAsync` function evaluates an AsyncGenerator to return a Promise that
+ * fulfills with an Either. The semantics of `yield*` and `return` within async
+ * comprehensions are identical to their synchronous counterparts.
+ *
+ * In addition to the syntax permitted in synchronous generator comprehensions,
+ * async comprehensions may contain:
+ *
+ * - The `await` keyword
+ * - `for await` loops (asynchronous iteration)
+ *
+ * ## Recovering from `Left` variants
+ *
+ * These methods allow an Either to recover from a `Left` variant:
+ *
+ * - `recover` applies a function to the Either's value to return a new Either.
+ *   This is the equivalent of `flatMap` for the `Left` variant.
+ * - `orElse` returns a fallback Either.
+ *
+ * ## Collecting into `Either`
+ *
+ * `Either` provides several functions for working with collections of Eithers.
+ * Sometimes, a collection of Eithers must be turned "inside out" into an Either
+ * that contains an equivalent collection of `Right` values.
+ *
+ * These functions will traverse a collection of Eithers to extract the `Right`
+ * values. If any Either in the collection is `Left`, the traversal is halted
+ * and the `Left` is returned instead.
+ *
+ * - `collect` turns an Array or a tuple literal of Eithers inside out.
+ * - `gather` turns a Record or an object literal of Eithers inside out.
+ *
+ * Additionally, the `reduce` function reduces a finite Iterable from left to
+ * right in the context of `Either`. This is useful for mapping, filtering, and
+ * accumulating values using `Either`.
+ *
+ * ## Examples
+ *
+ * These examples assume the following imports:
+ *
+ * ```ts
+ * import { Either } from "@neotype/prelude/either.js";
+ * ```
+ *
+ * ### Basic matching and folding
+ *
+ * ```ts
+ * const strOrNum: Either<string, number> = Either.right(1);
+ *
+ * // Querying and narrowing using methods
+ * if (strOrNum.isLeft()) {
+ *     console.log(`Queried Left: ${strOrNum.val}`);
+ * } else {
+ *     console.log(`Queried Right: ${strOrNum.val}`);
+ * }
+ *
+ * // Querying and narrowing using the `typ` property
+ * switch (strOrNum.typ) {
+ *     case Either.Typ.Left:
+ *         console.log(`Matched Left: ${strOrNum.val}`);
+ *         break;
+ *     case Either.Typ.Right:
+ *         console.log(`Matched Right: ${strOrNum.val}`);
+ * }
+ *
+ * // Case analysis using `fold`
+ * strOrNum.fold(
+ *     (str) => console.log(`Folded Left: ${str}`),
+ *     (num) => console.log(`Folded Right: ${num}`),
+ * );
+ * ```
+ *
+ * ### Parsing with `Either`
+ *
+ * Consider a program that uses `Either` to parse an even integer:
+ *
+ * ```ts
+ * function parseInt(input: string): Either<string, number> {
+ *     const n = Number.parseInt(input);
+ *     return Number.isNaN(n)
+ *         ? Either.left(`cannot parse "${input}" as an integer`)
+ *         : Either.right(n);
+ * }
+ *
+ * function guardEven(n: number): Either<string, number> {
+ *     return n % 2 === 0
+ *         ? Either.right(n)
+ *         : Either.left(`number ${n} is not even`);
+ * }
+ *
+ * function parseEvenInt(input: string): Either<string, number> {
+ *     return parseInt(input).flatMap(guardEven);
+ * }
+ *
+ * ["a", "1", "2", "-4", "+18", "0x12"].forEach((input) => {
+ *     const result = JSON.stringify(parseEvenInt(input).val);
+ *     console.log(`input "${input}": ${result}`);
+ * });
+ *
+ * // input "a": "cannot parse \"a\" as an integer"
+ * // input "1": "number 1 is not even"
+ * // input "2": 2
+ * // input "-4": -4
+ * // input "+18": 18
+ * // input "0x12": 18
+ * ```
+ *
+ * We can refactor the `parseEvenInt` function to use a generator comprehension
+ * instead:
  *
  * ```ts
  * function parseEvenInt(input: string): Either<string, number> {
@@ -200,93 +280,114 @@
  * }
  * ```
  *
- * ### Async generator comprehensions
- *
- * Async generator comprehensions provide `async/await` syntax and Promises to
- * `Either` generator comprehensions. Async computations that return `Either`
- * can be chained together using the familiar generator syntax.
- *
- * The `goAsync` function evaluates an async generator to return a Promise that
- * fulfills with an Either. The semantics of `yield*` and `return` within async
- * comprehensions are identical to their synchronous counterparts.
- *
- * In addition to the syntax permitted in synchronous generator comprehensions,
- * async comprehensions also support:
- *
- * - the `await` keyword
- * - `for await` loops (asynchronous iteration)
- *
- * Consider a program that uses requests data from a remote API and uses
- * `Either` to guard against unlocatable resources:
+ * Suppose we want to parse an Array of inputs and collect the successful
+ * results, or fail on the first parse error. We may write the following:
  *
  * ```ts
- * interface User {
- *     readonly id: number;
- *     readonly username: string;
+ * function parseEvenInts(inputs: string[]): Either<string, number[]> {
+ *     return Either.collect(inputs.map(parseEvenInt));
  * }
  *
- * // Contains 10 Users, with ids from 1 - 10
- * const usersEndpoint = "https://jsonplaceholder.typicode.com/users";
+ * [
+ *     ["2", "-7", "+18", "0x12"],
+ *     ["a", "-4", "+18", "0x12"],
+ *     ["2", "-4", "+18", "0x12"],
+ * ].forEach((inputs) => {
+ *     const result = JSON.stringify(parseEvenInts(inputs).val);
+ *     console.log(`inputs ${JSON.stringify(inputs)}: ${result}`);
+ * });
  *
- * async function fetchUsernameByUserId(
- *     id: number
- * ): Promise<Either<string, string>> {
- *     const response = await fetch(`${usersEndpoint}/${id}`);
- *     if (!response.ok) {
- *         return Either.left(`User with id ${id} not found`);
- *     }
- *     const user: User = await response.json();
- *     return Either.right(user.username);
- * }
+ * // inputs ["2","-7","+18","0x12"]: "number -7 is not even"
+ * // inputs ["a","-4","+18","0x12"]: "cannot parse \"a\" an an integer"
+ * // inputs ["2","-4","+18","0x12"]: [2,-4,18,18]
+ * ```
  *
- * function fetchUsernamesByUserIds(
- *     id1: number,
- *     id2: number,
- * ): Promise<Either<string, readonly [string, string]>> {
- *     return Either.goAsync(async function* () {
- *         const uname1 = yield* await fetchUsernameByUserId(id1);
- *         const uname2 = yield* await fetchUsernameByUserId(id2);
- *         return [uname1, uname2] as const;
+ * Perhaps we want to collect only distinct even numbers using a Set:
+ *
+ * ```ts
+ * function parseEvenIntsUniq(inputs: string[]): Either<string, Set<number>> {
+ *     return Either.go(function* () {
+ *         const results = new Set<number>();
+ *         for (const input of inputs) {
+ *             results.add(yield* parseEvenInt(input));
+ *         }
+ *         return results;
  *     });
  * }
  *
- * console.log(await fetchUsernamesByUserIds(12, 7));
- * console.log(await fetchUsernamesByUserIds(5, 14));
- * console.log(await fetchUsernamesByUserIds(6, 3));
+ * [
+ *     ["2", "-7", "+18", "0x12"],
+ *     ["a", "-4", "+18", "0x12"],
+ *     ["2", "-4", "+18", "0x12"],
+ * ].forEach((inputs) => {
+ *     const result = JSON.stringify(
+ *         parseEvenIntsUniq(inputs).map(Array.from).val,
+ *     );
+ *     console.log(`inputs ${JSON.stringify(inputs)}: ${result}`);
+ * });
+ *
+ * // inputs ["2","-7","+18","0x12"]: "number -7 is not even"
+ * // inputs ["a","-4","+18","0x12"]: "cannot parse \"a\" an an integer"
+ * // inputs ["2","-4","+18","0x12"]: [2,-4,18]
  * ```
  *
- * ## Collecting into `Either`
- *
- * `Either` provides several functions for working with collections of Eithers.
- * Sometimes, a collection of Eithers must be turned "inside out" into an Either
- * that contains a "mapped" collection of `Right` values.
- *
- * These methods will traverse a collection of Eithers to extract the `Right`
- * values. If any Either in the collection is `Left`, the traversal is halted
- * and the `Left` is returned instead.
- *
- * - `collect` turns an Array or a tuple literal of Eithers inside out.
- * - `tupled` turns a series of two or more individual Eithers inside out.
- * - `gather` turns a Record or an object literal of Eithers inside out.
- *
- * Additionally, the `reduce` function reduces a finite Iterable from left to
- * right in the context of `Either`. This is useful for mapping, filtering, and
- * accumulating values using `Either`:
+ * Or, perhaps we want to associate the original input strings with our
+ * successful parses:
  *
  * ```ts
- * function sumOnlyEvens(nums: number[]): Either<string, number> {
+ * function parseEvenIntsKeyed(
+ *     inputs: string[],
+ * ): Either<string, Record<string, number>> {
+ *     return Either.gather(
+ *         Object.fromEntries(
+ *             inputs.map((input) => [input, parseEvenInt(input)] as const),
+ *         ),
+ *     );
+ * }
+ *
+ * [
+ *     ["2", "-7", "+18", "0x12"],
+ *     ["a", "-4", "+18", "0x12"],
+ *     ["2", "-4", "+18", "0x12"],
+ * ].forEach((inputs) => {
+ *     const result = JSON.stringify(parseEvenIntsKeyed(inputs).val);
+ *     console.log(`inputs ${JSON.stringify(inputs)}: ${result}`);
+ * });
+ *
+ * // inputs ["2","-7","+18","0x12"]: "number -7 is not even"
+ * // inputs ["a","-4","+18","0x12"]: "cannot parse \"a\" an an integer"
+ * // inputs ["2","-4","+18","0x12"]: {"2":2,"-4":-4,"+18":18,"0x12":18}
+ * ```
+ *
+ * Or, perhaps we want to sum our successful parses and return a total:
+ *
+ * ```ts
+ * function parseEvenIntsAndSum(inputs: string[]): Either<string, number> {
  *     return Either.reduce(
- *         nums,
- *         (total, num) =>
- *             Either.guard(total + num, (n) => n % 2 === 0).mapLeft(
- *                 (odd) => `encountered odd number ${odd}`,
- *             ),
+ *         inputs,
+ *         (total, input) => parseEvenInt(input).map((even) => total + even),
  *         0,
  *     );
  * }
  *
- * console.log(sumOnlyEvens([2, 3, 6]));
- * console.log(sumOnlyEvens([2, 4, 6]));
+ * [
+ *     ["2", "-7", "+18", "0x12"],
+ *     ["a", "-4", "+18", "0x12"],
+ *     ["2", "-4", "+18", "0x12"],
+ * ].forEach((inputs) => {
+ *     const result = JSON.strigify(parseEvenIntsAndSum(inputs).val);
+ *     console.log(`inputs ${JSON.stringify(inputs)}: ${result}`);
+ * });
+ *
+ * // inputs ["2","-7","+18","0x12"]: "number -7 is not even"
+ * // inputs ["a","-4","+18","0x12"]: "cannot parse \"a\" an an integer"
+ * // inputs ["2","-4","+18","0x12"]: 34
+ * ```
+ *
+ * ### Web requests with `Either`
+ *
+ * ```ts
+ * // Todo
  * ```
  *
  * @module
@@ -355,7 +456,7 @@ export namespace Either {
     /**
      * Construct an Either using a generator comprehension.
      */
-    export function go<T extends readonly [Either<any, any>], A>(
+    export function go<T extends [Either<any, any>], A>(
         f: () => Generator<T, A, any>,
     ): Either<LeftT<T[0]>, A> {
         const gen = f();
@@ -395,24 +496,14 @@ export namespace Either {
      */
     export function collect<T extends readonly Either<any, any>[]>(
         eithers: T,
-    ): Either<LeftT<T[number]>, Readonly<RightsT<T>>> {
+    ): Either<LeftT<T[number]>, RightsT<T>> {
         return go(function* () {
             const results = new Array(eithers.length);
             for (const [idx, either] of eithers.entries()) {
                 results[idx] = yield* either;
             }
-            return results as unknown as RightsT<T>;
+            return results as RightsT<T>;
         });
-    }
-
-    /**
-     * Evaluate a series of Eithers from left to right and collect the `Right`
-     * values in a tuple literal.
-     */
-    export function tupled<
-        T extends [Either<any, any>, Either<any, any>, ...Either<any, any>[]],
-    >(...eithers: T): Either<LeftT<T[number]>, Readonly<RightsT<T>>> {
-        return collect(eithers);
     }
 
     /**
@@ -421,7 +512,7 @@ export namespace Either {
      */
     export function gather<T extends Record<any, Either<any, any>>>(
         eithers: T,
-    ): Either<LeftT<T[keyof T]>, { readonly [K in keyof T]: RightT<T[K]> }> {
+    ): Either<LeftT<T[keyof T]>, { [K in keyof T]: RightT<T[K]> }> {
         return go(function* () {
             const results: Record<any, unknown> = {};
             for (const [key, either] of Object.entries(eithers)) {
@@ -435,7 +526,7 @@ export namespace Either {
      * Construct a Promise that fulfills with an Either using an async generator
      * comprehension.
      */
-    export async function goAsync<T extends readonly [Either<any, any>], A>(
+    export async function goAsync<T extends [Either<any, any>], A>(
         f: () => AsyncGenerator<T, A, any>,
     ): Promise<Either<LeftT<T[0]>, A>> {
         const gen = f();
@@ -501,22 +592,17 @@ export namespace Either {
          */
         fold<A, B, C, D>(
             this: Either<A, B>,
-            foldL: (x: A, either: Left<A>) => C,
-            foldR: (x: B, either: Right<B>) => D,
+            foldL: (x: A) => C,
+            foldR: (x: B) => D,
         ): C | D {
-            return this.isLeft()
-                ? foldL(this.val, this)
-                : foldR(this.val, this);
+            return this.isLeft() ? foldL(this.val) : foldR(this.val);
         }
 
         /**
          * If this Either is `Left`, extract its value; otherwise, apply a
          * function to the `Right` value.
          */
-        leftOrFold<A, B, C>(
-            this: Either<A, B>,
-            f: (x: B, either: Right<B>) => C,
-        ): A | C {
+        leftOrFold<A, B, C>(this: Either<A, B>, f: (x: B) => C): A | C {
             return this.fold(id, f);
         }
 
@@ -524,10 +610,7 @@ export namespace Either {
          * If this Either is `Right`, extract its value; otherwise, apply a
          * function to the `Left` value.
          */
-        rightOrFold<A, B, C>(
-            this: Either<A, B>,
-            f: (x: A, either: Left<A>) => C,
-        ): B | C {
+        rightOrFold<A, B, C>(this: Either<A, B>, f: (x: A) => C): B | C {
             return this.fold(f, id);
         }
 
@@ -660,11 +743,7 @@ export namespace Either {
          *
          * @hidden
          */
-        *[Symbol.iterator](): Iterator<
-            readonly [Either<A, never>],
-            never,
-            unknown
-        > {
+        *[Symbol.iterator](): Iterator<[Either<A, never>], never, unknown> {
             return (yield [this]) as never;
         }
     }
@@ -692,11 +771,7 @@ export namespace Either {
          *
          * @hidden
          */
-        *[Symbol.iterator](): Iterator<
-            readonly [Either<never, B>],
-            B,
-            unknown
-        > {
+        *[Symbol.iterator](): Iterator<[Either<never, B>], B, unknown> {
             return (yield [this]) as B;
         }
     }
