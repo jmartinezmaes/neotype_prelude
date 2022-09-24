@@ -80,11 +80,6 @@ describe("Maybe", () => {
         assert.deepEqual(t1, Maybe.just([_1, _2] as const));
     });
 
-    specify("Maybe.tupled", () => {
-        const t1 = Maybe.tupled(mk("J", _1), mk("J", _2));
-        assert.deepEqual(t1, Maybe.just([_1, _2] as const));
-    });
-
     specify("Maybe.gather", () => {
         const t1 = Maybe.gather({ x: mk("J", _1), y: mk("J", _2) });
         assert.deepEqual(t1, Maybe.just({ x: _1, y: _2 }));

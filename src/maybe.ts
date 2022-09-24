@@ -47,29 +47,26 @@
  *
  * ```ts
  * import { Maybe } from "@neotype/prelude/maybe.js";
- *
- * const example: Maybe<number> = Maybe.just(1);
  * ```
  *
  * Or, the type and namespace can be imported and aliased separately:
  *
  * ```ts
  * import { type Maybe, Maybe as M } from "@neotype/prelude/maybe.js";
- *
- * const example: Maybe<number> = M.just(1);
  * ```
  *
  * ## Constructing `Maybe`
  *
  * The `nothing` constant is the singleton instance of Maybe's `Nothing`
- * variant. The `just` function constructs a `Just` variant of `Maybe`.
+ * variant.
  *
- * Furthermore:
+ * These functions construct a Maybe:
  *
+ * - `just` constructs a `Just` variant.
  * - `fromMissing` constructs a Maybe from a value that is potentially `null`
  *   or `undefined`, and converts such values to `Nothing`.
- * - `guard` constructs a Maybe from applying a predicate function to a value.
- *   A value that satisfies the predicate is returned in `Just`, and `Nothing`
+ * - `guard` constructs a Maybe from applying a predicate function to a value. A
+ *   value that satisfies the predicate is returned in `Just`, and `Nothing`
  *   is returned otherwise.
  *
  * ## Querying and narrowing the variant
@@ -99,19 +96,19 @@
  *
  * ## Comparing `Maybe`
  *
- * `Maybe` implements `Eq` and `Ord` when its value implements `Eq` and `Ord`,
- * respectively.
+ * `Maybe` implements `Eq` and `Ord` when its generic type implements `Eq` and
+ * `Ord`, respectively.
  *
  * - Two Maybes are equal if they are both `Nothing`, or they are both `Just`
  *   and their values are equal.
- * - When ordered, `Nothing` is always less than `Just`. If both Maybes are
+ * - When ordered, `Nothing` is always less than `Just`. If both variants are
  *   `Just`, their values will determine the ordering.
  *
  * ## `Maybe` as a semigroup
  *
- * `Maybe` implements `Semigroup` when its value implements `Semigroup`. When
- * combined, `Just` precedes `Nothing`. If both Maybes are `Just`, thier values
- * are combined and returned in `Just`.
+ * `Maybe` implements `Semigroup` when its generic type implements `Semigroup`.
+ * When combined, `Just` precedes `Nothing`. If both variants are `Just`, thier
+ * values are combined and returned in `Just`.
  *
  * ## Transforming values
  *
@@ -134,40 +131,18 @@
  * another Maybe. If any Maybe is `Nothing`, the computation is halted and
  * `Nothing` is returned instead.
  *
- * Consider a program that uses `Maybe` to parse an even integer:
- *
- * ```ts
- * function parseInt(input: string): Maybe<number> {
- *     const n = Number.parseInt(input);
- *     return Number.isNaN(n) ? Maybe.nothing : Maybe.just(n);
- * }
- *
- * function guardEven(n: number): Maybe<number> {
- *     return Maybe.guard(n, (n) => n % 2 === 0);
- * }
- *
- * function parseEvenInt(input: string): Maybe<number> {
- *     return parseInt(input).flatMap(guardEven);
- * }
- *
- * console.log(parseEvenInt("a"));
- * console.log(parseEvenInt("1"));
- * console.log(parseEvenInt("2"));
- * ```
- *
  * ### Generator comprehensions
  *
- * Generator comprehensions provide an alternative syntax for chaining together
- * computations that return `Maybe`. Instead of `flatMap`, a generator is used
+ * Generator comprehensions provide an imperative syntax for chaining together
+ * computations that return `Maybe`. Instead of `flatMap`, a Generator is used
  * to unwrap `Just` variants and apply functions to their values.
  *
- * The `go` function evaluates a generator to return a Maybe. Within the
- * generator, Maybes are yielded using the `yield*` keyword. This binds the
+ * The `go` function evaluates a Generator to return a Maybe. Within the
+ * Generator, Maybes are yielded using the `yield*` keyword. This binds the
  * `Just` values to specified variables. When the computation is complete, a
- * final value can be computed and returned from the generator.
+ * final value can be computed and returned from the Generator.
  *
- * Generator comprehensions support all syntax that would otherwise be valid
- * within a generator, including:
+ * Generator comprehensions may contain:
  *
  * - Variable declarations, assignments, and mutations
  * - Function and class declarations
@@ -177,8 +152,114 @@
  * - `switch` blocks
  * - `try`/`catch` blocks
  *
- * Consider the generator comprehension equivalent of the `parseEvenInt`
- * function above:
+ * ### Async generator comprehensions
+ *
+ * Async generator comprehensions provide `async`/`await` syntax and Promises to
+ * `Maybe` generator comprehensions. Async computations that return `Maybe` can
+ * be chained together using the familiar generator syntax.
+ *
+ * The `goAsync` function evaluates an AsyncGenerator to return a Promise that
+ * fulfills with a Maybe. The semantics of `yield*` and `return` within async
+ * comprehensions are identical to their synchronous counterparts.
+ *
+ * In addition to the syntax permitted in synchronous generator comprehensions,
+ * async comprehensions may contain:
+ *
+ * - The `await` keyword
+ * - `for await` loops (asynchronous iteration)
+ *
+ * ## Recovering from `Nothing`
+ *
+ * The `orElse` method returns a fallback Maybe in the case of `Nothing`.
+ *
+ * ## Collecting into `Maybe`
+ *
+ * `Maybe` provides several functions for working with collections of Maybes.
+ * Sometimes, a collection of Maybes must be turned "inside out" into a Maybe
+ * that contains an equivalent collection of `Just` values.
+ *
+ * These methods will traverse a collection of Maybes to extract the `Just`
+ * values. If any Maybe in the collection is `Nothing`, the traversal is halted
+ * and `Nothing` is returned instead.
+ *
+ * - `collect` turns an Array or a tuple literal of Maybes inside out.
+ * - `gather` turns a Record or an object literal of Maybes inside out.
+ *
+ * Additionally, the `reduce` function reduces a finite Iterable from left to
+ * right in the context of `Maybe`. This is useful for mapping, filtering, and
+ * accumulating values using `Maybe`.
+ *
+ * ## Examples
+ *
+ * These examples assume the following imports:
+ *
+ * ```ts
+ * import { Maybe } from "@neotype/prelude/maybe.js";
+ * ```
+ *
+ * ### Basic matching and folding
+ *
+ * ```ts
+ * const maybeNum: Maybe<number> = Maybe.just(1);
+ *
+ * // Querying and narrowing using methods
+ * if (maybeNum.isNothing()) {
+ *     console.log("Queried Nothing");
+ * } else {
+ *     console.log(`Queried Just: ${maybeNum.val}`);
+ * }
+ *
+ * // Querying and narrowing using the `typ` property
+ * switch (maybeNum.typ) {
+ *     case Maybe.Typ.Nothing:
+ *         console.log("Matched Nothing");
+ *         break;
+ *     case Maybe.Typ.Just:
+ *         console.log(`Matched Just: ${maybeNum.val}`);
+ * }
+ *
+ * // Case analysis using `fold`
+ * maybeNum.fold(
+ *     () => console.log("Folded Nothing"),
+ *     (num) => console.log(`Folded Just: ${num}`),
+ * );
+ * ```
+ *
+ * ### Parsing with `Maybe`
+ *
+ * Consider a program that uses `Maybe` to parse an even integer:
+ *
+ * ```ts
+ * function parseInt(input: string): Maybe<number> {
+ *     const n = Number.parseInt(input);
+ *     return Number.isNaN(n) ? Maybe.nothing : Maybe.just(n);
+ * }
+ *
+ * function guardEven(n: number): Maybe<number> {
+ *     return n % 2 === 0 ? Maybe.just(n) : Maybe.nothing;
+ * }
+ *
+ * function parseEvenInt(input: string): Maybe<number> {
+ *     return parseInt(input).flatMap(guardEven);
+ * }
+ *
+ * ["a", "1", "2", "-4", "+18", "0x12"].forEach((input) => {
+ *     const result = parseEvenInt(input)
+ *         .map(JSON.stringify)
+ *         .justOrElse("invalid input");
+ *     console.log(`input "${input}": ${result}`);
+ * });
+ *
+ * // input "a": "invalid input"
+ * // input "1": "invalid input"
+ * // input "2": 2
+ * // input "-4": -4
+ * // input "+18": 18
+ * // input: "0x12": 18
+ * ```
+ *
+ * We can refactor the `parseEvenInt` function to use a generator comprehension
+ * instead:
  *
  * ```ts
  * function parseEvenInt(input: string): Maybe<number> {
@@ -190,88 +271,120 @@
  * }
  * ```
  *
- * ### Async generator comprehensions
- *
- * Async generator comprehensions provide `async/await` syntax and Promises to
- * `Maybe` generator comprehensions. Async computations that return `Maybe` can
- * be chained together using the familiar generator syntax.
- *
- * The `goAsync` function evaluates an async generator to return a Promise that
- * fulfills with a Maybe. The semantics of `yield*` and `return` within async
- * comprehensions are identical to their synchronous counterparts.
- *
- * In addition to the syntax permitted in synchronous generator comprehensions,
- * async comprehensions also support:
- *
- * - the `await` keyword
- * - `for await` loops (asynchronous iteration)
- *
- * Consider a program that uses requests data from a remote API and uses `Maybe`
- * to guard against unlocatable resources:
+ * Suppose we want to parse an Array of inputs and collect the successful
+ * results, or fail on the first parse error. We may write the following:
  *
  * ```ts
- * interface User {
- *     readonly id: number;
- *     readonly username: string;
+ * function parseEvenInts(inputs: string[]): Maybe<number[]> {
+ *     return Maybe.collect(inputs.map(parseEvenInt));
  * }
  *
- * // Contains 10 Users, with ids from 1 - 10
- * const usersEndpoint = "https://jsonplaceholder.typicode.com/users";
+ * [
+ *     ["2", "-7", "+18", "0x12"],
+ *     ["a", "-4", "+18", "0x12"],
+ *     ["2", "-4", "+18", "0x12"],
+ * ].forEach((inputs) => {
+ *     const result = parseEvenInts(inputs)
+ *         .map(JSON.stringify)
+ *         .justOrElse("invalid input");
+ *     console.log(`inputs ${JSON.stringify(inputs)}: ${result}`);
+ * });
  *
- * async function fetchUsernameByUserId(id: number): Promise<Maybe<string>> {
- *     const response = await fetch(`${usersEndpoint}/${id}`);
- *     if (!response.ok) {
- *         return Maybe.nothing;
- *     }
- *     const user: User = await response.json();
- *     return Maybe.just(user.username);
- * }
+ * // inputs ["2","-7","+18","0x12"]: "invalid input"
+ * // inputs ["a","-4","+18","0x12"]: "invalid input"
+ * // inputs ["2","-4","+18","0x12"]: [2,-4,18,18]
+ * ```
  *
- * function fetchUsernamesByUserIds(
- *     id1: number,
- *     id2: number,
- * ): Promise<Maybe<readonly [string, string]>> {
- *     return Maybe.goAsync(async function* () {
- *         const uname1 = yield* await fetchUsernameByUserId(id1);
- *         const uname2 = yield* await fetchUsernameByUserId(id2);
- *         return [uname1, uname2] as const;
+ * Perhaps we want to collect only distinct even numbers using a Set:
+ *
+ * ```ts
+ * function parseEvenIntsUniq(inputs: string[]): Maybe<Set<number>> {
+ *     return Maybe.go(function* () {
+ *         const results = new Set<number>();
+ *         for (const input of inputs) {
+ *             results.add(yield* parseEvenInt(input));
+ *         }
+ *         return results;
  *     });
  * }
  *
- * console.log(await fetchUsernamesByUserIds(12, 7));
- * console.log(await fetchUsernamesByUserIds(5, 14));
- * console.log(await fetchUsernamesByUserIds(6, 3));
+ * [
+ *     ["2", "-7", "+18", "0x12"],
+ *     ["a", "-4", "+18", "0x12"],
+ *     ["2", "-4", "+18", "0x12"],
+ * ].forEach((inputs) => {
+ *     const result = parseEvenIntsUniq(inputs)
+ *         .map((evensSet) => JSON.stringify(Array.from(eventSet)))
+ *         .justOrElse("invalid input")
+ *     console.log(`inputs ${JSON.stringify(inputs)}: ${result}`);
+ * });
+ *
+ * // inputs ["2","-7","+18","0x12"]: "invalid input"
+ * // inputs ["a","-4","+18","0x12"]: "invalid input"
+ * // inputs ["2","-4","+18","0x12"]: [2,-4,18]
  * ```
  *
- * ## Collecting into `Maybe`
- *
- * `Maybe` provides several functions for working with collections of Maybes.
- * Sometimes, a collection of Maybes must be turned "inside out" into a Maybe
- * that contains a "mapped" collection of `Just` values.
- *
- * These methods will traverse a collection of Maybes to extract the `Just`
- * values. If any Maybe in the collection is `Nothing`, the traversal is halted
- * and `Nothing` is returned instead.
- *
- * - `collect` turns an Array or a tuple literal of Maybes inside out.
- * - `tupled` turns a series of two or more individual Maybes inside out.
- * - `gather` turns a Record or an object literal of Maybes inside out.
- *
- * Additionally, the `reduce` function reduces a finite Iterable from left to
- * right in the context of `Maybe`. This is useful for mapping, filtering, and
- * accumulating values using `Maybe`:
+ * Or, perhaps we want to associate the original input strings with our
+ * successful parses:
  *
  * ```ts
- * function sumOnlyEvens(nums: number[]): Maybe<number> {
+ * function parseEvenIntsKeyed(
+ *     inputs: string[],
+ * ): Maybe<Record<string, number>> {
+ *     return Maybe.gather(
+ *         Object.fromEntries(
+ *             inputs.map((input) => [input, parseEvenInt(input)] as const),
+ *         ),
+ *     );
+ * }
+ *
+ * [
+ *     ["2", "-7", "+18", "0x12"],
+ *     ["a", "-4", "+18", "0x12"],
+ *     ["2", "-4", "+18", "0x12"],
+ * ].forEach((inputs) => {
+ *     const result = parseEvenIntsKeyed(inputs)
+ *         .map(JSON.stringify)
+ *         .justOrElse("invalid input");
+ *     console.log(`inputs ${JSON.stringify(inputs)}: ${result}`);
+ * });
+ *
+ * // inputs ["2","-7","+18","0x12"]: "invalid input"
+ * // inputs ["a","-4","+18","0x12"]: "invalid input"
+ * // inputs ["2","-4","+18","0x12"]: {"2":2,"-4":-4,"+18":18,"0x12":18}
+ * ```
+ *
+ * Or, perhaps we want to sum our successful parses and return a total:
+ *
+ * ```ts
+ * function parseEvenIntsAndSum(inputs: string[]): Maybe<number> {
  *     return Maybe.reduce(
- *         nums,
- *         (total, num) => Maybe.guard(total + num, (n) => n % 2 === 0),
+ *         inputs,
+ *         (total, input) => parseEvenInt(input).map((even) => total + even),
  *         0,
  *     );
  * }
  *
- * console.log(sumOnlyEvens([2, 3, 6]));
- * console.log(sumOnlyEvens([2, 4, 6]));
+ * [
+ *     ["2", "-7", "+18", "0x12"],
+ *     ["a", "-4", "+18", "0x12"],
+ *     ["2", "-4", "+18", "0x12"],
+ * ].forEach((inputs) => {
+ *     const result = parseEvenIntsAndSum(inputs)
+ *         .map(JSON.stringify)
+ *         .justOrElse("invalid input")
+ *     console.log(`inputs ${JSON.stringify(inputs)}: ${result}`);
+ * });
+ *
+ * // inputs ["2","-7","+18","0x12"]: "invalid input"
+ * // inputs ["a","-4","+18","0x12"]: "invalid input"
+ * // inputs ["2","-4","+18","0x12"]: 34
+ * ```
+ *
+ * ### Web requests with `Maybe`
+ *
+ * ```ts
+ * // Todo
  * ```
  *
  * @module
@@ -331,9 +444,7 @@ export namespace Maybe {
     /**
      * Construct a Maybe using a generator comprehension.
      */
-    export function go<A>(
-        f: () => Generator<readonly [Maybe<any>], A, any>,
-    ): Maybe<A> {
+    export function go<A>(f: () => Generator<[Maybe<any>], A, any>): Maybe<A> {
         const gen = f();
         let nxt = gen.next();
         while (!nxt.done) {
@@ -370,24 +481,14 @@ export namespace Maybe {
      */
     export function collect<T extends readonly Maybe<any>[]>(
         maybes: T,
-    ): Maybe<Readonly<JustsT<T>>> {
+    ): Maybe<JustsT<T>> {
         return go(function* () {
             const results = new Array(maybes.length);
             for (const [idx, maybe] of maybes.entries()) {
                 results[idx] = yield* maybe;
             }
-            return results as unknown as JustsT<T>;
+            return results as JustsT<T>;
         });
-    }
-
-    /**
-     * Evaluate a series of Maybes from left to right and collect the `Just`
-     * values in a tuple literal.
-     */
-    export function tupled<T extends [Maybe<any>, Maybe<any>, ...Maybe<any>[]]>(
-        ...maybes: T
-    ): Maybe<Readonly<JustsT<T>>> {
-        return collect(maybes);
     }
 
     /**
@@ -396,7 +497,7 @@ export namespace Maybe {
      */
     export function gather<T extends Record<any, Maybe<any>>>(
         maybes: T,
-    ): Maybe<{ readonly [K in keyof T]: JustT<T[K]> }> {
+    ): Maybe<{ [K in keyof T]: JustT<T[K]> }> {
         return go(function* () {
             const results: Record<any, unknown> = {};
             for (const [key, maybe] of Object.entries(maybes)) {
@@ -411,7 +512,7 @@ export namespace Maybe {
      * comprehension.
      */
     export async function goAsync<A>(
-        f: () => AsyncGenerator<readonly [Maybe<any>], A, any>,
+        f: () => AsyncGenerator<[Maybe<any>], A, any>,
     ): Promise<Maybe<A>> {
         const gen = f();
         let nxt = await gen.next();
@@ -476,9 +577,9 @@ export namespace Maybe {
         fold<A, B, C>(
             this: Maybe<A>,
             foldN: () => B,
-            foldJ: (x: A, maybe: Just<A>) => C,
+            foldJ: (x: A) => C,
         ): B | C {
-            return this.isNothing() ? foldN() : foldJ(this.val, this);
+            return this.isNothing() ? foldN() : foldJ(this.val);
         }
 
         /**
@@ -582,11 +683,7 @@ export namespace Maybe {
          *
          * @hidden
          */
-        *[Symbol.iterator](): Iterator<
-            readonly [Maybe<never>],
-            never,
-            unknown
-        > {
+        *[Symbol.iterator](): Iterator<[Maybe<never>], never, unknown> {
             return (yield [this]) as never;
         }
     }
@@ -614,7 +711,7 @@ export namespace Maybe {
          *
          * @hidden
          */
-        *[Symbol.iterator](): Iterator<readonly [Maybe<A>], A, unknown> {
+        *[Symbol.iterator](): Iterator<[Maybe<A>], A, unknown> {
             return (yield [this]) as A;
         }
     }
