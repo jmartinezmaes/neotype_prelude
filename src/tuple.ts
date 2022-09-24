@@ -20,18 +20,15 @@
  * `Tuple` is a wrapper class that provides evidence of an equivalance relation,
  * a total order, and a semigroup for between 2 and 10 elements.
  *
- * Using a Tuple as an `Eq`, an `Ord`, and a `Semigroup` requires the respective
- * implementations from all elements of the Tuple. This documentation will use
- * the following elements in all examples:
+ * Using a Tuple as an instance of `Eq`, `Ord`, `Semigroup` requires the
+ * respective implementations from all elements of the Tuple.
  *
  * ## Importing from this module
  *
- * This module exposes `Tuple` as a class, and can be imported as named:
+ * This module exports `Tuple` as a class, and can be imported as named:
  *
  * ```ts
  * import { Tuple } from "@neotype/prelude/tuple.js";
- *
- * const example = new Tuple(["a", 1] as const);
  * ```
  *
  * ## Constructing `Tuple`
@@ -41,8 +38,9 @@
  *
  * ## Comparing `Tuple`
  *
- * `Tuple` implements `Eq` and `Ord` when its elements each implement `Eq` and
- * `Ord`, respectively. Tuples are compared lexicographically.
+ * `Tuple` implements `Eq` and `Ord` when its generic element types each
+ * implement `Eq` and `Ord`, respectively. Tuples are compared
+ * lexicographically.
  *
  * - Two Tuples are equal when they are the same length and their respective
  *   elements are equal.
@@ -51,9 +49,9 @@
  *
  * ## `Tuple` as a semigroup
  *
- * `Tuple` implements `Semigroup` when its elements each implement `Semigroup`.
- * Two Tuples combine their elements pairwise to return a new Tuple of the same
- * length.
+ * `Tuple` implements `Semigroup` when its generic element types each implement
+ * `Semigroup`. Two Tuples combine their elements pairwise to return a new Tuple
+ * of the same length.
  *
  * @module
  */
@@ -72,119 +70,119 @@ export class Tuple<out T extends readonly [any, any, ...any[]]> {
     }
 
     [Eq.eq]<A0 extends Eq<A0>, A1 extends Eq<A1>>(
-        this: Tuple<readonly [A0, A1]>,
-        that: Tuple<readonly [A0, A1]>,
+        this: Tuple<[A0, A1]>,
+        that: Tuple<[A0, A1]>,
     ): boolean;
 
     [Eq.eq]<A0 extends Eq<A0>, A1 extends Eq<A1>, A2 extends Eq<A2>>(
-        this: Tuple<readonly [A0, A1, A2]>,
-        that: Tuple<readonly [A0, A1, A2]>,
+        this: Tuple<[A0, A1, A2]>,
+        that: Tuple<[A0, A1, A2]>,
     ): boolean;
 
     // prettier-ignore
     [Eq.eq]<A0 extends Eq<A0>, A1 extends Eq<A1>, A2 extends Eq<A2>, A3 extends Eq<A3>>(
-        this: Tuple<readonly [A0, A1, A2, A3]>,
-        that: Tuple<readonly [A0, A1, A2, A3]>,
+        this: Tuple<[A0, A1, A2, A3]>,
+        that: Tuple<[A0, A1, A2, A3]>,
     ): boolean;
 
     // prettier-ignore
     [Eq.eq]<A0 extends Eq<A0>, A1 extends Eq<A1>, A2 extends Eq<A2>, A3 extends Eq<A3>, A4 extends Eq<A4>>(
-        this: Tuple<readonly [A0, A1, A2, A3, A4]>,
-        that: Tuple<readonly [A0, A1, A2, A3, A4]>,
+        this: Tuple<[A0, A1, A2, A3, A4]>,
+        that: Tuple<[A0, A1, A2, A3, A4]>,
     ): boolean;
 
     // prettier-ignore
     [Eq.eq]<A0 extends Eq<A0>, A1 extends Eq<A1>, A2 extends Eq<A2>, A3 extends Eq<A3>, A4 extends Eq<A4>, A5 extends Eq<A5>>(
-        this: Tuple<readonly [A0, A1, A2, A3, A4, A5]>,
-        that: Tuple<readonly [A0, A1, A2, A3, A4, A5]>,
+        this: Tuple<[A0, A1, A2, A3, A4, A5]>,
+        that: Tuple<[A0, A1, A2, A3, A4, A5]>,
     ): boolean;
 
     // prettier-ignore
     [Eq.eq]<A0 extends Eq<A0>, A1 extends Eq<A1>, A2 extends Eq<A2>, A3 extends Eq<A3>, A4 extends Eq<A4>, A5 extends Eq<A5>, A6 extends Eq<A6>>(
-        this: Tuple<readonly [A0, A1, A2, A3, A4, A5, A6]>,
-        that: Tuple<readonly [A0, A1, A2, A3, A4, A5, A6]>,
+        this: Tuple<[A0, A1, A2, A3, A4, A5, A6]>,
+        that: Tuple<[A0, A1, A2, A3, A4, A5, A6]>,
     ): boolean;
 
     // prettier-ignore
     [Eq.eq]<A0 extends Eq<A0>, A1 extends Eq<A1>, A2 extends Eq<A2>, A3 extends Eq<A3>, A4 extends Eq<A4>, A5 extends Eq<A5>, A6 extends Eq<A6>, A7 extends Eq<A7>>(
-        this: Tuple<readonly [A0, A1, A2, A3, A4, A5, A6, A7]>,
-        that: Tuple<readonly [A0, A1, A2, A3, A4, A5, A6, A7]>,
+        this: Tuple<[A0, A1, A2, A3, A4, A5, A6, A7]>,
+        that: Tuple<[A0, A1, A2, A3, A4, A5, A6, A7]>,
     ): boolean;
 
     // prettier-ignore
     [Eq.eq]<A0 extends Eq<A0>, A1 extends Eq<A1>, A2 extends Eq<A2>, A3 extends Eq<A3>, A4 extends Eq<A4>, A5 extends Eq<A5>, A6 extends Eq<A6>, A7 extends Eq<A7>, A8 extends Eq<A8>>(
-        this: Tuple<readonly [A0, A1, A2, A3, A4, A5, A6, A7, A8]>,
-        that: Tuple<readonly [A0, A1, A2, A3, A4, A5, A6, A7, A8]>,
+        this: Tuple<[A0, A1, A2, A3, A4, A5, A6, A7, A8]>,
+        that: Tuple<[A0, A1, A2, A3, A4, A5, A6, A7, A8]>,
     ): boolean;
 
     // prettier-ignore
     [Eq.eq]<A0 extends Eq<A0>, A1 extends Eq<A1>, A2 extends Eq<A2>, A3 extends Eq<A3>, A4 extends Eq<A4>, A5 extends Eq<A5>, A6 extends Eq<A6>, A7 extends Eq<A7>, A8 extends Eq<A8>, A9 extends Eq<A9>>(
-        this: Tuple<readonly [A0, A1, A2, A3, A4, A5, A6, A7, A8, A9]>,
-        that: Tuple<readonly [A0, A1, A2, A3, A4, A5, A6, A7, A8, A9]>,
+        this: Tuple<[A0, A1, A2, A3, A4, A5, A6, A7, A8, A9]>,
+        that: Tuple<[A0, A1, A2, A3, A4, A5, A6, A7, A8, A9]>,
     ): boolean;
 
     [Eq.eq]<A extends Eq<A>>(
-        this: Tuple<readonly [A, A, ...A[]]>,
-        that: Tuple<readonly [A, A, ...A[]]>,
+        this: Tuple<[A, A, ...A[]]>,
+        that: Tuple<[A, A, ...A[]]>,
     ): boolean {
         return ieq(this.val, that.val);
     }
 
     [Ord.cmp]<A0 extends Ord<A0>, A1 extends Ord<A1>>(
-        this: Tuple<readonly [A0, A1]>,
-        that: Tuple<readonly [A0, A1]>,
+        this: Tuple<[A0, A1]>,
+        that: Tuple<[A0, A1]>,
     ): Ordering;
 
     [Ord.cmp]<A0 extends Ord<A0>, A1 extends Ord<A1>, A2 extends Ord<A2>>(
-        this: Tuple<readonly [A0, A1, A2]>,
-        that: Tuple<readonly [A0, A1, A2]>,
+        this: Tuple<[A0, A1, A2]>,
+        that: Tuple<[A0, A1, A2]>,
     ): Ordering;
 
     // prettier-ignore
     [Ord.cmp]<A0 extends Ord<A0>, A1 extends Ord<A1>, A2 extends Ord<A2>, A3 extends Ord<A3>>(
-        this: Tuple<readonly [A0, A1, A2, A3]>,
-        that: Tuple<readonly [A0, A1, A2, A3]>,
+        this: Tuple<[A0, A1, A2, A3]>,
+        that: Tuple<[A0, A1, A2, A3]>,
     ): Ordering;
 
     // prettier-ignore
     [Ord.cmp]<A0 extends Ord<A0>, A1 extends Ord<A1>, A2 extends Ord<A2>, A3 extends Ord<A3>, A4 extends Ord<A4>>(
-        this: Tuple<readonly [A0, A1, A2, A3, A4]>,
-        that: Tuple<readonly [A0, A1, A2, A3, A4]>,
+        this: Tuple<[A0, A1, A2, A3, A4]>,
+        that: Tuple<[A0, A1, A2, A3, A4]>,
     ): Ordering;
 
     // prettier-ignore
     [Ord.cmp]<A0 extends Ord<A0>, A1 extends Ord<A1>, A2 extends Ord<A2>, A3 extends Ord<A3>, A4 extends Ord<A4>, A5 extends Ord<A5>>(
-        this: Tuple<readonly [A0, A1, A2, A3, A4, A5]>,
-        that: Tuple<readonly [A0, A1, A2, A3, A4, A5]>,
+        this: Tuple<[A0, A1, A2, A3, A4, A5]>,
+        that: Tuple<[A0, A1, A2, A3, A4, A5]>,
     ): Ordering;
 
     // prettier-ignore
     [Ord.cmp]<A0 extends Ord<A0>, A1 extends Ord<A1>, A2 extends Ord<A2>, A3 extends Ord<A3>, A4 extends Ord<A4>, A5 extends Ord<A5>, A6 extends Ord<A6>>(
-        this: Tuple<readonly [A0, A1, A2, A3, A4, A5, A6]>,
-        that: Tuple<readonly [A0, A1, A2, A3, A4, A5, A6]>,
+        this: Tuple<[A0, A1, A2, A3, A4, A5, A6]>,
+        that: Tuple<[A0, A1, A2, A3, A4, A5, A6]>,
     ): Ordering;
 
     // prettier-ignore
     [Ord.cmp]<A0 extends Ord<A0>, A1 extends Ord<A1>, A2 extends Ord<A2>, A3 extends Ord<A3>, A4 extends Ord<A4>, A5 extends Ord<A5>, A6 extends Ord<A6>, A7 extends Ord<A7>>(
-        this: Tuple<readonly [A0, A1, A2, A3, A4, A5, A6, A7]>,
-        that: Tuple<readonly [A0, A1, A2, A3, A4, A5, A6, A7]>,
+        this: Tuple<[A0, A1, A2, A3, A4, A5, A6, A7]>,
+        that: Tuple<[A0, A1, A2, A3, A4, A5, A6, A7]>,
     ): Ordering;
 
     // prettier-ignore
     [Ord.cmp]<A0 extends Ord<A0>, A1 extends Ord<A1>, A2 extends Ord<A2>, A3 extends Ord<A3>, A4 extends Ord<A4>, A5 extends Ord<A5>, A6 extends Ord<A6>, A7 extends Ord<A7>, A8 extends Ord<A8>>(
-        this: Tuple<readonly [A0, A1, A2, A3, A4, A5, A6, A7, A8]>,
-        that: Tuple<readonly [A0, A1, A2, A3, A4, A5, A6, A7, A8]>,
+        this: Tuple<[A0, A1, A2, A3, A4, A5, A6, A7, A8]>,
+        that: Tuple<[A0, A1, A2, A3, A4, A5, A6, A7, A8]>,
     ): Ordering;
 
     // prettier-ignore
     [Ord.cmp]<A0 extends Ord<A0>, A1 extends Ord<A1>, A2 extends Ord<A2>, A3 extends Ord<A3>, A4 extends Ord<A4>, A5 extends Ord<A5>, A6 extends Ord<A6>, A7 extends Ord<A7>, A8 extends Ord<A8>, A9 extends Ord<A9>>(
-        this: Tuple<readonly [A0, A1, A2, A3, A4, A5, A6, A7, A8, A9]>,
-        that: Tuple<readonly [A0, A1, A2, A3, A4, A5, A6, A7, A8, A9]>,
+        this: Tuple<[A0, A1, A2, A3, A4, A5, A6, A7, A8, A9]>,
+        that: Tuple<[A0, A1, A2, A3, A4, A5, A6, A7, A8, A9]>,
     ): Ordering;
 
     [Ord.cmp]<A extends Ord<A>>(
-        this: Tuple<readonly [A, A, ...A[]]>,
-        that: Tuple<readonly [A, A, ...A[]]>,
+        this: Tuple<[A, A, ...A[]]>,
+        that: Tuple<[A, A, ...A[]]>,
     ): Ordering {
         return icmp(this.val, that.val);
     }
@@ -192,60 +190,60 @@ export class Tuple<out T extends readonly [any, any, ...any[]]> {
     [Semigroup.cmb]<A0 extends Semigroup<A0>, A1 extends Semigroup<A1>>(
         this: Tuple<readonly [A0, A1]>,
         that: Tuple<readonly [A0, A1]>,
-    ): Tuple<readonly [A0, A1]>;
+    ): Tuple<[A0, A1]>;
 
     // prettier-ignore
     [Semigroup.cmb]<A0 extends Semigroup<A0>, A1 extends Semigroup<A1>, A2 extends Semigroup<A2>>(
         this: Tuple<readonly [A0, A1, A2]>,
         that: Tuple<readonly [A0, A1, A2]>,
-    ): Tuple<readonly [A0, A1, A2]>;
+    ): Tuple<[A0, A1, A2]>;
 
     // prettier-ignore
     [Semigroup.cmb]<A0 extends Semigroup<A0>, A1 extends Semigroup<A1>, A2 extends Semigroup<A2>, A3 extends Semigroup<A3>>(
         this: Tuple<readonly [A0, A1, A2, A3]>,
         that: Tuple<readonly [A0, A1, A2, A3]>,
-    ): Tuple<readonly [A0, A1, A2, A3]>;
+    ): Tuple<[A0, A1, A2, A3]>;
 
     // prettier-ignore
     [Semigroup.cmb]<A0 extends Semigroup<A0>, A1 extends Semigroup<A1>, A2 extends Semigroup<A2>, A3 extends Semigroup<A3>, A4 extends Semigroup<A4>>(
         this: Tuple<readonly [A0, A1, A2, A3, A4]>,
         that: Tuple<readonly [A0, A1, A2, A3, A4]>,
-    ): Tuple<readonly [A0, A1, A2, A3, A4]>;
+    ): Tuple<[A0, A1, A2, A3, A4]>;
 
     // prettier-ignore
     [Semigroup.cmb]<A0 extends Semigroup<A0>, A1 extends Semigroup<A1>, A2 extends Semigroup<A2>, A3 extends Semigroup<A3>, A4 extends Semigroup<A4>, A5 extends Semigroup<A5>>(
         this: Tuple<readonly [A0, A1, A2, A3, A4, A5]>,
         that: Tuple<readonly [A0, A1, A2, A3, A4, A5]>,
-    ): Tuple<readonly [A0, A1, A2, A3, A4, A5]>;
+    ): Tuple<[A0, A1, A2, A3, A4, A5]>;
 
     // prettier-ignore
     [Semigroup.cmb]<A0 extends Semigroup<A0>, A1 extends Semigroup<A1>, A2 extends Semigroup<A2>, A3 extends Semigroup<A3>, A4 extends Semigroup<A4>, A5 extends Semigroup<A5>, A6 extends Semigroup<A6>>(
         this: Tuple<readonly [A0, A1, A2, A3, A4, A5, A6]>,
         that: Tuple<readonly [A0, A1, A2, A3, A4, A5, A6]>,
-    ): Tuple<readonly [A0, A1, A2, A3, A4, A5, A6]>;
+    ): Tuple<[A0, A1, A2, A3, A4, A5, A6]>;
 
     // prettier-ignore
     [Semigroup.cmb]<A0 extends Semigroup<A0>, A1 extends Semigroup<A1>, A2 extends Semigroup<A2>, A3 extends Semigroup<A3>, A4 extends Semigroup<A4>, A5 extends Semigroup<A5>, A6 extends Semigroup<A6>, A7 extends Semigroup<A7>>(
         this: Tuple<readonly [A0, A1, A2, A3, A4, A5, A6, A7]>,
         that: Tuple<readonly [A0, A1, A2, A3, A4, A5, A6, A7]>,
-    ): Tuple<readonly [A0, A1, A2, A3, A4, A5, A6, A7]>;
+    ): Tuple<[A0, A1, A2, A3, A4, A5, A6, A7]>;
 
     // prettier-ignore
     [Semigroup.cmb]<A0 extends Semigroup<A0>, A1 extends Semigroup<A1>, A2 extends Semigroup<A2>, A3 extends Semigroup<A3>, A4 extends Semigroup<A4>, A5 extends Semigroup<A5>, A6 extends Semigroup<A6>, A7 extends Semigroup<A7>, A8 extends Semigroup<A8>>(
         this: Tuple<readonly [A0, A1, A2, A3, A4, A5, A6, A7, A8]>,
         that: Tuple<readonly [A0, A1, A2, A3, A4, A5, A6, A7, A8]>,
-    ): Tuple<readonly [A0, A1, A2, A3, A4, A5, A6, A7, A8]>;
+    ): Tuple<[A0, A1, A2, A3, A4, A5, A6, A7, A8]>;
 
     // prettier-ignore
     [Semigroup.cmb]<A0 extends Semigroup<A0>, A1 extends Semigroup<A1>, A2 extends Semigroup<A2>, A3 extends Semigroup<A3>, A4 extends Semigroup<A4>, A5 extends Semigroup<A5>, A6 extends Semigroup<A6>, A7 extends Semigroup<A7>, A8 extends Semigroup<A8>, A9 extends Semigroup<A9>>(
         this: Tuple<readonly [A0, A1, A2, A3, A4, A5, A6, A7, A8, A9]>,
         that: Tuple<readonly [A0, A1, A2, A3, A4, A5, A6, A7, A8, A9]>,
-    ): Tuple<readonly [A0, A1, A2, A3, A4, A5, A6, A7, A8, A9]>;
+    ): Tuple<[A0, A1, A2, A3, A4, A5, A6, A7, A8, A9]>;
 
     [Semigroup.cmb]<A extends Semigroup<A>>(
         this: Tuple<readonly [A, A, ...A[]]>,
         that: Tuple<readonly [A, A, ...A[]]>,
-    ): Tuple<readonly [A, A, ...A[]]> {
+    ): Tuple<[A, A, ...A[]]> {
         return new Tuple(
             this.val.map((x, ix) => cmb(x, that.val[ix])) as [A, A, ...A[]],
         );

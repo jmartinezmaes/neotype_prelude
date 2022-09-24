@@ -44,10 +44,7 @@ describe("Tuple", () => {
                 arbStr(),
                 arbStr(),
                 (a, x, b, y) => {
-                    const t0 = cmb(
-                        new Tuple([a, x] as const),
-                        new Tuple([b, y]),
-                    );
+                    const t0 = cmb(new Tuple([a, x]), new Tuple([b, y]));
                     assert.deepEqual(t0, new Tuple([cmb(a, b), cmb(x, y)]));
                 },
             ),
