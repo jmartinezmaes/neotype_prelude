@@ -41,11 +41,6 @@ describe("Validated", () => {
         assert.deepEqual(t3, Validated.accept([_2, _4] as const));
     });
 
-    specify("Validated.tupled", () => {
-        const t4 = Validated.tupled(mk("A", sa, _2), mk("A", sc, _4));
-        assert.deepEqual(t4, Validated.accept([_2, _4] as const));
-    });
-
     specify("#[Eq.eq]", () => {
         fc.assert(
             fc.property(arbNum(), arbNum(), (x, y) => {

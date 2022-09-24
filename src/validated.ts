@@ -31,25 +31,9 @@
  * will require a `Semigroup` implementation for the accumulating `Disputed`
  * value. This documentation will use the following semigroup in all examples:
  *
- * ```ts
- * import { Semigroup } from "@neotype/prelude/cmb.js";
- *
- * class List<A> {
- *     readonly val: A[]
- *
- *     constructor(...vals: A[]) {
- *         this.val = vals;
- *     }
- *
- *     [Semigroup.cmb](that: List<A>): List<A> {
- *         return new List(...this.val, ...that.val);
- *     }
- * }
- * ```
- *
  * ## Importing from this module
  *
- * This module exposes `Validated` as both a type and a namespace. The
+ * This module exports `Validated` as both a type and a namespace. The
  * `Validated` type is an alias for a discriminated union, and the `Validated`
  * namespace provides:
  *
@@ -62,8 +46,6 @@
  *
  * ```ts
  * import { Validated } from "@neotype/prelude/validated.js";
- *
- * const example: Validated<List<string>, number> = Validated.accept(1);
  * ```
  *
  * Or, the type ane namespace can be imported and aliased separately:
@@ -71,10 +53,8 @@
  * ```ts
  * import {
  *     type Validated,
- *     Validated as V,
+ *     Validated as V
  * } from "@neotype/prelude/validated.js";
- *
- * const example: Validated<List<string>, number> = V.accept(1);
  * ```
  *
  * ## Constructing `Validated`
@@ -154,36 +134,59 @@
  *
  * `Validated` provides several functions for working with collections of
  * Validateds. Sometimes, a collection of Validateds must be turned "inside out"
- * into a Validated that contains a "mapped" collection of `Accepted` values.
+ * into a Validated that contains an equivalent collection of `Accepted` values.
  *
  * These methods will traverse a collection of Validateds to extract the
  * `Accepted` values. If any Validated in the collection is `Disputed`, the
  * traversal is halted and `Disputed` values begin accumulating instead.
  *
  * - `collect` turns an Array or a tuple literal of Validateds inside out.
- * - `tupled` turns a series of two or more individual Validateds inside out.
  *
  * ## Examples
+ *
+ * These examples assume the following imports and utilities:
+ *
+ * ```ts
+ * import { Semigroup } from "@neotype/prelude/cmb.js";
+ * import { Validated } from "@neotype/prelude/validated.js";
+ *
+ * // A semigroup that wraps Arrays
+ * class List<A> {
+ *     readonly val: A[]
+ *
+ *     constructor(...vals: A[]) {
+ *         this.val = vals;
+ *     }
+ *
+ *     [Semigroup.cmb](that: List<A>): List<A> {
+ *         return new List(...this.val, ...that.val);
+ *     }
+ *
+ *     toJSON(): A[] {
+ *         return this.val;
+ *     }
+ * }
+ * ```
  *
  * ### Validating a single property
  *
  * ```ts
  * function requireNonEmpty(input: string): Validated<List<string>, string> {
- *     return input.length
+ *     return input.length > 0
  *         ? Validated.accept(input)
- *         : Validated.dispute(new List("Email must not be empty"));
+ *         : Validated.dispute(new List("empty input"));
  * }
  *
  * function requireAtSign(input: string): Validated<List<string>, string> {
  *     return input.includes("@")
  *         ? Validated.accept(input)
- *         : Validated.dispute(new List(`Email must include "@"`));
+ *         : Validated.dispute(new List("missing @"));
  * }
  *
  * function requirePeriod(input: string): Validated<List<string>, string> {
  *     return input.includes(".")
  *         ? Validated.accept(input)
- *         : Validated.dispute(new List("Email must include period"));
+ *         : Validated.dispute(new List("missing period"));
  * }
  *
  * function validateEmail(input: string): Validated<List<string>, string> {
@@ -192,15 +195,18 @@
  *         .zipFst(requirePeriod(input));
  * }
  *
- * [
- *     "",
- *     "neo",
- *     "neogmail.com",
- *     "neo@gmailcom",
- *     "neo@gmail.com",
- * ].forEach((input) =>
- *     console.log(`email "${input}": `, validateEmail(input)),
+ * ["", "neo", "neogmail.com", "neo@gmailcom", "neo@gmail.com"].forEach(
+ *     (input) => {
+ *         const result = JSON.stringify(validateEmail(input).val);
+ *         console.log(`input "${input}": ${result}`);
+ *     }
  * );
+ *
+ * // input "": ["empty input","missing @","missing period"]
+ * // input "neo": ["missing @","missing period"]
+ * // input "neogmail.com": ["missing @"]
+ * // input "neo@gmailcom": ["missing period"]
+ * // input "neo@gmail.com": "neo@gmail.com"
  * ```
  *
  * ### Validating multiple properties
@@ -214,13 +220,13 @@
  * function validateName(input: string): Validated<List<string>, string> {
  *     return input.length
  *         ? Validated.accept(input)
- *         : Validated.dispute(new List("Name must not be empty"));
+ *         : Validated.dispute(new List("empty name"));
  * }
  *
  * function validateAge(input: number): Validated<List<string>, number> {
  *     return input >= 0 && input <= 100
  *         ? Validated.accept(input)
- *         : Validated.dispute(new List("Age must be between 0 and 100"));
+ *         : Validated.dispute(new List("age not in range"));
  * }
  *
  * function validatePerson(
@@ -232,16 +238,20 @@
  * }
  *
  * [
- *     ["", 182],
- *     ["", 30],
- *     ["Neo", 150],
- *     ["Neo", 45],
- * ].forEach(([input1, input2]) =>
- *     console.log(
- *         `inputs [${input1}, ${input2}]: `,
- *         validatePerson(input1, input2),
- *     ),
- * );
+ *     ["", 182] as const,
+ *     ["", 30] as const,
+ *     ["Neo", 150] as const,
+ *     ["Neo", 45] as const,
+ * ].forEach((inputs) => {
+ *     const [rawName, rawAge] = inputs;
+ *     const result = JSON.stringify(validatePerson(rawName, rawAge).val);
+ *     console.log(`inputs ${JSON.stringify(inputs)}: ${result}`);
+ * });
+ *
+ * // inputs ["",182]: ["empty name","age not in range"]
+ * // inputs ["",30]: ["empty name"]
+ * // inputs ["Neo",150]: ["age not in range"]
+ * // inputs ["Neo",45]: {"name":"Neo","age":45}
  * ```
  *
  * ### Validating arbitrary properties
@@ -254,18 +264,28 @@
  * }
  *
  * function requireLowercaseElems(
- *     input: string[]
+ *     inputs: string[]
  * ): Validated<List<string>, string[]> {
- *     return Validated.collect(elems.map(requireLowercase));
+ *     return Validated.collect(inputs.map(requireLowercase));
  * }
  *
  * [
  *     ["New York", "Oregon"],
  *     ["foo", "Bar", "baz"],
  *     ["banana", "apple", "orange"],
- * ].forEach((elems) =>
- *     console.log(`elems: [${elems}]`, requireLowercaseElems(elems)),
- * );
+ * ].forEach((inputs) => {
+ *     const result = JSON.stringify(
+ *         requireLowercaseElems(inputs).fold(
+ *             (invalidInputs) => ({ invalid: invalidInputs }),
+ *             (validInputs) => ({ valid: validInputs }),
+ *         ),
+ *     );
+ *     console.log(`inputs ${JSON.stringify(inputs)}: ${result}`);
+ * });
+ *
+ * // inputs ["New York","Oregon"]: {"invalid":["New York","Oregon"]}
+ * // inputs ["foo","Bar","baz"]: {"invalid":["Bar"]}
+ * // inputs ["banana","apple","orange"]: {"valid":["banana","apple","orange"]}
  * ```
  *
  * @module
@@ -322,11 +342,11 @@ export namespace Validated {
      */
     export function collect<E extends Semigroup<E>, A0, A1>(
         vtds: readonly [Validated<E, A0>, Validated<E, A1>],
-    ): Validated<E, readonly [A0, A1]>;
+    ): Validated<E, [A0, A1]>;
 
     export function collect<E extends Semigroup<E>, A0, A1, A2>(
         vtds: readonly [Validated<E, A0>, Validated<E, A1>, Validated<E, A2>],
-    ): Validated<E, readonly [A0, A1, A2]>;
+    ): Validated<E, [A0, A1, A2]>;
 
     export function collect<E extends Semigroup<E>, A0, A1, A2, A3>(
         vtds: readonly [
@@ -335,7 +355,7 @@ export namespace Validated {
             Validated<E, A2>,
             Validated<E, A3>,
         ],
-    ): Validated<E, readonly [A0, A1, A2, A3]>;
+    ): Validated<E, [A0, A1, A2, A3]>;
 
     export function collect<E extends Semigroup<E>, A0, A1, A2, A3, A4>(
         vtds: readonly [
@@ -345,7 +365,7 @@ export namespace Validated {
             Validated<E, A3>,
             Validated<E, A4>,
         ],
-    ): Validated<E, readonly [A0, A1, A2, A3, A4]>;
+    ): Validated<E, [A0, A1, A2, A3, A4]>;
 
     // prettier-ignore
     export function collect<E extends Semigroup<E>, A0, A1, A2, A3, A4, A5>(
@@ -357,7 +377,7 @@ export namespace Validated {
             Validated<E, A4>,
             Validated<E, A5>,
         ],
-    ): Validated<E, readonly [A0, A1, A2, A3, A4, A5]>;
+    ): Validated<E, [A0, A1, A2, A3, A4, A5]>;
 
     // prettier-ignore
     export function collect<E extends Semigroup<E>, A0, A1, A2, A3, A4, A5, A6>(
@@ -370,7 +390,7 @@ export namespace Validated {
             Validated<E, A5>,
             Validated<E, A6>,
         ],
-    ): Validated<E, readonly [A0, A1, A2, A3, A4, A5, A6]>;
+    ): Validated<E, [A0, A1, A2, A3, A4, A5, A6]>;
 
     // prettier-ignore
     export function collect<E extends Semigroup<E>, A0, A1, A2, A3, A4, A5, A6, A7>(
@@ -384,7 +404,7 @@ export namespace Validated {
             Validated<E, A6>,
             Validated<E, A7>,
         ],
-    ): Validated<E, readonly [A0, A1, A2, A3, A4, A5, A6, A7]>;
+    ): Validated<E, [A0, A1, A2, A3, A4, A5, A6, A7]>;
 
     // prettier-ignore
     export function collect<E extends Semigroup<E>, A0, A1, A2, A3, A4, A5, A6, A7, A8>(
@@ -399,7 +419,7 @@ export namespace Validated {
             Validated<E, A7>,
             Validated<E, A8>,
         ],
-    ): Validated<E, readonly [A0, A1, A2, A3, A4, A5, A6, A7, A8]>;
+    ): Validated<E, [A0, A1, A2, A3, A4, A5, A6, A7, A8]>;
 
     // prettier-ignore
     export function collect<E extends Semigroup<E>, A0, A1, A2, A3, A4, A5, A6, A7, A8, A9>(
@@ -415,15 +435,15 @@ export namespace Validated {
             Validated<E, A8>,
             Validated<E, A9>,
         ],
-    ): Validated<E, readonly [A0, A1, A2, A3, A4, A5, A6, A7, A8, A9]>;
+    ): Validated<E, [A0, A1, A2, A3, A4, A5, A6, A7, A8, A9]>;
 
     export function collect<E extends Semigroup<E>, A>(
         vtds: readonly Validated<E, A>[],
-    ): Validated<E, readonly A[]>;
+    ): Validated<E, A[]>;
 
     export function collect<E extends Semigroup<E>, A>(
         vtds: readonly Validated<E, A>[],
-    ): Validated<E, readonly A[]> {
+    ): Validated<E, A[]> {
         let acc = accept<A[], E>(new Array(vtds.length));
         for (const [idx, vtd] of vtds.entries()) {
             acc = acc.zipWith(vtd, (results, x) => {
@@ -432,112 +452,6 @@ export namespace Validated {
             });
         }
         return acc;
-    }
-
-    /**
-     * Evaluate a series of Validateds from left to right and collect the
-     * `Accepted` values in a tuple literal.
-     */
-    export function tupled<E extends Semigroup<E>, A0, A1>(
-        ...vdts: [Validated<E, A0>, Validated<E, A1>]
-    ): Validated<E, readonly [A0, A1]>;
-
-    export function tupled<E extends Semigroup<E>, A0, A1, A2>(
-        ...vdts: [Validated<E, A0>, Validated<E, A1>, Validated<E, A2>]
-    ): Validated<E, readonly [A0, A1, A2]>;
-
-    export function tupled<E extends Semigroup<E>, A0, A1, A2, A3>(
-        ...vdts: [
-            Validated<E, A0>,
-            Validated<E, A1>,
-            Validated<E, A2>,
-            Validated<E, A3>,
-        ]
-    ): Validated<E, readonly [A0, A1, A2, A3]>;
-
-    export function tupled<E extends Semigroup<E>, A0, A1, A2, A3, A4>(
-        ...vdts: [
-            Validated<E, A0>,
-            Validated<E, A1>,
-            Validated<E, A2>,
-            Validated<E, A3>,
-            Validated<E, A4>,
-        ]
-    ): Validated<E, readonly [A0, A1, A2, A3, A4]>;
-
-    export function tupled<E extends Semigroup<E>, A0, A1, A2, A3, A4, A5>(
-        ...vdts: [
-            Validated<E, A0>,
-            Validated<E, A1>,
-            Validated<E, A2>,
-            Validated<E, A3>,
-            Validated<E, A4>,
-            Validated<E, A5>,
-        ]
-    ): Validated<E, readonly [A0, A1, A2, A3, A4, A5]>;
-
-    // prettier-ignore
-    export function tupled<E extends Semigroup<E>, A0, A1, A2, A3, A4, A5, A6>(
-        ...vdts: [
-            Validated<E, A0>,
-            Validated<E, A1>,
-            Validated<E, A2>,
-            Validated<E, A3>,
-            Validated<E, A4>,
-            Validated<E, A5>,
-            Validated<E, A6>,
-        ]
-    ): Validated<E, readonly [A0, A1, A2, A3, A4, A5, A6]>;
-
-    // prettier-ignore
-    export function tupled<E extends Semigroup<E>, A0, A1, A2, A3, A4, A5, A6, A7>(
-        ...vdts: [
-            Validated<E, A0>,
-            Validated<E, A1>,
-            Validated<E, A2>,
-            Validated<E, A3>,
-            Validated<E, A4>,
-            Validated<E, A5>,
-            Validated<E, A6>,
-            Validated<E, A7>,
-        ]
-    ): Validated<E, readonly [A0, A1, A2, A3, A4, A5, A6, A7]>;
-
-    // prettier-ignore
-    export function tupled<E extends Semigroup<E>, A0, A1, A2, A3, A4, A5, A6, A7, A8>(
-        ...vdts: [
-            Validated<E, A0>,
-            Validated<E, A1>,
-            Validated<E, A2>,
-            Validated<E, A3>,
-            Validated<E, A4>,
-            Validated<E, A5>,
-            Validated<E, A6>,
-            Validated<E, A7>,
-            Validated<E, A8>,
-        ]
-    ): Validated<E, readonly [A0, A1, A2, A3, A4, A5, A6, A7, A8]>;
-
-    // prettier-ignore
-    export function tupled<E extends Semigroup<E>, A0, A1, A2, A3, A4, A5, A6, A7, A8, A9>(
-        ...vdts: [
-            Validated<E, A0>,
-            Validated<E, A1>,
-            Validated<E, A2>,
-            Validated<E, A3>,
-            Validated<E, A4>,
-            Validated<E, A5>,
-            Validated<E, A6>,
-            Validated<E, A7>,
-            Validated<E, A8>,
-            Validated<E, A9>,
-        ]
-    ): Validated<E, readonly [A0, A1, A2, A3, A4, A5, A6, A7, A8, A9]>;
-
-    export function tupled<E extends Semigroup<E>, A>(
-        ...vdts: Validated<E, A>[]
-    ): Validated<E, readonly A[]> {
-        return collect(vdts);
     }
 
     /**
@@ -594,22 +508,17 @@ export namespace Validated {
          */
         fold<E, A, B, B1>(
             this: Validated<E, A>,
-            foldL: (x: E, validated: Disputed<E>) => B,
-            foldR: (x: A, validated: Accepted<A>) => B1,
+            foldL: (x: E) => B,
+            foldR: (x: A) => B1,
         ): B | B1 {
-            return this.isDisputed()
-                ? foldL(this.val, this)
-                : foldR(this.val, this);
+            return this.isDisputed() ? foldL(this.val) : foldR(this.val);
         }
 
         /**
          * If this Validated is `Disputed`, extract its value; otherwise, apply
          * a function to the `Accepted` value.
          */
-        disputedOrFold<E, A, B>(
-            this: Validated<E, A>,
-            f: (x: A, validated: Accepted<A>) => B,
-        ): E | B {
+        disputedOrFold<E, A, B>(this: Validated<E, A>, f: (x: A) => B): E | B {
             return this.fold(id, f);
         }
 
@@ -617,10 +526,7 @@ export namespace Validated {
          * If this Validated is `Accepted`, extract its value; otherwise, apply
          * a function to the `Disputed` value.
          */
-        acceptedOrFold<E, A, B>(
-            this: Validated<E, A>,
-            f: (x: E, validated: Disputed<E>) => B,
-        ): A | B {
+        acceptedOrFold<E, A, B>(this: Validated<E, A>, f: (x: E) => B): A | B {
             return this.fold(f, id);
         }
 
