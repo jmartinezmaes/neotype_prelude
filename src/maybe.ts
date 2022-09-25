@@ -243,10 +243,10 @@
  *     return parseInt(input).flatMap(guardEven);
  * }
  *
- * ["a", "1", "2", "-4", "+18", "0x12"].forEach((input) => {
- *     const result = parseEvenInt(input)
- *         .map(JSON.stringify)
- *         .justOrElse("invalid input");
+ * ["a", "1", "2", "-4", "+42", "0x2A"].forEach((input) => {
+ *     const result = JSON.stringify(
+ *         parseEvenInt(input).justOrElse("invalid input"),
+ *     );
  *     console.log(`input "${input}": ${result}`);
  * });
  *
@@ -254,8 +254,8 @@
  * // input "1": "invalid input"
  * // input "2": 2
  * // input "-4": -4
- * // input "+18": 18
- * // input: "0x12": 18
+ * // input "+42": 18
+ * // input: "0x2A": 18
  * ```
  *
  * We can refactor the `parseEvenInt` function to use a generator comprehension
@@ -280,19 +280,19 @@
  * }
  *
  * [
- *     ["2", "-7", "+18", "0x12"],
- *     ["a", "-4", "+18", "0x12"],
- *     ["2", "-4", "+18", "0x12"],
+ *     ["a", "-4"],
+ *     ["2", "-7"],
+ *     ["+42", "0x2A"],
  * ].forEach((inputs) => {
- *     const result = parseEvenInts(inputs)
- *         .map(JSON.stringify)
- *         .justOrElse("invalid input");
+ *     const result = JSON.stringify(
+ *         parseEvenInts(inputs).justOrElse("invalid input"),
+ *     );
  *     console.log(`inputs ${JSON.stringify(inputs)}: ${result}`);
  * });
  *
- * // inputs ["2","-7","+18","0x12"]: "invalid input"
- * // inputs ["a","-4","+18","0x12"]: "invalid input"
- * // inputs ["2","-4","+18","0x12"]: [2,-4,18,18]
+ * // inputs ["a","-4"]: "invalid input"
+ * // inputs ["2","-7"]: "invalid input"
+ * // inputs ["+42","0x2A"]: [42,42]
  * ```
  *
  * Perhaps we want to collect only distinct even numbers using a Set:
@@ -309,19 +309,21 @@
  * }
  *
  * [
- *     ["2", "-7", "+18", "0x12"],
- *     ["a", "-4", "+18", "0x12"],
- *     ["2", "-4", "+18", "0x12"],
+ *     ["a", "-4"],
+ *     ["2", "-7"],
+ *     ["+42", "0x2A"],
  * ].forEach((inputs) => {
- *     const result = parseEvenIntsUniq(inputs)
- *         .map((evensSet) => JSON.stringify(Array.from(eventSet)))
- *         .justOrElse("invalid input")
+ *     const result = JSON.stringify(
+ *         parseEvenIntsUniq(inputs)
+ *             .map(Array.from)
+ *             .justOrElse("invalid input"),
+ *     );
  *     console.log(`inputs ${JSON.stringify(inputs)}: ${result}`);
  * });
  *
- * // inputs ["2","-7","+18","0x12"]: "invalid input"
- * // inputs ["a","-4","+18","0x12"]: "invalid input"
- * // inputs ["2","-4","+18","0x12"]: [2,-4,18]
+ * // inputs ["a","-4"]: "invalid input"
+ * // inputs ["2","-7"]: "invalid input"
+ * // inputs ["+42","0x2A"]: [42]
  * ```
  *
  * Or, perhaps we want to associate the original input strings with our
@@ -339,19 +341,19 @@
  * }
  *
  * [
- *     ["2", "-7", "+18", "0x12"],
- *     ["a", "-4", "+18", "0x12"],
- *     ["2", "-4", "+18", "0x12"],
+ *     ["a", "-4"],
+ *     ["2", "-7"],
+ *     ["+42", "0x2A"],
  * ].forEach((inputs) => {
- *     const result = parseEvenIntsKeyed(inputs)
- *         .map(JSON.stringify)
- *         .justOrElse("invalid input");
+ *     const result = JSON.stringify(
+ *         parseEvenIntsKeyed(inputs).justOrElse("invalid input"),
+ *     );
  *     console.log(`inputs ${JSON.stringify(inputs)}: ${result}`);
  * });
  *
- * // inputs ["2","-7","+18","0x12"]: "invalid input"
- * // inputs ["a","-4","+18","0x12"]: "invalid input"
- * // inputs ["2","-4","+18","0x12"]: {"2":2,"-4":-4,"+18":18,"0x12":18}
+ * // inputs ["a","-4"]: "invalid input"
+ * // inputs ["2","-7"]: "invalid input"
+ * // inputs ["+42","0x2A"]: {"+42":42,"0x2A":42}
  * ```
  *
  * Or, perhaps we want to sum our successful parses and return a total:
@@ -366,19 +368,19 @@
  * }
  *
  * [
- *     ["2", "-7", "+18", "0x12"],
- *     ["a", "-4", "+18", "0x12"],
- *     ["2", "-4", "+18", "0x12"],
+ *     ["a", "-4"],
+ *     ["2", "-7"],
+ *     ["+42", "0x2A"],
  * ].forEach((inputs) => {
- *     const result = parseEvenIntsAndSum(inputs)
- *         .map(JSON.stringify)
- *         .justOrElse("invalid input")
+ *     const result = JSON.stringify(
+ *         parseEvenIntsAndSum(inputs).justOrElse("invalid input"),
+ *     );
  *     console.log(`inputs ${JSON.stringify(inputs)}: ${result}`);
  * });
  *
- * // inputs ["2","-7","+18","0x12"]: "invalid input"
- * // inputs ["a","-4","+18","0x12"]: "invalid input"
- * // inputs ["2","-4","+18","0x12"]: 34
+ * // inputs ["a","-4"]: "invalid input"
+ * // inputs ["2","-7"]: "invalid input"
+ * // inputs ["+42","0x2A"]: 84
  * ```
  *
  * ### Web requests with `Maybe`
