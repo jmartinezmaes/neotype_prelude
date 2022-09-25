@@ -4,6 +4,10 @@
     <strong>Functional programming essentials for TypeScript</strong>
 </p>
 
+## Quick links
+
+- [Documentation](https://jm4rtinez.github.io/neotype_prelude/)
+
 ## Features
 
 - **Tools for comparing values**: use the contracts provided by the `Eq` and
@@ -19,7 +23,7 @@
 - **Generator comprehensions**: simplify working with monads by writing
   imperative style code blocks using a coroutine syntax.
 - **Async generator comprehensions**: take generator comprehensions to the next
-  level using the power of Promises and `async/await` syntax.
+  level using the power of Promises and `async`/`await` syntax.
 
 ## Install
 

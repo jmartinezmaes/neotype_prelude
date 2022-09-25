@@ -1,0 +1,106 @@
+<!DOCTYPE html><html class="default" lang="en"><head><meta charSet="utf-8"/><meta http-equiv="x-ua-compatible" content="IE=edge"/><title>Neotype Prelude</title><meta name="description" content="Documentation for Neotype Prelude"/><meta name="viewport" content="width=device-width, initial-scale=1"/><link rel="stylesheet" href="assets/style.css"/><link rel="stylesheet" href="assets/highlight.css"/><script async src="assets/search.js" id="search-script"></script><link rel="preconnect" href="https://fonts.googleapis.com"/><link rel="preconnect" href="https://fonts.gstatic.com"/><link href="https://fonts.googleapis.com/css2?family=Open+Sans&family=Source+Code+Pro&family=Source+Serif+Pro&display=swap" rel="stylesheet"/><link rel="stylesheet" href="assets/custom.css"/></head><body><script>document.documentElement.dataset.theme = localStorage.getItem("tsd-theme") || "os"</script><header class="tsd-page-toolbar">
+<div class="tsd-toolbar-contents container">
+<div class="table-cell" id="tsd-search" data-base=".">
+<div class="field"><label for="tsd-search-field" class="tsd-widget search no-caption"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M15.7824 13.833L12.6666 10.7177C12.5259 10.5771 12.3353 10.499 12.1353 10.499H11.6259C12.4884 9.39596 13.001 8.00859 13.001 6.49937C13.001 2.90909 10.0914 0 6.50048 0C2.90959 0 0 2.90909 0 6.49937C0 10.0896 2.90959 12.9987 6.50048 12.9987C8.00996 12.9987 9.39756 12.4863 10.5008 11.6239V12.1332C10.5008 12.3332 10.5789 12.5238 10.7195 12.6644L13.8354 15.7797C14.1292 16.0734 14.6042 16.0734 14.8948 15.7797L15.7793 14.8954C16.0731 14.6017 16.0731 14.1267 15.7824 13.833ZM6.50048 10.499C4.29094 10.499 2.50018 8.71165 2.50018 6.49937C2.50018 4.29021 4.28781 2.49976 6.50048 2.49976C8.71001 2.49976 10.5008 4.28708 10.5008 6.49937C10.5008 8.70852 8.71314 10.499 6.50048 10.499Z" fill="var(--color-text)"></path></svg></label><input type="text" id="tsd-search-field" aria-label="Search"/></div>
+<ul class="results">
+<li class="state loading">Preparing search index...</li>
+<li class="state failure">The search index is not available</li></ul><a href="index.html" class="title">Neotype Prelude</a></div>
+<div class="table-cell" id="tsd-widgets"><a href="#" class="tsd-widget menu no-caption" data-toggle="menu" aria-label="Menu"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><rect x="1" y="3" width="14" height="2" fill="var(--color-text)"></rect><rect x="1" y="7" width="14" height="2" fill="var(--color-text)"></rect><rect x="1" y="11" width="14" height="2" fill="var(--color-text)"></rect></svg></a></div></div></header>
+<div class="container container-main">
+<div class="col-8 col-content">
+<div class="tsd-page-title">
+<h2>Neotype Prelude</h2></div>
+<div class="tsd-panel tsd-typography"><h1 align="center">Neotype Prelude</h1>
+
+<p align="center">
+    <strong>Functional programming essentials for TypeScript</strong>
+</p>
+
+
+<a href="#features" id="features" style="color: inherit; text-decoration: none;">
+  <h2>Features</h2>
+</a>
+<ul>
+<li><strong>Tools for comparing values</strong>: use the contracts provided by the <code>Eq</code> and
+<code>Ord</code> interfaces to implement equivalence relations and total orderings.</li>
+<li><strong>Tools for combining values</strong>: use the contract provided by the <code>Semigroup</code>
+interface to implement semigroups.</li>
+<li><strong>Algebraic data types</strong>:<ul>
+<li>Model optional values with <code>Maybe</code>.</li>
+<li>Handle failures with <code>Either</code>.</li>
+<li>Validate forms and user input with <code>Validated</code>.</li>
+<li>Implement stack-safe recursion with <code>Eval</code>.</li>
+<li>Get creative with more exotic types like <code>Ior</code>.</li>
+</ul>
+</li>
+<li><strong>Generator comprehensions</strong>: simplify working with monads by writing
+imperative style code blocks using a coroutine syntax.</li>
+<li><strong>Async generator comprehensions</strong>: take generator comprehensions to the next
+level using the power of Promises and <code>async</code>/<code>await</code> syntax.</li>
+</ul>
+
+<a href="#install" id="install" style="color: inherit; text-decoration: none;">
+  <h2>Install</h2>
+</a>
+<p>Neotype Prelude is available on NPM.</p>
+<pre><code class="language-sh"><span class="hl-0">npm install @neotype/prelude</span>
+</code></pre>
+
+<a href="#working-with-modules" id="working-with-modules" style="color: inherit; text-decoration: none;">
+  <h2>Working with modules</h2>
+</a>
+<p>This library provides a suite of <a href="https://exploringjs.com/es6/ch_modules.html#sec_basics-of-es6-modules">ES6 modules</a>. A <code>.js</code> suffix is required in
+all import statements. All modules provide named exports.</p>
+<pre><code class="language-ts"><span class="hl-1">import</span><span class="hl-0"> { </span><span class="hl-2">cmb</span><span class="hl-0">, </span><span class="hl-2">Semigroup</span><span class="hl-0"> } </span><span class="hl-1">from</span><span class="hl-0"> </span><span class="hl-3">&quot;@neotype/prelude/cmb.js&quot;</span><span class="hl-0">;</span><br/><span class="hl-1">import</span><span class="hl-0"> { </span><span class="hl-2">cmp</span><span class="hl-0">, </span><span class="hl-2">eq</span><span class="hl-0">, </span><span class="hl-2">Eq</span><span class="hl-0">, </span><span class="hl-2">Ord</span><span class="hl-0"> } </span><span class="hl-1">from</span><span class="hl-0"> </span><span class="hl-3">&quot;@neotype/prelude/cmp.js&quot;</span><span class="hl-0">;</span><br/><span class="hl-1">import</span><span class="hl-0"> { </span><span class="hl-2">Either</span><span class="hl-0"> } </span><span class="hl-1">from</span><span class="hl-0"> </span><span class="hl-3">&quot;@neotype/prelude/either.js&quot;</span><span class="hl-0">;</span><br/><span class="hl-1">import</span><span class="hl-0"> { </span><span class="hl-2">Maybe</span><span class="hl-0"> } </span><span class="hl-1">from</span><span class="hl-0"> </span><span class="hl-3">&quot;@neotype/prelude/maybe.js&quot;</span><span class="hl-0">;</span><br/><span class="hl-4">// etc.</span>
+</code></pre>
+<p>See each module&#39;s documentation for recommended import practices and available
+exports.</p>
+</div></div>
+<div class="col-4 col-menu menu-sticky-wrap menu-highlight">
+<div class="tsd-navigation settings">
+<details class="tsd-index-accordion"><summary class="tsd-accordion-summary">
+<h3><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M4.93896 8.531L12 15.591L19.061 8.531L16.939 6.409L12 11.349L7.06098 6.409L4.93896 8.531Z" fill="var(--color-text)"></path></svg> Settings</h3></summary>
+<div class="tsd-accordion-details">
+<div class="tsd-filter-visibility">
+<h4 class="uppercase">Member Visibility</h4><form>
+<ul id="tsd-filter-options">
+<li class="tsd-filter-item"><label class="tsd-filter-input"><input type="checkbox" id="tsd-filter-protected" name="protected"/><svg width="32" height="32" viewBox="0 0 32 32" aria-hidden="true"><rect class="tsd-checkbox-background" width="30" height="30" x="1" y="1" rx="6" fill="none"></rect><path class="tsd-checkbox-checkmark" d="M8.35422 16.8214L13.2143 21.75L24.6458 10.25" stroke="none" stroke-width="3.5" stroke-linejoin="round" fill="none"></path></svg><span>Protected</span></label></li>
+<li class="tsd-filter-item"><label class="tsd-filter-input"><input type="checkbox" id="tsd-filter-inherited" name="inherited" checked/><svg width="32" height="32" viewBox="0 0 32 32" aria-hidden="true"><rect class="tsd-checkbox-background" width="30" height="30" x="1" y="1" rx="6" fill="none"></rect><path class="tsd-checkbox-checkmark" d="M8.35422 16.8214L13.2143 21.75L24.6458 10.25" stroke="none" stroke-width="3.5" stroke-linejoin="round" fill="none"></path></svg><span>Inherited</span></label></li>
+<li class="tsd-filter-item"><label class="tsd-filter-input"><input type="checkbox" id="tsd-filter-external" name="external"/><svg width="32" height="32" viewBox="0 0 32 32" aria-hidden="true"><rect class="tsd-checkbox-background" width="30" height="30" x="1" y="1" rx="6" fill="none"></rect><path class="tsd-checkbox-checkmark" d="M8.35422 16.8214L13.2143 21.75L24.6458 10.25" stroke="none" stroke-width="3.5" stroke-linejoin="round" fill="none"></path></svg><span>External</span></label></li></ul></form></div>
+<div class="tsd-theme-toggle">
+<h4 class="uppercase">Theme</h4><select id="theme"><option value="os">OS</option><option value="light">Light</option><option value="dark">Dark</option></select></div></div></details></div>
+<nav class="tsd-navigation primary">
+<details class="tsd-index-accordion" open><summary class="tsd-accordion-summary">
+<h3><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M4.93896 8.531L12 15.591L19.061 8.531L16.939 6.409L12 11.349L7.06098 6.409L4.93896 8.531Z" fill="var(--color-text)"></path></svg> Modules</h3></summary>
+<div class="tsd-accordion-details">
+<ul>
+<li class="current selected"><a href="modules.html">Neotype <wbr/>Prelude</a>
+<ul>
+<li class="tsd-kind-module"><a href="modules/cmb.html">cmb</a>
+<ul>
+<li class="tsd-kind-namespace tsd-parent-kind-module"><a href="modules/cmb.Semigroup.html">Semigroup</a></li></ul></li>
+<li class="tsd-kind-module"><a href="modules/cmp.html">cmp</a>
+<ul>
+<li class="tsd-kind-namespace tsd-parent-kind-module"><a href="modules/cmp.Eq.html">Eq</a></li>
+<li class="tsd-kind-namespace tsd-parent-kind-module"><a href="modules/cmp.Ord.html">Ord</a></li>
+<li class="tsd-kind-namespace tsd-parent-kind-module"><a href="modules/cmp.Ordering.html">Ordering</a></li></ul></li>
+<li class="tsd-kind-module"><a href="modules/either.html">either</a>
+<ul>
+<li class="tsd-kind-namespace tsd-parent-kind-module"><a href="modules/either.Either.html">Either</a></li></ul></li>
+<li class="tsd-kind-module"><a href="modules/eval.html">eval</a>
+<ul>
+<li class="tsd-kind-namespace tsd-parent-kind-module"><a href="modules/eval.Eval.html">Eval</a></li></ul></li>
+<li class="tsd-kind-module"><a href="modules/fn.html">fn</a></li>
+<li class="tsd-kind-module"><a href="modules/ior.html">ior</a>
+<ul>
+<li class="tsd-kind-namespace tsd-parent-kind-module"><a href="modules/ior.Ior.html">Ior</a></li></ul></li>
+<li class="tsd-kind-module"><a href="modules/maybe.html">maybe</a>
+<ul>
+<li class="tsd-kind-namespace tsd-parent-kind-module"><a href="modules/maybe.Maybe.html">Maybe</a></li></ul></li>
+<li class="tsd-kind-module"><a href="modules/tuple.html">tuple</a></li>
+<li class="tsd-kind-module"><a href="modules/validated.html">validated</a>
+<ul>
+<li class="tsd-kind-namespace tsd-parent-kind-module"><a href="modules/validated.Validated.html">Validated</a></li></ul></li></ul></li></ul></div></details></nav></div></div>
+<div class="container tsd-generator">
+<p>Generated using <a href="https://typedoc.org/" target="_blank">TypeDoc</a></p></div>
+<div class="overlay"></div><script src="assets/main.js"></script></body></html>

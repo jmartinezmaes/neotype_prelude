@@ -1,6 +1,6 @@
 {
     "name": "@neotype/prelude",
-    "version": "1.0.0-alpha.1",
+    "version": "0.1.0",
     "description": "Functional programming essentials for TypeScript",
     "repository": {
         "type": "git",
@@ -38,9 +38,9 @@
         "node": "14.* || 16.* || >= 18.*"
     },
     "scripts": {
+        "build:all": "npm run build:dist && npm run build:docs",
         "build:dist": "npx rimraf ./dist && npx tsc --project ./tsconfig.build.json",
-        "build:docs": "npx typedoc",
-        "build": "npm run build:dist && npm run build:docs",
+        "build:docs": "npx ts-node-esm ./scripts/build_docs.tsx",
         "lint": "npx eslint --ext .ts .",
         "prettier:check": "npx prettier --check .",
         "prettier:write": "npx prettier --write .",
@@ -110,8 +110,8 @@
         "prettier": "2.7.1",
         "prettier-plugin-organize-imports": "^3.1.1",
         "rimraf": "^3.0.2",
-        "ts-node": "^10.8.2",
+        "ts-node": "^10.9.1",
         "typedoc": "0.23.14",
-        "typescript": "^4.7.4"
+        "typescript": "^4.8.3"
     }
 }
