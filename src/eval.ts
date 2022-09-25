@@ -257,7 +257,7 @@
  *     });
  * }
  *
- * console.log(JSON.stringify(Array.from(traversalsMap(oneToSeven).run())));
+ * console.log(JSON.stringify(traversalsMap(oneToSeven).map(Array.from).run()));
  *
  * // [["in",[1,2,3,4,5,6,7]],["pre",[4,2,1,3,6,5,7]],["post",[1,3,2,5,7,6,4]]]
  * ```
