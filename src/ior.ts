@@ -39,35 +39,9 @@
  * the accumulating left-hand value. This documentation will use the following
  * semigroup and utility functions in all examples:
  *
- * ```ts
- * import { Semigroup } from "@neotype/prelude/cmb.js";
- *
- * class List<A> {
- *     readonly val: A[];
- *
- *     constructor(...vals: A[]) {
- *         this.val = vals;
- *     }
- *
- *     [Semigroup.cmb](that: List<A>): List<A> {
- *         return new List(...this.val, ...that.val);
- *     }
- * }
- *
- * type Log = List<string>;
- *
- * function info(msg: string): Log {
- *     return new List(`Info: ${msg}`);
- * }
- *
- * function err(msg: string): Log {
- *     return new List(`Err: ${msg}`);
- * }
- * ```
- *
  * ## Importing from this module
  *
- * This module exposes `Ior` as both a type and a namespace. The `Ior` type is
+ * This module exports `Ior` as both a type and a namespace. The `Ior` type is
  * an alias for a discriminated union, and the `Ior` namespace provides:
  *
  * - The `Left`, `Right`, and `Both` variant classes
@@ -79,22 +53,23 @@
  *
  * ```ts
  * import { Ior } from "@neotype/prelude/ior.js";
- *
- * const example: Ior<List<string>, number> = Ior.both(new List("a"), 1);
  * ```
  *
  * Or, the type and namespace can be imported and aliased separately:
  *
  * ```ts
  * import { type Ior, Ior as I } from "@neotype/prelude/ior.js";
- *
- * const example: Ior<List<string>, number> = I.both(new List("a"), 1);
  * ```
  *
  * ## Constructing `Ior`
  *
- * The `left`, `right`, and `both` functions construct the `Left`, `Right`,
- * and `Both` variants of `Ior`, respectively.
+ * These methods construct an Ior:
+ *
+ * - `left` constructs a `Left` variant.
+ * - `right` constructs a `Right` variant.
+ * - `both` constructs a `Both` variant.
+ * - `fromEither` constructs an Ior from an Either. `Left` and `Right` Eithers
+ *   become `Left` and `Right` Iors, respectively.
  *
  * ## Querying and narrowing the variant
  *
@@ -107,17 +82,21 @@
  *
  * ## Extracting values
  *
- * When an Ior is `Left` or `Right`, its value can be accessed via the `val`
- * property. When an Ior is `Both`, its left-hand and right-hand values can be
- * accessed via the `fst` and `snd` properties, respectively.
+ * An Ior's value(s) can be accessed via the `val` property. When an Ior is
+ * `Left` or `Right`, the `val` property is the left-hand or right-hand value,
+ * respectively. When an Ior is `Both`, the `val` property is a 2-tuple of the
+ * left-hand and right-hand values.
+ *
+ * The left-hand and right-hand values of `Both` can also be accessed
+ * individually via the `fst` and `snd` properties, respectively.
  *
  * Alternatively, the `fold` method will unwrap an Ior by applying one of three
  * functions to its left-hand and/or right-hand value(s).
  *
  * ## Comparing `Ior`
  *
- * `Ior` implements `Eq` and `Ord` when both its left-hand and right-hand values
- * implement `Eq` and `Ord`.
+ * `Ior` implements `Eq` and `Ord` when both its left-hand and right-hand
+ * generic types implement `Eq` and `Ord`.
  *
  * - Two Iors are equal if they are the same variant and their value(s) is
  *   (are) equal.
@@ -127,21 +106,9 @@
  *
  * ## `Ior` as a semigroup
  *
- * `Ior` implements `Semigroup` when both its left-hand and right-hand values
- * implement `Semigroup`. Left-hand and right-hand values are combined pairwise,
- * and will accumulate into `Both`:
- *
- * ```ts
- * import { cmb } from "@neotype/prelude/cmb.js";
- *
- * const combined: Ior<List<string>, List<string>> = [
- *     Ior.left(new List("a")),
- *     Ior.both(new List("b"), new List("x")),
- *     Ior.right(new List("y")),
- * ].reduce(cmb);
- *
- * console.log(combined);
- * ```
+ * `Ior` implements `Semigroup` when both its left-hand and right-hand generic
+ * types implement `Semigroup`. Left-hand and right-hand values are combined
+ * pairwise, and will accumulate into `Both`.
  *
  * ## Transforming values
  *
@@ -171,47 +138,20 @@
  * way and require an implementation for `Semigroup`. If any Ior is `Left`, the
  * computation is halted and the `Left` is returned instead.
  *
- * Consider a program that uses `Ior` to parse an even integer:
- *
- * ```ts
- * function parseInt(input: string): Ior<Log, number> {
- *     const n = Number.parseInt(input);
- *     if (Number.isNaN(n)) {
- *         return Ior.left(err(`cannot parse integer from ${input}`));
- *     }
- *     return Ior.both(info(`parse integer ${n}`), n);
- * }
- *
- * function guardEven(n: number): Ior<Log, number> {
- *     if (n % 2 === 0) {
- *         return Ior.both(info(`assert ${n} is even`), n);
- *     }
- *     return Ior.left(err(`${n} is not even`));
- * }
- *
- * function parseEvenInt(input: string): Ior<Log, number> {
- *     return parseInt(input).flatMap(guardEven);
- * }
- *
- * console.log(parseEvenInt("a"));
- * console.log(parseEvenInt("1"));
- * console.log(parseEvenInt("2"));
- * ```
- *
  * ### Generator comprehensions
  *
- * Generator comprehensions provide an alternative syntax for chaining together
- * computations that return `Ior`. Instead of `flatMap`, a generator is used
+ * Generator comprehensions provide an imperative syntax for chaining together
+ * computations that return `Ior`. Instead of `flatMap`, a Generator is used
  * to unwrap `Right` and `Both` variants, and apply functions to their
  * right-hand values.
  *
- * The `go` function evaluates a generator to return an Ior. Within the
- * generator, Iors are yielded using the `yield*` keyword. This binds the
+ * The `go` function evaluates a Generator to return an Ior. Within the
+ * Generator, Iors are yielded using the `yield*` keyword. This binds the
  * right-hand values to specified variables. When the computation is complete, a
- * final value can be computed and returned from the generator.
+ * final value can be computed and returned from the Generator.
  *
  * Generator comprehensions support all syntax that would otherwise be valid
- * within a generator, including:
+ * within a Generator, including:
  *
  * - Variable declarations, assignments, and mutations
  * - Function and class declarations
@@ -221,73 +161,21 @@
  * - `switch` blocks
  * - `try`/`catch` blocks
  *
- * Consider the generator comprehension equivalent of the `parseEvenInt`
- * function above:
- *
- * ```ts
- * function parseEvenInt(input: string): Ior<Log, number> {
- *     return Ior.go(function* () {
- *         const n = yield* parseInt(input);
- *         const even = yield* guardEven(n);
- *         return even;
- *     });
- * }
- * ```
- *
  * ## Async generator comprehensions
  *
- * Async generator comprehensions provide `async/await` syntax and Promises to
- * `Ior` generator comprehensions. Async computations that return `Ior` can
- * be chained together using the familiar generator syntax.
+ * Async generator comprehensions provide `async`/`await` syntax and Promises to
+ * `Ior` generator comprehensions. Async computations that return `Ior` can be
+ * chained together using the familiar generator syntax.
  *
- * The `goAsync` function evaluates an async generator to return a Promise that
+ * The `goAsync` function evaluates an AsyncGenerator to return a Promise that
  * fulfills with an Ior. The semantics of `yield*` and `return` within async
  * comprehensions are identical to their synchronous counterparts.
  *
  * In addition to the syntax permitted in synchronous generator comprehensions,
  * async comprehensions also support:
  *
- * - the `await` keyword
+ * - The `await` keyword
  * - `for await` loops (asynchronous iteration)
- *
- * Consider a program that uses requests data from a remote API and uses `Ior`
- * to guard against unlocatable resources:
- *
- * ```ts
- * interface User {
- *     readonly id: number;
- *     readonly username: string;
- * }
- *
- * // Contains 10 Users, with ids from 1 - 10
- * const usersEndpoint = "https://jsonplaceholder.typicode.com/users";
- *
- * async function fetchUsernameByUserId(
- *     id: number
- * ): Promise<Ior<Log, string>> {
- *     const response = await fetch(`${usersEndpoint}/${id}`);
- *     if (!response.ok) {
- *         return Ior.left(err(`user with id ${id} not found`));
- *     }
- *     const user: User = await response.json();
- *     return Ior.both(info(`found user with id ${id}`), user.username);
- * }
- *
- * function fetchUsernamesByUserIds(
- *     id1: number,
- *     id2: number,
- * ): Promise<Ior<Log, readonly [string, string]>> {
- *     return Ior.goAsync(async function* () {
- *         const uname1 = yield* await fetchUsernameByUserId(id1);
- *         const uname2 = yield* await fetchUsernameByUserId(id2);
- *         return [uname1, uname2] as const;
- *     });
- * }
- *
- * console.log(await fetchUsernamesByUserIds(12, 7));
- * console.log(await fetchUsernamesByUserIds(5, 14));
- * console.log(await fetchUsernamesByUserIds(6, 3));
- * ```
  *
  * ## Collecting into `Ior`
  *
@@ -301,28 +189,251 @@
  * required for left-hand values so they may accumulate.
  *
  * - `collect` turns an Array or a tuple literal of Iors inside out.
- * - `tupled` turns a series of two or more individual Iors inside out.
  *
  * Additionally, the `reduce` function reduces a finite Iterable from left to
  * right in the context of `Ior`. This is useful for mapping, filtering, and
  * accumulating values using `Ior`:
  *
+ * ## Examples
+ *
+ * These examples assume the following imports and utilities:
+ *
  * ```ts
- * function sumOnlyEvens(nums: number[]): Ior<Log, number> {
+ * import { Semigroup } from "@neotype/prelude/cmb.js";
+ * import { Ior } from "@neotype/prelude/ior.js";
+ *
+ * // A semigroup that wraps Arrays.
+ * class List<A> {
+ *     readonly val: A[];
+ *
+ *     constructor(...vals: A[]) {
+ *         this.val = vals;
+ *     }
+ *
+ *     [Semigroup.cmb](that: List<A>): List<A> {
+ *         return new List(...this.val, ...that.val);
+ *     }
+ *
+ *     toJSON(): A[] {
+ *         return this.val;
+ *     }
+ * }
+ *
+ * // A `Log` represents a List of entries relevant to our program. Log entries
+ * // have a log level of "info" or "err".
+ * type Log = List<string>;
+ *
+ * function info(msg: string): Log {
+ *     return new List(`info: ${msg}`);
+ * }
+ *
+ * function err(msg: string): Log {
+ *     return new List(`err: ${msg}`);
+ * }
+ * ```
+ *
+ * ### Basic matching and folding
+ *
+ * ```ts
+ * const strIorNum: Ior<string, number> = Ior.both("a", 1);
+ *
+ * // Querying and narrowing using methods
+ * if (strIorNum.isLeft()) {
+ *     console.log(`Queried Left: ${strIorNum.val}`);
+ * } else if (strIorNum.isRight()) {
+ *     console.log(`Queried Right: ${strIorNum.val}`);
+ * } else {
+ *     console.log(`Queried Both: ${strIorNum.fst} and ${strIorNum.snd}`);
+ * }
+ *
+ * // Querying and narrowing using the `typ` property
+ * switch (strIorNum.typ) {
+ *     case Ior.Typ.Left:
+ *         console.log(`Matched Left: ${strIorNum.val}`);
+ *         break;
+ *     case Ior.Typ.Right:
+ *         console.log(`Matched Right: ${strIorNum.val}`);
+ *         break;
+ *     case Ior.Typ.Both:
+ *         console.log(`Matched Both: ${strIorNum.fst} and ${strIorNum.snd}`);
+ * }
+ *
+ * // Case analysis using `fold`
+ * strIorNum.fold(
+ *     (str) => console.log(`Folded Left: ${str}`),
+ *     (num) => console.log(`Folded Right: ${num}`),
+ *     (str, num) => console.log(`Folded Both: ${str} and ${num}`),
+ * );
+ * ```
+ *
+ * ### Parsing with `Ior`
+ *
+ * Consider a program that uses `Ior` to parse an even integer:
+ *
+ * ```ts
+ * function parseInt(input: string): Ior<Log, number> {
+ *     const n = Number.parseInt(input);
+ *     return Number.isNaN(n)
+ *         ? Ior.left(err(`cannot parse '${input}' as int`))
+ *         : Ior.both(info(`parse '${input}' ok`), n);
+ * }
+ *
+ * function guardEven(n: number): Ior<Log, number> {
+ *     return n % 2 === 0 ? Ior.right(n) : Ior.left(err(`${n} is not even`));
+ * }
+ *
+ * function parseEvenInt(input: string): Ior<Log, number> {
+ *     return parseInt(input).flatMap(guardEven);
+ * }
+ *
+ * ["a", "1", "2", "-4", "+42", "0x2A"].forEach((input) => {
+ *     const result = JSON.stringify(parseEvenInt(input).val);
+ *     console.log(`input "${input}": ${result}`);
+ * });
+ *
+ * // input "a": ["err: cannot parse 'a' as int]
+ * // input "1": ["err: 1 is not even"]
+ * // input "2": [["parse '2' ok"],2]
+ * // input "-4": [["parse '-4' ok"],-4]
+ * // input "+42": [["parse '+42' ok"],42]
+ * // input "0x2A: [["parse '0x2A' ok"],42]
+ * ```
+ *
+ * We can refactor the `parseEvenInt` function to use a generator comprehension
+ * instead:
+ *
+ * ```ts
+ * function parseEvenInt(input: string): Ior<Log, number> {
+ *     return Ior.go(function* () {
+ *         const n = yield* parseInt(input);
+ *         const even = yield* guardEven(n);
+ *         return even;
+ *     });
+ * }
+ * ```
+ *
+ * Suppose we want to parse an Array of inputs and collect the successful
+ * results, or fail on the first parse error. We may write the following:
+ *
+ * ```ts
+ * function parseEvenInts(inputs: string[]): Ior<Log, number[]> {
+ *     return Ior.collect(inputs.map(parseEvenInt));
+ * }
+ *
+ * [
+ *     ["a", "-4"],
+ *     ["2", "-7"],
+ *     ["+42", "0x2A"],
+ * ].forEach((inputs) => {
+ *     const result = JSON.stringify(parseEvenInts(inputs).val);
+ *     console.log(`inputs ${JSON.stringify(inputs)}:\n  ${result}`);
+ * });
+ *
+ * // inputs ["a","-4"]:
+ * //   ["err: cannot parse 'a' as int"]
+ * // inputs ["2","-7"]:
+ * //   ["info: parse '2' ok","err: -7 is not even"]
+ * // inputs ["+42" "0x2A"]:
+ * //   [["info: parse '+42' ok","info: parse '0x2A' ok"],[42,42]]
+ * ```
+ *
+ * Perhaps we want to collect only distinct even numbers using a Set:
+ *
+ * ```ts
+ * function parseEvenIntsUniq(inputs: string[]): Ior<Log, Set<number>> {
+ *     return Ior.go(function* () {
+ *         const results = new Set<number>();
+ *         for (const input of inputs) {
+ *             results.add(yield* parseEvenInt(input));
+ *         }
+ *         return results;
+ *     });
+ * }
+ *
+ * [
+ *     ["a", "-4"],
+ *     ["2", "-7"],
+ *     ["+42", "0x2A"],
+ * ].forEach((inputs) => {
+ *     const result = JSON.stringify(
+ *         parseEvenIntsUniq(inputs).map(Array.from).val,
+ *     );
+ *     console.log(`inputs ${JSON.stringify(inputs)}:\n  ${result}`);
+ * });
+ *
+ * // inputs ["a","-4"]:
+ * //   ["err: cannot parse 'a' as int"]
+ * // inputs ["2","-7"]:
+ * //   ["info: parse '2' ok,"err: -7 is not even"]
+ * // inputs ["+42" "0x2A"]:
+ * //   [["info: parse '+42' ok","info: parse '0x2A' ok"],[42]]
+ * ```
+ *
+ * Or, perhaps we want to associate the original input strings with our
+ * successful parses:
+ *
+ * ```ts
+ * function parseEvenIntsKeyed(
+ *     inputs: string[],
+ * ): Ior<Log, Record<string, number>> {
+ *     return Ior.go(function* () {
+ *         const results: Record<string, number> = {};
+ *         for (const input of inputs) {
+ *             results[input] = yield* parseEvenInt(input);
+ *         }
+ *         return results;
+ *     });
+ * }
+ *
+ * [
+ *     ["a", "-4"],
+ *     ["2", "-7"],
+ *     ["+42", "0x2A"],
+ * ].forEach((inputs) => {
+ *     const result = JSON.stringify(parseEvenIntsKeyed(inputs).val);
+ *     console.log(`inputs ${JSON.stringify(inputs)}:\n  ${result}`);
+ * });
+ *
+ * // inputs ["a","-4"]:
+ * //   ["err: cannot parse 'a' as int"]
+ * // inputs ["2","-7"]:
+ * //   ["info: parse '2' ok,"err: -7 is not even"]
+ * // inputs ["+42" "0x2A"]:
+ * //   [["info: parse '+42' ok","info: parse '0x2A' ok"],{"+42":42,"0x2A":42}]
+ * ```
+ *
+ * Or, perhaps we want to sum our successful parses and return a total:
+ *
+ * ```ts
+ * function parseEvenIntsAndSum(inputs: string[]): Ior<Log, number> {
  *     return Ior.reduce(
- *         nums,
- *         (total, num) => {
- *             if (num % 2 !== 0) {
- *                 return Ior.left(err(`encountered odd number ${num}`));
- *             }
- *             return Ior.both(info(`add ${total} and ${num}`), total + num);
- *         },
+ *         inputs,
+ *         (total, input) => parseEvenInt(input).map((even) => total + even),
  *         0,
  *     );
  * }
  *
- * console.log(sumOnlyEvens([2, 3, 6]));
- * console.log(sumOnlyEvens([2, 4, 6]));
+ * [
+ *     ["a", "-4"],
+ *     ["2", "-7"],
+ *     ["+42", "0x2A"],
+ * ].forEach((inputs) => {
+ *     const result = JSON.stringify(parseEvenIntsAndSum(inputs).val);
+ *     console.log(`inputs ${JSON.stringify(inputs)}:\n  ${result}`);
+ * });
+ *
+ * // inputs ["a","-4"]:
+ * //   ["err: cannot parse 'a' as int"]
+ * // inputs ["2","-7"]:
+ * //   ["info: parse '2' ok,"err: -7 is not even"]
+ * // inputs ["+42" "0x2A"]:
+ * //   [["info: parse '+42' ok","info: parse '0x2A' ok"],84]
+ * ```
+ *
+ * ### Web requests with `Ior`
+ *
+ * ```ts
+ * // Todo
  * ```
  *
  * @module
@@ -389,7 +500,7 @@ export namespace Ior {
      * Construct an Ior using a generator comprehension.
      */
     export function go<E extends Semigroup<E>, A>(
-        f: () => Generator<readonly [Ior<E, any>], A, any>,
+        f: () => Generator<[Ior<E, any>], A, any>,
     ): Ior<E, A> {
         const gen = f();
         let nxt = gen.next();
@@ -433,15 +544,15 @@ export namespace Ior {
      */
     export function collect<E extends Semigroup<E>, A0, A1>(
         iors: readonly [Ior<E, A0>, Ior<E, A1>],
-    ): Ior<E, readonly [A0, A1]>;
+    ): Ior<E, [A0, A1]>;
 
     export function collect<E extends Semigroup<E>, A0, A1, A2>(
         iors: readonly [Ior<E, A0>, Ior<E, A1>, Ior<E, A2>],
-    ): Ior<E, readonly [A0, A1, A2]>;
+    ): Ior<E, [A0, A1, A2]>;
 
     export function collect<E extends Semigroup<E>, A0, A1, A2, A3>(
         iors: readonly [Ior<E, A0>, Ior<E, A1>, Ior<E, A2>, Ior<E, A3>],
-    ): Ior<E, readonly [A0, A1, A2, A3]>;
+    ): Ior<E, [A0, A1, A2, A3]>;
 
     export function collect<E extends Semigroup<E>, A0, A1, A2, A3, A4>(
         iors: readonly [
@@ -451,7 +562,7 @@ export namespace Ior {
             Ior<E, A3>,
             Ior<E, A4>,
         ],
-    ): Ior<E, readonly [A0, A1, A2, A3, A4]>;
+    ): Ior<E, [A0, A1, A2, A3, A4]>;
 
     export function collect<E extends Semigroup<E>, A0, A1, A2, A3, A4, A5>(
         iors: readonly [
@@ -462,7 +573,7 @@ export namespace Ior {
             Ior<E, A4>,
             Ior<E, A5>,
         ],
-    ): Ior<E, readonly [A0, A1, A2, A3, A4, A5]>;
+    ): Ior<E, [A0, A1, A2, A3, A4, A5]>;
 
     export function collect<E extends Semigroup<E>, A0, A1, A2, A3, A4, A5, A6>(
         iors: readonly [
@@ -474,7 +585,7 @@ export namespace Ior {
             Ior<E, A5>,
             Ior<E, A6>,
         ],
-    ): Ior<E, readonly [A0, A1, A2, A3, A4, A5, A6]>;
+    ): Ior<E, [A0, A1, A2, A3, A4, A5, A6]>;
 
     // prettier-ignore
     export function collect<E extends Semigroup<E>, A0, A1, A2, A3, A4, A5, A6, A7>(
@@ -488,7 +599,7 @@ export namespace Ior {
             Ior<E, A6>,
             Ior<E, A7>,
         ],
-    ): Ior<E, readonly [A0, A1, A2, A3, A4, A5, A6, A7]>;
+    ): Ior<E, [A0, A1, A2, A3, A4, A5, A6, A7]>;
 
     // prettier-ignore
     export function collect<E extends Semigroup<E>, A0, A1, A2, A3, A4, A5, A6, A7, A8>(
@@ -503,7 +614,7 @@ export namespace Ior {
             Ior<E, A7>,
             Ior<E, A8>,
         ],
-    ): Ior<E, readonly [A0, A1, A2, A3, A4, A5, A6, A7, A8]>;
+    ): Ior<E, [A0, A1, A2, A3, A4, A5, A6, A7, A8]>;
 
     // prettier-ignore
     export function collect<E extends Semigroup<E>, A0, A1, A2, A3, A4, A5, A6, A7, A8, A9>(
@@ -519,15 +630,15 @@ export namespace Ior {
             Ior<E, A8>,
             Ior<E, A9>,
         ],
-    ): Ior<E, readonly [A0, A1, A2, A3, A4, A5, A6, A7, A8, A9]>;
+    ): Ior<E, [A0, A1, A2, A3, A4, A5, A6, A7, A8, A9]>;
 
     export function collect<E extends Semigroup<E>, A>(
         iors: readonly Ior<E, A>[],
-    ): Ior<E, readonly A[]>;
+    ): Ior<E, A[]>;
 
     export function collect<E extends Semigroup<E>, A>(
         iors: readonly Ior<E, A>[],
-    ): Ior<E, readonly A[]> {
+    ): Ior<E, A[]> {
         return go(function* () {
             const results: A[] = new Array(iors.length);
             for (const [idx, ior] of iors.entries()) {
@@ -538,105 +649,11 @@ export namespace Ior {
     }
 
     /**
-     * Evaluate a series of Iors from left to right and collect the right-hand
-     * values in a tuple literal.
-     */
-    export function tupled<E extends Semigroup<E>, A0, A1>(
-        ...iors: [Ior<E, A0>, Ior<E, A1>]
-    ): Ior<E, readonly [A0, A1]>;
-
-    export function tupled<E extends Semigroup<E>, A0, A1, A2>(
-        ...iors: [Ior<E, A0>, Ior<E, A1>, Ior<E, A2>]
-    ): Ior<E, readonly [A0, A1, A2]>;
-
-    export function tupled<E extends Semigroup<E>, A0, A1, A2, A3>(
-        ...iors: [Ior<E, A0>, Ior<E, A1>, Ior<E, A2>, Ior<E, A3>]
-    ): Ior<E, readonly [A0, A1, A2, A3]>;
-
-    export function tupled<E extends Semigroup<E>, A0, A1, A2, A3, A4>(
-        ...iors: [Ior<E, A0>, Ior<E, A1>, Ior<E, A2>, Ior<E, A3>, Ior<E, A4>]
-    ): Ior<E, readonly [A0, A1, A2, A3, A4]>;
-
-    export function tupled<E extends Semigroup<E>, A0, A1, A2, A3, A4, A5>(
-        ...iors: [
-            Ior<E, A0>,
-            Ior<E, A1>,
-            Ior<E, A2>,
-            Ior<E, A3>,
-            Ior<E, A4>,
-            Ior<E, A5>,
-        ]
-    ): Ior<E, readonly [A0, A1, A2, A3, A4, A5]>;
-
-    export function tupled<E extends Semigroup<E>, A0, A1, A2, A3, A4, A5, A6>(
-        ...iors: [
-            Ior<E, A0>,
-            Ior<E, A1>,
-            Ior<E, A2>,
-            Ior<E, A3>,
-            Ior<E, A4>,
-            Ior<E, A5>,
-            Ior<E, A6>,
-        ]
-    ): Ior<E, readonly [A0, A1, A2, A3, A4, A5, A6]>;
-
-    // prettier-ignore
-    export function tupled<E extends Semigroup<E>, A0, A1, A2, A3, A4, A5, A6, A7>(
-        ...iors: [
-            Ior<E, A0>,
-            Ior<E, A1>,
-            Ior<E, A2>,
-            Ior<E, A3>,
-            Ior<E, A4>,
-            Ior<E, A5>,
-            Ior<E, A6>,
-            Ior<E, A7>,
-        ]
-    ): Ior<E, readonly [A0, A1, A2, A3, A4, A5, A6, A7]>;
-
-    // prettier-ignore
-    export function tupled<E extends Semigroup<E>, A0, A1, A2, A3, A4, A5, A6, A7, A8>(
-        ...iors: [
-            Ior<E, A0>,
-            Ior<E, A1>,
-            Ior<E, A2>,
-            Ior<E, A3>,
-            Ior<E, A4>,
-            Ior<E, A5>,
-            Ior<E, A6>,
-            Ior<E, A7>,
-            Ior<E, A8>,
-        ]
-    ): Ior<E, readonly [A0, A1, A2, A3, A4, A5, A6, A7, A8]>;
-
-    // prettier-ignore
-    export function tupled<E extends Semigroup<E>, A0, A1, A2, A3, A4, A5, A6, A7, A8, A9>(
-        ...iors: [
-            Ior<E, A0>,
-            Ior<E, A1>,
-            Ior<E, A2>,
-            Ior<E, A3>,
-            Ior<E, A4>,
-            Ior<E, A5>,
-            Ior<E, A6>,
-            Ior<E, A7>,
-            Ior<E, A8>,
-            Ior<E, A9>,
-        ]
-    ): Ior<E, readonly [A0, A1, A2, A3, A4, A5, A6, A7, A8, A9]>;
-
-    export function tupled<E extends Semigroup<E>, A>(
-        ...iors: Ior<E, A>[]
-    ): Ior<E, readonly A[]> {
-        return collect(iors);
-    }
-
-    /**
      * Construct a Promise that fulfills with an Ior using an async generator
      * comprehension.
      */
     export async function goAsync<E extends Semigroup<E>, A>(
-        f: () => AsyncGenerator<readonly [Ior<E, any>], A, any>,
+        f: () => AsyncGenerator<[Ior<E, any>], A, any>,
     ): Promise<Ior<E, A>> {
         const gen = f();
         let nxt = await gen.next();
@@ -755,17 +772,17 @@ export namespace Ior {
          */
         fold<A, B, C, D, E>(
             this: Ior<A, B>,
-            foldL: (x: A, ior: Left<A>) => C,
-            foldR: (x: B, ior: Right<B>) => D,
-            foldB: (x: A, y: B, ior: Both<A, B>) => E,
+            foldL: (x: A) => C,
+            foldR: (x: B) => D,
+            foldB: (x: A, y: B) => E,
         ): C | D | E {
             if (this.isLeft()) {
-                return foldL(this.val, this);
+                return foldL(this.val);
             }
             if (this.isRight()) {
-                return foldR(this.val, this);
+                return foldR(this.val);
             }
-            return foldB(this.fst, this.snd, this);
+            return foldB(this.fst, this.snd);
         }
 
         /**
@@ -782,7 +799,14 @@ export namespace Ior {
             if (this.isRight()) {
                 return f(this.val);
             }
-            return f(this.snd).mapLeft((y) => cmb((this as Both<E, A>).fst, y));
+            const that = f(this.snd);
+            if (that.isLeft()) {
+                return left(cmb(this.fst, that.val));
+            }
+            if (that.isRight()) {
+                return both(this.fst, that.val);
+            }
+            return both(cmb(this.fst, that.fst), that.snd);
         }
 
         /**
@@ -847,11 +871,11 @@ export namespace Ior {
          * If this Ior has a left-hand value, apply a function to the value.
          */
         mapLeft<A, B, C>(this: Ior<A, B>, f: (x: A) => C): Ior<C, B> {
-            if (this.isRight()) {
-                return this;
-            }
             if (this.isLeft()) {
                 return left(f(this.val));
+            }
+            if (this.isRight()) {
+                return this;
             }
             return both(f(this.fst), this.snd);
         }
@@ -900,11 +924,7 @@ export namespace Ior {
          *
          * @hidden
          */
-        *[Symbol.iterator](): Iterator<
-            readonly [Ior<A, never>],
-            never,
-            unknown
-        > {
+        *[Symbol.iterator](): Iterator<[Ior<A, never>], never, unknown> {
             return (yield [this]) as never;
         }
     }
@@ -932,7 +952,7 @@ export namespace Ior {
          *
          * @hidden
          */
-        *[Symbol.iterator](): Iterator<readonly [Ior<never, B>], B, unknown> {
+        *[Symbol.iterator](): Iterator<[Ior<never, B>], B, unknown> {
             return (yield [this]) as B;
         }
     }
@@ -949,6 +969,10 @@ export namespace Ior {
         readonly fst: A;
         readonly snd: B;
 
+        get val(): [A, B] {
+            return [this.fst, this.snd];
+        }
+
         constructor(fst: A, snd: B) {
             super();
             this.fst = fst;
@@ -962,7 +986,7 @@ export namespace Ior {
          *
          * @hidden
          */
-        *[Symbol.iterator](): Iterator<readonly [Ior<A, B>], B, unknown> {
+        *[Symbol.iterator](): Iterator<[Ior<A, B>], B, unknown> {
             return (yield [this]) as B;
         }
     }
