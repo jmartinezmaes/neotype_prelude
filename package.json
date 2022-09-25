@@ -27,9 +27,6 @@
         "./*.js": "./dist/*.js",
         "./package.json": "./package.json"
     },
-    "publishConfig": {
-        "access": "public"
-    },
     "files": [
         "dist",
         "src"
