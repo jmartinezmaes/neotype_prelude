@@ -164,7 +164,7 @@ describe("Ord", () => {
 describe("Ordering", () => {
     specify("Ordering.fromNumber", () => {
         fc.assert(
-            fc.property(fc.integer(), (x) => {
+            fc.property(fc.float({ noNaN: true }), (x) => {
                 const t0 = Ordering.fromNumber(x);
                 if (x < 0) {
                     assert.strictEqual(t0, Ordering.less);
@@ -175,12 +175,6 @@ describe("Ordering", () => {
                 }
             }),
         );
-
-        function testNaN(): Ordering {
-            return Ordering.fromNumber(NaN);
-        }
-
-        assert.throws(testNaN, "cannot construct an Ordering from NaN");
     });
 
     specify("#[Eq.eq]", () => {

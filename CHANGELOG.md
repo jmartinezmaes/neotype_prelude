@@ -18,18 +18,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 [unreleased]: https://www.github.com/jm4rtinez/neotype_prelude/compare/v0.1.0...HEAD
 
+### Changed
+
+- Module `cmp`:
+    - Do not throw Error on `NaN` when constructing Orderings. Defer
+      responsibility to the user.
+
 ## [0.1.0] - 2022-09-25
 
 ### Added
 
--   Module `cmb`
--   Module `cmp`
--   Module `either`
--   Module `eval`
--   Module `fn`
--   Module `ior`
--   Module `maybe`
--   Module `tuple`
--   Module `validated`
+- Module `cmb`
+- Module `cmp`
+- Module `either`
+- Module `eval`
+- Module `fn`
+- Module `ior`
+- Module `maybe`
+- Module `tuple`
+- Module `validated`
 
 [0.1.0]: https://www.github.com/jm4rtinez/neotype_prelude/releases/tag/v0.1.0

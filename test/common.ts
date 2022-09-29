@@ -21,7 +21,7 @@ export class Num implements Ord<Num> {
 }
 
 export function arbNum(): fc.Arbitrary<Num> {
-    return fc.integer().map((x) => new Num(x));
+    return fc.float({ noNaN: true }).map((x) => new Num(x));
 }
 
 export class Str implements Semigroup<Str> {
@@ -33,7 +33,7 @@ export class Str implements Semigroup<Str> {
 }
 
 export function arbStr(): fc.Arbitrary<Str> {
-    return fc.string({ maxLength: 1 }).map((x) => new Str(x));
+    return fc.string({ maxLength: 10 }).map((x) => new Str(x));
 }
 
 export function pair<A, B>(x: A, y: B): readonly [A, B] {

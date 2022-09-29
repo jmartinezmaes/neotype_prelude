@@ -823,15 +823,14 @@ export namespace Ordering {
     /**
      * Construct an Ordering from a number `n`.
      *
+     * This function assumes all arguments are never `NaN`. Passing `NaN` as an
+     * argument to this function will result in undefined behavior.
+     *
      * - If `n < 0`, return `Less`.
      * - If `n > 0`, return `Greater`.
      * - If `n === 0`, return `Equal`.
-     * - If `n` is `NaN`, throw an Error.
      */
     export function fromNumber(n: number): Ordering {
-        if (Number.isNaN(n)) {
-            throw new Error("cannot construct an Ordering from NaN");
-        }
         if (n < 0) {
             return less;
         }
