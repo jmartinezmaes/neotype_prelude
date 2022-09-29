@@ -63,12 +63,20 @@
  *
  * ## Comparing Iterables
  *
- * These functions compare two Iterables of `Eq` and `Ord` values, and are
- * useful for implementing equivalence relations and total orders for
- * collections and containers:
+ * These functions compare two Iterables of `Eq` and `Ord` values:
  *
  * - `ieq` tests for equality.
  * - `icmp` determines their ordering.
+ *
+ * These functions compare two Iterables of arbitrary values:
+ *
+ * - `ieqBy` tests for equality using a provided testing function.
+ * - `icmpBy` determines their ordering using a provided comparer function.
+ *
+ * The `-By` methods are particularly useful for comparing Iterables without
+ * requiring that their values implement `Eq` and `Ord`, or performing
+ * additional transformations beforehand. Examples include comparing instances
+ * of `Int8Array`, or comparing Iterables returned from `Map.prototype.entries`.
  *
  * ### Lexicographical comparison
  *
@@ -392,14 +400,16 @@ export function ne<A extends Eq<A>>(x: A, y: A): boolean {
 }
 
 /**
- * Test whether two iterables are lexicographically equal.
+ * Test whether two Iterables of arbitrary values are lexicographically equal.
  *
- * If two Iterables have equivalent elements and are of the same length, then
- * the Iterables are lexicographically equal.
+ * If two Iterables are the same length and their respective elements are
+ * determined to be equal by a provided function, then the Iterables are
+ * lexicographically equal.
  */
-export function ieq<A extends Eq<A>>(
+export function ieqBy<A>(
     xs: Iterable<A>,
     ys: Iterable<A>,
+    f: (x: A, y: A) => boolean,
 ): boolean {
     const nxs = xs[Symbol.iterator]();
     const nys = ys[Symbol.iterator]();
@@ -410,7 +420,7 @@ export function ieq<A extends Eq<A>>(
     while (true) {
         if (!nx.done) {
             if (!ny.done) {
-                if (ne(nx.value, ny.value)) {
+                if (!f(nx.value, ny.value)) {
                     return false;
                 }
                 nx = nxs.next();
@@ -422,6 +432,19 @@ export function ieq<A extends Eq<A>>(
             return !!ny.done;
         }
     }
+}
+
+/**
+ * Test whether two Iterables are lexicographically equal.
+ *
+ * If two Iterables are the same length and their respective elements are equal,
+ * then the Iterables are lexicographically equal.
+ */
+export function ieq<A extends Eq<A>>(
+    xs: Iterable<A>,
+    ys: Iterable<A>,
+): boolean {
+    return ieqBy(xs, ys, eq);
 }
 
 /**
@@ -709,11 +732,13 @@ export function cmp<A extends Ord<A>>(x: A, y: A): Ordering {
 }
 
 /**
- * Compare two Iterables to determine their lexicographical ordering.
+ * Compare two Iterables of arbitrary values to determing their lexicographical
+ * ordering.
  */
-export function icmp<A extends Ord<A>>(
+export function icmpBy<A>(
     xs: Iterable<A>,
     ys: Iterable<A>,
+    f: (x: A, y: A) => Ordering,
 ): Ordering {
     const nxs = xs[Symbol.iterator]();
     const nys = ys[Symbol.iterator]();
@@ -724,9 +749,9 @@ export function icmp<A extends Ord<A>>(
     while (true) {
         if (!nx.done) {
             if (!ny.done) {
-                const ord = cmp(nx.value, ny.value);
-                if (ord.isNe()) {
-                    return ord;
+                const ordering = f(nx.value, ny.value);
+                if (ordering.isNe()) {
+                    return ordering;
                 }
                 nx = nxs.next();
                 ny = nys.next();
@@ -737,6 +762,16 @@ export function icmp<A extends Ord<A>>(
             return ny.done ? Ordering.equal : Ordering.less;
         }
     }
+}
+
+/**
+ * Compare two Iterables to determine their lexicographical ordering.
+ */
+export function icmp<A extends Ord<A>>(
+    xs: Iterable<A>,
+    ys: Iterable<A>,
+): Ordering {
+    return icmpBy(xs, ys, cmp);
 }
 
 /**

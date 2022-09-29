@@ -9,7 +9,9 @@ import {
     ge,
     gt,
     icmp,
+    icmpBy,
     ieq,
+    ieqBy,
     le,
     lt,
     max,
@@ -46,6 +48,30 @@ describe("Eq", () => {
         );
     });
 
+    specify("ieqBy", () => {
+        function comparer(x: number, y: number): boolean {
+            return x === y;
+        }
+        fc.assert(
+            fc.property(
+                fc.float({ noNaN: true }),
+                fc.float({ noNaN: true }),
+                fc.float({ noNaN: true }),
+                fc.float({ noNaN: true }),
+                (a, x, b, y) => {
+                    assert.strictEqual(ieqBy([a], [], comparer), false);
+                    assert.strictEqual(ieqBy([], [b], comparer), false);
+                    assert.strictEqual(ieqBy([a, x], [b], comparer), false);
+                    assert.strictEqual(ieqBy([a], [b, y], comparer), false);
+                    assert.strictEqual(
+                        ieqBy([a, x], [b, y], comparer),
+                        comparer(a, b) && comparer(x, y),
+                    );
+                },
+            ),
+        );
+    });
+
     specify("ieq", () => {
         fc.assert(
             fc.property(
@@ -73,6 +99,42 @@ describe("Ord", () => {
         fc.assert(
             fc.property(arbNum(), arbNum(), (x, y) =>
                 assert.strictEqual(cmp(x, y), x[Ord.cmp](y)),
+            ),
+        );
+    });
+
+    specify("icmpBy", () => {
+        function comparer(x: number, y: number): Ordering {
+            return Ordering.fromNumber(x - y);
+        }
+        fc.assert(
+            fc.property(
+                fc.float({ noNaN: true }),
+                fc.float({ noNaN: true }),
+                fc.float({ noNaN: true }),
+                fc.float({ noNaN: true }),
+                (a, x, b, y) => {
+                    assert.strictEqual(
+                        icmpBy([a], [], comparer),
+                        Ordering.greater,
+                    );
+                    assert.strictEqual(
+                        icmpBy([], [b], comparer),
+                        Ordering.less,
+                    );
+                    assert.strictEqual(
+                        icmpBy([a, x], [b], comparer),
+                        cmb(comparer(a, b), Ordering.greater),
+                    );
+                    assert.strictEqual(
+                        icmpBy([a], [b, y], comparer),
+                        cmb(comparer(a, b), Ordering.less),
+                    );
+                    assert.strictEqual(
+                        icmpBy([a, x], [b, y], comparer),
+                        cmb(comparer(a, b), comparer(x, y)),
+                    );
+                },
             ),
         );
     });
