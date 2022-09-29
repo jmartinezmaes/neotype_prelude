@@ -29,11 +29,9 @@
  * ## Implementing semigroups
  *
  * - The `Semigroup` interface provides a contract for implementing
- *   [semigroups]. See the documentation for implementation patterns.
+ *   [semigroups][1]. See the documentation for implementation patterns.
  * - The `Semigroup` companion namespace provides the unique symbol required to
  *   implement the associated interface.
- *
- * [semigroups]: https://mathworld.wolfram.com/Semigroup.html
  *
  * ## Combining semigroups
  *
@@ -61,24 +59,22 @@
  * }
  * ```
  *
+ * [1]: https://mathworld.wolfram.com/Semigroup.html
+ *
  * @module
  */
 
 /**
- * An interface that provides evidence of a [semigroup].
- *
- * [semigroup]: https://mathworld.wolfram.com/Semigroup.html
+ * An interface that provides evidence of a [semigroup][1].
  *
  * ## Properties
  *
  * Instances of `Semigroup` must implement an operation that satisfies the
- * [associative property], such that:
+ * [associative property][2], such that:
  *
  * - `cmb(x, cmb(y, z))` is equivalent to `cmb(cmb(x, y), z)`
  *
  * for all `x`, `y`, and `z`.
- *
- * [associative property]: https://mathworld.wolfram.com/Associative.html
  *
  * ## Implementing `Semigroup`
  *
@@ -88,11 +84,8 @@
  * existing prototypes.
  *
  * Implementation is implicit and does not require an `implements` clause.
- * TypeScript uses [structural subtyping] to determine whether a value
+ * TypeScript uses [structural subtyping][3] to determine whether a value
  * implements `Semigroup`.
- *
- * [structural subtyping]:
- * https://www.typescriptlang.org/docs/handbook/type-compatibility.html#site-content
  *
  * ### Conditional implementation
  *
@@ -218,16 +211,13 @@
  *
  * Patching a type in TypeScript requires two steps:
  *
- * 1. an [augmentation] for a module or the global scope that patches the
+ * 1. an [augmentation][4] for a module or the global scope that patches the
  *    type-level representation; and
  * 1. a concrete implementation for `[Semigroup.cmb]`.
  *
  * The concrete implementation logic is similar to writing a method body for a
  * class or object, and the same practices apply when requiring generic type
  * parameters to implement `Semigroup`.
- *
- * [augmentation]:
- * https://www.typescriptlang.org/docs/handbook/declaration-merging.html#module-augmentation
  *
  * #### Examples
  *
@@ -266,6 +256,11 @@
  *     return new Pair(cmb(this.fst, that.fst), cmb(this.snd, that.snd));
  * };
  * ```
+ *
+ * [1]: https://mathworld.wolfram.com/Semigroup.html
+ * [2]: https://mathworld.wolfram.com/Associative.html
+ * [3]: https://www.typescriptlang.org/docs/handbook/type-compatibility.html#site-content
+ * [4]: https://www.typescriptlang.org/docs/handbook/declaration-merging.html#module-augmentation
  */
 export interface Semigroup<in out A> {
     /**
