@@ -62,13 +62,20 @@ to implement their associated interfaces.</li>
 <a href="#comparing-iterables" id="comparing-iterables" style="color: inherit; text-decoration: none;">
   <h2>Comparing Iterables</h2>
 </a>
-<p>These functions compare two Iterables of <code>Eq</code> and <code>Ord</code> values, and are
-useful for implementing equivalence relations and total orders for
-collections and containers:</p>
+<p>These functions compare two Iterables of <code>Eq</code> and <code>Ord</code> values:</p>
 <ul>
 <li><code>ieq</code> tests for equality.</li>
 <li><code>icmp</code> determines their ordering.</li>
 </ul>
+<p>These functions compare two Iterables of arbitrary values:</p>
+<ul>
+<li><code>ieqBy</code> tests for equality using a provided testing function.</li>
+<li><code>icmpBy</code> determines their ordering using a provided comparer function.</li>
+</ul>
+<p>The <code>-By</code> methods are particularly useful for comparing Iterables without
+requiring that their values implement <code>Eq</code> and <code>Ord</code>, or performing
+additional transformations beforehand. Examples include comparing instances
+of <code>Int8Array</code>, or comparing Iterables returned from <code>Map.prototype.entries</code>.</p>
 
 <a href="#lexicographical-comparison" id="lexicographical-comparison" style="color: inherit; text-decoration: none;">
   <h3>Lexicographical comparison</h3>
@@ -151,7 +158,7 @@ write <code>A extends Eq&lt;A&gt;</code> or <code>A extends Ord&lt;A&gt;</code>,
 </code></pre>
 </div></section><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/jm4rtinez/neotype_prelude/blob/edcd019/src/cmp.ts#L152">cmp.ts:152</a></li></ul></aside>
+<li>Defined in <a href="https://github.com/jm4rtinez/neotype_prelude/blob/86babe2/src/cmp.ts#L158">cmp.ts:158</a></li></ul></aside>
 <section class="tsd-panel-group">
 <section class="tsd-panel tsd-typography"></section></section>
 <section class="tsd-panel-group tsd-index-group">
@@ -184,7 +191,9 @@ write <code>A extends Eq&lt;A&gt;</code> or <code>A extends Ord&lt;A&gt;</code>,
 <a href="../functions/cmp.ge.html" class="tsd-index-link tsd-kind-function tsd-parent-kind-module"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-64-path"></use><use href="#icon-64-text"></use></svg><span>ge</span></a>
 <a href="../functions/cmp.gt.html" class="tsd-index-link tsd-kind-function tsd-parent-kind-module"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-64-path"></use><use href="#icon-64-text"></use></svg><span>gt</span></a>
 <a href="../functions/cmp.icmp.html" class="tsd-index-link tsd-kind-function tsd-parent-kind-module"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-64-path"></use><use href="#icon-64-text"></use></svg><span>icmp</span></a>
+<a href="../functions/cmp.icmpBy.html" class="tsd-index-link tsd-kind-function tsd-parent-kind-module"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-64-path"></use><use href="#icon-64-text"></use></svg><span>icmp<wbr/>By</span></a>
 <a href="../functions/cmp.ieq.html" class="tsd-index-link tsd-kind-function tsd-parent-kind-module"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-64-path"></use><use href="#icon-64-text"></use></svg><span>ieq</span></a>
+<a href="../functions/cmp.ieqBy.html" class="tsd-index-link tsd-kind-function tsd-parent-kind-module"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-64-path"></use><use href="#icon-64-text"></use></svg><span>ieq<wbr/>By</span></a>
 <a href="../functions/cmp.le.html" class="tsd-index-link tsd-kind-function tsd-parent-kind-module"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-64-path"></use><use href="#icon-64-text"></use></svg><span>le</span></a>
 <a href="../functions/cmp.lt.html" class="tsd-index-link tsd-kind-function tsd-parent-kind-module"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-64-path"></use><use href="#icon-64-text"></use></svg><span>lt</span></a>
 <a href="../functions/cmp.max.html" class="tsd-index-link tsd-kind-function tsd-parent-kind-module"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-64-path"></use><use href="#icon-64-text"></use></svg><span>max</span></a>
@@ -248,7 +257,9 @@ write <code>A extends Eq&lt;A&gt;</code> or <code>A extends Ord&lt;A&gt;</code>,
 <li class="tsd-kind-function tsd-parent-kind-module"><a href="../functions/cmp.ge.html" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-64-path"></use><use href="#icon-64-text"></use></svg>ge</a></li>
 <li class="tsd-kind-function tsd-parent-kind-module"><a href="../functions/cmp.gt.html" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-64-path"></use><use href="#icon-64-text"></use></svg>gt</a></li>
 <li class="tsd-kind-function tsd-parent-kind-module"><a href="../functions/cmp.icmp.html" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-64-path"></use><use href="#icon-64-text"></use></svg>icmp</a></li>
+<li class="tsd-kind-function tsd-parent-kind-module"><a href="../functions/cmp.icmpBy.html" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-64-path"></use><use href="#icon-64-text"></use></svg>icmp<wbr/>By</a></li>
 <li class="tsd-kind-function tsd-parent-kind-module"><a href="../functions/cmp.ieq.html" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-64-path"></use><use href="#icon-64-text"></use></svg>ieq</a></li>
+<li class="tsd-kind-function tsd-parent-kind-module"><a href="../functions/cmp.ieqBy.html" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-64-path"></use><use href="#icon-64-text"></use></svg>ieq<wbr/>By</a></li>
 <li class="tsd-kind-function tsd-parent-kind-module"><a href="../functions/cmp.le.html" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-64-path"></use><use href="#icon-64-text"></use></svg>le</a></li>
 <li class="tsd-kind-function tsd-parent-kind-module"><a href="../functions/cmp.lt.html" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-64-path"></use><use href="#icon-64-text"></use></svg>lt</a></li>
 <li class="tsd-kind-function tsd-parent-kind-module"><a href="../functions/cmp.max.html" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-64-path"></use><use href="#icon-64-text"></use></svg>max</a></li>
