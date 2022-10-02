@@ -117,7 +117,7 @@
  *
  * - `bimap` applies one of two functions to the `Disputed` or `Accepted` value
  *   depending on the Validated's variant.
- * - `mapDisputed` applies a function to the `Disputed` value, and leaves the
+ * - `lmap` applies a function to the `Disputed` value, and leaves the
  *   `Accepted` value unaffected.
  * - `map` applies a function to the `Accepted` value, and leaves the `Disputed`
  *   value unaffected.
@@ -575,18 +575,18 @@ export namespace Validated {
          */
         bimap<E, A, E1, B>(
             this: Validated<E, A>,
-            mapL: (x: E) => E1,
-            mapR: (x: A) => B,
+            lmap: (x: E) => E1,
+            rmap: (x: A) => B,
         ): Validated<E1, B> {
             return this.isDisputed()
-                ? dispute(mapL(this.val))
-                : accept(mapR(this.val));
+                ? dispute(lmap(this.val))
+                : accept(rmap(this.val));
         }
 
         /**
          * If this Validated is `Disputed`, apply a function to its value.
          */
-        mapDisputed<E, A, E1>(
+        lmap<E, A, E1>(
             this: Validated<E, A>,
             f: (x: E) => E1,
         ): Validated<E1, A> {

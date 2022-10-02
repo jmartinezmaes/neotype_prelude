@@ -114,8 +114,8 @@
  *
  * - `bimap` applies one of two functions to the `Left` or `Right` value,
  *   depending on the Either's variant.
- * - `mapLeft` applies a function to the `Left` value, and leaves the `Right`
- *   value unaffected.
+ * - `lmap` applies a function to the `Left` value, and leaves the `Right` value
+ *   unaffected.
  * - `map` applies a function to the `Right` value, and leaves the `Left` value
  *   unaffected.
  * - `mapTo` overwrites the `Right` value, and leaves the `Left` value
@@ -692,16 +692,16 @@ export namespace Either {
          */
         bimap<A, B, C, D>(
             this: Either<A, B>,
-            mapL: (x: A) => C,
-            mapR: (x: B) => D,
+            lmap: (x: A) => C,
+            rmap: (x: B) => D,
         ): Either<C, D> {
-            return this.isLeft() ? left(mapL(this.val)) : right(mapR(this.val));
+            return this.isLeft() ? left(lmap(this.val)) : right(rmap(this.val));
         }
 
         /**
          * If this Either is `Left`, apply a function to its value.
          */
-        mapLeft<A, B, C>(this: Either<A, B>, f: (x: A) => C): Either<C, B> {
+        lmap<A, B, C>(this: Either<A, B>, f: (x: A) => C): Either<C, B> {
             return this.recover((x) => left(f(x)));
         }
 

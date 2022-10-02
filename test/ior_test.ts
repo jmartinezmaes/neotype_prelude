@@ -415,14 +415,14 @@ describe("Ior", () => {
         assert.deepEqual(t0, Ior.both(_1, _4));
     });
 
-    specify("#mapLeft", () => {
-        const t0 = mk("L", _1, _2).mapLeft((x) => pair(x, _3));
+    specify("#lmap", () => {
+        const t0 = mk("L", _1, _2).lmap((x) => pair(x, _3));
         assert.deepEqual(t0, Ior.left([_1, _3] as const));
 
-        const t1 = mk("R", _1, _2).mapLeft((x) => pair(x, _3));
+        const t1 = mk("R", _1, _2).lmap((x) => pair(x, _3));
         assert.deepEqual(t1, Ior.right(_2));
 
-        const t2 = mk("B", _1, _2).mapLeft((x) => pair(x, _3));
+        const t2 = mk("B", _1, _2).lmap((x) => pair(x, _3));
         assert.deepEqual(t2, Ior.both([_1, _3] as const, _2));
     });
 

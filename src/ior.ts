@@ -116,7 +116,7 @@
  *
  * - `bimap` applies one or two functions to the left-hand and/or right-hand
  *   value(s) depending on the Ior's variant.
- * - `mapLeft` applies a function to the left-hand value, leaving the right-hand
+ * - `lmap` applies a function to the left-hand value, leaving the right-hand
  *   value unaffected.
  * - `map` applies a function to the right-hand value, leaving the left-hand
  *   value unaffected.
@@ -855,22 +855,22 @@ export namespace Ior {
          */
         bimap<A, B, C, D>(
             this: Ior<A, B>,
-            mapL: (x: A) => C,
-            mapR: (x: B) => D,
+            lmap: (x: A) => C,
+            rmap: (x: B) => D,
         ): Ior<C, D> {
             if (this.isLeft()) {
-                return left(mapL(this.val));
+                return left(lmap(this.val));
             }
             if (this.isRight()) {
-                return right(mapR(this.val));
+                return right(rmap(this.val));
             }
-            return both(mapL(this.fst), mapR(this.snd));
+            return both(lmap(this.fst), rmap(this.snd));
         }
 
         /**
          * If this Ior has a left-hand value, apply a function to the value.
          */
-        mapLeft<A, B, C>(this: Ior<A, B>, f: (x: A) => C): Ior<C, B> {
+        lmap<A, B, C>(this: Ior<A, B>, f: (x: A) => C): Ior<C, B> {
             if (this.isLeft()) {
                 return left(f(this.val));
             }
