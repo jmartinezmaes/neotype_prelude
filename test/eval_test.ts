@@ -100,9 +100,4 @@ describe("Eval", () => {
         const t0 = mk(_1).map((x) => pair(x, _2));
         assert.deepEqual(t0.run(), [_1, _2]);
     });
-
-    specify("#mapTo", () => {
-        const t0 = mk(_1).mapTo(_2);
-        assert.strictEqual(t0.run(), _2);
-    });
 });

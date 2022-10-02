@@ -120,8 +120,6 @@
  *   value unaffected.
  * - `map` applies a function to the right-hand value, leaving the left-hand
  *   value unaffected.
- * - `mapTo` overwrites the right-hand value, leaving the left-hand value
- *   unaffected.
  *
  * These methods combine the right-hand values of two `Right` and/or `Both`
  * variants:
@@ -891,13 +889,6 @@ export namespace Ior {
                 return right(f(this.val));
             }
             return both(this.fst, f(this.snd));
-        }
-
-        /**
-         * If this Ior has a right-hand value, overwrite the value.
-         */
-        mapTo<A, D>(this: Ior<A, any>, value: D): Ior<A, D> {
-            return this.map(() => value);
         }
     }
 

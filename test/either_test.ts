@@ -288,11 +288,6 @@ describe("Either", () => {
         assert.deepEqual(t0, Either.right([_2, _4] as const));
     });
 
-    specify("#mapTo", () => {
-        const t0 = mk("R", _1, _2).mapTo(_4);
-        assert.deepEqual(t0, Either.right(_4));
-    });
-
     specify("#lmap", () => {
         const t0 = mk("L", _1, _2).lmap((x) => pair(x, _3));
         assert.deepEqual(t0, Either.left([_1, _3] as const));

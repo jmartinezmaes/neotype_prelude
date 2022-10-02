@@ -60,10 +60,13 @@
  *
  * ## Transforming values
  *
- * These methods transform an Eval's result:
+ * The `map` method applies a function to an Eval's result.
  *
- * - `map` applies a function to the result.
- * - `mapTo` overwrites the result.
+ * These methods combine the results of two Evals:
+ *
+ * - `zipWith` applies a function to the results.
+ * - `zipFst` keeps only the first result, and discards the second.
+ * - `zipSnd` keeps only the second result, and discards the first.
  *
  * ## Chaining `Eval`
  *
@@ -441,13 +444,6 @@ export class Eval<out A> {
      */
     map<B>(f: (a: A) => B): Eval<B> {
         return this.flatMap((x) => Eval.now(f(x)));
-    }
-
-    /**
-     * Overwrite this Eval's result.
-     */
-    mapTo<B>(value: B): Eval<B> {
-        return this.flatMap(() => Eval.now(value));
     }
 
     /**

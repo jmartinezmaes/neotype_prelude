@@ -410,11 +410,6 @@ describe("Ior", () => {
         assert.deepEqual(t2, Ior.both(_1, [_2, _4] as const));
     });
 
-    specify("#mapTo", () => {
-        const t0 = mk("B", _1, _2).mapTo(_4);
-        assert.deepEqual(t0, Ior.both(_1, _4));
-    });
-
     specify("#lmap", () => {
         const t0 = mk("L", _1, _2).lmap((x) => pair(x, _3));
         assert.deepEqual(t0, Ior.left([_1, _3] as const));

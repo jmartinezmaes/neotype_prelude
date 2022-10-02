@@ -112,11 +112,8 @@
  *
  * ## Transforming values
  *
- * These methods transform a Maybe's value:
- *
- * - `map` applies a function to the `Just` value, and leaves `Nothing`
- *   unaffected.
- * - `mapTo` overwrites the `Just` value, and leaves `Nothing` unaffected.
+ * The `map` method applies a function to a Maybe's `Just` value, and leaves
+ * `Nothing` unaffected.
  *
  * These methods combine the values of two `Just` variants:
  *
@@ -653,13 +650,6 @@ export namespace Maybe {
          */
         map<A, B>(this: Maybe<A>, f: (x: A) => B): Maybe<B> {
             return this.flatMap((x) => just(f(x)));
-        }
-
-        /**
-         * If this Maybe is `Just`, overwrite its value.
-         */
-        mapTo<B>(this: Maybe<any>, value: B): Maybe<B> {
-            return this.flatMap(() => just(value));
         }
     }
 

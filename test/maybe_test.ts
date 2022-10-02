@@ -273,9 +273,4 @@ describe("Maybe", () => {
         const t1 = mk("J", _1).map((x) => pair(x, _2));
         assert.deepEqual(t1, Maybe.just([_1, _2] as const));
     });
-
-    specify("#mapTo", () => {
-        const t0 = mk("J", _1).mapTo(_2);
-        assert.deepEqual(t0, Maybe.just(_2));
-    });
 });

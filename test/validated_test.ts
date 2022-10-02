@@ -173,14 +173,6 @@ describe("Validated", () => {
         assert.deepEqual(t1, Validated.accept([_2, _4] as const));
     });
 
-    specify("#mapTo", () => {
-        const t0 = mk("D", _1, _2).mapTo(_4);
-        assert.deepEqual(t0, Validated.dispute(_1));
-
-        const t1 = mk("A", _1, _2).mapTo(_4);
-        assert.deepEqual(t1, Validated.accept(_4));
-    });
-
     specify("#lmap", () => {
         const t0 = mk("D", _1, _2).lmap((x) => pair(x, _3));
         assert.deepEqual(t0, Validated.dispute([_1, _3] as const));

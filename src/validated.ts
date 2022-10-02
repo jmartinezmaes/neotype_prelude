@@ -121,8 +121,6 @@
  *   `Accepted` value unaffected.
  * - `map` applies a function to the `Accepted` value, and leaves the `Disputed`
  *   value unaffected.
- * - `mapTo` overwrites the `Accepted` value, and leaves the `Disputed` value
- *   unaffected.
  *
  * These methods combine the values of two `Accepted` variants:
  *
@@ -598,13 +596,6 @@ export namespace Validated {
          */
         map<E, A, B>(this: Validated<E, A>, f: (x: A) => B): Validated<E, B> {
             return this.isDisputed() ? this : accept(f(this.val));
-        }
-
-        /**
-         * If this Validated is `Accepted`, overwrite its value.
-         */
-        mapTo<E, B>(this: Validated<E, any>, value: B): Validated<E, B> {
-            return this.map(() => value);
         }
     }
 

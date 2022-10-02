@@ -118,8 +118,6 @@
  *   unaffected.
  * - `map` applies a function to the `Right` value, and leaves the `Left` value
  *   unaffected.
- * - `mapTo` overwrites the `Right` value, and leaves the `Left` value
- *   unaffected.
  *
  * These methods combine the values of two `Right` variants:
  *
@@ -710,13 +708,6 @@ export namespace Either {
          */
         map<A, B, D>(this: Either<A, B>, f: (x: B) => D): Either<A, D> {
             return this.flatMap((x) => right(f(x)));
-        }
-
-        /**
-         * If this Either is `Right`, overwrite its value.
-         */
-        mapTo<A, D>(this: Either<A, any>, value: D): Either<A, D> {
-            return this.flatMap(() => right(value));
         }
     }
 
