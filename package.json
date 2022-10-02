@@ -31,7 +31,6 @@
         "./fn.js": "./dist/fn.js",
         "./ior.js": "./dist/ior.js",
         "./maybe.js": "./dist/maybe.js",
-        "./tuple.js": "./dist/tuple.js",
         "./validated.js": "./dist/validated.js",
         "./internal/*": null,
         "./package.json": "./package.json"

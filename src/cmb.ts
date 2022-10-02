@@ -113,9 +113,9 @@
  * - do not provide access to their implementation, and where patching the
  *   implementation is undesireable.
  *
- * `Maybe`, `Either`, `These`, `Validated`, `Tuple` and `Ordering` involve
- * classes that provide unique implementations for `Semigroup`. See the
- * documentation in the associated modules for more details.
+ * `Maybe`, `Either`, `These`, `Validated`, and `Ordering` use classes to
+ * provide unique implementations for `Semigroup`. See the documentation in the
+ * associated modules for more details.
  *
  * #### Example: non-generic type
  *
