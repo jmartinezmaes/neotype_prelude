@@ -23,8 +23,8 @@
  * recommended to import them as they are named:
  *
  * ```ts
- * import { clamp, cmp, Eq, eq, ge, gt, icmp, ieq, le, lt, max, min, ne, Ord,
- *          Ordering, Reverse } from "@neotype/prelude/cmp.js";
+ * import { clamp, cmp, Eq, eq, ge, gt, icmp, icmpBy ieq, ieqBy, le, lt, max,
+ *          min, ne, Ord, Ordering, Reverse } from "@neotype/prelude/cmp.js";
  * ```
  *
  * ## Implementing equivalence relations and total orders
