@@ -96,7 +96,7 @@
  * ## Comparing `Ior`
  *
  * `Ior` implements `Eq` and `Ord` when both its left-hand and right-hand
- * generic types implement `Eq` and `Ord`.
+ * generic types implement `Eq` and `Ord`, respectively,
  *
  * - Two Iors are equal if they are the same variant and their value(s) is
  *   (are) equal.
@@ -291,10 +291,10 @@
  *
  * // input "a": ["err: cannot parse 'a' as int]
  * // input "1": ["err: 1 is not even"]
- * // input "2": [["parse '2' ok"],2]
- * // input "-4": [["parse '-4' ok"],-4]
- * // input "+42": [["parse '+42' ok"],42]
- * // input "0x2A: [["parse '0x2A' ok"],42]
+ * // input "2": [["info: parse '2' ok"],2]
+ * // input "-4": [["info: parse '-4' ok"],-4]
+ * // input "+42": [["info: parse '+42' ok"],42]
+ * // input "0x2A: [["info: parse '0x2A' ok"],42]
  * ```
  *
  * We can refactor the `parseEvenInt` function to use a generator comprehension

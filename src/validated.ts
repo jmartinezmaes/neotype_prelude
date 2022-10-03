@@ -81,11 +81,10 @@
  * A Validated's value can be accessed via the `val` property. The type of the
  * property can be narrowed by first querying the Validated's variant.
  *
- * Alternatively, the `fold` method will unwrap a Validated by applying one of
- * two functions to its `Disputed` or `Accepted` value.
+ * These methods also extract a Validated's value:
  *
- * These methods will extract the value from a Validated:
- *
+ * - `fold` applies one of two functions to the value, depending on the
+ *   Validated's variant.
  * - `disputedOrFold` extracts the value if the Validated is `Disputed`;
  *   otherwise, it applies a function to the `Accepted` value to return a
  *   fallback result.
@@ -93,8 +92,10 @@
  *   otherwise, it applies a function to the `Disputed` value to return a
  *   fallback result.
  *
+ * ## Comparing `Validated`
+ *
  * `Validated` implements `Eq` and `Ord` when both its `Disputed` and `Accepted`
- * values implement `Eq` and `Ord`.
+ * generic types implement `Eq` and `Ord`, respectively.
  *
  * - Two Validateds are equal if they are the same variant and their values
  *   are equal.
@@ -104,9 +105,9 @@
  * ## `Validated` as a semigroup
  *
  * `Validated` implements `Semigroup` when both its `Disputed` and `Accepted`
- * values implement `Semigroup`. When combined, the first `Disputed` Validated
- * will begin accumulating failures. If both Validateds are `Accepted`, their
- * values will be combined and returned in `Accepted`.
+ * generic types implement `Semigroup`. When combined, the first `Disputed`
+ * Validated will begin accumulating failures. If both Validateds are
+ * `Accepted`, their values will be combined and returned in `Accepted`.
  *
  * In other words, `cmb(x, y)` is equivalent to `x.zipWith(y, cmb)` for all
  * Validateds `x` and `y`.
@@ -134,11 +135,9 @@
  * Validateds. Sometimes, a collection of Validateds must be turned "inside out"
  * into a Validated that contains an equivalent collection of `Accepted` values.
  *
- * These methods will traverse a collection of Validateds to extract the
- * `Accepted` values. If any Validated in the collection is `Disputed`, the
- * traversal is halted and `Disputed` values begin accumulating instead.
- *
- * - `collect` turns an Array or a tuple literal of Validateds inside out.
+ * The `collect` method will traverse an Array of Validateds to extract the
+ * `Accepted` values. If any Validated in the Array is `Disputed`, the traversal
+ * is halted and `Disputed` values begin accumulating instead.
  *
  * ## Examples
  *

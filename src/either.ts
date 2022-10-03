@@ -81,8 +81,8 @@
  *
  * These methods also extract an Either's value:
  *
- * - `fold` applies one of two functions to the Either's value, depending on
- *   the Either's variant.
+ * - `fold` applies one of two functions to the value, depending on the Either's
+ *   variant.
  * - `leftOrFold` extracts the value if the Either is `Left`; otherwise, it
  *   applies a function to the `Right` value to return a fallback result.
  * - `rightOrFold` extracts the value if the Either is `Right`; otherwise, it
@@ -90,8 +90,8 @@
  *
  * ## Comparing `Either`
  *
- * `Either` implements `Eq` and `Ord` when both of its generic types
- * respectively implement `Eq` and `Ord`.
+ * `Either` implements `Eq` and `Ord` when both its `Left` and `Right` generic
+ * types implement `Eq` and `Ord`, respectively.
  *
  * - Two Eithers are equal if they are the same variant and their values are
  *   equal.
