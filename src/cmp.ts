@@ -206,10 +206,6 @@ import { cmb, Semigroup } from "./cmb.js";
  * - do not provide access to their implementation, and where patching the
  *   implementation is undesireable.
  *
- * `Maybe`, `Either`, `These`, and `Validated` use classes to provide unique
- * implementations for `Eq`. See the documentation in the associated modules for
- * more details.
- *
  * #### Example: non-generic type
  *
  * Consider a `Book` type that determines equality by comparing ISBNs:
@@ -498,10 +494,6 @@ export function ieq<A extends Eq<A>>(
  *   implementation for `Ord` but can have alternative implementations.
  * - do not provide access to their implementation, and where patching the
  *   implementation is undesireable.
- *
- * `Maybe`, `Either`, `These`, and `Validated` use classes to provide unique
- * implementations for `Ord`. See the documentation in the associated modules
- * for more details.
  *
  * #### Example: non-generic type
  *
