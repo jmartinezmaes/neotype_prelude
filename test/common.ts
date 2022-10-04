@@ -33,7 +33,7 @@ export class Str implements Semigroup<Str> {
 }
 
 export function arbStr(): fc.Arbitrary<Str> {
-    return fc.string({ maxLength: 10 }).map((x) => new Str(x));
+    return fc.string().map((x) => new Str(x));
 }
 
 export function pair<A, B>(x: A, y: B): readonly [A, B] {
