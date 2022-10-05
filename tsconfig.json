@@ -20,13 +20,13 @@
         "jsxFactory": "JSX.createElement",
         "jsxFragmentFactory": "JSX.Fragment"
     },
-    "include": ["./docs", "./scripts", "./src", "./test"],
+    "include": ["./scripts", "./src", "./test"],
     "typedocOptions": {
         "entryPoints": "./src/*.ts",
         "entryPointStrategy": "expand",
         "excludePrivate": true,
         "name": "Neotype Prelude",
-        "out": "./docs",
+        "out": "./site",
         "theme": "custom"
     }
 }

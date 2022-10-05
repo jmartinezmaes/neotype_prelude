@@ -44,9 +44,8 @@
         "node": "14.* || 16.* || >= 18.*"
     },
     "scripts": {
-        "build:all": "npm run build:dist && npm run build:docs",
         "build:dist": "npx rimraf ./dist && npx tsc --project ./tsconfig.build.json",
-        "build:docs": "npx ts-node-esm ./scripts/build_docs.tsx",
+        "build:site": "npx ts-node-esm ./scripts/build_site.tsx",
         "lint": "npx eslint --ext .ts .",
         "prettier:check": "npx prettier --check .",
         "prettier:write": "npx prettier --write .",
