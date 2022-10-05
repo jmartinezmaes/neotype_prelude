@@ -3,7 +3,7 @@ import * as fc from "fast-check";
 import { cmb } from "../src/cmb.js";
 import { cmp, eq, Ordering } from "../src/cmp.js";
 import { Maybe } from "../src/maybe.js";
-import { arbNum, arbStr, pair } from "./common.js";
+import { arbNum, arbStr, tuple } from "./common.js";
 
 function mk<A>(t: "N" | "J", x: A): Maybe<A> {
     return t === "N" ? Maybe.nothing : Maybe.just(x);
@@ -43,28 +43,28 @@ describe("Maybe", () => {
     specify("Maybe.go", () => {
         const t0 = Maybe.go(function* () {
             const x = yield* mk("N", _1);
-            const [y, z] = yield* mk("N", pair(x, _2));
+            const [y, z] = yield* mk("N", tuple(x, _2));
             return [x, y, z] as const;
         });
         assert.deepEqual(t0, Maybe.nothing);
 
         const t1 = Maybe.go(function* () {
             const x = yield* mk("N", _1);
-            const [y, z] = yield* mk("J", pair(x, _2));
+            const [y, z] = yield* mk("J", tuple(x, _2));
             return [x, y, z] as const;
         });
         assert.deepEqual(t1, Maybe.nothing);
 
         const t2 = Maybe.go(function* () {
             const x = yield* mk("J", _1);
-            const [y, z] = yield* mk("N", pair(x, _2));
+            const [y, z] = yield* mk("N", tuple(x, _2));
             return [x, y, z] as const;
         });
         assert.deepEqual(t2, Maybe.nothing);
 
         const t3 = Maybe.go(function* () {
             const x = yield* mk("J", _1);
-            const [y, z] = yield* mk("J", pair(x, _2));
+            const [y, z] = yield* mk("J", tuple(x, _2));
             return [x, y, z] as const;
         });
         assert.deepEqual(t3, Maybe.just([1, 1, 2] as const));
@@ -88,28 +88,28 @@ describe("Maybe", () => {
     specify("Maybe.goAsync", async () => {
         const t0 = await Maybe.goAsync(async function* () {
             const x = yield* await mkA("N", _1);
-            const [y, z] = yield* await mkA("N", pair(x, _2));
+            const [y, z] = yield* await mkA("N", tuple(x, _2));
             return [x, y, z] as const;
         });
         assert.deepEqual(t0, Maybe.nothing);
 
         const t1 = await Maybe.goAsync(async function* () {
             const x = yield* await mkA("N", _1);
-            const [y, z] = yield* await mkA("J", pair(x, _2));
+            const [y, z] = yield* await mkA("J", tuple(x, _2));
             return [x, y, z] as const;
         });
         assert.deepEqual(t1, Maybe.nothing);
 
         const t2 = await Maybe.goAsync(async function* () {
             const x = yield* await mkA("J", _1);
-            const [y, z] = yield* await mkA("N", pair(x, _2));
+            const [y, z] = yield* await mkA("N", tuple(x, _2));
             return [x, y, z] as const;
         });
         assert.deepEqual(t2, Maybe.nothing);
 
         const t3 = await Maybe.goAsync(async function* () {
             const x = yield* await mkA("J", _1);
-            const [y, z] = yield* await mkA("J", pair(x, _2));
+            const [y, z] = yield* await mkA("J", tuple(x, _2));
             return [x, y, z] as const;
         });
         assert.deepEqual(t3, Maybe.just([_1, _1, _2] as const));
@@ -119,7 +119,7 @@ describe("Maybe", () => {
                 const x = yield* await mkA("J", Promise.resolve(_1));
                 const [y, z] = yield* await mkA(
                     "J",
-                    Promise.resolve(pair(x, _2)),
+                    Promise.resolve(tuple(x, _2)),
                 );
                 return Promise.resolve([x, y, z] as const);
             });
@@ -200,13 +200,13 @@ describe("Maybe", () => {
     specify("#fold", () => {
         const t0 = mk("N", _1).fold(
             () => _2,
-            (x) => pair(x, _2),
+            (x) => tuple(x, _2),
         );
         assert.strictEqual(t0, _2);
 
         const t1 = mk("J", _1).fold(
             () => _2,
-            (x) => pair(x, _2),
+            (x) => tuple(x, _2),
         );
         assert.deepEqual(t1, [_1, _2]);
     });
@@ -236,16 +236,16 @@ describe("Maybe", () => {
     });
 
     specify("#flatMap", () => {
-        const t0 = mk("N", _1).flatMap((x) => mk("N", pair(x, _2)));
+        const t0 = mk("N", _1).flatMap((x) => mk("N", tuple(x, _2)));
         assert.deepEqual(t0, Maybe.nothing);
 
-        const t1 = mk("N", _1).flatMap((x) => mk("J", pair(x, _2)));
+        const t1 = mk("N", _1).flatMap((x) => mk("J", tuple(x, _2)));
         assert.deepEqual(t1, Maybe.nothing);
 
-        const t2 = mk("J", _1).flatMap((x) => mk("N", pair(x, _2)));
+        const t2 = mk("J", _1).flatMap((x) => mk("N", tuple(x, _2)));
         assert.deepEqual(t2, Maybe.nothing);
 
-        const t3 = mk("J", _1).flatMap((x) => mk("J", pair(x, _2)));
+        const t3 = mk("J", _1).flatMap((x) => mk("J", tuple(x, _2)));
         assert.deepEqual(t3, Maybe.just([_1, _2] as const));
     });
 
@@ -255,7 +255,7 @@ describe("Maybe", () => {
     });
 
     specify("#zipWith", () => {
-        const t0 = mk("J", _1).zipWith(mk("J", _2), pair);
+        const t0 = mk("J", _1).zipWith(mk("J", _2), tuple);
         assert.deepEqual(t0, Maybe.just([_1, _2] as const));
     });
 
@@ -270,7 +270,7 @@ describe("Maybe", () => {
     });
 
     specify("#map", () => {
-        const t1 = mk("J", _1).map((x) => pair(x, _2));
+        const t1 = mk("J", _1).map((x) => tuple(x, _2));
         assert.deepEqual(t1, Maybe.just([_1, _2] as const));
     });
 });

@@ -4,7 +4,7 @@ import { cmb } from "../src/cmb.js";
 import { cmp, eq, Ordering } from "../src/cmp.js";
 import { Either } from "../src/either.js";
 import { Validated } from "../src/validated.js";
-import { arbNum, arbStr, pair } from "./common.js";
+import { arbNum, arbStr, tuple } from "./common.js";
 
 function mk<A, B>(t: "L" | "R", x: A, y: B): Either<A, B> {
     return t === "L" ? Either.left(x) : Either.right(y);
@@ -41,28 +41,28 @@ describe("Either", () => {
     specify("Either.go", () => {
         const t0 = Either.go(function* () {
             const x = yield* mk("L", _1, _2);
-            const [y, z] = yield* mk("L", _3, pair(x, _4));
+            const [y, z] = yield* mk("L", _3, tuple(x, _4));
             return [x, y, z] as const;
         });
         assert.deepEqual(t0, Either.left(_1));
 
         const t1 = Either.go(function* () {
             const x = yield* mk("L", _1, _2);
-            const [y, z] = yield* mk("R", _3, pair(x, _4));
+            const [y, z] = yield* mk("R", _3, tuple(x, _4));
             return [x, y, z] as const;
         });
         assert.deepEqual(t1, Either.left(_1));
 
         const t2 = Either.go(function* () {
             const x = yield* mk("R", _1, _2);
-            const [y, z] = yield* mk("L", _3, pair(x, _4));
+            const [y, z] = yield* mk("L", _3, tuple(x, _4));
             return [x, y, z] as const;
         });
         assert.deepEqual(t2, Either.left(_3));
 
         const t3 = Either.go(function* () {
             const x = yield* mk("R", _1, _2);
-            const [y, z] = yield* mk("R", _3, pair(x, _4));
+            const [y, z] = yield* mk("R", _3, tuple(x, _4));
             return [x, y, z] as const;
         });
         assert.deepEqual(t3, Either.right([_2, _2, _4] as const));
@@ -90,28 +90,28 @@ describe("Either", () => {
     specify("Either.goAsync", async () => {
         const t0 = await Either.goAsync(async function* () {
             const x = yield* await mkA("L", _1, _2);
-            const [y, z] = yield* await mkA("L", _3, pair(x, _4));
+            const [y, z] = yield* await mkA("L", _3, tuple(x, _4));
             return [x, y, z] as const;
         });
         assert.deepEqual(t0, Either.left(_1));
 
         const t1 = await Either.goAsync(async function* () {
             const x = yield* await mkA("L", _1, _2);
-            const [y, z] = yield* await mkA("R", _3, pair(x, _4));
+            const [y, z] = yield* await mkA("R", _3, tuple(x, _4));
             return [x, y, z] as const;
         });
         assert.deepEqual(t1, Either.left(_1));
 
         const t2 = await Either.goAsync(async function* () {
             const x = yield* await mkA("R", _1, _2);
-            const [y, z] = yield* await mkA("L", _3, pair(x, _4));
+            const [y, z] = yield* await mkA("L", _3, tuple(x, _4));
             return [x, y, z] as const;
         });
         assert.deepEqual(t2, Either.left(_3));
 
         const t3 = await Either.goAsync(async function* () {
             const x = yield* await mkA("R", _1, _2);
-            const [y, z] = yield* await mkA("R", _3, pair(x, _4));
+            const [y, z] = yield* await mkA("R", _3, tuple(x, _4));
             return [x, y, z] as const;
         });
         assert.deepEqual(t3, Either.right([_2, _2, _4] as const));
@@ -122,7 +122,7 @@ describe("Either", () => {
                 const [y, z] = yield* await mkA(
                     "R",
                     _3,
-                    Promise.resolve(pair(x, _4)),
+                    Promise.resolve(tuple(x, _4)),
                 );
                 return Promise.resolve([x, y, z] as const);
             });
@@ -202,45 +202,45 @@ describe("Either", () => {
 
     specify("#fold", () => {
         const t0 = mk("L", _1, _2).fold(
-            (x) => pair(x, _3),
-            (x) => pair(x, _4),
+            (x) => tuple(x, _3),
+            (x) => tuple(x, _4),
         );
         assert.deepEqual(t0, [_1, _3]);
 
         const t1 = mk("R", _1, _2).fold(
-            (x) => pair(x, _3),
-            (x) => pair(x, _4),
+            (x) => tuple(x, _3),
+            (x) => tuple(x, _4),
         );
         assert.deepEqual(t1, [_2, _4]);
     });
 
     specify("#leftOrFold", () => {
-        const t0 = mk("L", _1, _2).leftOrFold((x) => pair(x, _4));
+        const t0 = mk("L", _1, _2).leftOrFold((x) => tuple(x, _4));
         assert.strictEqual(t0, _1);
 
-        const t1 = mk("R", _1, _2).leftOrFold((x) => pair(x, _4));
+        const t1 = mk("R", _1, _2).leftOrFold((x) => tuple(x, _4));
         assert.deepEqual(t1, [_2, _4]);
     });
 
     specify("#rightOrFold", () => {
-        const t0 = mk("L", _1, _2).rightOrFold((x) => pair(x, _3));
+        const t0 = mk("L", _1, _2).rightOrFold((x) => tuple(x, _3));
         assert.deepEqual(t0, [_1, _3]);
 
-        const t1 = mk("R", _1, _2).rightOrFold((x) => pair(x, _3));
+        const t1 = mk("R", _1, _2).rightOrFold((x) => tuple(x, _3));
         assert.strictEqual(t1, _2);
     });
 
     specify("#bindLeft", () => {
-        const t0 = mk("L", _1, _2).recover((x) => mk("L", pair(x, _3), _4));
+        const t0 = mk("L", _1, _2).recover((x) => mk("L", tuple(x, _3), _4));
         assert.deepEqual(t0, Either.left([_1, _3] as const));
 
-        const t1 = mk("L", _1, _2).recover((x) => mk("R", pair(x, _3), _4));
+        const t1 = mk("L", _1, _2).recover((x) => mk("R", tuple(x, _3), _4));
         assert.deepEqual(t1, Either.right(_4));
 
-        const t2 = mk("R", _1, _2).recover((x) => mk("L", pair(x, _3), _4));
+        const t2 = mk("R", _1, _2).recover((x) => mk("L", tuple(x, _3), _4));
         assert.deepEqual(t2, Either.right(_2));
 
-        const t3 = mk("R", _1, _2).recover((x) => mk("R", pair(x, _3), _4));
+        const t3 = mk("R", _1, _2).recover((x) => mk("R", tuple(x, _3), _4));
         assert.deepEqual(t3, Either.right(_2));
     });
 
@@ -250,16 +250,16 @@ describe("Either", () => {
     });
 
     specify("#flatMap", () => {
-        const t0 = mk("L", _1, _2).flatMap((x) => mk("L", _3, pair(x, _4)));
+        const t0 = mk("L", _1, _2).flatMap((x) => mk("L", _3, tuple(x, _4)));
         assert.deepEqual(t0, Either.left(_1));
 
-        const t1 = mk("L", _1, _2).flatMap((x) => mk("R", _3, pair(x, _4)));
+        const t1 = mk("L", _1, _2).flatMap((x) => mk("R", _3, tuple(x, _4)));
         assert.deepEqual(t1, Either.left(_1));
 
-        const t2 = mk("R", _1, _2).flatMap((x) => mk("L", _3, pair(x, _4)));
+        const t2 = mk("R", _1, _2).flatMap((x) => mk("L", _3, tuple(x, _4)));
         assert.deepEqual(t2, Either.left(_3));
 
-        const t3 = mk("R", _1, _2).flatMap((x) => mk("R", _3, pair(x, _4)));
+        const t3 = mk("R", _1, _2).flatMap((x) => mk("R", _3, tuple(x, _4)));
         assert.deepEqual(t3, Either.right([_2, _4] as const));
     });
 
@@ -269,7 +269,7 @@ describe("Either", () => {
     });
 
     specify("#zipWith", () => {
-        const t0 = mk("R", _1, _2).zipWith(mk("R", _3, _4), pair);
+        const t0 = mk("R", _1, _2).zipWith(mk("R", _3, _4), tuple);
         assert.deepEqual(t0, Either.right([_2, _4] as const));
     });
 
@@ -284,25 +284,25 @@ describe("Either", () => {
     });
 
     specify("#map", () => {
-        const t0 = mk("R", _1, _2).map((x) => pair(x, _4));
+        const t0 = mk("R", _1, _2).map((x) => tuple(x, _4));
         assert.deepEqual(t0, Either.right([_2, _4] as const));
     });
 
     specify("#lmap", () => {
-        const t0 = mk("L", _1, _2).lmap((x) => pair(x, _3));
+        const t0 = mk("L", _1, _2).lmap((x) => tuple(x, _3));
         assert.deepEqual(t0, Either.left([_1, _3] as const));
     });
 
     specify("#bimap", () => {
         const t1 = mk("L", _1, _2).bimap(
-            (x) => pair(x, _3),
-            (x) => pair(x, _4),
+            (x) => tuple(x, _3),
+            (x) => tuple(x, _4),
         );
         assert.deepEqual(t1, Either.left([_1, _3] as const));
 
         const t0 = mk("R", _1, _2).bimap(
-            (x) => pair(x, _3),
-            (x) => pair(x, _4),
+            (x) => tuple(x, _3),
+            (x) => tuple(x, _4),
         );
         assert.deepEqual(t0, Either.right([_2, _4] as const));
     });

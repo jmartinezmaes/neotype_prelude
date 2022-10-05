@@ -3,7 +3,7 @@ import * as fc from "fast-check";
 import { cmb } from "../src/cmb.js";
 import { cmp, eq, Ordering } from "../src/cmp.js";
 import { Ior } from "../src/ior.js";
-import { arbNum, arbStr, pair, Str } from "./common.js";
+import { arbNum, arbStr, Str, tuple } from "./common.js";
 
 function mk<A, B>(t: "L" | "R" | "B", x: A, y: B): Ior<A, B> {
     return t === "L" ? Ior.left(x) : t === "R" ? Ior.right(y) : Ior.both(x, y);
@@ -27,63 +27,63 @@ describe("Ior", () => {
     specify("Ior.go", () => {
         const t0 = Ior.go(function* () {
             const x = yield* mk("L", sa, _2);
-            const [y, z] = yield* mk("L", sc, pair(x, _4));
+            const [y, z] = yield* mk("L", sc, tuple(x, _4));
             return [x, y, z] as const;
         });
         assert.deepEqual(t0, Ior.left(sa));
 
         const t1 = Ior.go(function* () {
             const x = yield* mk("L", sa, _2);
-            const [y, z] = yield* mk("R", sc, pair(x, _4));
+            const [y, z] = yield* mk("R", sc, tuple(x, _4));
             return [x, y, z] as const;
         });
         assert.deepEqual(t1, Ior.left(sa));
 
         const t2 = Ior.go(function* () {
             const x = yield* mk("L", sa, _2);
-            const [y, z] = yield* mk("B", sc, pair(x, _4));
+            const [y, z] = yield* mk("B", sc, tuple(x, _4));
             return [x, y, z] as const;
         });
         assert.deepEqual(t2, Ior.left(sa));
 
         const t3 = Ior.go(function* () {
             const x = yield* mk("R", sa, _2);
-            const [y, z] = yield* mk("L", sc, pair(x, _4));
+            const [y, z] = yield* mk("L", sc, tuple(x, _4));
             return [x, y, z] as const;
         });
         assert.deepEqual(t3, Ior.left(sc));
 
         const t4 = Ior.go(function* () {
             const x = yield* mk("R", sa, _2);
-            const [y, z] = yield* mk("R", sc, pair(x, _4));
+            const [y, z] = yield* mk("R", sc, tuple(x, _4));
             return [x, y, z] as const;
         });
         assert.deepEqual(t4, Ior.right([_2, _2, _4] as const));
 
         const t5 = Ior.go(function* () {
             const x = yield* mk("R", sa, _2);
-            const [y, z] = yield* mk("B", sc, pair(x, _4));
+            const [y, z] = yield* mk("B", sc, tuple(x, _4));
             return [x, y, z] as const;
         });
         assert.deepEqual(t5, Ior.both(sc, [_2, _2, _4] as const));
 
         const t6 = Ior.go(function* () {
             const x = yield* mk("B", sa, _2);
-            const [y, z] = yield* mk("L", sc, pair(x, _4));
+            const [y, z] = yield* mk("L", sc, tuple(x, _4));
             return [x, y, z] as const;
         });
         assert.deepEqual(t6, Ior.left(cmb(sa, sc)));
 
         const t7 = Ior.go(function* () {
             const x = yield* mk("B", sa, _2);
-            const [y, z] = yield* mk("R", sc, pair(x, _4));
+            const [y, z] = yield* mk("R", sc, tuple(x, _4));
             return [x, y, z] as const;
         });
         assert.deepEqual(t7, Ior.both(sa, [_2, _2, _4] as const));
 
         const t8 = Ior.go(function* () {
             const x = yield* mk("B", sa, _2);
-            const [y, z] = yield* mk("B", sc, pair(x, _4));
+            const [y, z] = yield* mk("B", sc, tuple(x, _4));
             return [x, y, z] as const;
         });
         assert.deepEqual(t8, Ior.both(cmb(sa, sc), [_2, _2, _4] as const));
@@ -102,63 +102,63 @@ describe("Ior", () => {
     specify("Ior.goAsync", async () => {
         const t0 = await Ior.goAsync(async function* () {
             const x = yield* await mkA("L", sa, _2);
-            const [y, z] = yield* await mkA("L", sc, pair(x, _4));
+            const [y, z] = yield* await mkA("L", sc, tuple(x, _4));
             return [x, y, z] as const;
         });
         assert.deepEqual(t0, Ior.left(sa));
 
         const t1 = await Ior.goAsync(async function* () {
             const x = yield* await mkA("L", sa, _2);
-            const [y, z] = yield* await mkA("R", sc, pair(x, _4));
+            const [y, z] = yield* await mkA("R", sc, tuple(x, _4));
             return [x, y, z] as const;
         });
         assert.deepEqual(t1, Ior.left(sa));
 
         const t2 = await Ior.goAsync(async function* () {
             const x = yield* await mkA("L", sa, _2);
-            const [y, z] = yield* await mkA("B", sc, pair(x, _4));
+            const [y, z] = yield* await mkA("B", sc, tuple(x, _4));
             return [x, y, z] as const;
         });
         assert.deepEqual(t2, Ior.left(sa));
 
         const t3 = await Ior.goAsync(async function* () {
             const x = yield* await mkA("R", sa, _2);
-            const [y, z] = yield* await mkA("L", sc, pair(x, _4));
+            const [y, z] = yield* await mkA("L", sc, tuple(x, _4));
             return [x, y, z] as const;
         });
         assert.deepEqual(t3, Ior.left(sc));
 
         const t4 = await Ior.goAsync(async function* () {
             const x = yield* await mkA("R", sa, _2);
-            const [y, z] = yield* await mkA("R", sc, pair(x, _4));
+            const [y, z] = yield* await mkA("R", sc, tuple(x, _4));
             return [x, y, z] as const;
         });
         assert.deepEqual(t4, Ior.right([_2, _2, _4] as const));
 
         const t5 = await Ior.goAsync(async function* () {
             const x = yield* await mkA("R", sa, _2);
-            const [y, z] = yield* await mkA("B", sc, pair(x, _4));
+            const [y, z] = yield* await mkA("B", sc, tuple(x, _4));
             return [x, y, z] as const;
         });
         assert.deepEqual(t5, Ior.both(sc, [_2, _2, _4] as const));
 
         const t6 = await Ior.goAsync(async function* () {
             const x = yield* await mkA("B", sa, _2);
-            const [y, z] = yield* await mkA("L", sc, pair(x, _4));
+            const [y, z] = yield* await mkA("L", sc, tuple(x, _4));
             return [x, y, z] as const;
         });
         assert.deepEqual(t6, Ior.left(cmb(sa, sc)));
 
         const t7 = await Ior.goAsync(async function* () {
             const x = yield* await mkA("B", sa, _2);
-            const [y, z] = yield* await mkA("R", sc, pair(x, _4));
+            const [y, z] = yield* await mkA("R", sc, tuple(x, _4));
             return [x, y, z] as const;
         });
         assert.deepEqual(t7, Ior.both(sa, [_2, _2, _4] as const));
 
         const t8 = await Ior.goAsync(async function* () {
             const x = yield* await mkA("B", sa, _2);
-            const [y, z] = yield* await mkA("B", sc, pair(x, _4));
+            const [y, z] = yield* await mkA("B", sc, tuple(x, _4));
             return [x, y, z] as const;
         });
         assert.deepEqual(t8, Ior.both(cmb(sa, sc), [_2, _2, _4] as const));
@@ -169,7 +169,7 @@ describe("Ior", () => {
                 const [y, z] = yield* await mkA(
                     "B",
                     sc,
-                    Promise.resolve(pair(x, _4)),
+                    Promise.resolve(tuple(x, _4)),
                 );
                 return Promise.resolve([x, y, z] as const);
             });
@@ -296,23 +296,23 @@ describe("Ior", () => {
 
     specify("#fold", () => {
         const t0 = mk("L", _1, _2).fold(
-            (x) => pair(x, _3),
-            (x) => pair(x, _4),
-            pair,
+            (x) => tuple(x, _3),
+            (x) => tuple(x, _4),
+            tuple,
         );
         assert.deepEqual(t0, [_1, _3]);
 
         const t1 = mk("R", _1, _2).fold(
-            (x) => pair(x, _3),
-            (x) => pair(x, _4),
-            pair,
+            (x) => tuple(x, _3),
+            (x) => tuple(x, _4),
+            tuple,
         );
         assert.deepEqual(t1, [_2, _4]);
 
         const t2 = mk("B", _1, _2).fold(
-            (x) => pair(x, _3),
-            (x) => pair(x, _4),
-            pair,
+            (x) => tuple(x, _3),
+            (x) => tuple(x, _4),
+            tuple,
         );
         assert.deepEqual(t2, [_1, _2]);
     });
@@ -351,31 +351,31 @@ describe("Ior", () => {
     });
 
     specify("#flatMap", () => {
-        const t0 = mk("L", sa, _2).flatMap((x) => mk("L", sc, pair(x, _4)));
+        const t0 = mk("L", sa, _2).flatMap((x) => mk("L", sc, tuple(x, _4)));
         assert.deepEqual(t0, Ior.left(sa));
 
-        const t1 = mk("L", sa, _2).flatMap((x) => mk("R", sc, pair(x, _4)));
+        const t1 = mk("L", sa, _2).flatMap((x) => mk("R", sc, tuple(x, _4)));
         assert.deepEqual(t1, Ior.left(sa));
 
-        const t2 = mk("L", sa, _2).flatMap((x) => mk("B", sc, pair(x, _4)));
+        const t2 = mk("L", sa, _2).flatMap((x) => mk("B", sc, tuple(x, _4)));
         assert.deepEqual(t2, Ior.left(sa));
 
-        const t3 = mk("R", sa, _2).flatMap((x) => mk("L", sc, pair(x, _4)));
+        const t3 = mk("R", sa, _2).flatMap((x) => mk("L", sc, tuple(x, _4)));
         assert.deepEqual(t3, Ior.left(sc));
 
-        const t4 = mk("R", sa, _2).flatMap((x) => mk("R", sc, pair(x, _4)));
+        const t4 = mk("R", sa, _2).flatMap((x) => mk("R", sc, tuple(x, _4)));
         assert.deepEqual(t4, Ior.right([_2, _4] as const));
 
-        const t5 = mk("R", sa, _2).flatMap((x) => mk("B", sc, pair(x, _4)));
+        const t5 = mk("R", sa, _2).flatMap((x) => mk("B", sc, tuple(x, _4)));
         assert.deepEqual(t5, Ior.both(sc, [_2, _4] as const));
 
-        const t6 = mk("B", sa, _2).flatMap((x) => mk("L", sc, pair(x, _4)));
+        const t6 = mk("B", sa, _2).flatMap((x) => mk("L", sc, tuple(x, _4)));
         assert.deepEqual(t6, Ior.left(cmb(sa, sc)));
 
-        const t7 = mk("B", sa, _2).flatMap((x) => mk("R", sc, pair(x, _4)));
+        const t7 = mk("B", sa, _2).flatMap((x) => mk("R", sc, tuple(x, _4)));
         assert.deepEqual(t7, Ior.both(sa, [_2, _4] as const));
 
-        const t8 = mk("B", sa, _2).flatMap((x) => mk("B", sc, pair(x, _4)));
+        const t8 = mk("B", sa, _2).flatMap((x) => mk("B", sc, tuple(x, _4)));
         assert.deepEqual(t8, Ior.both(cmb(sa, sc), [_2, _4] as const));
     });
 
@@ -385,7 +385,7 @@ describe("Ior", () => {
     });
 
     specify("#zipWith", () => {
-        const t0 = mk("B", sa, _2).zipWith(mk("B", sc, _4), pair);
+        const t0 = mk("B", sa, _2).zipWith(mk("B", sc, _4), tuple);
         assert.deepEqual(t0, Ior.both(cmb(sa, sc), [_2, _4] as const));
     });
 
@@ -400,43 +400,43 @@ describe("Ior", () => {
     });
 
     specify("#map", () => {
-        const t0 = mk("L", _1, _2).map((x) => pair(x, _4));
+        const t0 = mk("L", _1, _2).map((x) => tuple(x, _4));
         assert.deepEqual(t0, Ior.left(_1));
 
-        const t1 = mk("R", _1, _2).map((x) => pair(x, _4));
+        const t1 = mk("R", _1, _2).map((x) => tuple(x, _4));
         assert.deepEqual(t1, Ior.right([_2, _4] as const));
 
-        const t2 = mk("B", _1, _2).map((x) => pair(x, _4));
+        const t2 = mk("B", _1, _2).map((x) => tuple(x, _4));
         assert.deepEqual(t2, Ior.both(_1, [_2, _4] as const));
     });
 
     specify("#lmap", () => {
-        const t0 = mk("L", _1, _2).lmap((x) => pair(x, _3));
+        const t0 = mk("L", _1, _2).lmap((x) => tuple(x, _3));
         assert.deepEqual(t0, Ior.left([_1, _3] as const));
 
-        const t1 = mk("R", _1, _2).lmap((x) => pair(x, _3));
+        const t1 = mk("R", _1, _2).lmap((x) => tuple(x, _3));
         assert.deepEqual(t1, Ior.right(_2));
 
-        const t2 = mk("B", _1, _2).lmap((x) => pair(x, _3));
+        const t2 = mk("B", _1, _2).lmap((x) => tuple(x, _3));
         assert.deepEqual(t2, Ior.both([_1, _3] as const, _2));
     });
 
     specify("#bimap", () => {
         const t0 = mk("L", _1, _2).bimap(
-            (x) => pair(x, _3),
-            (x) => pair(x, _4),
+            (x) => tuple(x, _3),
+            (x) => tuple(x, _4),
         );
         assert.deepEqual(t0, Ior.left([_1, _3] as const));
 
         const t1 = mk("R", _1, _2).bimap(
-            (x) => pair(x, _3),
-            (x) => pair(x, _4),
+            (x) => tuple(x, _3),
+            (x) => tuple(x, _4),
         );
         assert.deepEqual(t1, Ior.right([_2, _4] as const));
 
         const t2 = mk("B", _1, _2).bimap(
-            (x) => pair(x, _3),
-            (x) => pair(x, _4),
+            (x) => tuple(x, _3),
+            (x) => tuple(x, _4),
         );
         assert.deepEqual(t2, Ior.both([_1, _3] as const, [_2, _4] as const));
     });

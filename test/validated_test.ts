@@ -4,7 +4,7 @@ import { cmb } from "../src/cmb.js";
 import { cmp, eq, Ordering } from "../src/cmp.js";
 import { Either } from "../src/either.js";
 import { Validated } from "../src/validated.js";
-import { arbNum, arbStr, pair, Str } from "./common.js";
+import { arbNum, arbStr, Str, tuple } from "./common.js";
 
 function mk<A, B>(t: "D" | "A", x: A, y: B): Validated<A, B> {
     return t === "D" ? Validated.dispute(x) : Validated.accept(y);
@@ -113,45 +113,45 @@ describe("Validated", () => {
 
     specify("#fold", () => {
         const t0 = mk("D", _1, _2).fold(
-            (x) => pair(x, _3),
-            (x) => pair(x, _4),
+            (x) => tuple(x, _3),
+            (x) => tuple(x, _4),
         );
         assert.deepEqual(t0, [_1, _3]);
 
         const t1 = mk("A", _1, _2).fold(
-            (x) => pair(x, _3),
-            (x) => pair(x, _4),
+            (x) => tuple(x, _3),
+            (x) => tuple(x, _4),
         );
         assert.deepEqual(t1, [_2, _4]);
     });
 
     specify("#disputedOrFold", () => {
-        const t0 = mk("D", _1, _2).disputedOrFold((x) => pair(x, _4));
+        const t0 = mk("D", _1, _2).disputedOrFold((x) => tuple(x, _4));
         assert.strictEqual(t0, _1);
 
-        const t1 = mk("A", _1, _2).disputedOrFold((x) => pair(x, _4));
+        const t1 = mk("A", _1, _2).disputedOrFold((x) => tuple(x, _4));
         assert.deepEqual(t1, [_2, _4]);
     });
 
     specify("#acceptedOrFold", () => {
-        const t0 = mk("D", _1, _2).acceptedOrFold((x) => pair(x, _3));
+        const t0 = mk("D", _1, _2).acceptedOrFold((x) => tuple(x, _3));
         assert.deepEqual(t0, [_1, _3]);
 
-        const t1 = mk("A", _1, _2).acceptedOrFold((x) => pair(x, _3));
+        const t1 = mk("A", _1, _2).acceptedOrFold((x) => tuple(x, _3));
         assert.strictEqual(t1, _2);
     });
 
     specify("#zipWith", () => {
-        const t0 = mk("D", sa, _2).zipWith(mk("D", sc, _4), pair);
+        const t0 = mk("D", sa, _2).zipWith(mk("D", sc, _4), tuple);
         assert.deepEqual(t0, Validated.dispute(cmb(sa, sc)));
 
-        const t1 = mk("D", sa, _2).zipWith(mk("A", sc, _4), pair);
+        const t1 = mk("D", sa, _2).zipWith(mk("A", sc, _4), tuple);
         assert.deepEqual(t1, Validated.dispute(sa));
 
-        const t2 = mk("A", sa, _2).zipWith(mk("D", sc, _4), pair);
+        const t2 = mk("A", sa, _2).zipWith(mk("D", sc, _4), tuple);
         assert.deepEqual(t2, Validated.dispute(sc));
 
-        const t3 = mk("A", sa, _2).zipWith(mk("A", sc, _4), pair);
+        const t3 = mk("A", sa, _2).zipWith(mk("A", sc, _4), tuple);
         assert.deepEqual(t3, Validated.accept([_2, _4] as const));
     });
 
@@ -166,31 +166,31 @@ describe("Validated", () => {
     });
 
     specify("#map", () => {
-        const t0 = mk("D", _1, _2).map((x) => pair(x, _4));
+        const t0 = mk("D", _1, _2).map((x) => tuple(x, _4));
         assert.deepEqual(t0, Validated.dispute(_1));
 
-        const t1 = mk("A", _1, _2).map((x) => pair(x, _4));
+        const t1 = mk("A", _1, _2).map((x) => tuple(x, _4));
         assert.deepEqual(t1, Validated.accept([_2, _4] as const));
     });
 
     specify("#lmap", () => {
-        const t0 = mk("D", _1, _2).lmap((x) => pair(x, _3));
+        const t0 = mk("D", _1, _2).lmap((x) => tuple(x, _3));
         assert.deepEqual(t0, Validated.dispute([_1, _3] as const));
 
-        const t1 = mk("A", _1, _2).lmap((x) => pair(x, _3));
+        const t1 = mk("A", _1, _2).lmap((x) => tuple(x, _3));
         assert.deepEqual(t1, Validated.accept(_2));
     });
 
     specify("#bimap", () => {
         const t0 = mk("D", _1, _2).bimap(
-            (x) => pair(x, _3),
-            (x) => pair(x, _4),
+            (x) => tuple(x, _3),
+            (x) => tuple(x, _4),
         );
         assert.deepEqual(t0, Validated.dispute([_1, _3] as const));
 
         const t1 = mk("A", _1, _2).bimap(
-            (x) => pair(x, _3),
-            (x) => pair(x, _4),
+            (x) => tuple(x, _3),
+            (x) => tuple(x, _4),
         );
         assert.deepEqual(t1, Validated.accept([_2, _4] as const));
     });

@@ -36,6 +36,6 @@ export function arbStr(): fc.Arbitrary<Str> {
     return fc.string().map((x) => new Str(x));
 }
 
-export function pair<A, B>(x: A, y: B): readonly [A, B] {
+export function tuple<A, B>(x: A, y: B): readonly [A, B] {
     return [x, y] as const;
 }

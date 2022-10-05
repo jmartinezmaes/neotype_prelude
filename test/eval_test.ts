@@ -2,7 +2,7 @@ import { assert } from "chai";
 import * as fc from "fast-check";
 import { cmb } from "../src/cmb.js";
 import { Eval } from "../src/eval.js";
-import { arbStr, pair } from "./common.js";
+import { arbStr, tuple } from "./common.js";
 
 const mk = Eval.now;
 
@@ -18,7 +18,7 @@ describe("Eval", () => {
         f.counter = 0;
 
         const t0 = Eval.once(f);
-        const t1 = t0.flatMap((x) => t0.map((y) => pair(x, y)));
+        const t1 = t0.flatMap((x) => t0.map((y) => tuple(x, y)));
 
         assert.deepEqual(t1.run(), [_1, _1]);
         assert.strictEqual(f.counter, 1);
@@ -32,7 +32,7 @@ describe("Eval", () => {
         f.counter = 0;
 
         const t0 = Eval.always(f);
-        const t1 = t0.flatMap((x) => t0.map((y) => pair(x, y)));
+        const t1 = t0.flatMap((x) => t0.map((y) => tuple(x, y)));
 
         assert.deepEqual(t1.run(), [_1, _1]);
         assert.strictEqual(f.counter, 2);
@@ -41,7 +41,7 @@ describe("Eval", () => {
     specify("Eval.go", () => {
         const t0 = Eval.go(function* () {
             const x = yield* mk(_1);
-            const [y, z] = yield* mk(pair(x, _2));
+            const [y, z] = yield* mk(tuple(x, _2));
             return [x, y, z] as const;
         });
         assert.deepEqual(t0.run(), [_1, _1, _2]);
@@ -72,7 +72,7 @@ describe("Eval", () => {
     });
 
     specify("#flatMap", () => {
-        const t0 = mk(_1).flatMap((x) => mk(pair(x, _2)));
+        const t0 = mk(_1).flatMap((x) => mk(tuple(x, _2)));
         assert.deepEqual(t0.run(), [_1, _2]);
     });
 
@@ -82,7 +82,7 @@ describe("Eval", () => {
     });
 
     specify("#zipWith", () => {
-        const t0 = mk(_1).zipWith(mk(_2), pair);
+        const t0 = mk(_1).zipWith(mk(_2), tuple);
         assert.deepEqual(t0.run(), [_1, _2]);
     });
 
@@ -97,7 +97,7 @@ describe("Eval", () => {
     });
 
     specify("#map", () => {
-        const t0 = mk(_1).map((x) => pair(x, _2));
+        const t0 = mk(_1).map((x) => tuple(x, _2));
         assert.deepEqual(t0.run(), [_1, _2]);
     });
 });
