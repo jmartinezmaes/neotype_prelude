@@ -21,9 +21,17 @@
     "bugs": {
         "url": "https://github.com/jm4rtinez/neotype_prelude/issues"
     },
+    "files": [
+        "dist",
+        "src"
+    ],
     "type": "module",
     "sideEffects": false,
+    "engines": {
+        "node": "14.* || 16.* || >= 18.*"
+    },
     "exports": {
+        "./internal/*": null,
         "./cmb.js": "./dist/cmb.js",
         "./cmp.js": "./dist/cmp.js",
         "./either.js": "./dist/either.js",
@@ -33,23 +41,34 @@
         "./maybe.js": "./dist/maybe.js",
         "./pair.js": "./dist/pair.js",
         "./validated.js": "./dist/validated.js",
-        "./internal/*": null,
         "./package.json": "./package.json"
     },
-    "files": [
-        "dist",
-        "src"
-    ],
-    "engines": {
-        "node": "14.* || 16.* || >= 18.*"
-    },
     "scripts": {
-        "build:dist": "npx rimraf ./dist && npx tsc --project ./tsconfig.build.json",
+        "build:dist": "npm run clean && npx tsc --project ./tsconfig.build.json",
         "build:site": "npx ts-node-esm ./scripts/build_site.tsx",
+        "clean": "npx rimraf ./dist",
         "lint": "npx eslint --ext .ts .",
         "prettier:check": "npx prettier --check .",
         "prettier:write": "npx prettier --write .",
         "test": "npm run lint --silent && mocha"
+    },
+    "devDependencies": {
+        "@types/chai": "^4.3.1",
+        "@types/mocha": "^9.1.1",
+        "@typescript-eslint/eslint-plugin": "^5.30.5",
+        "@typescript-eslint/parser": "^5.30.5",
+        "chai": "^4.3.6",
+        "eslint": "^8.19.0",
+        "eslint-config-prettier": "^8.5.0",
+        "eslint-plugin-import": "^2.26.0",
+        "fast-check": "^3.0.1",
+        "mocha": "^10.0.0",
+        "prettier": "2.7.1",
+        "prettier-plugin-organize-imports": "^3.1.1",
+        "rimraf": "^3.0.2",
+        "ts-node": "^10.9.1",
+        "typedoc": "0.23.14",
+        "typescript": "^4.8.3"
     },
     "eslintConfig": {
         "env": {
@@ -61,6 +80,9 @@
             "eslint:recommended",
             "plugin:@typescript-eslint/recommended",
             "prettier"
+        ],
+        "ignorePatterns": [
+            "dist"
         ],
         "parser": "@typescript-eslint/parser",
         "parserOptions": {
@@ -100,23 +122,5 @@
     "prettier": {
         "trailingComma": "all",
         "tabWidth": 4
-    },
-    "devDependencies": {
-        "@types/chai": "^4.3.1",
-        "@types/mocha": "^9.1.1",
-        "@typescript-eslint/eslint-plugin": "^5.30.5",
-        "@typescript-eslint/parser": "^5.30.5",
-        "chai": "^4.3.6",
-        "eslint": "^8.19.0",
-        "eslint-config-prettier": "^8.5.0",
-        "eslint-plugin-import": "^2.26.0",
-        "fast-check": "^3.0.1",
-        "mocha": "^10.0.0",
-        "prettier": "2.7.1",
-        "prettier-plugin-organize-imports": "^3.1.1",
-        "rimraf": "^3.0.2",
-        "ts-node": "^10.9.1",
-        "typedoc": "0.23.14",
-        "typescript": "^4.8.3"
     }
 }
