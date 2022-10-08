@@ -4,7 +4,7 @@
     "description": "Functional programming essentials for TypeScript",
     "repository": {
         "type": "git",
-        "url": "git+https://github.com/jm4rtinez/neotype_prelude.git"
+        "url": "https://github.com/jm4rtinez/neotype_prelude.git"
     },
     "keywords": [
         "adt",
