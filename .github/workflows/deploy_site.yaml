@@ -2,7 +2,8 @@ name: Deploy documentation site to Pages
 
 on:
   release:
-    types: [published]
+    types:
+      - published
   workflow_dispatch:
 
 permissions:
