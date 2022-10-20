@@ -337,111 +337,12 @@ export namespace Validated {
      * and collect the `Accepted` values in an Array or a tuple literal,
      * respectively.
      */
-    export function collect<E extends Semigroup<E>, A0, A1>(
-        vtds: readonly [Validated<E, A0>, Validated<E, A1>],
-    ): Validated<E, [A0, A1]>;
-
-    export function collect<E extends Semigroup<E>, A0, A1, A2>(
-        vtds: readonly [Validated<E, A0>, Validated<E, A1>, Validated<E, A2>],
-    ): Validated<E, [A0, A1, A2]>;
-
-    export function collect<E extends Semigroup<E>, A0, A1, A2, A3>(
-        vtds: readonly [
-            Validated<E, A0>,
-            Validated<E, A1>,
-            Validated<E, A2>,
-            Validated<E, A3>,
-        ],
-    ): Validated<E, [A0, A1, A2, A3]>;
-
-    export function collect<E extends Semigroup<E>, A0, A1, A2, A3, A4>(
-        vtds: readonly [
-            Validated<E, A0>,
-            Validated<E, A1>,
-            Validated<E, A2>,
-            Validated<E, A3>,
-            Validated<E, A4>,
-        ],
-    ): Validated<E, [A0, A1, A2, A3, A4]>;
-
-    // prettier-ignore
-    export function collect<E extends Semigroup<E>, A0, A1, A2, A3, A4, A5>(
-        vtds: readonly [
-            Validated<E, A0>,
-            Validated<E, A1>,
-            Validated<E, A2>,
-            Validated<E, A3>,
-            Validated<E, A4>,
-            Validated<E, A5>,
-        ],
-    ): Validated<E, [A0, A1, A2, A3, A4, A5]>;
-
-    // prettier-ignore
-    export function collect<E extends Semigroup<E>, A0, A1, A2, A3, A4, A5, A6>(
-        vtds: readonly [
-            Validated<E, A0>,
-            Validated<E, A1>,
-            Validated<E, A2>,
-            Validated<E, A3>,
-            Validated<E, A4>,
-            Validated<E, A5>,
-            Validated<E, A6>,
-        ],
-    ): Validated<E, [A0, A1, A2, A3, A4, A5, A6]>;
-
-    // prettier-ignore
-    export function collect<E extends Semigroup<E>, A0, A1, A2, A3, A4, A5, A6, A7>(
-        vtds: readonly [
-            Validated<E, A0>,
-            Validated<E, A1>,
-            Validated<E, A2>,
-            Validated<E, A3>,
-            Validated<E, A4>,
-            Validated<E, A5>,
-            Validated<E, A6>,
-            Validated<E, A7>,
-        ],
-    ): Validated<E, [A0, A1, A2, A3, A4, A5, A6, A7]>;
-
-    // prettier-ignore
-    export function collect<E extends Semigroup<E>, A0, A1, A2, A3, A4, A5, A6, A7, A8>(
-        vtds: readonly [
-            Validated<E, A0>,
-            Validated<E, A1>,
-            Validated<E, A2>,
-            Validated<E, A3>,
-            Validated<E, A4>,
-            Validated<E, A5>,
-            Validated<E, A6>,
-            Validated<E, A7>,
-            Validated<E, A8>,
-        ],
-    ): Validated<E, [A0, A1, A2, A3, A4, A5, A6, A7, A8]>;
-
-    // prettier-ignore
-    export function collect<E extends Semigroup<E>, A0, A1, A2, A3, A4, A5, A6, A7, A8, A9>(
-        vtds: readonly [
-            Validated<E, A0>,
-            Validated<E, A1>,
-            Validated<E, A2>,
-            Validated<E, A3>,
-            Validated<E, A4>,
-            Validated<E, A5>,
-            Validated<E, A6>,
-            Validated<E, A7>,
-            Validated<E, A8>,
-            Validated<E, A9>,
-        ],
-    ): Validated<E, [A0, A1, A2, A3, A4, A5, A6, A7, A8, A9]>;
-
-    export function collect<E extends Semigroup<E>, A>(
-        vtds: readonly Validated<E, A>[],
-    ): Validated<E, A[]>;
-
-    export function collect<E extends Semigroup<E>, A>(
-        vtds: readonly Validated<E, A>[],
-    ): Validated<E, A[]> {
-        let acc = accept<A[], E>(new Array(vtds.length));
+    export function collect<
+        T extends readonly Validated<Semigroup<any>, any>[],
+    >(
+        vtds: T,
+    ): Validated<DisputedT<T[number]>, { [K in keyof T]: AcceptedT<T[K]> }> {
+        let acc = accept<any, any>(new Array(vtds.length));
         for (const [idx, vtd] of vtds.entries()) {
             acc = acc.zipWith(vtd, (results, x) => {
                 results[idx] = x;
@@ -631,4 +532,18 @@ export namespace Validated {
             this.val = val;
         }
     }
+
+    /**
+     * Extract the `Disputed` type `E` from the type `Validated<E, A>`.
+     */
+    // prettier-ignore
+    export type DisputedT<T extends Validated<any, any>> =
+        [T] extends [Validated<infer E, any>] ? E : never;
+
+    /**
+     * Extract the `Accepted` type `A` from the type `Validated<E, A>`.
+     */
+    // prettier-ignore
+    export type AcceptedT<T extends Validated<any, any>> =
+        [T] extends [Validated<any, infer A>] ? A : never;
 }

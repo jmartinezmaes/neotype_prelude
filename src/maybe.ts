@@ -480,13 +480,13 @@ export namespace Maybe {
      */
     export function collect<T extends readonly Maybe<any>[]>(
         maybes: T,
-    ): Maybe<JustsT<T>> {
+    ): Maybe<{ [K in keyof T]: JustT<T[K]> }> {
         return go(function* () {
-            const results = new Array(maybes.length);
+            const results: unknown[] = new Array(maybes.length);
             for (const [idx, maybe] of maybes.entries()) {
                 results[idx] = yield* maybe;
             }
-            return results as JustsT<T>;
+            return results as { [K in keyof T]: JustT<T[K]> };
         });
     }
 
@@ -502,7 +502,7 @@ export namespace Maybe {
             for (const [key, maybe] of Object.entries(maybes)) {
                 results[key] = yield* maybe;
             }
-            return results as JustsT<T>;
+            return results as { [K in keyof T]: JustT<T[K]> };
         });
     }
 
@@ -719,23 +719,4 @@ export namespace Maybe {
     // prettier-ignore
     export type JustT<T extends Maybe<any>> =
         T extends Maybe<infer A> ? A : never;
-
-    /**
-     * Given an Array, a tuple literal, a Record, or an object literal of Maybe
-     * types, map over the structure to return an equivalent structure of the
-     * `Just` types.
-     *
-     * ```ts
-     * type T0 = [Maybe<1>, Maybe<2>, Maybe<3>];
-     * type T1 = JustsT<T0>; // [1, 2, 3]
-     *
-     * type T2 = { x: Maybe<1>, y: Maybe<2>, z: Maybe<3> };
-     * type T3 = JustsT<T2>; // { x: 1, y: 2, z: 3 }
-     * ```
-     */
-    export type JustsT<
-        T extends readonly Maybe<any>[] | Record<any, Maybe<any>>,
-    > = {
-        [K in keyof T]: T[K] extends Maybe<infer A> ? A : never;
-    };
 }

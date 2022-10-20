@@ -540,110 +540,16 @@ export namespace Ior {
      * collect the right-hand values in an Array or a tuple literal,
      * respectively.
      */
-    export function collect<E extends Semigroup<E>, A0, A1>(
-        iors: readonly [Ior<E, A0>, Ior<E, A1>],
-    ): Ior<E, [A0, A1]>;
-
-    export function collect<E extends Semigroup<E>, A0, A1, A2>(
-        iors: readonly [Ior<E, A0>, Ior<E, A1>, Ior<E, A2>],
-    ): Ior<E, [A0, A1, A2]>;
-
-    export function collect<E extends Semigroup<E>, A0, A1, A2, A3>(
-        iors: readonly [Ior<E, A0>, Ior<E, A1>, Ior<E, A2>, Ior<E, A3>],
-    ): Ior<E, [A0, A1, A2, A3]>;
-
-    export function collect<E extends Semigroup<E>, A0, A1, A2, A3, A4>(
-        iors: readonly [
-            Ior<E, A0>,
-            Ior<E, A1>,
-            Ior<E, A2>,
-            Ior<E, A3>,
-            Ior<E, A4>,
-        ],
-    ): Ior<E, [A0, A1, A2, A3, A4]>;
-
-    export function collect<E extends Semigroup<E>, A0, A1, A2, A3, A4, A5>(
-        iors: readonly [
-            Ior<E, A0>,
-            Ior<E, A1>,
-            Ior<E, A2>,
-            Ior<E, A3>,
-            Ior<E, A4>,
-            Ior<E, A5>,
-        ],
-    ): Ior<E, [A0, A1, A2, A3, A4, A5]>;
-
-    export function collect<E extends Semigroup<E>, A0, A1, A2, A3, A4, A5, A6>(
-        iors: readonly [
-            Ior<E, A0>,
-            Ior<E, A1>,
-            Ior<E, A2>,
-            Ior<E, A3>,
-            Ior<E, A4>,
-            Ior<E, A5>,
-            Ior<E, A6>,
-        ],
-    ): Ior<E, [A0, A1, A2, A3, A4, A5, A6]>;
-
-    // prettier-ignore
-    export function collect<E extends Semigroup<E>, A0, A1, A2, A3, A4, A5, A6, A7>(
-        iors: readonly [
-            Ior<E, A0>,
-            Ior<E, A1>,
-            Ior<E, A2>,
-            Ior<E, A3>,
-            Ior<E, A4>,
-            Ior<E, A5>,
-            Ior<E, A6>,
-            Ior<E, A7>,
-        ],
-    ): Ior<E, [A0, A1, A2, A3, A4, A5, A6, A7]>;
-
-    // prettier-ignore
-    export function collect<E extends Semigroup<E>, A0, A1, A2, A3, A4, A5, A6, A7, A8>(
-        iors: readonly [
-            Ior<E, A0>,
-            Ior<E, A1>,
-            Ior<E, A2>,
-            Ior<E, A3>,
-            Ior<E, A4>,
-            Ior<E, A5>,
-            Ior<E, A6>,
-            Ior<E, A7>,
-            Ior<E, A8>,
-        ],
-    ): Ior<E, [A0, A1, A2, A3, A4, A5, A6, A7, A8]>;
-
-    // prettier-ignore
-    export function collect<E extends Semigroup<E>, A0, A1, A2, A3, A4, A5, A6, A7, A8, A9>(
-        iors: readonly [
-            Ior<E, A0>,
-            Ior<E, A1>,
-            Ior<E, A2>,
-            Ior<E, A3>,
-            Ior<E, A4>,
-            Ior<E, A5>,
-            Ior<E, A6>,
-            Ior<E, A7>,
-            Ior<E, A8>,
-            Ior<E, A9>,
-        ],
-    ): Ior<E, [A0, A1, A2, A3, A4, A5, A6, A7, A8, A9]>;
-
-    export function collect<E extends Semigroup<E>, A>(
-        iors: readonly Ior<E, A>[],
-    ): Ior<E, A[]>;
-
-    export function collect<E extends Semigroup<E>, A>(
-        iors: readonly Ior<E, A>[],
-    ): Ior<E, A[]> {
+    export function collect<T extends readonly Ior<Semigroup<any>, any>[]>(
+        iors: T,
+    ): Ior<LeftT<T[number]>, { [K in keyof T]: RightT<T[K]> }> {
         return go(function* () {
-            const results: A[] = new Array(iors.length);
+            const results: unknown[] = new Array(iors.length);
             for (const [idx, ior] of iors.entries()) {
                 results[idx] = yield* ior;
             }
             return results;
-        });
+        }) as Ior<LeftT<T[number]>, { [K in keyof T]: RightT<T[K]> }>;
     }
 
     /**
@@ -981,4 +887,18 @@ export namespace Ior {
             return (yield [this]) as B;
         }
     }
+
+    /**
+     * Extract the left-hand type `A` from the type `Ior<A, B>`.
+     */
+    // prettier-ignore
+    export type LeftT<T extends Ior<any, any>> =
+        [T] extends [Ior<infer A, any>] ? A : never;
+
+    /**
+     * Extract the right-hand type `B` from the type `Ior<A, B>`.
+     */
+    // prettier-ignore
+    export type RightT<T extends Ior<any, any>> =
+        [T] extends [Ior<any, infer B>] ? B : never;
 }
