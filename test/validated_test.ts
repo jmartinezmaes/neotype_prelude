@@ -28,16 +28,28 @@ describe("Validated", () => {
     });
 
     specify("Validated.collect", () => {
-        const t0 = Validated.collect([mk("D", sa, _2), mk("D", sc, _4)]);
+        const t0 = Validated.collect([
+            mk("D", sa, _2),
+            mk("D", sc, _4),
+        ] as const);
         assert.deepEqual(t0, Validated.dispute(cmb(sa, sc)));
 
-        const t1 = Validated.collect([mk("D", sa, _2), mk("A", sc, _4)]);
+        const t1 = Validated.collect([
+            mk("D", sa, _2),
+            mk("A", sc, _4),
+        ] as const);
         assert.deepEqual(t1, Validated.dispute(sa));
 
-        const t2 = Validated.collect([mk("A", sa, _2), mk("D", sc, _4)]);
+        const t2 = Validated.collect([
+            mk("A", sa, _2),
+            mk("D", sc, _4),
+        ] as const);
         assert.deepEqual(t2, Validated.dispute(sc));
 
-        const t3 = Validated.collect([mk("A", sa, _2), mk("A", sc, _4)]);
+        const t3 = Validated.collect([
+            mk("A", sa, _2),
+            mk("A", sc, _4),
+        ] as const);
         assert.deepEqual(t3, Validated.accept([_2, _4] as const));
     });
 

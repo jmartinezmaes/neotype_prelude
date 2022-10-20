@@ -494,13 +494,13 @@ export namespace Either {
      */
     export function collect<T extends readonly Either<any, any>[]>(
         eithers: T,
-    ): Either<LeftT<T[number]>, RightsT<T>> {
+    ): Either<LeftT<T[number]>, { [K in keyof T]: RightT<T[K]> }> {
         return go(function* () {
-            const results = new Array(eithers.length);
+            const results: unknown[] = new Array(eithers.length);
             for (const [idx, either] of eithers.entries()) {
                 results[idx] = yield* either;
             }
-            return results as RightsT<T>;
+            return results as { [K in keyof T]: RightT<T[K]> };
         });
     }
 
@@ -516,7 +516,7 @@ export namespace Either {
             for (const [key, either] of Object.entries(eithers)) {
                 results[key] = yield* either;
             }
-            return results as RightsT<T>;
+            return results as { [K in keyof T]: RightT<T[K]> };
         });
     }
 
@@ -780,23 +780,4 @@ export namespace Either {
     // prettier-ignore
     export type RightT<T extends Either<any, any>> = 
         [T] extends [Either<any, infer B>] ? B : never;
-
-    /**
-     * Given an Array, a tuple literal, a Record, or an object literal of
-     * `Either` types, map over the structure to return an equivalent structure
-     * of the `Right` types.
-     *
-     * ```ts
-     * type T0 = [Either<1, 2>, Either<3, 4>, Either<5, 6>];
-     * type T1 = RightsT<T0>; // [2, 4, 6]
-     *
-     * type T2 = { x: Either<1, 2>, y: Either<3, 4>, z: Either<5, 6> };
-     * type T3 = RightsT<T2>; // { x: 2, y: 4, z: 6 }
-     * ```
-     */
-    export type RightsT<
-        T extends readonly Either<any, any>[] | Record<any, Either<any, any>>,
-    > = {
-        [K in keyof T]: [T[K]] extends [Either<any, infer B>] ? B : never;
-    };
 }

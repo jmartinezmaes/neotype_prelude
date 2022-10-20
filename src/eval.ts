@@ -349,13 +349,13 @@ export class Eval<out A> {
      */
     static collect<T extends readonly Eval<any>[]>(
         evals: T,
-    ): Eval<Eval.ResultsT<T>> {
+    ): Eval<{ [K in keyof T]: Eval.ResultT<T[K]> }> {
         return Eval.go(function* () {
-            const results = new Array(evals.length);
+            const results: unknown[] = new Array(evals.length);
             for (const [idx, ev] of evals.entries()) {
                 results[idx] = yield* ev;
             }
-            return results as Eval.ResultsT<T>;
+            return results as { [K in keyof T]: Eval.ResultT<T[K]> };
         });
     }
 
@@ -371,7 +371,7 @@ export class Eval<out A> {
             for (const [key, ev] of Object.entries(evals)) {
                 results[key] = yield* ev;
             }
-            return results as Eval.ResultsT<T>;
+            return results as { [K in keyof T]: Eval.ResultT<T[K]> };
         });
     }
 
@@ -495,25 +495,6 @@ export namespace Eval {
     // prettier-ignore
     export type ResultT<T extends Eval<any>> = 
         T extends Eval<infer A> ? A : never;
-
-    /**
-     * Given an Array, a tuple literal, a Record, or an object literal of Eval
-     * types, map over the structure to return an equivalent structure of the
-     * result types.
-     *
-     * ```ts
-     * type T0 = [Eval<1>, Eval<2>, Eval<3>];
-     * type T1 = Eval.ResultsT<T0>; // [1, 2, 3]
-     *
-     * type T2 = { x: Eval<1>, y: Eval<2>, z: Eval<3> };
-     * type T3 = Eval.ResultsT<T2>; // { x: 1, y: 2, z: 3 }
-     * ```
-     */
-    export type ResultsT<
-        T extends readonly Eval<any>[] | Record<any, Eval<any>>,
-    > = {
-        [K in keyof T]: T[K] extends Eval<infer A> ? A : never;
-    };
 }
 
 type Instr = Instr.Now | Instr.FlatMap | Instr.Once | Instr.Always;
