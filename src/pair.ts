@@ -88,13 +88,6 @@ import { cmp, Eq, eq, Ord, type Ordering } from "./cmp.js";
  */
 export class Pair<out A, out B> {
     /**
-     * Construct a Pair from two values.
-     */
-    static new<A, B>(x: A, y: B): Pair<A, B> {
-        return new Pair(x, y);
-    }
-
-    /**
      * Construct a Pair from a 2-tuple of values.
      */
     static fromTuple<A, B>(tuple: readonly [A, B]): Pair<A, B> {
