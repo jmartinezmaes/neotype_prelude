@@ -135,9 +135,12 @@
  * Validateds. Sometimes, a collection of Validateds must be turned "inside out"
  * into a Validated that contains an equivalent collection of `Accepted` values.
  *
- * The `collect` method will traverse an Array of Validateds to extract the
- * `Accepted` values. If any Validated in the Array is `Disputed`, the traversal
- * is halted and `Disputed` values begin accumulating instead.
+ * These methods will traverse a collection of Validateds to extract the
+ * `Accepted` values. If any Validated in the collection is `Disputed`, the
+ * traversal is halted and `Disputed` values begin accumulating instead.
+ *
+ * - `collect` turns an Array or a tuple literal of Validateds inside out.
+ * - `gather` turns a Record or an object literal of Validateds inside out.
  *
  * ## Examples
  *
@@ -346,6 +349,25 @@ export namespace Validated {
         for (const [idx, vtd] of vtds.entries()) {
             acc = acc.zipWith(vtd, (results, x) => {
                 results[idx] = x;
+                return results;
+            });
+        }
+        return acc;
+    }
+
+    /**
+     * Evaluate the Validateds in a Record or an object literal and collect the
+     * `Accepted` values in a Record or an object literal, respectively.
+     */
+    export function gather<
+        T extends Record<string, Validated<Semigroup<any>, any>>,
+    >(
+        vtds: T,
+    ): Validated<DisputedT<T[keyof T]>, { [K in keyof T]: AcceptedT<T[K]> }> {
+        let acc = accept<any, any>({});
+        for (const [key, vtd] of Object.entries(vtds)) {
+            acc = acc.zipWith(vtd, (results, x) => {
+                results[key as keyof T] = x;
                 return results;
             });
         }

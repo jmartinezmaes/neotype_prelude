@@ -187,6 +187,7 @@
  * required for left-hand values so they may accumulate.
  *
  * - `collect` turns an Array or a tuple literal of Iors inside out.
+ * - `gather` turns a Record or an object literal of Iors inside out.
  *
  * Additionally, the `reduce` function reduces a finite Iterable from left to
  * right in the context of `Ior`. This is useful for mapping, filtering, and
@@ -550,6 +551,22 @@ export namespace Ior {
             }
             return results;
         }) as Ior<LeftT<T[number]>, { [K in keyof T]: RightT<T[K]> }>;
+    }
+
+    /**
+     * Evaluate the Iors in a Record or an object literal and collect the
+     * right-hand values in a Record or an object literal, respectively.
+     */
+    export function gather<T extends Record<any, Ior<Semigroup<any>, any>>>(
+        iors: T,
+    ): Ior<LeftT<T[keyof T]>, { [K in keyof T]: RightT<T[K]> }> {
+        return Ior.go(function* () {
+            const results: Record<any, unknown> = {};
+            for (const [key, ior] of Object.entries(iors)) {
+                results[key] = yield* ior;
+            }
+            return results;
+        }) as Ior<LeftT<T[keyof T]>, { [K in keyof T]: RightT<T[K]> }>;
     }
 
     /**
