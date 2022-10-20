@@ -233,8 +233,10 @@
  *     rawName: string,
  *     rawAge: number,
  * ): Validated<List<string>, Person> {
- *     return validateName(rawName)
- *         .zipWith(validateAge(rawAge), (name, age) => ({ name, age }));
+ *     return Validated.gather({
+ *         name: validateName(rawName),
+ *         age: validateAge(rawAge),
+ *     });
  * }
  *
  * [

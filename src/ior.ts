@@ -375,13 +375,11 @@
  * function parseEvenIntsKeyed(
  *     inputs: string[],
  * ): Ior<Log, Record<string, number>> {
- *     return Ior.go(function* () {
- *         const results: Record<string, number> = {};
- *         for (const input of inputs) {
- *             results[input] = yield* parseEvenInt(input);
- *         }
- *         return results;
- *     });
+ *     return Ior.gather(
+ *         Object.fromEntries(
+ *             inputs.map((input) => [input, parseEvenInt(input)] as const),
+ *         ),
+ *     );
  * }
  *
  * [
