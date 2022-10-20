@@ -53,6 +53,32 @@ describe("Validated", () => {
         assert.deepEqual(t3, Validated.accept([_2, _4] as const));
     });
 
+    specify("Validated.gather", () => {
+        const t0 = Validated.gather({
+            x: mk("D", sa, _2),
+            y: mk("D", sc, _4),
+        });
+        assert.deepEqual(t0, Validated.dispute(cmb(sa, sc)));
+
+        const t1 = Validated.gather({
+            x: mk("D", sa, _2),
+            y: mk("A", sc, _4),
+        });
+        assert.deepEqual(t1, Validated.dispute(sa));
+
+        const t2 = Validated.gather({
+            x: mk("A", sa, _2),
+            y: mk("D", sc, _4),
+        });
+        assert.deepEqual(t2, Validated.dispute(sc));
+
+        const t3 = Validated.gather({
+            x: mk("A", sa, _2),
+            y: mk("A", sc, _4),
+        });
+        assert.deepEqual(t3, Validated.accept({ x: _2, y: _4 }));
+    });
+
     specify("#[Eq.eq]", () => {
         fc.assert(
             fc.property(arbNum(), arbNum(), (x, y) => {
