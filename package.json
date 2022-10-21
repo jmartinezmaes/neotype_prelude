@@ -28,7 +28,7 @@
     "type": "module",
     "sideEffects": false,
     "engines": {
-        "node": "14.* || 16.* || >= 18.*"
+        "node": "16.* || >= 18.*"
     },
     "exports": {
         "./internal/*": null,
