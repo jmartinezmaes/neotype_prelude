@@ -28,10 +28,10 @@
  *
  * ## Implementing semigroups
  *
- * - The `Semigroup` interface provides a contract for implementing
- *   [semigroups][1]. See the documentation for implementation patterns.
- * - The `Semigroup` companion namespace provides the unique symbol required to
- *   implement the associated interface.
+ * -   The `Semigroup` interface provides a contract for implementing
+ *     [semigroups][1]. See the documentation for implementation patterns.
+ * -   The `Semigroup` companion namespace provides the unique symbol required
+ *     to implement the associated interface.
  *
  * ## Combining semigroups
  *
@@ -72,7 +72,7 @@
  * Instances of `Semigroup` must implement an operation that satisfies the
  * [associative property][2], such that:
  *
- * - `cmb(x, cmb(y, z))` is equivalent to `cmb(cmb(x, y), z)`
+ * -   `cmb(x, cmb(y, z))` is equivalent to `cmb(cmb(x, y), z)`
  *
  * for all `x`, `y`, and `z`.
  *
@@ -100,18 +100,18 @@
  * Classes and objects can implement `Semigroup`. This strategy works best for
  * types that:
  *
- * - are already modeled using classes or objects.
- * - provide direct access to their implementation.
- * - have a single, specific behavior as a semigroup.
+ * -   are already modeled using classes or objects.
+ * -   provide direct access to their implementation.
+ * -   have a single, specific behavior as a semigroup.
  *
  * Additionally, classes can easily wrap existing types to provide a variety of
  * `Semigroup` implementations. These "helper" classes are useful for types
  * that:
  *
- * - have more than one behavior as a semigroup, or already have a default
- *   implementation for `Semigroup` but can have alternative implementations.
- * - do not provide access to their implementation, and where patching the
- *   implementation is undesireable.
+ * -   have more than one behavior as a semigroup, or already have a default
+ *     implementation for `Semigroup` but can have alternative implementations.
+ * -   do not provide access to their implementation, and where patching the
+ *     implementation is undesireable.
  *
  * #### Example: non-generic type
  *
@@ -200,10 +200,10 @@
  * Existing types can be patched to implement `Semigroup`. This strategy works
  * well for types that:
  *
- * - are built-in or imported from external modules.
- * - do not provide access to their implementation.
- * - have a single, specific behavior as a semigroup, or where the programmer
- *   wishes to implement a default behavior.
+ * -   are built-in or imported from external modules.
+ * -   do not provide access to their implementation.
+ * -   have a single, specific behavior as a semigroup, or where the programmer
+ *     wishes to implement a default behavior.
  *
  * Patching a type in TypeScript requires two steps:
  *

@@ -40,10 +40,10 @@
  *
  * `Eval` has four static methods for constructing Evals:
  *
- * - `now` for eager, memoized evaluation;
- * - `once` for lazy, memoized evaluation;
- * - `always` for lazy, non-memoized evaluation; and
- * - `defer` for suspended evaluation of another Eval.
+ * -   `now` for eager, memoized evaluation;
+ * -   `once` for lazy, memoized evaluation;
+ * -   `always` for lazy, non-memoized evaluation; and
+ * -   `defer` for suspended evaluation of another Eval.
  *
  * ## Running computations
  *
@@ -64,9 +64,9 @@
  *
  * These methods combine the results of two Evals:
  *
- * - `zipWith` applies a function to the results.
- * - `zipFst` keeps only the first result, and discards the second.
- * - `zipSnd` keeps only the second result, and discards the first.
+ * -   `zipWith` applies a function to the results.
+ * -   `zipFst` keeps only the first result, and discards the second.
+ * -   `zipSnd` keeps only the second result, and discards the first.
  *
  * ## Chaining `Eval`
  *
@@ -88,13 +88,13 @@
  *
  * Generator comprehensions may contain:
  *
- * - Variable declarations, assignments, and mutations
- * - Function and class declarations
- * - `for` loops
- * - `while` and `do...while` loops
- * - `if`/`else if`/`else` blocks
- * - `switch` blocks
- * - `try`/`catch` blocks
+ * -   Variable declarations, assignments, and mutations
+ * -   Function and class declarations
+ * -   `for` loops
+ * -   `while` and `do...while` loops
+ * -   `if`/`else if`/`else` blocks
+ * -   `switch` blocks
+ * -   `try`/`catch` blocks
  *
  * `Eval` is automatically deferred in its implementation of `go`. The body of
  * the provided Generator will not run until the Eval is evaluated using `run`.
@@ -108,8 +108,8 @@
  *
  * These methods will traverse a collection of Evals to extract the results.
  *
- * - `collect` turns an Array or a tuple literal of Evals inside out.
- * - `gather` turns a Record or an object literal of Evals inside out.
+ * -   `collect` turns an Array or a tuple literal of Evals inside out.
+ * -   `gather` turns a Record or an object literal of Evals inside out.
  *
  * Additionally, the `reduce` function reduces a finite Iterable from left to
  * right in the context of `Eval`. This is useful for mapping, filtering, and

@@ -23,25 +23,25 @@
  *
  * Common uses for `Maybe` include:
  *
- * - Initial values
- * - Nullable values
- * - Optional fields in classes and objects
- * - Return values for functions that are not defined over their entire input
- *   range (partial functions)
- * - Return values for reporting simple failures, where `Nothing` is returned on
- *   failure
- * - Optional function arguments
+ * -   Initial values
+ * -   Nullable values
+ * -   Optional fields in classes and objects
+ * -   Return values for functions that are not defined over their entire input
+ *     range (partial functions)
+ * -   Return values for reporting simple failures, where `Nothing` is returned
+ *     on failure
+ * -   Optional function arguments
  *
  * ## Importing from this module
  *
  * This module exports `Maybe` as both a type and a namespace. The `Maybe` type
  * is an alias for a discriminated union, and the `Maybe` namespace provides:
  *
- * - The `Nothing` and `Just` variant classes
- * - The abstract `Syntax` class that provides the fluent API for `Maybe`
- * - The `Typ` enumeration that discriminates `Maybe`
- * - The `nothing` constant
- * - Functions for constructing, chaining, and collecting into `Maybe`
+ * -   The `Nothing` and `Just` variant classes
+ * -   The abstract `Syntax` class that provides the fluent API for `Maybe`
+ * -   The `Typ` enumeration that discriminates `Maybe`
+ * -   The `nothing` constant
+ * -   Functions for constructing, chaining, and collecting into `Maybe`
  *
  * The type and namespce can be imported under the same alias:
  *
@@ -62,12 +62,12 @@
  *
  * These functions construct a Maybe:
  *
- * - `just` constructs a `Just` variant.
- * - `fromMissing` constructs a Maybe from a value that is potentially `null`
- *   or `undefined`, and converts such values to `Nothing`.
- * - `guard` constructs a Maybe from applying a predicate function to a value. A
- *   value that satisfies the predicate is returned in `Just`, and `Nothing`
- *   is returned otherwise.
+ * -   `just` constructs a `Just` variant.
+ * -   `fromMissing` constructs a Maybe from a value that is potentially `null`
+ *     or `undefined`, and converts such values to `Nothing`.
+ * -   `guard` constructs a Maybe from applying a predicate function to a value.
+ *     A value that satisfies the predicate is returned in `Just`, and `Nothing`
+ *     is returned otherwise.
  *
  * ## Querying and narrowing the variant
  *
@@ -91,18 +91,19 @@
  * These methods will extract the value from a `Just` Maybe. If the Maybe is
  * `Nothing`:
  *
- * - `justOrFold` returns the result of evaluating a provided fallback function.
- * - `justOrElse` returns a provided fallback value.
+ * -   `justOrFold` returns the result of evaluating a provided fallback
+ *     function.
+ * -   `justOrElse` returns a provided fallback value.
  *
  * ## Comparing `Maybe`
  *
  * `Maybe` implements `Eq` and `Ord` when its generic type implements `Eq` and
  * `Ord`, respectively.
  *
- * - Two Maybes are equal if they are both `Nothing`, or they are both `Just`
- *   and their values are equal.
- * - When ordered, `Nothing` is always less than `Just`. If both variants are
- *   `Just`, their values will determine the ordering.
+ * -   Two Maybes are equal if they are both `Nothing`, or they are both `Just`
+ *     and their values are equal.
+ * -   When ordered, `Nothing` is always less than `Just`. If both variants are
+ *     `Just`, their values will determine the ordering.
  *
  * ## `Maybe` as a semigroup
  *
@@ -117,9 +118,9 @@
  *
  * These methods combine the values of two `Just` variants:
  *
- * - `zipWith` applies a function to their values.
- * - `zipFst` keeps only the first value, and discards the second.
- * - `zipSnd` keeps only the second value, and discards the first.
+ * -   `zipWith` applies a function to their values.
+ * -   `zipFst` keeps only the first value, and discards the second.
+ * -   `zipSnd` keeps only the second value, and discards the first.
  *
  * ## Chaining `Maybe`
  *
@@ -141,13 +142,13 @@
  *
  * Generator comprehensions may contain:
  *
- * - Variable declarations, assignments, and mutations
- * - Function and class declarations
- * - `for` loops
- * - `while` and `do...while` loops
- * - `if`/`else if`/`else` blocks
- * - `switch` blocks
- * - `try`/`catch` blocks
+ * -   Variable declarations, assignments, and mutations
+ * -   Function and class declarations
+ * -   `for` loops
+ * -   `while` and `do...while` loops
+ * -   `if`/`else if`/`else` blocks
+ * -   `switch` blocks
+ * -   `try`/`catch` blocks
  *
  * ### Async generator comprehensions
  *
@@ -162,8 +163,8 @@
  * In addition to the syntax permitted in synchronous generator comprehensions,
  * async comprehensions may contain:
  *
- * - The `await` keyword
- * - `for await` loops (asynchronous iteration)
+ * -   The `await` keyword
+ * -   `for await` loops (asynchronous iteration)
  *
  * ## Recovering from `Nothing`
  *
@@ -179,8 +180,8 @@
  * values. If any Maybe in the collection is `Nothing`, the traversal is halted
  * and `Nothing` is returned instead.
  *
- * - `collect` turns an Array or a tuple literal of Maybes inside out.
- * - `gather` turns a Record or an object literal of Maybes inside out.
+ * -   `collect` turns an Array or a tuple literal of Maybes inside out.
+ * -   `gather` turns a Record or an object literal of Maybes inside out.
  *
  * Additionally, the `reduce` function reduces a finite Iterable from left to
  * right in the context of `Maybe`. This is useful for mapping, filtering, and

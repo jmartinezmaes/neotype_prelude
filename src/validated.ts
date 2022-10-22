@@ -37,10 +37,10 @@
  * `Validated` type is an alias for a discriminated union, and the `Validated`
  * namespace provides:
  *
- * - The `Disputed` and `Accepted` variant classes
- * - The abstract `Syntax` class that provides the fluent API for `Validated`
- * - The `Typ` enumeration that discriminates `Validated`
- * - Functions for constructing and collecting into `Validated`
+ * -   The `Disputed` and `Accepted` variant classes
+ * -   The abstract `Syntax` class that provides the fluent API for `Validated`
+ * -   The `Typ` enumeration that discriminates `Validated`
+ * -   Functions for constructing and collecting into `Validated`
  *
  * The type and namespace can be imported under the same alias:
  *
@@ -64,8 +64,8 @@
  *
  * Furthermore:
  *
- * - `fromEither` constructs a Validated from an Either. `Left` becomes
- *   `Disputed` and `Right` becomes `Accepted`.
+ * -   `fromEither` constructs a Validated from an Either. `Left` becomes
+ *     `Disputed` and `Right` becomes `Accepted`.
  *
  * ## Querying the variant
  *
@@ -83,24 +83,24 @@
  *
  * These methods also extract a Validated's value:
  *
- * - `fold` applies one of two functions to the value, depending on the
- *   Validated's variant.
- * - `disputedOrFold` extracts the value if the Validated is `Disputed`;
- *   otherwise, it applies a function to the `Accepted` value to return a
- *   fallback result.
- * - `acceptedOrFold` extracts the value if the Validated is `Accepted`;
- *   otherwise, it applies a function to the `Disputed` value to return a
- *   fallback result.
+ * -   `fold` applies one of two functions to the value, depending on the
+ *     Validated's variant.
+ * -   `disputedOrFold` extracts the value if the Validated is `Disputed`;
+ *     otherwise, it applies a function to the `Accepted` value to return a
+ *     fallback result.
+ * -   `acceptedOrFold` extracts the value if the Validated is `Accepted`;
+ *     otherwise, it applies a function to the `Disputed` value to return a
+ *     fallback result.
  *
  * ## Comparing `Validated`
  *
  * `Validated` implements `Eq` and `Ord` when both its `Disputed` and `Accepted`
  * generic types implement `Eq` and `Ord`, respectively.
  *
- * - Two Validateds are equal if they are the same variant and their values
- *   are equal.
- * - When ordered, `Disputed` is always less than `Accepted`. If the variants
- *   are equal, their values will determine the ordering.
+ * -   Two Validateds are equal if they are the same variant and their values
+ *     are equal.
+ * -   When ordered, `Disputed` is always less than `Accepted`. If the variants
+ *     are equal, their values will determine the ordering.
  *
  * ## `Validated` as a semigroup
  *
@@ -116,18 +116,18 @@
  *
  * These methods transform a Validated's value:
  *
- * - `bimap` applies one of two functions to the `Disputed` or `Accepted` value
- *   depending on the Validated's variant.
- * - `lmap` applies a function to the `Disputed` value, and leaves the
- *   `Accepted` value unaffected.
- * - `map` applies a function to the `Accepted` value, and leaves the `Disputed`
- *   value unaffected.
+ * -   `bimap` applies one of two functions to the `Disputed` or `Accepted`
+ *     value depending on the Validated's variant.
+ * -   `lmap` applies a function to the `Disputed` value, and leaves the
+ *     `Accepted` value unaffected.
+ * -   `map` applies a function to the `Accepted` value, and leaves the
+ *     `Disputed` value unaffected.
  *
  * These methods combine the values of two `Accepted` variants:
  *
- * - `zipWith` applies a function to their values.
- * - `zipFst` keeps only the first value, and discards the second.
- * - `zipSnd` keeps only the second value, and discards the first.
+ * -   `zipWith` applies a function to their values.
+ * -   `zipFst` keeps only the first value, and discards the second.
+ * -   `zipSnd` keeps only the second value, and discards the first.
  *
  * ## Collecting into `Validated`
  *
@@ -139,8 +139,8 @@
  * `Accepted` values. If any Validated in the collection is `Disputed`, the
  * traversal is halted and `Disputed` values begin accumulating instead.
  *
- * - `collect` turns an Array or a tuple literal of Validateds inside out.
- * - `gather` turns a Record or an object literal of Validateds inside out.
+ * -   `collect` turns an Array or a tuple literal of Validateds inside out.
+ * -   `gather` turns a Record or an object literal of Validateds inside out.
  *
  * ## Examples
  *

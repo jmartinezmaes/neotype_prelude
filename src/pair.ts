@@ -37,12 +37,8 @@
  *
  * ## Constructing `Pair`
  *
- * Pairs can be instantiated using the `new` keyword. These static methods also
- * construct a Pair:
- *
- * - `new` constructs a Pair from two values. This method mirrors the
- *   constructor signature.
- * - `fromTuple` constructs a Pair from a 2-tuple of values.
+ * Pairs can be instantiated using the `new` keyword. The `fromTuple` static
+ * method constructs a Pair from a 2-tuple of values.
  *
  * ## Extracting values
  *
@@ -58,9 +54,9 @@
  * `Pair` implements `Eq` and `Ord` when both its first and second generic types
  * implement `Eq` and `Ord`, respectively.
  *
- * - Two pairs are equal if their first and second values are respectively
- *   equal.
- * - `Pair` compares its first and second values lexicographically.
+ * -   Two pairs are equal if their first and second values are respectively
+ *     equal.
+ * -   `Pair` compares its first and second values lexicographically.
  *
  * ## `Pair` as a semigroup
  *
@@ -71,11 +67,12 @@
  *
  * These methods transform a Pair's value(s):
  *
- * - `bimap` applies two functions to the first and second values, respectively.
- * - `lmap` applies a function to the first value, and leaves the second value
- *   unaffected.
- * - `map` applies a function to the second value, and leaves the first value
- *   unaffected.
+ * -   `bimap` applies two functions to the first and second values,
+ *     respectively.
+ * -   `lmap` applies a function to the first value, and leaves the second value
+ *     unaffected.
+ * -   `map` applies a function to the second value, and leaves the first value
+ *     unaffected.
  *
  * @module
  */
