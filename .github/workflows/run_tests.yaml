@@ -1,4 +1,4 @@
-name: Node.js CI tests
+name: Run tests
 
 on:
   pull_request:
@@ -10,13 +10,14 @@ on:
   workflow_dispatch:
 
 jobs:
-  build:
+  test:
     runs-on: ubuntu-latest
     strategy:
       matrix:
         node-version:
           - 16
           - 18
+    name: Node.js v${{matrix.node-version}}
     steps:
       - name: Checkout
         uses: actions/checkout@v3
