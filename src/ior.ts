@@ -29,11 +29,11 @@
  * When composed, the behavior of `Ior` is a combination of the short-circuiting
  * behavior of `Either` and the failure-accumulating behavior of `Validated`:
  *
- * - `Left` short-circuits a computation completely and combines its value with
- *   any existing left-hand value.
- * - `Right` supplies its value to the next computation.
- * - `Both` supplies its right-hand value to the next computation, and combines
- *   its left-hand value with any existing left-hand value.
+ * -   `Left` short-circuits a computation completely and combines its value
+ *     with any existing left-hand value.
+ * -   `Right` supplies its value to the next computation.
+ * -   `Both` supplies its right-hand value to the next computation, and
+ *     combines its left-hand value with any existing left-hand value.
  *
  * Combinators with this behavior will require a `Semigroup` implementation for
  * the accumulating left-hand value. This documentation will use the following
@@ -44,10 +44,10 @@
  * This module exports `Ior` as both a type and a namespace. The `Ior` type is
  * an alias for a discriminated union, and the `Ior` namespace provides:
  *
- * - The `Left`, `Right`, and `Both` variant classes
- * - The abstract `Syntax` class that provides the fluent API for `Ior`
- * - The `Typ` enumeration that discriminates `Ior`
- * - Functions for constructing, chaining, and collecting into `Ior`
+ * -   The `Left`, `Right`, and `Both` variant classes
+ * -   The abstract `Syntax` class that provides the fluent API for `Ior`
+ * -   The `Typ` enumeration that discriminates `Ior`
+ * -   Functions for constructing, chaining, and collecting into `Ior`
  *
  * The type and namespace can be imported under the same alias:
  *
@@ -65,11 +65,11 @@
  *
  * These methods construct an Ior:
  *
- * - `left` constructs a `Left` variant.
- * - `right` constructs a `Right` variant.
- * - `both` constructs a `Both` variant.
- * - `fromEither` constructs an Ior from an Either. `Left` and `Right` Eithers
- *   become `Left` and `Right` Iors, respectively.
+ * -   `left` constructs a `Left` variant.
+ * -   `right` constructs a `Right` variant.
+ * -   `both` constructs a `Both` variant.
+ * -   `fromEither` constructs an Ior from an Either. `Left` and `Right` Eithers
+ *     become `Left` and `Right` Iors, respectively.
  *
  * ## Querying and narrowing the variant
  *
@@ -98,11 +98,11 @@
  * `Ior` implements `Eq` and `Ord` when both its left-hand and right-hand
  * generic types implement `Eq` and `Ord`, respectively,
  *
- * - Two Iors are equal if they are the same variant and their value(s) is
- *   (are) equal.
- * - When compared, `Left` is less than `Right`, and `Right` is less than
- *   `Both`. If the variants are equal, their values determine the ordering.
- *   `Both` compares its `fst` and `snd` properties lexicographically.
+ * -   Two Iors are equal if they are the same variant and their value(s) is
+ *     (are) equal.
+ * -   When compared, `Left` is less than `Right`, and `Right` is less than
+ *     `Both`. If the variants are equal, their values determine the ordering.
+ *     `Both` compares its `fst` and `snd` properties lexicographically.
  *
  * ## `Ior` as a semigroup
  *
@@ -114,19 +114,19 @@
  *
  * These methods transform an Ior's value(s):
  *
- * - `bimap` applies one or two functions to the left-hand and/or right-hand
- *   value(s) depending on the Ior's variant.
- * - `lmap` applies a function to the left-hand value, leaving the right-hand
- *   value unaffected.
- * - `map` applies a function to the right-hand value, leaving the left-hand
- *   value unaffected.
+ * -   `bimap` applies one or two functions to the left-hand and/or right-hand
+ *     value(s) depending on the Ior's variant.
+ * -   `lmap` applies a function to the left-hand value, leaving the right-hand
+ *     value unaffected.
+ * -   `map` applies a function to the right-hand value, leaving the left-hand
+ *     value unaffected.
  *
  * These methods combine the right-hand values of two `Right` and/or `Both`
  * variants:
  *
- * - `zipWith` applies a function to their values.
- * - `zipFst` keeps only the first value, and discards the second.
- * - `zipSnd` keeps only the second value, and discards the first.
+ * -   `zipWith` applies a function to their values.
+ * -   `zipFst` keeps only the first value, and discards the second.
+ * -   `zipSnd` keeps only the second value, and discards the first.
  *
  * ## Chaining `Ior`
  *
@@ -151,13 +151,13 @@
  * Generator comprehensions support all syntax that would otherwise be valid
  * within a Generator, including:
  *
- * - Variable declarations, assignments, and mutations
- * - Function and class declarations
- * - `for` loops
- * - `while` and `do...while` loops
- * - `if`/`else if`/`else` blocks
- * - `switch` blocks
- * - `try`/`catch` blocks
+ * -   Variable declarations, assignments, and mutations
+ * -   Function and class declarations
+ * -   `for` loops
+ * -   `while` and `do...while` loops
+ * -   `if`/`else if`/`else` blocks
+ * -   `switch` blocks
+ * -   `try`/`catch` blocks
  *
  * ## Async generator comprehensions
  *
@@ -172,8 +172,8 @@
  * In addition to the syntax permitted in synchronous generator comprehensions,
  * async comprehensions also support:
  *
- * - The `await` keyword
- * - `for await` loops (asynchronous iteration)
+ * -   The `await` keyword
+ * -   `for await` loops (asynchronous iteration)
  *
  * ## Collecting into `Ior`
  *
@@ -186,8 +186,8 @@
  * and the `Left` is returned instead. An implementation for `Semigroup` is
  * required for left-hand values so they may accumulate.
  *
- * - `collect` turns an Array or a tuple literal of Iors inside out.
- * - `gather` turns a Record or an object literal of Iors inside out.
+ * -   `collect` turns an Array or a tuple literal of Iors inside out.
+ * -   `gather` turns a Record or an object literal of Iors inside out.
  *
  * Additionally, the `reduce` function reduces a finite Iterable from left to
  * right in the context of `Ior`. This is useful for mapping, filtering, and

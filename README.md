@@ -6,24 +6,24 @@
 
 ## Quick links
 
-- [Documentation](https://jm4rtinez.github.io/neotype_prelude/)
+-   [Documentation](https://jm4rtinez.github.io/neotype_prelude/)
 
 ## Features
 
-- **Tools for comparing values**: use the contracts provided by the `Eq` and
-  `Ord` interfaces to implement equivalence relations and total orderings.
-- **Tools for combining values**: use the contract provided by the `Semigroup`
-  interface to implement semigroups.
-- **Algebraic data types**:
-    - Model optional values with `Maybe`.
-    - Handle failures with `Either`.
-    - Validate forms and user input with `Validated`.
-    - Implement stack-safe recursion with `Eval`.
-    - Get creative with more exotic types like `Ior`.
-- **Generator comprehensions**: simplify working with monads by writing
-  imperative style code blocks using a coroutine syntax.
-- **Async generator comprehensions**: take generator comprehensions to the next
-  level using the power of Promises and `async`/`await` syntax.
+-   **Tools for comparing values**: use the contracts provided by the `Eq` and
+    `Ord` interfaces to implement equivalence relations and total orderings.
+-   **Tools for combining values**: use the contract provided by the `Semigroup`
+    interface to implement semigroups.
+-   **Algebraic data types**:
+    -   Model optional values with `Maybe`.
+    -   Handle failures with `Either`.
+    -   Validate forms and user input with `Validated`.
+    -   Implement stack-safe recursion with `Eval`.
+    -   Get creative with more exotic types like `Ior`.
+-   **Generator comprehensions**: simplify working with monads by writing
+    imperative style code blocks using a coroutine syntax.
+-   **Async generator comprehensions**: take generator comprehensions to the
+    next level using the power of Promises and `async`/`await` syntax.
 
 ## Install
 
@@ -49,4 +49,5 @@ import { Maybe } from "@neotype/prelude/maybe.js";
 See each module's documentation for recommended import practices and available
 exports.
 
-[es6 modules]: https://exploringjs.com/es6/ch_modules.html#sec_basics-of-es6-modules
+[es6 modules]:
+    https://exploringjs.com/es6/ch_modules.html#sec_basics-of-es6-modules
