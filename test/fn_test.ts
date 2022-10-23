@@ -5,9 +5,10 @@ import { id, negate } from "../src/fn.js";
 describe("Functions", () => {
     specify("id", () => {
         fc.assert(
-            fc.property(fc.anything(), (x) => {
-                assert.strictEqual(id(x), x);
-            }),
+            fc.property(
+                fc.anything().filter((x) => !Number.isNaN(x)),
+                (x) => assert.strictEqual(id(x), x),
+            ),
         );
     });
 
