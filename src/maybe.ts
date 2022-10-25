@@ -444,11 +444,13 @@ export namespace Maybe {
     /**
      * Construct a Maybe using a generator comprehension.
      */
-    export function go<A>(f: () => Generator<[Maybe<any>], A, any>): Maybe<A> {
+    export function go<A>(
+        f: () => Generator<Maybe<any>, A, unknown>,
+    ): Maybe<A> {
         const gen = f();
         let nxt = gen.next();
         while (!nxt.done) {
-            const maybe = nxt.value[0];
+            const maybe = nxt.value;
             if (maybe.isJust()) {
                 nxt = gen.next(maybe.val);
             } else {
@@ -512,12 +514,12 @@ export namespace Maybe {
      * comprehension.
      */
     export async function goAsync<A>(
-        f: () => AsyncGenerator<[Maybe<any>], A, any>,
+        f: () => AsyncGenerator<Maybe<any>, A, unknown>,
     ): Promise<Maybe<A>> {
         const gen = f();
         let nxt = await gen.next();
         while (!nxt.done) {
-            const maybe = nxt.value[0];
+            const maybe = nxt.value;
             if (maybe.isJust()) {
                 nxt = await gen.next(maybe.val);
             } else {
@@ -676,8 +678,8 @@ export namespace Maybe {
          *
          * @hidden
          */
-        *[Symbol.iterator](): Iterator<[Maybe<never>], never, unknown> {
-            return (yield [this]) as never;
+        *[Symbol.iterator](): Iterator<Maybe<never>, never, unknown> {
+            return (yield this) as never;
         }
     }
 
@@ -704,8 +706,8 @@ export namespace Maybe {
          *
          * @hidden
          */
-        *[Symbol.iterator](): Iterator<[Maybe<A>], A, unknown> {
-            return (yield [this]) as A;
+        *[Symbol.iterator](): Iterator<Maybe<A>, A, unknown> {
+            return (yield this) as A;
         }
     }
 

@@ -497,14 +497,14 @@ export namespace Ior {
      * Construct an Ior using a generator comprehension.
      */
     export function go<E extends Semigroup<E>, A>(
-        f: () => Generator<[Ior<E, any>], A, any>,
+        f: () => Generator<Ior<E, any>, A, unknown>,
     ): Ior<E, A> {
         const gen = f();
         let nxt = gen.next();
         let acc: E | undefined;
 
         while (!nxt.done) {
-            const ior = nxt.value[0];
+            const ior = nxt.value;
             if (ior.isRight()) {
                 nxt = gen.next(ior.val);
             } else if (ior.isBoth()) {
@@ -572,14 +572,14 @@ export namespace Ior {
      * comprehension.
      */
     export async function goAsync<E extends Semigroup<E>, A>(
-        f: () => AsyncGenerator<[Ior<E, any>], A, any>,
+        f: () => AsyncGenerator<Ior<E, any>, A, unknown>,
     ): Promise<Ior<E, A>> {
         const gen = f();
         let nxt = await gen.next();
         let acc: E | undefined;
 
         while (!nxt.done) {
-            const ior = nxt.value[0];
+            const ior = nxt.value;
             if (ior.isRight()) {
                 nxt = await gen.next(ior.val);
             } else if (ior.isBoth()) {
@@ -836,8 +836,8 @@ export namespace Ior {
          *
          * @hidden
          */
-        *[Symbol.iterator](): Iterator<[Ior<A, never>], never, unknown> {
-            return (yield [this]) as never;
+        *[Symbol.iterator](): Iterator<Ior<A, never>, never, unknown> {
+            return (yield this) as never;
         }
     }
 
@@ -864,8 +864,8 @@ export namespace Ior {
          *
          * @hidden
          */
-        *[Symbol.iterator](): Iterator<[Ior<never, B>], B, unknown> {
-            return (yield [this]) as B;
+        *[Symbol.iterator](): Iterator<Ior<never, B>, B, unknown> {
+            return (yield this) as B;
         }
     }
 
@@ -879,6 +879,7 @@ export namespace Ior {
         readonly typ = Typ.Both;
 
         readonly fst: A;
+
         readonly snd: B;
 
         get val(): [A, B] {
@@ -898,8 +899,8 @@ export namespace Ior {
          *
          * @hidden
          */
-        *[Symbol.iterator](): Iterator<[Ior<A, B>], B, unknown> {
-            return (yield [this]) as B;
+        *[Symbol.iterator](): Iterator<Ior<A, B>, B, unknown> {
+            return (yield this) as B;
         }
     }
 
