@@ -29,7 +29,7 @@
         "entryPointStrategy": "expand",
         "excludePrivate": true,
         "name": "Neotype Prelude",
-        "out": "./site",
+        "out": "./docsite",
         "theme": "custom"
     }
 }
