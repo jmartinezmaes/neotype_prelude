@@ -1,6 +1,6 @@
 # Build
 dist
-site
+docsite
 
 # Dependency directories
 node_modules

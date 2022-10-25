@@ -50,10 +50,10 @@
         "prettier:write": "npx prettier --write --ignore-path ./.gitignore .",
         "pretest": "npm run lint && npm run prettier:check",
         "test": "npx mocha",
-        "prebuild:dist": "npm run clean",
-        "build:dist": "npx tsc --project ./tsconfig.build.json",
-        "build:site": "npx ts-node-esm ./scripts/build_site.tsx",
-        "prepublishOnly": "npm run build:dist",
+        "docs": "npx ts-node-esm ./scripts/gen_docsite.tsx",
+        "prebuild": "npm run clean",
+        "build": "npx tsc --project ./tsconfig.build.json",
+        "prepublishOnly": "npm run build",
         "postpublish": "npm run clean"
     },
     "devDependencies": {
