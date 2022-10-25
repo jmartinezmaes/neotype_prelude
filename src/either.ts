@@ -456,13 +456,13 @@ export namespace Either {
     /**
      * Construct an Either using a generator comprehension.
      */
-    export function go<T extends [Either<any, any>], A>(
-        f: () => Generator<T, A, any>,
-    ): Either<LeftT<T[0]>, A> {
+    export function go<T extends Either<any, any>, A>(
+        f: () => Generator<T, A, unknown>,
+    ): Either<LeftT<T>, A> {
         const gen = f();
         let nxt = gen.next();
         while (!nxt.done) {
-            const either = nxt.value[0];
+            const either = nxt.value;
             if (either.isRight()) {
                 nxt = gen.next(either.val);
             } else {
@@ -526,13 +526,13 @@ export namespace Either {
      * Construct a Promise that fulfills with an Either using an async generator
      * comprehension.
      */
-    export async function goAsync<T extends [Either<any, any>], A>(
-        f: () => AsyncGenerator<T, A, any>,
-    ): Promise<Either<LeftT<T[0]>, A>> {
+    export async function goAsync<T extends Either<any, any>, A>(
+        f: () => AsyncGenerator<T, A, unknown>,
+    ): Promise<Either<LeftT<T>, A>> {
         const gen = f();
         let nxt = await gen.next();
         while (!nxt.done) {
-            const either = nxt.value[0];
+            const either = nxt.value;
             if (either.isRight()) {
                 nxt = await gen.next(either.val);
             } else {
@@ -736,8 +736,8 @@ export namespace Either {
          *
          * @hidden
          */
-        *[Symbol.iterator](): Iterator<[Either<A, never>], never, unknown> {
-            return (yield [this]) as never;
+        *[Symbol.iterator](): Iterator<Either<A, never>, never, unknown> {
+            return (yield this) as never;
         }
     }
 
@@ -764,8 +764,8 @@ export namespace Either {
          *
          * @hidden
          */
-        *[Symbol.iterator](): Iterator<[Either<never, B>], B, unknown> {
-            return (yield [this]) as B;
+        *[Symbol.iterator](): Iterator<Either<never, B>, B, unknown> {
+            return (yield this) as B;
         }
     }
 

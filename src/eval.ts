@@ -307,19 +307,19 @@ export class Eval<out A> {
     }
 
     static #step<A>(
-        gen: Iterator<[Eval<any>], A>,
-        nxt: IteratorResult<[Eval<any>], A>,
+        gen: Iterator<Eval<any>, A>,
+        nxt: IteratorResult<Eval<any>, A>,
     ): Eval<A> {
         if (nxt.done) {
             return Eval.now(nxt.value);
         }
-        return nxt.value[0].flatMap((x) => Eval.#step(gen, gen.next(x)));
+        return nxt.value.flatMap((x) => Eval.#step(gen, gen.next(x)));
     }
 
     /**
      * Construct an Eval using a generator comprehension.
      */
-    static go<A>(f: () => Generator<[Eval<any>], A, any>): Eval<A> {
+    static go<A>(f: () => Generator<Eval<any>, A, unknown>): Eval<A> {
         return Eval.defer(() => {
             const gen = f();
             return Eval.#step(gen, gen.next());
@@ -390,8 +390,8 @@ export class Eval<out A> {
      *
      * @hidden
      */
-    *[Symbol.iterator](): Iterator<[Eval<A>], A, unknown> {
-        return (yield [this]) as A;
+    *[Symbol.iterator](): Iterator<Eval<A>, A, unknown> {
+        return (yield this) as A;
     }
 
     /**
