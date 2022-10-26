@@ -60,9 +60,8 @@
  * -   `left` constructs a `Left` variant.
  * -   `right` constructs a `Right` variant.
  * -   `guard` constructs an Either from applying a predicate function to a
- *     value.
- *     The value is returned in `Right` or `Left` if it satisfies or does not
- *     satisfy the predicate, respectively.
+ *     value. The value is returned in `Right` or `Left` if it satisfies or does
+ *     not satisfy the predicate, respectively.
  * -   `fromValidated` converts a Validated to an Either. `Disputed` becomes
  *     `Left` and `Accepted` becomes `Right`.
  *
@@ -175,8 +174,7 @@
  * These methods allow an Either to recover from a `Left` variant:
  *
  * -   `recover` applies a function to the Either's value to return a new
- *     Either.
- *     This is the equivalent of `flatMap` for the `Left` variant.
+ *     Either. This is the equivalent of `flatMap` for the `Left` variant.
  * -   `orElse` returns a fallback Either.
  *
  * ## Collecting into `Either`
@@ -382,12 +380,6 @@
  * // inputs ["a","-4"]: "cannot parse 'a' as int"
  * // inputs ["2","-7"]: "-7 is not even"
  * // inputs ["+42","0x2A"]: 84
- * ```
- *
- * ### Web requests with `Either`
- *
- * ```ts
- * // Todo
  * ```
  *
  * @module

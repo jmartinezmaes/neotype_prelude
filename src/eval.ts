@@ -131,12 +131,17 @@
  * ```ts
  * type Tree<A> = Tip | Bin<A>;
  * type Tip = { typ: "Tip" };
- * type Bin<A> = { typ: "Bin", val: A, ltree: Tree<A>, rtree: Tree<A> };
+ * type Bin<A> = {
+ *     typ: "Bin",
+ *     val: A,       // value
+ *     lst: Tree<A>, // left subtree
+ *     rst: Tree<A>, // right subtree
+ * };
  *
  * const tip: Tree<never> = { typ: "Tip" };
  *
- * function bin<A>(val: A, ltree: Tree<A>, rtree: Tree<A>): Tree<A> {
- *     return { typ: "Bin", val, ltree, rtree };
+ * function bin<A>(val: A, lst: Tree<A>, rst: Tree<A>): Tree<A> {
+ *     return { typ: "Bin", val, lst, rst };
  * }
  *
  * function foldTree<A, B>(
@@ -150,8 +155,8 @@
  *     // Challenge for the reader: why is `defer` needed here?
  *     // Hint: it pertains to stack safety and eager evaluation.
  *     return Eval.defer(() =>
- *         foldTree(xs.ltree, onTip, foldBin).flatMap((l) =>
- *             foldTree(xs.rtree, onTip, foldBin).map((r) =>
+ *         foldTree(xs.lst, onTip, foldBin).flatMap((l) =>
+ *             foldTree(xs.rst, onTip, foldBin).map((r) =>
  *                 foldBin(xs.val, l, r),
  *             ),
  *         ),
@@ -188,8 +193,8 @@
  *         }
  *         // Challenge for the reader: why is `defer` not needed here?
  *         // Hint: it pertains to the behavior of `go`.
- *         const l = yield* foldTree(xs.ltree, onTip, foldBin);
- *         const r = yield* foldTree(xs.rtree, onTip, foldBin);
+ *         const l = yield* foldTree(xs.lst, onTip, foldBin);
+ *         const r = yield* foldTree(xs.rst, onTip, foldBin);
  *         return foldBin(xs.val, l, r);
  *     });
  * }

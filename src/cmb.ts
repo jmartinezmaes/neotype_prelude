@@ -29,7 +29,7 @@
  * ## Implementing semigroups
  *
  * -   The `Semigroup` interface provides a contract for implementing
- *     [semigroups][1]. See the documentation for implementation patterns.
+ *     [semigroups]. See the documentation for implementation patterns.
  * -   The `Semigroup` companion namespace provides the unique symbol required
  *     to implement the associated interface.
  *
@@ -59,18 +59,18 @@
  * }
  * ```
  *
- * [1]: https://mathworld.wolfram.com/Semigroup.html
+ * [semigroups]: https://mathworld.wolfram.com/Semigroup.html
  *
  * @module
  */
 
 /**
- * An interface that provides evidence of a [semigroup][1].
+ * An interface that provides evidence of a [semigroup].
  *
  * ## Properties
  *
  * Instances of `Semigroup` must implement an operation that satisfies the
- * [associative property][2], such that:
+ * [associative property], such that:
  *
  * -   `cmb(x, cmb(y, z))` is equivalent to `cmb(cmb(x, y), z)`
  *
@@ -84,7 +84,7 @@
  * existing prototypes.
  *
  * Implementation is implicit and does not require an `implements` clause.
- * TypeScript uses [structural subtyping][3] to determine whether a value
+ * TypeScript uses [structural subtyping] to determine whether a value
  * implements `Semigroup`.
  *
  * ### Conditional implementation
@@ -207,9 +207,9 @@
  *
  * Patching a type in TypeScript requires two steps:
  *
- * 1. an [augmentation][4] for a module or the global scope that patches the
- *    type-level representation; and
- * 1. a concrete implementation for `[Semigroup.cmb]`.
+ * 1.  an [augmentation] for a module or the global scope that patches the
+ *     type-level representation; and
+ * 2.  a concrete implementation for `[Semigroup.cmb]`.
  *
  * The concrete implementation logic is similar to writing a method body for a
  * class or object, and the same practices apply when requiring generic type
@@ -253,10 +253,12 @@
  * };
  * ```
  *
- * [1]: https://mathworld.wolfram.com/Semigroup.html
- * [2]: https://mathworld.wolfram.com/Associative.html
- * [3]: https://www.typescriptlang.org/docs/handbook/type-compatibility.html#site-content
- * [4]: https://www.typescriptlang.org/docs/handbook/declaration-merging.html#module-augmentation
+ * [semigroup]: https://mathworld.wolfram.com/Semigroup.html
+ * [associative property]: https://mathworld.wolfram.com/Associative.html
+ * [structural subypting]:
+ *     https://www.typescriptlang.org/docs/handbook/type-compatibility.html#site-content
+ * [augmentation]:
+ *     https://www.typescriptlang.org/docs/handbook/declaration-merging.html#module-augmentation
  */
 export interface Semigroup<in out A> {
     /**
