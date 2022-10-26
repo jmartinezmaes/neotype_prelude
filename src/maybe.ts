@@ -381,12 +381,6 @@
  * // inputs ["+42","0x2A"]: 84
  * ```
  *
- * ### Web requests with `Maybe`
- *
- * ```ts
- * // Todo
- * ```
- *
  * @module
  */
 
@@ -405,7 +399,7 @@ export type Maybe<A> = Maybe.Nothing | Maybe.Just<A>;
  */
 export namespace Maybe {
     /**
-     * An enumeration that discriminates Maybe.
+     * An enumeration that discriminates `Maybe`.
      */
     export enum Typ {
         Nothing,
@@ -585,8 +579,8 @@ export namespace Maybe {
         }
 
         /**
-         * If this Maybe is `Just`, extract its value; otherwise, return a
-         * fallback value.
+         * If this Maybe is `Just`, extract its value; otherwise, evaluate a
+         * a function to return a fallback value.
          */
         justOrFold<A, B>(this: Maybe<A>, f: () => B): A | B {
             return this.fold(f, id);

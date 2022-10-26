@@ -30,7 +30,7 @@
  * ## Implementing equivalence relations and total orders
  *
  * -   The `Eq` and `Ord` interfaces provide contracts for implementing
- *     [equivalence relations][1] and [total orders][2], respectively. See their
+ *     [equivalence relations] and [total orders], respectively. See their
  *     respective documentation for implementation patterns.
  * -   The `Eq` and `Ord` companion namespaces provide the unique symbols
  *     required to implement their associated interfaces.
@@ -76,7 +76,7 @@
  *
  * ### Lexicographical comparison
  *
- * Iterables are compared [lexicographically][3], which means:
+ * Iterables are compared [lexicographically], which means:
  *
  * -   Two Iterables are compared element by element.
  * -   Two empty Iterables are lexicographically equal.
@@ -148,9 +148,10 @@
  * }
  * ```
  *
- * [1]: https://mathworld.wolfram.com/EquivalenceRelation.html
- * [2]: https://mathworld.wolfram.com/TotalOrder.html
- * [3]: https://mathworld.wolfram.com/LexicographicOrder.html
+ * [equivalence relations]:
+ *     https://mathworld.wolfram.com/EquivalenceRelation.html
+ * [total orders]: https://mathworld.wolfram.com/TotalOrder.html
+ * [lexicographically]: https://mathworld.wolfram.com/LexicographicOrder.html
  *
  * @module
  */
@@ -158,7 +159,7 @@
 import { cmb, Semigroup } from "./cmb.js";
 
 /**
- * An interface that provides evidence of an [equivalence relation][1].
+ * An interface that provides evidence of an [equivalence relation].
  *
  * ## Properties
  *
@@ -178,7 +179,7 @@ import { cmb, Semigroup } from "./cmb.js";
  * existing prototypes.
  *
  * Implementation is implicit and does not require an `implements` clause.
- * TypeScript uses [structural subtyping][2] to determine whether a value
+ * TypeScript uses [structural subtyping] to determine whether a value
  * implements `Eq`.
  *
  * ### Conditional implementation
@@ -309,9 +310,9 @@ import { cmb, Semigroup } from "./cmb.js";
  *
  * Patching a type in TypeScript requires two steps:
  *
- * 1. an [augmentation][3] for a module or the global scope that patches the
- *    type-level representation; and
- * 1. a concrete implementation for `[Eq.eq]`.
+ * 1.  an [augmentation] for a module or the global scope that patches the
+ *     type-level representation; and
+ * 2.  a concrete implementation for `[Eq.eq]`.
  *
  * The concrete implementation logic is similar to writing a method body for a
  * class or object, and the same practices apply for requiring generic
@@ -352,9 +353,12 @@ import { cmb, Semigroup } from "./cmb.js";
  * };
  * ```
  *
- * [1]: https://mathworld.wolfram.com/EquivalenceRelation.html
- * [2]: https://www.typescriptlang.org/docs/handbook/type-compatibility.html#site-content
- * [3]: https://www.typescriptlang.org/docs/handbook/declaration-merging.html#module-augmentation
+ * [equivalence relation]:
+ *     https://mathworld.wolfram.com/EquivalenceRelation.html
+ * [structural subtyping]:
+ *     https://www.typescriptlang.org/docs/handbook/type-compatibility.html#site-content
+ * [augmentation]:
+ *     https://www.typescriptlang.org/docs/handbook/declaration-merging.html#module-augmentation
  */
 export interface Eq<in A> {
     /**
@@ -437,7 +441,7 @@ export function ieq<A extends Eq<A>>(
 }
 
 /**
- * An interface that provides evidence of a [total order][1].
+ * An interface that provides evidence of a [total order].
  *
  * ## Properties
  *
@@ -460,7 +464,7 @@ export function ieq<A extends Eq<A>>(
  * existing prototypes.
  *
  * Implementation is implicit and does not require an `implements` clause.
- * TypeScript uses [structural subtyping][2] to determine whether a value
+ * TypeScript uses [structural subtyping] to determine whether a value
  * implements `Ord`.
  *
  * ### Conditional implementation
@@ -629,9 +633,9 @@ export function ieq<A extends Eq<A>>(
  *
  * Patching a type in TypeScript requires two steps:
  *
- * 1. an [augmentation][3] for a module or the global scope that patches the
- *    type-level representation; and
- * 1. a concrete implementation for `[Ord.cmp]` and `[Eq.eq]`.
+ * 1.  an [augmentation] for a module or the global scope that patches the
+ *     type-level representation; and
+ * 2.  a concrete implementation for `[Ord.cmp]` and `[Eq.eq]`.
  *
  * The concrete implementation logic is similar to writing a method body for a
  * class or object, and the same practices apply for requiring generic
@@ -685,9 +689,11 @@ export function ieq<A extends Eq<A>>(
  * };
  * ```
  *
- * [1]: https://mathworld.wolfram.com/TotalOrder.html
- * [2]: https://www.typescriptlang.org/docs/handbook/type-compatibility.html#site-content
- * [3]: https://www.typescriptlang.org/docs/handbook/declaration-merging.html#module-augmentation
+ * [total order]: https://mathworld.wolfram.com/TotalOrder.html
+ * [structural subtyping]:
+ *     https://www.typescriptlang.org/docs/handbook/type-compatibility.html#site-content
+ * [augmentation]:
+ *     https://www.typescriptlang.org/docs/handbook/declaration-merging.html#module-augmentation
  */
 export interface Ord<in A> extends Eq<A> {
     /**
@@ -713,7 +719,7 @@ export function cmp<A extends Ord<A>>(x: A, y: A): Ordering {
 }
 
 /**
- * Compare two Iterables of arbitrary values to determing their lexicographical
+ * Compare two Iterables of arbitrary values to determine their lexicographical
  * ordering.
  */
 export function icmpBy<A>(

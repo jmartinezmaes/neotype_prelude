@@ -59,11 +59,10 @@
  *
  * ## Constructing `Validated`
  *
- * The `dispute` and `accept` functions construct the `Disputed` and `Accepted`
- * variants of `Validated`, respectively.
+ * These methods construct a Validated:
  *
- * Furthermore:
- *
+ * -   `dispute` constructs a `Disputed` variant.
+ * -   `accept` constructs an `Accepted` variant.
  * -   `fromEither` constructs a Validated from an Either. `Left` becomes
  *     `Disputed` and `Right` becomes `Accepted`.
  *

@@ -191,7 +191,7 @@
  *
  * Additionally, the `reduce` function reduces a finite Iterable from left to
  * right in the context of `Ior`. This is useful for mapping, filtering, and
- * accumulating values using `Ior`:
+ * accumulating values using `Ior`.
  *
  * ## Examples
  *
@@ -425,12 +425,6 @@
  * //   ["info: parse '2' ok,"err: -7 is not even"]
  * // inputs ["+42" "0x2A"]:
  * //   [["info: parse '+42' ok","info: parse '0x2A' ok"],84]
- * ```
- *
- * ### Web requests with `Ior`
- *
- * ```ts
- * // Todo
  * ```
  *
  * @module
