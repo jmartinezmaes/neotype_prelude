@@ -24,7 +24,7 @@
  * `Ior` is often used to represent states of failure or success similar to
  * `Either` and `Validated`. However, `Ior` is capable of also representing a
  * unique state using the `Both` variant. `Both` can represent a success that
- * carries additional information, or a state of *partial failure*.
+ * carries additional information, or a state of "partial failure".
  *
  * When composed, the behavior of `Ior` is a combination of the short-circuiting
  * behavior of `Either` and the failure-accumulating behavior of `Validated`:
@@ -36,8 +36,7 @@
  *     combines its left-hand value with any existing left-hand value.
  *
  * Combinators with this behavior will require a `Semigroup` implementation for
- * the accumulating left-hand value. This documentation will use the following
- * semigroup and utility functions in all examples:
+ * the accumulating left-hand value.
  *
  * ## Importing from this module
  *
@@ -102,7 +101,8 @@
  *     (are) equal.
  * -   When compared, `Left` is less than `Right`, and `Right` is less than
  *     `Both`. If the variants are equal, their values determine the ordering.
- *     `Both` compares its `fst` and `snd` properties lexicographically.
+ *     The `Both` variant compares its `fst` and `snd` properties
+ *     lexicographically.
  *
  * ## `Ior` as a semigroup
  *
@@ -153,8 +153,7 @@
  *
  * -   Variable declarations, assignments, and mutations
  * -   Function and class declarations
- * -   `for` loops
- * -   `while` and `do...while` loops
+ * -   `for`, `while`, and `do`/`while` loops
  * -   `if`/`else if`/`else` blocks
  * -   `switch` blocks
  * -   `try`/`catch` blocks
@@ -162,8 +161,8 @@
  * ## Async generator comprehensions
  *
  * Async generator comprehensions provide `async`/`await` syntax and Promises to
- * `Ior` generator comprehensions. Async computations that return `Ior` can be
- * chained together using the familiar generator syntax.
+ * `Ior` generator comprehensions. Async computations that fulfill with `Ior`
+ * can be chained together using the familiar generator syntax.
  *
  * The `goAsync` function evaluates an AsyncGenerator to return a Promise that
  * fulfills with an Ior. The semantics of `yield*` and `return` within async
@@ -183,8 +182,8 @@
  *
  * These methods will traverse a collection of Iors to extract the right-hand
  * values. If any Ior in the collection is `Left`, the traversal is halted and
- * and the `Left` is returned instead. An implementation for `Semigroup` is
- * required for left-hand values so they may accumulate.
+ * the `Left` is returned instead. An implementation for `Semigroup` is required
+ * for left-hand values so they may accumulate.
  *
  * -   `collect` turns an Array or a tuple literal of Iors inside out.
  * -   `gather` turns a Record or an object literal of Iors inside out.

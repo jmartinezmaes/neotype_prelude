@@ -28,8 +28,7 @@
  *
  * Most combinators for `Validated` will begin accumulating `Disputed` values on
  * the first encountered `Disputed` variant. Combinators with this behavior will
- * will require a `Semigroup` implementation for the accumulating `Disputed`
- * value. This documentation will use the following semigroup in all examples:
+ * require a `Semigroup` implementation for the accumulating `Disputed` value.
  *
  * ## Importing from this module
  *

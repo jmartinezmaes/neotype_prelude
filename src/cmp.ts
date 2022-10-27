@@ -257,8 +257,8 @@ import { cmb, Semigroup } from "./cmb.js";
  *
  * #### Example: generic type with an `Eq` requirement
  *
- * Consider a type that determines equality by comparing the elements of Arrays
- * by index:
+ * Consider a type that determines equality by comparing the elements of Arrays,
+ * which requires that the elements implement `Eq`:
  *
  * ```ts
  * class Arr<A> {
@@ -568,8 +568,8 @@ export function ieq<A extends Eq<A>>(
  *
  * #### Example: generic type with an `Ord` requirement
  *
- * Consider a type that determines ordering by comparing Arrays
- * lexicographically, which requires that the Array's elements implement `Ord`:
+ * Consider a type that determines ordering by comparing the elements of Arrays
+ * lexicographically, which requires that the elements implement `Ord`:
  *
  * ```ts
  * class Arr<A> {
@@ -590,7 +590,7 @@ export function ieq<A extends Eq<A>>(
  * implementation by writing `A extends Ord<A>` (the name `A` is arbitrary).
  *
  * Then, we require that `this` and `that` are `Arr<A>` where
- * `A extends Ord<A>`. This allows us to use `cmp` to implement our desired
+ * `A extends Ord<A>`. This allows us to use `icmp` to implement our desired
  * behavior.
  *
  * #### Example: generic type with multiple `Ord` requirements

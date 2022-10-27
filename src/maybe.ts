@@ -144,8 +144,7 @@
  *
  * -   Variable declarations, assignments, and mutations
  * -   Function and class declarations
- * -   `for` loops
- * -   `while` and `do...while` loops
+ * -   `for`, `while`, and `do`/`while` loops
  * -   `if`/`else if`/`else` blocks
  * -   `switch` blocks
  * -   `try`/`catch` blocks
@@ -153,8 +152,8 @@
  * ### Async generator comprehensions
  *
  * Async generator comprehensions provide `async`/`await` syntax and Promises to
- * `Maybe` generator comprehensions. Async computations that return `Maybe` can
- * be chained together using the familiar generator syntax.
+ * `Maybe` generator comprehensions. Async computations that fulfill with
+ * `Maybe` can be chained together using the familiar generator syntax.
  *
  * The `goAsync` function evaluates an AsyncGenerator to return a Promise that
  * fulfills with a Maybe. The semantics of `yield*` and `return` within async
@@ -580,7 +579,7 @@ export namespace Maybe {
 
         /**
          * If this Maybe is `Just`, extract its value; otherwise, evaluate a
-         * a function to return a fallback value.
+         * function to return a fallback value.
          */
         justOrFold<A, B>(this: Maybe<A>, f: () => B): A | B {
             return this.fold(f, id);

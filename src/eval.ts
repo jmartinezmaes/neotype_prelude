@@ -90,8 +90,7 @@
  *
  * -   Variable declarations, assignments, and mutations
  * -   Function and class declarations
- * -   `for` loops
- * -   `while` and `do...while` loops
+ * -   `for`, `while`, and `do`/`while` loops
  * -   `if`/`else if`/`else` blocks
  * -   `switch` blocks
  * -   `try`/`catch` blocks

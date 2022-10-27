@@ -54,14 +54,14 @@
  * `Pair` implements `Eq` and `Ord` when both its first and second generic types
  * implement `Eq` and `Ord`, respectively.
  *
- * -   Two pairs are equal if their first and second values are respectively
+ * -   Two Pairs are equal if their first and second values are respectively
  *     equal.
- * -   `Pair` compares its first and second values lexicographically.
+ * -   Pairs compare their first and second values lexicographically.
  *
  * ## `Pair` as a semigroup
  *
  * `Pair` implements `Semigroup` when both its first and second generic types
- * implement `Semigroup`. First and second values are combined pairwise.
+ * implement `Semigroup`. The first and second values are combined pairwise.
  *
  * ## Transforming values
  *
