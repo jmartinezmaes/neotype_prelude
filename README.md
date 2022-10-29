@@ -11,7 +11,7 @@
 ## Features
 
 -   **Tools for comparing values**: use the contracts provided by the `Eq` and
-    `Ord` interfaces to implement equivalence relations and total orderings.
+    `Ord` interfaces to implement equivalence relations and total orders.
 -   **Tools for combining values**: use the contract provided by the `Semigroup`
     interface to implement semigroups.
 -   **Algebraic data types**:
