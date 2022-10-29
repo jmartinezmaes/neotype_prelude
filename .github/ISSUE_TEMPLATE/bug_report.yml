@@ -1,5 +1,7 @@
 name: Report a Bug
-description: Report unexpected behavior or broken functionality
+description: Report unexpected behavior or broken functionality.
+labels:
+  - Potential Bug
 body:
   - type: markdown
     attributes:

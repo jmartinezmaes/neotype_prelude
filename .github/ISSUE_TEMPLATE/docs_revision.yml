@@ -1,6 +1,7 @@
 name: Change the Documentation
 description: Request changes to the library's documentation.
-labels: Documentation
+labels:
+  - Documentation
 body:
   - type: dropdown
     id: change_type
@@ -33,7 +34,7 @@ body:
   - type: textarea
     id: motivation
     attributes:
-      label: "Motivation"
+      label: "👍 Motivation"
       description: "Are there notable motivations for the change?"
       placeholder: |
         Examples:
