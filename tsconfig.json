@@ -26,8 +26,8 @@
     "include": ["./scripts", "./src", "./test"],
     "typedocOptions": {
         "entryPoints": "./src/*.ts",
-        "entryPointStrategy": "expand",
         "excludePrivate": true,
+        "json": "./docsite/docs.json",
         "name": "Neotype Prelude",
         "out": "./docsite",
         "theme": "custom"
