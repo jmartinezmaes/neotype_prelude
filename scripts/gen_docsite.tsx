@@ -96,8 +96,11 @@ const refl = app.convert();
 
 if (refl) {
     const out = app.options.getValue("out");
+    const jsonOut = app.options.getValue("json");
+
     app.validate(refl);
     await app.generateDocs(refl, out);
+    await app.generateJson(refl, jsonOut);
 } else {
     throw new Error("could not generate reflections");
 }
