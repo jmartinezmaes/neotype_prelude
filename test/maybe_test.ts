@@ -216,8 +216,8 @@ describe("Maybe", () => {
         assert.strictEqual(t0, _1);
     });
 
-    specify("#justOrElse", () => {
-        const t0 = mk("J", _1).justOrElse(_2);
+    specify("#justOr", () => {
+        const t0 = mk("J", _1).justOr(_2);
         assert.strictEqual(t0, _1);
     });
 

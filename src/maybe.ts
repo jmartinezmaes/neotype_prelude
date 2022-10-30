@@ -93,7 +93,7 @@
  *
  * -   `justOrFold` returns the result of evaluating a provided fallback
  *     function.
- * -   `justOrElse` returns a provided fallback value.
+ * -   `justOr` returns a provided fallback value.
  *
  * ## Comparing `Maybe`
  *
@@ -242,7 +242,7 @@
  *
  * ["a", "1", "2", "-4", "+42", "0x2A"].forEach((input) => {
  *     const result = JSON.stringify(
- *         parseEvenInt(input).justOrElse("invalid input"),
+ *         parseEvenInt(input).justOr("invalid input"),
  *     );
  *     console.log(`input "${input}": ${result}`);
  * });
@@ -282,7 +282,7 @@
  *     ["+42", "0x2A"],
  * ].forEach((inputs) => {
  *     const result = JSON.stringify(
- *         parseEvenInts(inputs).justOrElse("invalid input"),
+ *         parseEvenInts(inputs).justOr("invalid input"),
  *     );
  *     console.log(`inputs ${JSON.stringify(inputs)}: ${result}`);
  * });
@@ -311,9 +311,7 @@
  *     ["+42", "0x2A"],
  * ].forEach((inputs) => {
  *     const result = JSON.stringify(
- *         parseEvenIntsUniq(inputs)
- *             .map(Array.from)
- *             .justOrElse("invalid input"),
+ *         parseEvenIntsUniq(inputs).map(Array.from).justOr("invalid input"),
  *     );
  *     console.log(`inputs ${JSON.stringify(inputs)}: ${result}`);
  * });
@@ -343,7 +341,7 @@
  *     ["+42", "0x2A"],
  * ].forEach((inputs) => {
  *     const result = JSON.stringify(
- *         parseEvenIntsKeyed(inputs).justOrElse("invalid input"),
+ *         parseEvenIntsKeyed(inputs).justOr("invalid input"),
  *     );
  *     console.log(`inputs ${JSON.stringify(inputs)}: ${result}`);
  * });
@@ -370,7 +368,7 @@
  *     ["+42", "0x2A"],
  * ].forEach((inputs) => {
  *     const result = JSON.stringify(
- *         parseEvenIntsAndSum(inputs).justOrElse("invalid input"),
+ *         parseEvenIntsAndSum(inputs).justOr("invalid input"),
  *     );
  *     console.log(`inputs ${JSON.stringify(inputs)}: ${result}`);
  * });
@@ -589,7 +587,7 @@ export namespace Maybe {
          * If this Maybe is `Just`, extract its value; otherwise, return a
          * fallback value.
          */
-        justOrElse<A, B>(this: Maybe<A>, fallback: B): A | B {
+        justOr<A, B>(this: Maybe<A>, fallback: B): A | B {
             return this.fold(() => fallback, id);
         }
 
