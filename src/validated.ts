@@ -49,7 +49,7 @@
  * import { Validated } from "@neotype/prelude/validated.js";
  * ```
  *
- * Or, the type ane namespace can be imported and aliased separately:
+ * Or, the type and namespace can be imported and aliased separately:
  *
  * ```ts
  * import {
@@ -434,7 +434,7 @@ export namespace Validated {
         let acc = accept<any, any>({});
         for (const [key, vtd] of Object.entries(vtds)) {
             acc = acc.zipWith(vtd, (results, x) => {
-                results[key as keyof T] = x;
+                results[key] = x;
                 return results;
             });
         }
