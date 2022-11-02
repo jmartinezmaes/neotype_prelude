@@ -17,6 +17,8 @@
 /**
  * Optional values.
  *
+ * @remarks
+ *
  * `Maybe<A>` is a type that represents an optional value `A`, and is
  * represented by two variants: `Nothing` describes an absent value, and
  * `Just<A>` describes a present value.
@@ -186,17 +188,11 @@
  * right in the context of `Maybe`. This is useful for mapping, filtering, and
  * accumulating values using `Maybe`.
  *
- * ## Examples
- *
- * These examples assume the following imports:
+ * @example Basic matching and folding
  *
  * ```ts
- * import { Maybe } from "@neotype/prelude/maybe.js";
- * ```
+ * import { Maybe } from "@neotype/prelude/maybe.js"
  *
- * ### Basic matching and folding
- *
- * ```ts
  * const maybeNum: Maybe<number> = Maybe.just(1);
  *
  * // Querying and narrowing using methods
@@ -222,9 +218,15 @@
  * );
  * ```
  *
- * ### Parsing with `Maybe`
+ * @example Parsing with `Maybe`
  *
- * Consider a program that uses `Maybe` to parse an even integer:
+ * First, our imports:
+ *
+ * ```ts
+ * import { Maybe } from "@neotype/prelude/maybe.js";
+ * ```
+ *
+ * Now, consider a program that uses `Maybe` to parse an even integer:
  *
  * ```ts
  * function parseInt(input: string): Maybe<number> {

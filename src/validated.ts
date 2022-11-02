@@ -17,6 +17,8 @@
 /**
  * Validation with accumulating failures.
  *
+ * @remarks
+ *
  * `Validated<E, A>` is a type that represents a state of accumulated failure or
  * success; thus, `Validated` is represented by two variants: `Disputed<E>` and
  * `Accepted<A>`.
@@ -140,14 +142,18 @@
  * -   `collect` turns an Array or a tuple literal of Validateds inside out.
  * -   `gather` turns a Record or an object literal of Validateds inside out.
  *
- * ## Examples
+ * @example Validating a single property
  *
- * These examples assume the following imports and utilities:
+ * First, our imports:
  *
  * ```ts
  * import { Semigroup } from "@neotype/prelude/cmb.js";
  * import { Validated } from "@neotype/prelude/validated.js";
+ * ```
  *
+ * Let's also define a helper semigroup type:
+ *
+ * ```ts
  * // A semigroup that wraps Arrays
  * class List<A> {
  *     readonly val: A[]
@@ -166,7 +172,7 @@
  * }
  * ```
  *
- * ### Validating a single property
+ * Now, consider a program that performs a trivial email validation:
  *
  * ```ts
  * function requireNonEmpty(input: string): Validated<List<string>, string> {
@@ -207,7 +213,38 @@
  * // input "neo@gmail.com": "neo@gmail.com"
  * ```
  *
- * ### Validating multiple properties
+ * @example Validating multiple properties
+ *
+ * First, our imports:
+ *
+ * ```ts
+ * import { Semigroup } from "@neotype/prelude/cmb.js";
+ * import { Validated } from "@neotype/prelude/validated.js";
+ * ```
+ *
+ * Let's also define a helper semigroup type:
+ *
+ * ```ts
+ * // A semigroup that wraps Arrays
+ * class List<A> {
+ *     readonly val: A[]
+ *
+ *     constructor(...vals: A[]) {
+ *         this.val = vals;
+ *     }
+ *
+ *     [Semigroup.cmb](that: List<A>): List<A> {
+ *         return new List(...this.val, ...that.val);
+ *     }
+ *
+ *     toJSON(): A[] {
+ *         return this.val;
+ *     }
+ * }
+ * ```
+ *
+ * Now, consider a program that validates a `Person` object with a `name` and an
+ * `age`:
  *
  * ```ts
  * interface Person {
@@ -254,7 +291,37 @@
  * // inputs ["Neo",45]: {"name":"Neo","age":45}
  * ```
  *
- * ### Validating arbitrary properties
+ * @example Validating arbitrary properties
+ *
+ * First, our imports:
+ *
+ * ```ts
+ * import { Semigroup } from "@neotype/prelude/cmb.js";
+ * import { Validated } from "@neotype/prelude/validated.js";
+ * ```
+ *
+ * Let's also define a helper semigroup type:
+ *
+ * ```ts
+ * // A semigroup that wraps Arrays
+ * class List<A> {
+ *     readonly val: A[]
+ *
+ *     constructor(...vals: A[]) {
+ *         this.val = vals;
+ *     }
+ *
+ *     [Semigroup.cmb](that: List<A>): List<A> {
+ *         return new List(...this.val, ...that.val);
+ *     }
+ *
+ *     toJSON(): A[] {
+ *         return this.val;
+ *     }
+ * }
+ * ```
+ *
+ * Now, consider a program that validates an arbitrary-length Array of strings:
  *
  * ```ts
  * function requireLowercase(input: string): Validated<List<string>, string> {
@@ -284,7 +351,7 @@
  * });
  *
  * // inputs ["New York","Oregon"]: {"invalid":["New York","Oregon"]}
- * // inputs ["foo","Bar","baz"]: {"invalid":["Bar"]}
+ * // inputs ["Code","of","Conduct"]: {"invalid":["Code","Conduct"]}
  * // inputs ["banana","apple","orange"]: {"valid":["banana","apple","orange"]}
  * ```
  *
@@ -329,7 +396,7 @@ export namespace Validated {
     }
 
     /**
-     * Convert an Either to a Validated.
+     * Construct a Validated from an Either.
      */
     export function fromEither<E, A>(either: Either<E, A>): Validated<E, A> {
         return either.fold(dispute, accept);

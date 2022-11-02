@@ -17,6 +17,8 @@
 /**
  * Functionality for associative combination.
  *
+ * @remarks
+ *
  * ## Importing from this module
  *
  * This module exposes utilities for working with semigroups. It is recommended
@@ -37,15 +39,19 @@
  *
  * The `cmb` function combines two instances of the same `Semigroup`.
  *
- * ## Working with semigroups
+ * ## Working with generic semigroups
  *
  * Often, code must be written to accept arbitrary semigroups. To require that
  * a generic type `A` implements `Semigroup`, we write `A extends Semigroup<A>`.
  *
- * Consider a function that combines an arbitrary semigroup with itself a finite
+ * @example Working with generic semigroups
+ *
+ * Consider a program that combines an arbitrary semigroup with itself a finite
  * number of times:
  *
  * ```ts
+ * import { cmb, Semigroup } from "@neotype/prelude/cmp.js";
+ *
  * function cmbTimes<A extends Semigroup<A>>(x: A, n: number): A {
  *     if (n < 2 || n === Infinity) {
  *         return x;
@@ -66,6 +72,8 @@
 
 /**
  * An interface that provides evidence of a [semigroup].
+ *
+ * @remarks
  *
  * ## Properties
  *
@@ -113,11 +121,33 @@
  * -   do not provide access to their implementation, and where patching the
  *     implementation is undesireable.
  *
- * #### Example: non-generic type
+ * ### Patching existing prototypes
+ *
+ * Existing types can be patched to implement `Semigroup`. This strategy works
+ * well for types that:
+ *
+ * -   are built-in or imported from external modules.
+ * -   do not provide access to their implementation.
+ * -   have a single, specific behavior as a semigroup, or where the programmer
+ *     wishes to implement a default behavior.
+ *
+ * Patching a type in TypeScript requires two steps:
+ *
+ * 1.  an [augmentation] for a module or the global scope that patches the
+ *     type-level representation; and
+ * 2.  a concrete implementation for `[Semigroup.cmb]`.
+ *
+ * The concrete implementation logic is similar to writing a method body for a
+ * class or object, and the same practices apply when requiring generic type
+ * parameters to implement `Semigroup`.
+ *
+ * @example Non-generic implementation
  *
  * Consider a type that combines strings using concatenation:
  *
  * ```ts
+ * import { Semigroup } from "@neotype/prelude/cmb.js";
+ *
  * class Str {
  *     constructor(readonly val: string) {}
  *
@@ -127,11 +157,13 @@
  * }
  * ```
  *
- * #### Example: generic type with no `Semigroup` requirements
+ * @example Generic implementation with no `Semigroup` requirements
  *
  * Consider a type that combines Arrays using concatenation:
  *
  * ```ts
+ * import { Semigroup } from "@neotype/prelude/cmb.js";
+ *
  * class Concat<A> {
  *     constructor(readonly val: A[]) {}
  *
@@ -144,12 +176,14 @@
  * Notice how `Concat` is generic, but there are no special requirements for
  * implementing `[Semigroup.cmb]`.
  *
- * #### Example: generic type with a `Semigroup` requirement
+ * @example Generic implementation with a `Semigroup` requirement
  *
  * Consider a type that combines Promises by combining their values, which
  * requires that their values also implement `Semigroup`:
  *
  * ```ts
+ * import { cmb, Semigroup } from "@neotype/prelude/cmb.js";
+ *
  * class Async<A> {
  *     constructor(readonly val: Promise<A>) {}
  *
@@ -173,12 +207,14 @@
  * `A extends Semigroup<A>`. This allows us to use `cmb` to implement our
  * desired behavior.
  *
- * #### Example: generic type with multiple `Semigroup` requirements
+ * @example Generic implementation with multiple `Semigroup` requirements
  *
  * Consider a type that combines two values pairwise, which requires that each
  * value implement `Semigroup`:
  *
  * ```ts
+ * import { cmb, Semigroup } from "@neotype/prelude/cmb.js";
+ *
  * class Pair<A, B> {
  *     constructor(readonly fst: A, readonly snd: B) {}
  *
@@ -195,31 +231,13 @@
  * now two method-scoped type parameters that are each required to implement
  * `Semigroup`.
  *
- * ### Patching existing prototypes
- *
- * Existing types can be patched to implement `Semigroup`. This strategy works
- * well for types that:
- *
- * -   are built-in or imported from external modules.
- * -   do not provide access to their implementation.
- * -   have a single, specific behavior as a semigroup, or where the programmer
- *     wishes to implement a default behavior.
- *
- * Patching a type in TypeScript requires two steps:
- *
- * 1.  an [augmentation] for a module or the global scope that patches the
- *     type-level representation; and
- * 2.  a concrete implementation for `[Semigroup.cmb]`.
- *
- * The concrete implementation logic is similar to writing a method body for a
- * class or object, and the same practices apply when requiring generic type
- * parameters to implement `Semigroup`.
- *
- * #### Examples
+ * @example Non-generic augmentation
  *
  * Consider a global augmentation for the `String` prototype:
  *
  * ```ts
+ * import { Semigroup } from "@neotype/prelude/cmb.js";
+ *
  * declare global {
  *     interface String {
  *         [Semigroup.cmb](that: string): string
@@ -231,9 +249,12 @@
  * };
  * ```
  *
+ * @example Generic augmentation
+ *
  * Consider a module augmentation for an externally defined `Pair` type:
  *
  * ```ts
+ * import { cmb, Semigroup } from "@neotype/prelude/cmb.js";
  * import { Pair } from "path_to/pair.js";
  *
  * declare module "path_to/pair.js" {
@@ -277,6 +298,8 @@ export namespace Semigroup {
 
 /**
  * Combine two values of the same semigroup.
+ *
+ * @remarks
  *
  * `cmb(x, y)` is equivalent to `x[Semigroup.cmb](y)`.
  */

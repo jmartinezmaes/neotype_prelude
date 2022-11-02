@@ -17,6 +17,8 @@
 /**
  * Functionality for "inclusive-or" relationships.
  *
+ * @remarks
+ *
  * `Ior<A, B>` is a type that represents *one or both* of two values `A` and
  * `B`; thus, `Ior` is represented by three variants: `Left<A>`, `Right<B>`,
  * and `Both<A, B>`.
@@ -192,47 +194,11 @@
  * right in the context of `Ior`. This is useful for mapping, filtering, and
  * accumulating values using `Ior`.
  *
- * ## Examples
- *
- * These examples assume the following imports and utilities:
+ * @example Basic matching and folding
  *
  * ```ts
- * import { Semigroup } from "@neotype/prelude/cmb.js";
- * import { Ior } from "@neotype/prelude/ior.js";
+ * import { Ior } from "@neotype/prelude/ior.js"
  *
- * // A semigroup that wraps Arrays.
- * class List<A> {
- *     readonly val: A[];
- *
- *     constructor(...vals: A[]) {
- *         this.val = vals;
- *     }
- *
- *     [Semigroup.cmb](that: List<A>): List<A> {
- *         return new List(...this.val, ...that.val);
- *     }
- *
- *     toJSON(): A[] {
- *         return this.val;
- *     }
- * }
- *
- * // A `Log` represents a List of entries relevant to our program. Log entries
- * // have a log level of "info" or "err".
- * type Log = List<string>;
- *
- * function info(msg: string): Log {
- *     return new List(`info: ${msg}`);
- * }
- *
- * function err(msg: string): Log {
- *     return new List(`err: ${msg}`);
- * }
- * ```
- *
- * ### Basic matching and folding
- *
- * ```ts
  * const strIorNum: Ior<string, number> = Ior.both("a", 1);
  *
  * // Querying and narrowing using methods
@@ -264,9 +230,50 @@
  * );
  * ```
  *
- * ### Parsing with `Ior`
+ * @example Parsing with `Ior`
  *
- * Consider a program that uses `Ior` to parse an even integer:
+ * First, our imports:
+ *
+ * ```ts
+ * import { Semigroup } from "@neotype/prelude/cmb.js";
+ * import { Ior } from "@neotype/prelude/ior.js";
+ * ```
+ *
+ * For our example, let's also define a helper semigroup type and some other
+ * utilities:
+ *
+ * ```ts
+ * // A semigroup that wraps Arrays.
+ * class List<A> {
+ *     readonly val: A[];
+ *
+ *     constructor(...vals: A[]) {
+ *         this.val = vals;
+ *     }
+ *
+ *     [Semigroup.cmb](that: List<A>): List<A> {
+ *         return new List(...this.val, ...that.val);
+ *     }
+ *
+ *     toJSON(): A[] {
+ *         return this.val;
+ *     }
+ * }
+ *
+ * // A `Log` represents a List of entries relevant to our program. Log entries
+ * // have a log level of "info" or "err".
+ * type Log = List<string>;
+ *
+ * function info(msg: string): Log {
+ *     return new List(`info: ${msg}`);
+ * }
+ *
+ * function err(msg: string): Log {
+ *     return new List(`err: ${msg}`);
+ * }
+ * ```
+ *
+ * Now, consider a program that uses `Ior` to parse an even integer.
  *
  * ```ts
  * function parseInt(input: string): Ior<Log, number> {
@@ -478,6 +485,8 @@ export namespace Ior {
 
     /**
      * Construct an Ior from an Either.
+     *
+     * @remarks
      *
      * `Right` and `Left` Eithers will become `Right` and `Left` Iors,
      * respectively.
