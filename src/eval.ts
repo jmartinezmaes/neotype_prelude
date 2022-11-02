@@ -17,6 +17,8 @@
 /**
  * Control over synchronous execution.
  *
+ * @remarks
+ *
  * `Eval<A>` is a type that controls the execution of a synchronous computation
  * that returns a result `A`. `Eval` can suspend and memoize evaluation for a
  * variety of use cases, and it provides stack-safe execution for recursive
@@ -114,17 +116,15 @@
  * right in the context of `Eval`. This is useful for mapping, filtering, and
  * accumulating values using `Eval`.
  *
- * ## Examples
+ * @example Recursive folds with `Eval`
  *
- * These examples assume the following imports:
+ * First, our imports:
  *
  * ```ts
  * import { Eval } from "@neotype/prelude/eval.js";
  * ```
  *
- * ### Recursive folds with `Eval`
- *
- * Consider a program that uses `Eval` to fold over and traverse a recursive
+ * Now, consider a program that uses `Eval` to traverse and fold a recursive
  * `Tree` data structure:
  *
  * ```ts

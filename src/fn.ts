@@ -30,6 +30,8 @@ export function id<A>(x: A): A {
 /**
  * Return a function that always returns a provided value.
  *
+ * @remarks
+ *
  * This function is useful for eagerly memoizing a value that would otherwise be
  * suspended behind a function.
  */

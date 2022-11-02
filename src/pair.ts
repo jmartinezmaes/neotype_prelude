@@ -17,6 +17,8 @@
 /**
  * Pairs of values.
  *
+ * @remarks
+ *
  * `Pair<A, B>` is a type that represents a pair of values `A` and `B`. Pairs
  * provide equivalence relations, total orders, and semigroups for two or more
  * values.

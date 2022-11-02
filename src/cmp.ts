@@ -17,6 +17,8 @@
 /**
  * Functionality for ordering and comparison.
  *
+ * @remarks
+ *
  * ## Importing from this module
  *
  * This module exports utilities for ordering and comparing values. It is
@@ -134,17 +136,37 @@
  * The `Reverse` class reverses the ordering of an underlying `Ord` value, and
  * provides pass-through implementations for `Eq` and `Semigroup`.
  *
- * ## Working with equivalence relations and total orders
+ * ## Working with generic equivalence relations and total orders
  *
  * Often, code must be written to accept arbitrary equivalence relations and
  * total orders. To require that a generic type `A` implements `Eq` or `Ord`, we
  * write `A extends Eq<A>` or `A extends Ord<A>`, respectively.
  *
- * Consider a function that finds the minimum value in a series of `Ord` values:
+ * @example Working with generic equivalence relations
+ *
+ * Consider a program that finds all `Eq` values in an Array that occur only
+ * once:
  *
  * ```ts
- * function minOf<A extends Ord<A>>(...values: [A, ...A[]]): A {
- *     return values.reduce(min);
+ * import { Eq, eq } from "@neotype/prelude/cmp.js";
+ *
+ * function singles<A extends Eq<A>>(xs: A[]): A[] {
+ *     return xs.filter((x0, ix0) =>
+ *         !xs.some((x1, ix1) => eq(x0, x1) && ix0 !== ix1),
+ *     );
+ * }
+ * ```
+ *
+ * @example Working with generic total orders
+ *
+ * Consider a program that finds all `Ord` values in an Array that are less than
+ * a given value:
+ *
+ * ```ts
+ * import { lt, Ord } from "@neotype/prelude/cmp.js";
+ *
+ * function filterLt<A extends Ord<A>>(xs: A[], y: A): A[] {
+ *     return xs.filter((x) => lt(x, y));
  * }
  * ```
  *
@@ -160,6 +182,8 @@ import { cmb, Semigroup } from "./cmb.js";
 
 /**
  * An interface that provides evidence of an [equivalence relation].
+ *
+ * @remarks
  *
  * ## Properties
  *
@@ -207,97 +231,6 @@ import { cmb, Semigroup } from "./cmb.js";
  * -   do not provide access to their implementation, and where patching the
  *     implementation is undesireable.
  *
- * #### Example: non-generic type
- *
- * Consider a `Book` type that determines equality by comparing ISBNs:
- *
- * ```ts
- * enum BookFormat { Hardback, Paperback, Digital }
- *
- * class Book {
- *     constructor(readonly isbn: number, readonly fmt: BookFormat) {}
- *
- *     [Eq.eq](that: Book): boolean {
- *         return this.isbn === that.isbn;
- *     }
- * }
- * ```
- *
- * If desired, we can also require the same `BookFormat` for two Books to be
- * considered equal:
- *
- * ```ts
- * enum BookFormat { Hardback, Paperback, Digital }
- *
- * class Book {
- *     constructor(readonly isbn: number, readonly fmt: BookFormat) {}
- *
- *     [Eq.eq](that: Book): boolean {
- *         return this.isbn === that.isbn && this.fmt === that.fmt;
- *     }
- * }
- * ```
- *
- * #### Example: generic type with no `Eq` requirements
- *
- * Consider a type that determines equality by comparing the lengths of Arrays:
- *
- * ```ts
- * class Len<A> {
- *     constructor(readonly val: A[]) {}
- *
- *     [Eq.eq](that: Len<A>): boolean {
- *         return this.val.length === that.val.length;
- *     }
- * }
- * ```
- *
- * Notice how `Len` is generic, but there are no special requirements for
- * implementing `[Eq.eq]`.
- *
- * #### Example: generic type with an `Eq` requirement
- *
- * Consider a type that determines equality by comparing the elements of Arrays,
- * which requires that the elements implement `Eq`:
- *
- * ```ts
- * class Arr<A> {
- *     constructor(readonly val: A[]) {}
- *
- *     [Eq.eq]<A extends Eq<A>>(this: Arr<A>, that: Arr<A>): boolean {
- *         return ieq(this.val, that.val);
- *     }
- * }
- * ```
- *
- * Notice the extra syntax when implementing `[Eq.eq]`. We introduce a
- * *method-scoped* type parameter `A` and require that it has an `Eq`
- * implementation by writing `A extends Eq<A>` (the name `A` is arbitrary).
- *
- * Then, we require that `this` and `that` are `Arr<A>` where `A extends Eq<A>`.
- * This allows us to use `ieq` to implement our desired behavior.
- *
- * #### Example: generic type with multiple `Eq` requirements
- *
- * Consider a type that determines equality by comparing values pairwise, which
- * requires that each value in the pair implement `Eq`:
- *
- * ```ts
- * class Pair<A, B> {
- *     constructor(readonly fst: A, readonly snd: B) {}
- *
- *     [Eq.eq]<A extends Eq<A>, B extends Eq<B>>(
- *         this: Pair<A, B>,
- *         that: Pair<A, B>,
- *     ): boolean {
- *         return eq(this.fst, that.fst) && eq(this.snd, that.snd);
- *     }
- * }
- * ```
- *
- * The syntax is similar to the `Arr` implementation above. Notice there are now
- * two method-scoped type parameters that are each required to implement `Eq`.
- *
  * ### Patching existing prototypes
  *
  * Existing types can be patched to implement `Eq`. This strategy works well for
@@ -318,11 +251,113 @@ import { cmb, Semigroup } from "./cmb.js";
  * class or object, and the same practices apply for requiring generic
  * parameters to implement `Eq`.
  *
- * #### Examples
+ * @example Non-generic implementation
+ *
+ * Consider a `Book` type that determines equality by comparing ISBNs:
+ *
+ * ```ts
+ * import { Eq } from "@neotype/prelude/cmp.js";
+ *
+ * enum BookFormat { Hardback, Paperback, Digital }
+ *
+ * class Book {
+ *     constructor(readonly isbn: number, readonly fmt: BookFormat) {}
+ *
+ *     [Eq.eq](that: Book): boolean {
+ *         return this.isbn === that.isbn;
+ *     }
+ * }
+ * ```
+ *
+ * If desired, we can also require the same `BookFormat` for two Books to be
+ * considered equal:
+ *
+ * ```ts
+ * import { Eq } from "@neotype/prelude/cmp.js";
+ *
+ * enum BookFormat { Hardback, Paperback, Digital }
+ *
+ * class Book {
+ *     constructor(readonly isbn: number, readonly fmt: BookFormat) {}
+ *
+ *     [Eq.eq](that: Book): boolean {
+ *         return this.isbn === that.isbn && this.fmt === that.fmt;
+ *     }
+ * }
+ * ```
+ *
+ * @example Generic implementation with no `Eq` requirements
+ *
+ * Consider a type that determines equality by comparing the lengths of Arrays:
+ *
+ * ```ts
+ * import { Eq } from "@neotype/prelude/cmp.js";
+ *
+ * class Len<A> {
+ *     constructor(readonly val: A[]) {}
+ *
+ *     [Eq.eq](that: Len<A>): boolean {
+ *         return this.val.length === that.val.length;
+ *     }
+ * }
+ * ```
+ *
+ * Notice how `Len` is generic, but there are no special requirements for
+ * implementing `[Eq.eq]`.
+ *
+ * @example Generic implementation with an `Eq` requirement
+ *
+ * Consider a type that determines equality by comparing the elements of Arrays,
+ * which requires that the elements implement `Eq`:
+ *
+ * ```ts
+ * import { Eq, ieq } from "@neotype/prelude/cmp.js";
+ *
+ * class Arr<A> {
+ *     constructor(readonly val: A[]) {}
+ *
+ *     [Eq.eq]<A extends Eq<A>>(this: Arr<A>, that: Arr<A>): boolean {
+ *         return ieq(this.val, that.val);
+ *     }
+ * }
+ * ```
+ *
+ * Notice the extra syntax when implementing `[Eq.eq]`. We introduce a
+ * *method-scoped* type parameter `A` and require that it has an `Eq`
+ * implementation by writing `A extends Eq<A>` (the name `A` is arbitrary).
+ *
+ * Then, we require that `this` and `that` are `Arr<A>` where `A extends Eq<A>`.
+ * This allows us to use `ieq` to implement our desired behavior.
+ *
+ * @example Generic implementation with multiple `Eq` requirements
+ *
+ * Consider a type that determines equality by comparing values pairwise, which
+ * requires that each value in the pair implement `Eq`:
+ *
+ * ```ts
+ * import { Eq, eq } from "@neotype/prelude/cmp.js";
+ *
+ * class Pair<A, B> {
+ *     constructor(readonly fst: A, readonly snd: B) {}
+ *
+ *     [Eq.eq]<A extends Eq<A>, B extends Eq<B>>(
+ *         this: Pair<A, B>,
+ *         that: Pair<A, B>,
+ *     ): boolean {
+ *         return eq(this.fst, that.fst) && eq(this.snd, that.snd);
+ *     }
+ * }
+ * ```
+ *
+ * The syntax is similar to the `Arr` implementation above. Notice there are now
+ * two method-scoped type parameters that are each required to implement `Eq`.
+ *
+ * @example Non-generic augmentation
  *
  * Consider a module augmentation for an externally defined `Book` type:
  *
  * ```ts
+ * import { Eq } from "@neotype/prelude/cmp.js";
  * import { Book } from "path_to/book.js";
  *
  * declare module "path_to/book.js" {
@@ -336,18 +371,22 @@ import { cmb, Semigroup } from "./cmb.js";
  * };
  * ```
  *
+ * @example Generic augmentation
+ *
  * Consider a global augmentation for the `Array` prototype:
  *
  * ```ts
+ * import { Eq, ieq } from "@neotype/prelude/cmp.js";
+ *
  * declare global {
  *     interface Array<T> {
- *         [Eq.eq]<A extends Eq<A>>(this: A[], that: A[]): boolean
+ *         [Eq.eq]<T extends Eq<T>>(this: T[], that: T[]): boolean
  *     }
  * }
  *
- * Array.prototype[Eq.eq] = function <A extends Eq<A>>(
- *     this: A[],
- *     that: A[],
+ * Array.prototype[Eq.eq] = function <T extends Eq<T>>(
+ *     this: T[],
+ *     that: T[],
  * ): boolean {
  *     return ieq(this, that);
  * };
@@ -377,6 +416,8 @@ export namespace Eq {
 /**
  * Test whether two values are equal.
  *
+ * @remarks
+ *
  * `eq(x, y)` is equivalent to `x[Eq.eq](y)`.
  */
 export function eq<A extends Eq<A>>(x: A, y: A): boolean {
@@ -386,6 +427,8 @@ export function eq<A extends Eq<A>>(x: A, y: A): boolean {
 /**
  * Test whether two values are inequal.
  *
+ * @remarks
+ *
  * `ne(x, y)` is equivalent to `!x[Eq.eq](y)`.
  */
 export function ne<A extends Eq<A>>(x: A, y: A): boolean {
@@ -394,6 +437,8 @@ export function ne<A extends Eq<A>>(x: A, y: A): boolean {
 
 /**
  * Test whether two Iterables of arbitrary values are lexicographically equal.
+ *
+ * @remarks
  *
  * If two Iterables are the same length and their respective elements are
  * determined to be equal by a provided function, then the Iterables are
@@ -430,6 +475,8 @@ export function ieqBy<A>(
 /**
  * Test whether two Iterables are lexicographically equal.
  *
+ * @remarks
+ *
  * If two Iterables are the same length and their respective elements are equal,
  * then the Iterables are lexicographically equal.
  */
@@ -442,6 +489,8 @@ export function ieq<A extends Eq<A>>(
 
 /**
  * An interface that provides evidence of a [total order].
+ *
+ * @remarks
  *
  * ## Properties
  *
@@ -499,11 +548,33 @@ export function ieq<A extends Eq<A>>(
  * -   do not provide access to their implementation, and where patching the
  *     implementation is undesireable.
  *
- * #### Example: non-generic type
+ * ### Patching existing prototypes
+ *
+ * Existing types can be patched to implement `Ord`. This strategy works well
+ * for types that:
+ *
+ * -   are built-in or imported from external modules.
+ * -   do not provide access to their implementation.
+ * -   have a single, specific behavior as a total order, or where the
+ *     programmer wishes to implement a default behavior.
+ *
+ * Patching a type in TypeScript requires two steps:
+ *
+ * 1.  an [augmentation] for a module or the global scope that patches the
+ *     type-level representation; and
+ * 2.  a concrete implementation for `[Ord.cmp]` and `[Eq.eq]`.
+ *
+ * The concrete implementation logic is similar to writing a method body for a
+ * class or object, and the same practices apply for requiring generic
+ * parameters to implement `Ord`.
+ *
+ * @example Non-generic implementation
  *
  * Consider a Book type that determines ordering by comparing ISBNs:
  *
  * ```ts
+ * import { Eq, Ord, Ordering } from "@neotype/prelude/cmp.js";
+ *
  * enum BookFormat { Hardback, Paperback, Digital }
  *
  * class Book {
@@ -523,6 +594,8 @@ export function ieq<A extends Eq<A>>(
  * determine ordering:
  *
  * ```ts
+ * import { Eq, Ord, Ordering } from "@neotype/prelude/cmp.js";
+ *
  * enum BookFormat { Hardback, Paperback, Digital }
  *
  * class Book {
@@ -545,11 +618,13 @@ export function ieq<A extends Eq<A>>(
  * Notice how the semigroup behavior of `Ordering` along with `cmb` is used here
  * to combine two Orderings.
  *
- * #### Example: generic type with no `Ord` requirements
+ * @example Generic implementation with no `Ord` requirements
  *
  * Consider a type that determines ordering by comparing the length of Arrays:
  *
  * ```ts
+ * import { Eq, Ord, Ordering } from "@neotype/prelude/cmp.js";
+ *
  * class Len<A> {
  *     constructor(readonly val: A[]) {}
  *
@@ -566,12 +641,14 @@ export function ieq<A extends Eq<A>>(
  * Notice how `Len` is generic, but there are no special requirements for
  * implementing `[Ord.cmp]`.
  *
- * #### Example: generic type with an `Ord` requirement
+ * @example Generic implementation with an `Ord` requirement
  *
  * Consider a type that determines ordering by comparing the elements of Arrays
  * lexicographically, which requires that the elements implement `Ord`:
  *
  * ```ts
+ * import { Eq, icmp, Ord, Ordering } from "@neotype/prelude/cmp.js";
+ *
  * class Arr<A> {
  *     constructor(readonly val: A[]) {}
  *
@@ -593,12 +670,15 @@ export function ieq<A extends Eq<A>>(
  * `A extends Ord<A>`. This allows us to use `icmp` to implement our desired
  * behavior.
  *
- * #### Example: generic type with multiple `Ord` requirements
+ * @example Generic implementation with multiple `Ord` requirements
  *
  * Consider a type that determines ordering by comparing a first then second
  * value, which requires that each value implement `Ord`:
  *
  * ```ts
+ * import { cmb } from "@neotype/prelude/cmb.js";
+ * import { Eq, cmp, Ord, Ordering } from "@neotype/prelude/cmp.js";
+ *
  * class Pair<A, B> {
  *     constructor(readonly fst: A, readonly snd: B) {}
  *
@@ -621,31 +701,16 @@ export function ieq<A extends Eq<A>>(
  * The syntax is similar to the `Arr` implementation above. Notice there are now
  * two method-scoped type parameters that are each required to implement `Ord`.
  *
- * ### Patching existing prototypes
+ * Notice how we're also taking advantage of the `Semigroup` implementation for
+ * `Ordering` to combine two Orderings. We can say that the `fst` and `snd`
+ * properties of `Pair` are compared lexicographically.
  *
- * Existing types can be patched to implement `Ord`. This strategy works well
- * for types that:
- *
- * -   are built-in or imported from external modules.
- * -   do not provide access to their implementation.
- * -   have a single, specific behavior as a total order, or where the
- *     programmer wishes to implement a default behavior.
- *
- * Patching a type in TypeScript requires two steps:
- *
- * 1.  an [augmentation] for a module or the global scope that patches the
- *     type-level representation; and
- * 2.  a concrete implementation for `[Ord.cmp]` and `[Eq.eq]`.
- *
- * The concrete implementation logic is similar to writing a method body for a
- * class or object, and the same practices apply for requiring generic
- * parameters to implement `Ord`.
- *
- * #### Examples
+ * @example Non-generic augmentation
  *
  * Consider a module augmentation for an externally defined `Book` type:
  *
  * ```ts
+ * import { Eq, Ord, Ordering } from "@neotype/prelude/cmp.js";
  * import { Book } from "path_to/book.js";
  *
  * declare module "path_to/book.js" {
@@ -664,26 +729,30 @@ export function ieq<A extends Eq<A>>(
  * };
  * ```
  *
+ * @example Generic augmentation
+ *
  * Consider a global augmentation for the `Array` prototype:
  *
  * ```ts
+ * import { Eq, icmp, Ord, Ordering } from "@neotype/prelude/cmp.js";
+ *
  * declare global {
  *     interface Array<T> {
- *         [Eq.eq]<A extends Eq<A>>(this: A[], that: A[]): boolean
- *         [Ord.cmp]<A extends Ord<A>>(this: A[], that: A[]): Ordering
+ *         [Eq.eq]<T extends Eq<T>>(this: T[], that: T[]): boolean
+ *         [Ord.cmp]<T extends Ord<T>>(this: T[], that: T[]): Ordering
  *     }
  * }
  *
- * Array.prototype[Eq.eq] = function <A extends Eq<A>>(
- *     this: A[],
- *     that: A[],
+ * Array.prototype[Eq.eq] = function <T extends Eq<T>>(
+ *     this: T[],
+ *     that: T[],
  * ): boolean {
  *     // An exercise for the reader...
  * }
  *
- * Array.prototype[Ord.cmp] = function <A extends Ord<A>>(
- *     this: A[],
- *     that: A[],
+ * Array.prototype[Ord.cmp] = function <T extends Ord<T>>(
+ *     this: T[],
+ *     that: T[],
  * ): boolean {
  *     return icmp(this, that);
  * };
@@ -711,6 +780,8 @@ export namespace Ord {
 
 /**
  * Compare two values to determine their ordering.
+ *
+ * @remarks
  *
  * `cmp(x, y)` is equivalent to `x[Ord.cmp](y)`
  */
@@ -764,6 +835,8 @@ export function icmp<A extends Ord<A>>(
 /**
  * Test for a "less than" ordering between two values.
  *
+ * @remarks
+ *
  * Return `true` if `x` is less than `y`.
  */
 export function lt<A extends Ord<A>>(x: A, y: A): boolean {
@@ -772,6 +845,8 @@ export function lt<A extends Ord<A>>(x: A, y: A): boolean {
 
 /**
  * Test for a "greater than" ordering between two values.
+ *
+ * @remarks
  *
  * Return `true` if `x` is greater than `y`.
  */
@@ -782,6 +857,8 @@ export function gt<A extends Ord<A>>(x: A, y: A): boolean {
 /**
  * Test for a "less than or equal" ordering between two values.
  *
+ * @remarks
+ *
  * Return `true` if `x` is less than or equal to `y`.
  */
 export function le<A extends Ord<A>>(x: A, y: A): boolean {
@@ -790,6 +867,8 @@ export function le<A extends Ord<A>>(x: A, y: A): boolean {
 
 /**
  * Test for a "greater than or equal" ordering between two values.
+ *
+ * @remarks
  *
  * Return `true` if `x` is greater than or equal to `y`.
  */
@@ -800,6 +879,8 @@ export function ge<A extends Ord<A>>(x: A, y: A): boolean {
 /**
  * Return the lesser of two values.
  *
+ * @remarks
+ *
  * If the values are equal, return the first value.
  */
 export function min<A extends Ord<A>>(x: A, y: A): A {
@@ -809,6 +890,8 @@ export function min<A extends Ord<A>>(x: A, y: A): A {
 /**
  * Return the greater of two values.
  *
+ * @remarks
+ *
  * If the values are equal, return the first value.
  */
 export function max<A extends Ord<A>>(x: A, y: A): A {
@@ -817,6 +900,8 @@ export function max<A extends Ord<A>>(x: A, y: A): A {
 
 /**
  * Restrict a value to an inclusive interval.
+ *
+ * @remarks
  *
  * `clamp(x, lo, hi)` is equivalent to `min(max(x, lo, hi))`.
  */
@@ -844,6 +929,8 @@ export namespace Ordering {
 
     /**
      * Construct an Ordering from a number.
+     *
+     * @remarks
      *
      * -   If `n < 0`, return `Less`.
      * -   If `n > 0`, return `Greater`.
@@ -923,6 +1010,8 @@ export namespace Ordering {
         /**
          * Reverse this Ordering.
          *
+         * @remarks
+         *
          * -   `Less` becomes `Greater`.
          * -   `Greater` becomes `Less`.
          * -   `Equal` remains `Equal`.
@@ -939,6 +1028,8 @@ export namespace Ordering {
 
         /**
          * Convert this Ordering to a number.
+         *
+         * @remarks
          *
          * -   If this is `Less`, return -1.
          * -   If this is `Greater`, return 1.

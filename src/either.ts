@@ -17,6 +17,8 @@
 /**
  * Functional unions and railway-oriented programming.
  *
+ * @remarks
+ *
  * `Either<A, B>` is a type that represents one of two values `A` and `B`; thus,
  * `Either` is represented by two variants: `Left<A>` and `Right<B>`.
  *
@@ -193,17 +195,11 @@
  * right in the context of `Either`. This is useful for mapping, filtering, and
  * accumulating values using `Either`.
  *
- * ## Examples
- *
- * These examples assume the following imports:
+ * @example Basic matching and folding
  *
  * ```ts
  * import { Either } from "@neotype/prelude/either.js";
- * ```
  *
- * ### Basic matching and folding
- *
- * ```ts
  * const strOrNum: Either<string, number> = Either.right(1);
  *
  * // Querying and narrowing using methods
@@ -229,9 +225,15 @@
  * );
  * ```
  *
- * ### Parsing with `Either`
+ * @example Parsing with `Either`
  *
- * Consider a program that uses `Either` to parse an even integer:
+ * First, our imports:
+ *
+ * ```ts
+ * import { Either } from "@neotype/prelude/either.js";
+ * ```
+ *
+ * Now, consider a program that uses `Either` to parse an even integer:
  *
  * ```ts
  * function parseInt(input: string): Either<string, number> {
