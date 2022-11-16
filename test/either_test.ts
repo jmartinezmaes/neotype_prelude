@@ -3,7 +3,7 @@ import * as fc from "fast-check";
 import { cmb } from "../src/cmb.js";
 import { cmp, eq, Ordering } from "../src/cmp.js";
 import { Either } from "../src/either.js";
-import { Validated } from "../src/validated.js";
+import { Validation } from "../src/validation.js";
 import { arbNum, arbStr, tuple } from "./common.js";
 
 function mk<A, B>(t: "L" | "R", x: A, y: B): Either<A, B> {
@@ -30,11 +30,11 @@ describe("Either", () => {
         assert.deepEqual(t1, Either.left(_4));
     });
 
-    specify("Either.fromValidated", () => {
-        const t0 = Either.fromValidated(Validated.dispute<1, 2>(_1));
+    specify("Either.fromValidation", () => {
+        const t0 = Either.fromValidation(Validation.err<1, 2>(_1));
         assert.deepEqual(t0, Either.left(_1));
 
-        const t1 = Either.fromValidated(Validated.accept<2, 1>(_2));
+        const t1 = Either.fromValidation(Validation.ok<2, 1>(_2));
         assert.deepEqual(t1, Either.right(_2));
     });
 

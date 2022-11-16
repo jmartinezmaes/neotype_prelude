@@ -64,8 +64,8 @@
  * -   `guard` constructs an Either from applying a predicate function to a
  *     value. The value is returned in `Right` or `Left` if it satisfies or does
  *     not satisfy the predicate, respectively.
- * -   `fromValidated` converts a Validated to an Either. `Disputed` becomes
- *     `Left` and `Accepted` becomes `Right`.
+ * -   `fromValidation` converts a Validation to an Either. `Err` becomes `Left`
+ *     and `Ok` becomes `Right`.
  *
  * ## Querying and narrowing the variant
  *
@@ -389,7 +389,7 @@
 import { cmb, Semigroup } from "./cmb.js";
 import { cmp, Eq, eq, Ord, Ordering } from "./cmp.js";
 import { id } from "./fn.js";
-import { type Validated } from "./validated.js";
+import { type Validation } from "./validation.js";
 
 /**
  * A type that represents one of two values (`Left` or `Right`).
@@ -440,10 +440,10 @@ export namespace Either {
     }
 
     /**
-     * Construct an Either from a Validated.
+     * Construct an Either from a Validation.
      */
-    export function fromValidated<E, A>(vtd: Validated<E, A>): Either<E, A> {
-        return vtd.fold(left, right);
+    export function fromValidation<E, A>(vdn: Validation<E, A>): Either<E, A> {
+        return vdn.fold(left, right);
     }
 
     /**
