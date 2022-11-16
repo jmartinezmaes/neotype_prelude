@@ -17,7 +17,7 @@
 -   **Algebraic data types**:
     -   Model optional values with `Maybe`.
     -   Handle failures with `Either`.
-    -   Validate forms and user input with `Validated`.
+    -   Validate forms and user input with `Validation`.
     -   Implement stack-safe recursion with `Eval`.
     -   Get creative with more exotic types like `Ior`.
 -   **Generator comprehensions**: simplify working with monads by writing

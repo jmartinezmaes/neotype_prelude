@@ -43,7 +43,7 @@
         "./ior.js": "./dist/ior.js",
         "./maybe.js": "./dist/maybe.js",
         "./pair.js": "./dist/pair.js",
-        "./validated.js": "./dist/validated.js",
+        "./validation.js": "./dist/validation.js",
         "./package.json": "./package.json"
     },
     "scripts": {

@@ -24,12 +24,12 @@
  * and `Both<A, B>`.
  *
  * `Ior` is often used to represent states of failure or success similar to
- * `Either` and `Validated`. However, `Ior` is capable of also representing a
+ * `Either` and `Validation`. However, `Ior` is capable of also representing a
  * unique state using the `Both` variant. `Both` can represent a success that
  * carries additional information, or a state of "partial failure".
  *
  * When composed, the behavior of `Ior` is a combination of the short-circuiting
- * behavior of `Either` and the failure-accumulating behavior of `Validated`:
+ * behavior of `Either` and the failure-accumulating behavior of `Validation`:
  *
  * -   `Left` short-circuits a computation completely and combines its value
  *     with any existing left-hand value.
