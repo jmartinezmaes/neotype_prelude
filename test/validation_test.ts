@@ -163,22 +163,6 @@ describe("Validation", () => {
         assert.deepEqual(t1, [_2, _4]);
     });
 
-    specify("#errOrFold", () => {
-        const t0 = mk("Err", _1, _2).errOrFold((x) => tuple(x, _4));
-        assert.strictEqual(t0, _1);
-
-        const t1 = mk("Ok", _1, _2).errOrFold((x) => tuple(x, _4));
-        assert.deepEqual(t1, [_2, _4]);
-    });
-
-    specify("#okOrFold", () => {
-        const t0 = mk("Err", _1, _2).okOrFold((x) => tuple(x, _3));
-        assert.deepEqual(t0, [_1, _3]);
-
-        const t1 = mk("Ok", _1, _2).okOrFold((x) => tuple(x, _3));
-        assert.strictEqual(t1, _2);
-    });
-
     specify("#zipWith", () => {
         const t0 = mk("Err", sa, _2).zipWith(mk("Err", sc, _4), tuple);
         assert.deepEqual(t0, Validation.err(cmb(sa, sc)));

@@ -23,7 +23,7 @@
  * or success; thus, `Validation` is represented by two variants: `Err<E>` and
  * `Ok<A>`.
  *
- * -   The `Err` variant represents a *failing* `Validation`, and contains a
+ * -   The `Err` variant represents a *failed* `Validation` and contains a
  *     *failure* of type `E`.
  * -   The `Ok` variant represents a *successful* `Validation` and contains a
  *     *success* of type `A`.
@@ -65,7 +65,7 @@
  *
  * ## Constructing `Validation`
  *
- * These methods construct a `Validation`:
+ * These functions construct a `Validation`:
  *
  * -   `err` constructs an `Err` variant.
  * -   `ok` constructs an `Ok` variant.
@@ -73,7 +73,7 @@
  *     `Right` variants of `Either` become the `Err` and `Ok` variants of
  *     `Validation`, respectively.
  *
- * ## Querying the variant
+ * ## Querying and narrowing the variant
  *
  * The `isErr` and `isOk` methods return `true` if a `Validation` is the `Err`
  * or `Ok` variant, respectively. These methods will also narrow the type of a
@@ -85,17 +85,11 @@
  * ## Extracting values
  *
  * The failure or success within a `Validation` can be accessed via the `val`
- * property. The type of the property can be narrowed by first querying the
- * variant.
+ * property. The type of the `val` property can be narrowed by first querying
+ * the variant.
  *
- * These methods also extract the value from a `Validation`:
- *
- * -   `fold` applies one of two functions to the failure or success, depending
- *     on the variant.
- * -   `errOrFold` extracts the failure if the `Validation` fails; otherwise, it
- *     applies a function to the success to return a fallback result.
- * -   `okOrFold` extracts the success if the `Validation` succeeds; otherwise,
- *     it applies a function to the failure to return a fallback result.
+ * The `fold` method also unwraps a `Validation` by applying one of two
+ * functions to the failure or success, depending on the variant.
  *
  * ## Comparing `Validation`
  *
@@ -130,12 +124,11 @@
  *
  * -   `bimap` applies one of two functions to the failure or success, depending
  *     on the variant.
- * -   `lmap` applies a function to the failure, and leaves the success
- *     unaffected.
- * -   `map` applies a function to the success, and leaves the failure
- *     unaffected.
+ * -   `lmap` applies a function to the failure, and leaves the success as is.
+ * -   `map` applies a function to the success, and leaves the failure as is.
  *
- * These methods combine the successes of two `Ok` variants:
+ * These methods combine the successes of two `Ok` variants, or begin
+ * accumulating failures on any `Err` variant:
  *
  * -   `zipWith` applies a function to the successes.
  * -   `zipFst` keeps only the first success, and discards the second.
@@ -144,11 +137,11 @@
  * ## Collecting into `Validation`
  *
  * Sometimes, a collection of `Validation` values must be turned "inside out"
- * into a `Validation` that contains an equivalent collection of successes.
+ * into a `Validation` that succeeds with an equivalent collection of successes.
  *
- * These methods traverse a collection of `Validation` values to extract the
- * successes. If any `Validation` in the collection is an `Err`, the traversal
- * halts and failures begin accumulating instead.
+ * These functions traverse a collection of `Validation` values to extract the
+ * successes. If any `Validation` in the collection fails, the traversal halts
+ * and failures begin accumulating instead.
  *
  * -   `collect` turns an array or a tuple literal of `Validation` values inside
  *     out.
@@ -421,9 +414,9 @@ export namespace Validation {
 
     /**
      * Evaluate the `Validation` values in an array or a tuple literal from left
-     * to right and collect the successes in an array or a tuple literal,
-     * respectively. If any `Validation` is an `Err`, failures will begin
-     * accumulating instead.
+     * to right. If they all succeed, collect the successes in an array or a
+     * tuple literal, respectively; otherwise, begin accumulating failures on
+     * the first failed `Validation`.
      */
     export function collect<
         T extends readonly Validation<Semigroup<any>, any>[],
@@ -439,9 +432,10 @@ export namespace Validation {
     }
 
     /**
-     * Evaluate the `Validation` values in a record or an object literal and
-     * collect the successes in a record or an object literal, respectively. If
-     * any `Validation` is an `Err`, failures will begin accumulating instead.
+     * Evaluate the `Validation` values in a record or an object literal. If
+     * they all succeed, collect the successes in a record or an object literal,
+     * respectively; otherwise, begin accumulating failures on the first failed
+     * `Validation`.
      */
     export function gather<
         T extends Record<string, Validation<Semigroup<any>, any>>,
@@ -513,25 +507,9 @@ export namespace Validation {
         }
 
         /**
-         * If this `Validation` fails, extract its failure; otherwise, apply a
-         * function to its success to return a fallback result.
-         */
-        errOrFold<E, A, B>(this: Validation<E, A>, f: (x: A) => B): E | B {
-            return this.fold(id, f);
-        }
-
-        /**
-         * If this `Validation` succeeds, extract its success; otherwise, apply
-         * a function to its failure to return a fallback result.
-         */
-        okOrFold<E, A, B>(this: Validation<E, A>, f: (x: E) => B): A | B {
-            return this.fold(f, id);
-        }
-
-        /**
          * If this and that `Validation` both succeed, apply a function to their
-         * successes and return the result in an `Ok`; otherwise, begin
-         * accumulating failures on the first failed `Validation`.
+         * successes and succeed with the result; otherwise, begin accumulating
+         * failures on the first failed `Validation`.
          */
         zipWith<E extends Semigroup<E>, A, B, C>(
             this: Validation<E, A>,
@@ -569,9 +547,9 @@ export namespace Validation {
         }
 
         /**
-         * If this `Validation` fails, apply a function to its failure and
-         * return the result in an `Err`; otherwise, apply a function to its
-         * success and return the result in an `Ok`.
+         * If this `Validation` fails, apply a function to its failure and fail
+         * with the result; otherwise, apply a function to its success and
+         * succeed with the result.
          */
         bimap<E, A, E1, B>(
             this: Validation<E, A>,
@@ -582,9 +560,8 @@ export namespace Validation {
         }
 
         /**
-         * If this `Validation` fails, apply a function to its failure and
-         * return the result in an `Err`; otherwise, return this `Validation` as
-         * is.
+         * If this `Validation` fails, apply a function to its failure and fail
+         * with the result; otherwise, return this `Validation` as is.
          */
         lmap<E, A, E1>(
             this: Validation<E, A>,
@@ -595,8 +572,7 @@ export namespace Validation {
 
         /**
          * If this `Validation` succeeds, apply a function to its success and
-         * return the result in an `Ok`; otherwise, return this `Validation` as
-         * is.
+         * succeed with the result; otherwise, return this `Validation` as is.
          */
         map<E, A, B>(this: Validation<E, A>, f: (x: A) => B): Validation<E, B> {
             return this.isErr() ? this : ok(f(this.val));
@@ -604,7 +580,7 @@ export namespace Validation {
     }
 
     /**
-     * A failing `Validation`.
+     * A failed `Validation`.
      */
     export class Err<out E> extends Syntax {
         /**

@@ -80,15 +80,8 @@
  *
  * An Either's value can be accessed via the `val` property. The type of the
  * property can be narrowed by first querying the Either's variant.
- *
- * These methods also extract an Either's value:
- *
- * -   `fold` applies one of two functions to the value, depending on the
- *     Either's variant.
- * -   `leftOrFold` extracts the value if the Either is `Left`; otherwise, it
- *     applies a function to the `Right` value to return a fallback result.
- * -   `rightOrFold` extracts the value if the Either is `Right`; otherwise, it
- *     applies a function to the `Left` value to return a fallback result.
+ * Additionally, the `fold` method unwraps an `Either` by applying one of two
+ * functions to the value, depending on Either's variant.
  *
  * ## Comparing `Either`
  *
@@ -589,22 +582,6 @@ export namespace Either {
             foldR: (x: B) => D,
         ): C | D {
             return this.isLeft() ? foldL(this.val) : foldR(this.val);
-        }
-
-        /**
-         * If this Either is `Left`, extract its value; otherwise, apply a
-         * function to the `Right` value.
-         */
-        leftOrFold<A, B, C>(this: Either<A, B>, f: (x: B) => C): A | C {
-            return this.fold(id, f);
-        }
-
-        /**
-         * If this Either is `Right`, extract its value; otherwise, apply a
-         * function to the `Left` value.
-         */
-        rightOrFold<A, B, C>(this: Either<A, B>, f: (x: A) => C): B | C {
-            return this.fold(f, id);
         }
 
         /**
