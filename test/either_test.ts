@@ -214,22 +214,6 @@ describe("Either", () => {
         assert.deepEqual(t1, [_2, _4]);
     });
 
-    specify("#leftOrFold", () => {
-        const t0 = mk("L", _1, _2).leftOrFold((x) => tuple(x, _4));
-        assert.strictEqual(t0, _1);
-
-        const t1 = mk("R", _1, _2).leftOrFold((x) => tuple(x, _4));
-        assert.deepEqual(t1, [_2, _4]);
-    });
-
-    specify("#rightOrFold", () => {
-        const t0 = mk("L", _1, _2).rightOrFold((x) => tuple(x, _3));
-        assert.deepEqual(t0, [_1, _3]);
-
-        const t1 = mk("R", _1, _2).rightOrFold((x) => tuple(x, _3));
-        assert.strictEqual(t1, _2);
-    });
-
     specify("#bindLeft", () => {
         const t0 = mk("L", _1, _2).recover((x) => mk("L", tuple(x, _3), _4));
         assert.deepEqual(t0, Either.left([_1, _3] as const));

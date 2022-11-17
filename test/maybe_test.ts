@@ -211,11 +211,6 @@ describe("Maybe", () => {
         assert.deepEqual(t1, [_1, _2]);
     });
 
-    specify("#justOrFold", () => {
-        const t0 = mk("J", _1).justOrFold(() => _2);
-        assert.strictEqual(t0, _1);
-    });
-
     specify("#justOr", () => {
         const t0 = mk("J", _1).justOr(_2);
         assert.strictEqual(t0, _1);
