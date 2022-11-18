@@ -55,3 +55,12 @@ export function negate<T extends unknown[]>(
 ): (...args: T) => boolean {
     return (...args) => !f(...args);
 }
+
+/**
+ * Adapt a constructor of any arity into a callable function.
+ */
+export function wrapCtor<T extends readonly unknown[], A>(
+    ctor: new (...args: T) => A,
+): (...args: T) => A {
+    return (...args) => new ctor(...args);
+}

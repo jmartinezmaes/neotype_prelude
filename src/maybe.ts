@@ -185,6 +185,15 @@
  * right in the context of `Maybe`. This is useful for mapping, filtering, and
  * accumulating values using `Maybe`.
  *
+ * ## Lifting functions to work with `Maybe`
+ *
+ * The `lift` function receives an ordinary function that accepts arbitrary
+ * agruments, and returns an adapted function that accepts `Maybe` values as
+ * arguments instead. The arguments are evaluated from left to right, and if
+ * they are all `Just` variants, the original function is applied to their
+ * values and returned in a `Just`. If any `Maybe` is `Nothing`, `Nothing` is
+ * returned instead.
+ *
  * @example Basic matching and unwrapping
  *
  * ```ts
@@ -499,6 +508,15 @@ export namespace Maybe {
             }
             return results as { [K in keyof T]: JustT<T[K]> };
         });
+    }
+
+    /**
+     * Lift a function of any arity into the context of `Maybe`.
+     */
+    export function lift<T extends readonly unknown[], A>(
+        f: (...args: T) => A,
+    ): (...maybes: { [K in keyof T]: Maybe<T[K]> }) => Maybe<A> {
+        return (...maybes) => collect(maybes).map((args) => f(...args));
     }
 
     /**

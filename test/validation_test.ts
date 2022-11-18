@@ -79,6 +79,14 @@ describe("Validation", () => {
         assert.deepEqual(t3, Validation.ok({ x: _2, y: _4 }));
     });
 
+    specify("Validation.lift", () => {
+        const t0 = Validation.lift(tuple<2, 4>)(
+            mk("Ok", sa, _2),
+            mk("Ok", sc, _4),
+        );
+        assert.deepEqual(t0, Validation.ok([_2, _4] as const));
+    });
+
     specify("#[Eq.eq]", () => {
         fc.assert(
             fc.property(arbNum(), arbNum(), (x, y) => {

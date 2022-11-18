@@ -104,6 +104,11 @@ describe("Ior", () => {
         assert.deepEqual(t0, Ior.both(cmb(sa, sc), { x: _2, y: _4 }));
     });
 
+    specify("Ior.lift", () => {
+        const t0 = Ior.lift(tuple<2, 4>)(mk("B", sa, _2), mk("B", sc, _4));
+        assert.deepEqual(t0, Ior.both(cmb(sa, sc), [_2, _4] as const));
+    });
+
     specify("Ior.goAsync", async () => {
         const t0 = await Ior.goAsync(async function* () {
             const x = yield* await mkA("L", sa, _2);

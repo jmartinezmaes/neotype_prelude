@@ -116,6 +116,13 @@
  * right in the context of `Eval`. This is useful for mapping, filtering, and
  * accumulating values using `Eval`.
  *
+ * ## Lifting functions to work with `Eval`
+ *
+ * The `lift` function receives an ordinary function that accepts arbitrary
+ * agruments, and returns an adapted function that accepts `Eval` values as
+ * arguments instead. The arguments are evaluated from left to right, then the
+ * original function is applied to the results.
+ *
  * @example Recursive folds with `Eval`
  *
  * First, our imports:
@@ -377,6 +384,15 @@ export class Eval<out A> {
             }
             return results as { [K in keyof T]: Eval.ResultT<T[K]> };
         });
+    }
+
+    /**
+     * Lift a function of any arity into the context of `Eval`.
+     */
+    static lift<T extends readonly unknown[], A>(
+        f: (...args: T) => A,
+    ): (...evals: { [K in keyof T]: Eval<T[K]> }) => Eval<A> {
+        return (...evals) => Eval.collect(evals).map((args) => f(...args));
     }
 
     /**

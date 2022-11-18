@@ -194,6 +194,14 @@
  * right in the context of `Ior`. This is useful for mapping, filtering, and
  * accumulating values using `Ior`.
  *
+ * ## Lifting functions to work with `Ior`
+ *
+ * The `lift` function receives an ordinary function that accepts arbitrary
+ * agruments, and returns an adapted function that accepts `Ior` values as
+ * arguments instead. The arguments are evaluated from left to right, then the
+ * original function is applied to the right-hand values and returned as a
+ * right-hand value.
+ *
  * @example Basic matching and unwrapping
  *
  * ```ts
@@ -567,6 +575,18 @@ export namespace Ior {
             }
             return results;
         }) as Ior<LeftT<T[keyof T]>, { [K in keyof T]: RightT<T[K]> }>;
+    }
+
+    /**
+     * Lift a function of any arity into the context of `Ior`.
+     */
+    export function lift<T extends readonly unknown[], A>(
+        f: (...args: T) => A,
+    ): <E extends Semigroup<E>>(
+        ...iors: { [K in keyof T]: Ior<E, T[K]> }
+    ) => Ior<E, A> {
+        return (...iors) =>
+            collect(iors).map((args) => f(...(args as T))) as Ior<any, A>;
     }
 
     /**

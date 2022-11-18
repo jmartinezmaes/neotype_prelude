@@ -188,6 +188,15 @@
  * right in the context of `Either`. This is useful for mapping, filtering, and
  * accumulating values using `Either`.
  *
+ * ## Lifting functions to work with `Either`
+ *
+ * The `lift` function receives an ordinary function that accepts arbitrary
+ * agruments, and returns an adapted function that accepts `Either` values as
+ * arguments instead. The arguments are evaluated from left to right, and if
+ * they are all `Right` variants, the original function is applied to their
+ * values and returned in a `Right`. If any `Either` is a `Left`, that `Either`
+ * is returned instead.
+ *
  * @example Basic matching and unwrapping
  *
  * ```ts
@@ -506,6 +515,18 @@ export namespace Either {
             }
             return results as { [K in keyof T]: RightT<T[K]> };
         });
+    }
+
+    /**
+     * Lift a function of any arity into the context of `Either`.
+     */
+    export function lift<T extends readonly unknown[], A>(
+        f: (...args: T) => A,
+    ): <T1 extends { [K in keyof T]: Either<any, T[K]> }>(
+        ...eithers: T1
+    ) => Either<LeftT<T1[number]>, A> {
+        return (...eithers) =>
+            collect(eithers).map((args) => f(...(args as T)));
     }
 
     /**
