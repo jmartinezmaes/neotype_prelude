@@ -19,10 +19,12 @@
  *
  * @remarks
  *
+ * This module provides utilities for implementing equivalance relations and
+ * total orders, as well as ordering and comparing values.
+ *
  * ## Importing from this module
  *
- * This module exports utilities for ordering and comparing values. It is
- * recommended to import them as they are named:
+ * It is recommended to import items from this module individually:
  *
  * ```ts
  * import { clamp, cmp, Eq, eq, ge, gt, icmp, icmpBy ieq, ieqBy, le, lt, max,
@@ -39,13 +41,12 @@
  *
  * ## Comparing values
  *
- * These functions compare two instances of `Eq`:
+ * These functions compare two `Eq` values:
  *
  * -   `eq` tests for equality.
  * -   `ne` tests for inequality.
- *
- * In addition to the functions above, these functions compare two instances of
- * `Ord`:
+ 
+ * In addition to the functions above, these functions compare two `Ord` values:
  *
  * -   `cmp` determines their ordering.
  * -   `lt` tests for a "less than" ordering.
@@ -53,87 +54,87 @@
  * -   `le` tests for a "less than or equal" ordering.
  * -   `ge` tests for a "greater than or equal" ordering.
  *
- * These functions compare instances of `Ord` to determine extrema:
+ * These functions compare `Ord` values to determine extrema:
  *
  * -   `min` returns the minimum of two values.
  * -   `max` returns the maximum of two values.
  * -   `clamp` restricts a value to an inclusive interval.
  *
- * ## Comparing Iterables
+ * ## Comparing iterables
  *
- * These functions compare two Iterables of `Eq` and `Ord` values:
+ * These functions compare two iterables of `Eq` and `Ord` values:
  *
  * -   `ieq` tests for equality.
  * -   `icmp` determines their ordering.
  *
- * These functions compare two Iterables of arbitrary values:
+ * These functions compare two iterables of arbitrary values:
  *
  * -   `ieqBy` tests for equality using a provided testing function.
  * -   `icmpBy` determines their ordering using a provided comparer function.
  *
- * The `-By` methods are particularly useful for comparing Iterables without
+ * The `*By` methods are particularly useful for comparing iterables without
  * requiring that their values implement `Eq` and `Ord`, or performing
  * additional transformations beforehand. Examples include comparing instances
- * of `Int8Array`, or comparing Iterables returned from `Map.prototype.entries`.
+ * of `Int8Array`, or comparing iterables returned from `Map.prototype.entries`.
  *
  * ### Lexicographical comparison
  *
  * Iterables are compared [lexicographically], which means:
  *
- * -   Two Iterables are compared element by element.
- * -   Two empty Iterables are lexicographically equal.
- * -   If two Iterables have equivalent elements and are of the same length,
- *     then the Iterables are lexicographically equal.
- * -   An empty Iterable is lexicographically less than any non-empty Iterable.
- * -   If one Iterable is a prefix of another, the shorter Iterable is
+ * -   Two iterables are compared element by element.
+ * -   Two empty iterables are lexicographically equal.
+ * -   If two iterables have equivalent elements and are of the same length,
+ *     then the iterables are lexicographically equal.
+ * -   An empty iterable is lexicographically less than any non-empty iterable.
+ * -   If one iterable is a prefix of another, the shorter iterable is
  *     lexicographically less than the other.
- * -   The first mismatching element defines which Iterable is lexicographically
+ * -   The first mismatching element defines which iterable is lexicographically
  *     less or greater than the other.
  *
- * ## Orderings
+ * ## The `Ordering` type
  *
  * The `Ordering` type represents a comparison between two values and is used to
- * implement `Ord`. An `Ordering` can be one of:
+ * implement `Ord`. An `Ordering` has three variants:
  *
  * -   `Less`, indicating a "less than" comparison;
- * -   `Equal`, indicating an "equal" comparison; or
+ * -   `Equal`, indicating an "equal" comparison; and
  * -   `Greater`, indicating a "greater than" comparison.
  *
- * The companion `Ordering` namespace provides utilities for working with
- * Orderings, including:
+ * The `Ordering` companion namespace provides utilities for working with
+ * `Ordering` values, including:
  *
  * -   The `Less`, `Equal`, and `Greater` variant classes
  * -   The abstract `Syntax` class that provides the fluent API for `Ordering`
  * -   The `Typ` enumeration that discriminates `Ordering`
  * -   The `less`, `equal`, and `greater` constants, which each represent their
  *     equivalent variant
- * -   The `fromNumber` function that constructs an Ordering from a number
+ * -   The `fromNumber` function that constructs an `Ordering` from a `number`
  *
  * ### Comparing `Ordering`
  *
  * `Ordering` implements `Eq` and `Ord`.
  *
- * -   Two Orderings are equal if they are the same variant.
- * -   When ordered, `Less` is less than `Equal`, and `Equal` is less than
- *     `Greater`.
+ * -   Two `Ordering` values are equal if they are the same variant.
+ * -   When ordered, the `Less` variant is less than the `Equal` variant, and
+ *     the `Equal` variant is less than the `Greater` variant.
  *
  * ### `Ordering` as a semigroup
  *
- * `Ordering` implements `Semigroup`. When combined, the first non-`Equal`
- * Ordering determines the overall ordering. This behavior is useful for
- * implementing lexicographical ordering.
+ * `Ordering` implements `Semigroup`. When combined, the first variant that is
+ * not `Equal` takes precedence over any other variant and determines the
+ * overall ordering.
  *
- * ### Transforming Orderings
+ * ### Transforming `Ordering`
  *
- * These methods transform an Ordering:
+ * These methods transform an `Ordering`:
  *
  * -   `reverse` converts `Less` to `Greater` and `Greater` to `Less`, and
- *     leaves `Equal` unaffected.
- * -   `toNumber` converts an Ordering to a number.
+ *     leaves `Equal` as is.
+ * -   `toNumber` converts an `Ordering` to a `number`.
  *
- * ## Reversing orderings
+ * ## Reversing order
  *
- * The `Reverse` class reverses the ordering of an underlying `Ord` value, and
+ * The `Reverse` class reverses the order of an underlying `Ord` value, and
  * provides pass-through implementations for `Eq` and `Semigroup`.
  *
  * ## Working with generic equivalence relations and total orders
@@ -144,7 +145,7 @@
  *
  * @example Working with generic equivalence relations
  *
- * Consider a program that finds all `Eq` values in an Array that occur only
+ * Consider a program that finds all `Eq` values in an array that occur only
  * once:
  *
  * ```ts
@@ -159,7 +160,7 @@
  *
  * @example Working with generic total orders
  *
- * Consider a program that finds all `Ord` values in an Array that are less than
+ * Consider a program that finds all `Ord` values in an array that are less than
  * a given value:
  *
  * ```ts
@@ -187,31 +188,29 @@ import { cmb, Semigroup } from "./cmb.js";
  *
  * ## Properties
  *
- * Instances of `Eq` must implement an equality comparison that is:
+ * Implementors of `Eq` must implement an equality comparison that is:
  *
  * -   reflexive: `eq(x, x)`;
  * -   symmetric: `eq(x, y)` implies `eq(y, x)`; and
  * -   transitive: `eq(x, y)` and `eq(y, z)` implies `eq(x, z)`
  *
- * for all `x`, `y`, and `z`.
+ * for all values `x`, `y`, and `z`.
  *
  * ## Implementing `Eq`
  *
  * `Eq` requires an implementation for `[Eq.eq]`.
  *
  * The most common implementation strategies are writing classes and patching
- * existing prototypes.
- *
- * Implementation is implicit and does not require an `implements` clause.
- * TypeScript uses [structural subtyping] to determine whether a value
- * implements `Eq`.
+ * existing prototypes. Implementation is implicit and does not require an
+ * `implements` clause. TypeScript uses [structural subtyping] to determine
+ * whether a value implements `Eq`.
  *
  * ### Conditional implementation
  *
  * Working with generic types requires additional consideration: in some cases,
- * a generic type implements `Eq` **only** when one or more of its type
+ * a generic type implements `Eq` **only** when one or more of its generic
  * parameters implement `Eq`; in these cases, we must require an `Eq`
- * implementation for the parameter(s). In other cases, there are no such
+ * implementation from the parameter(s). In other cases, there are no such
  * requirements.
  *
  * ### Writing classes
@@ -269,8 +268,8 @@ import { cmb, Semigroup } from "./cmb.js";
  * }
  * ```
  *
- * If desired, we can also require the same `BookFormat` for two Books to be
- * considered equal:
+ * If desired, we can also require the same `BookFormat` for two `Book` values
+ * to be considered equal:
  *
  * ```ts
  * import { Eq } from "@neotype/prelude/cmp.js";
@@ -288,7 +287,7 @@ import { cmb, Semigroup } from "./cmb.js";
  *
  * @example Generic implementation with no `Eq` requirements
  *
- * Consider a type that determines equality by comparing the lengths of Arrays:
+ * Consider a type that determines equality by comparing the lengths of arrays:
  *
  * ```ts
  * import { Eq } from "@neotype/prelude/cmp.js";
@@ -307,8 +306,8 @@ import { cmb, Semigroup } from "./cmb.js";
  *
  * @example Generic implementation with an `Eq` requirement
  *
- * Consider a type that determines equality by comparing the elements of Arrays,
- * which requires that the elements implement `Eq`:
+ * Consider a type that determines equality for arrays by comparing their
+ * elements lexicographically, which requires that the elements implement `Eq`:
  *
  * ```ts
  * import { Eq, ieq } from "@neotype/prelude/cmp.js";
@@ -323,7 +322,7 @@ import { cmb, Semigroup } from "./cmb.js";
  * ```
  *
  * Notice the extra syntax when implementing `[Eq.eq]`. We introduce a
- * *method-scoped* type parameter `A` and require that it has an `Eq`
+ * *method-scoped* generic parameter `A` and require that it has an `Eq`
  * implementation by writing `A extends Eq<A>` (the name `A` is arbitrary).
  *
  * Then, we require that `this` and `that` are `Arr<A>` where `A extends Eq<A>`.
@@ -331,8 +330,8 @@ import { cmb, Semigroup } from "./cmb.js";
  *
  * @example Generic implementation with multiple `Eq` requirements
  *
- * Consider a type that determines equality by comparing values pairwise, which
- * requires that each value in the pair implement `Eq`:
+ * Consider a type that determines equality for two distinct values, which
+ * requires that each value has a distinct implementation for `Eq`:
  *
  * ```ts
  * import { Eq, eq } from "@neotype/prelude/cmp.js";
@@ -350,7 +349,8 @@ import { cmb, Semigroup } from "./cmb.js";
  * ```
  *
  * The syntax is similar to the `Arr` implementation above. Notice there are now
- * two method-scoped type parameters that are each required to implement `Eq`.
+ * two method-scoped generic parameters that are each required to implement
+ * `Eq`.
  *
  * @example Non-generic augmentation
  *
@@ -401,7 +401,7 @@ import { cmb, Semigroup } from "./cmb.js";
  */
 export interface Eq<in A> {
     /**
-     * Test whether this and that instance of `Eq` are considered equivalent.
+     * Test whether this and `Eq` value are equal.
      */
     [Eq.eq](that: A): boolean;
 }
@@ -410,11 +410,14 @@ export interface Eq<in A> {
  * The companion namespace for the `Eq` interface.
  */
 export namespace Eq {
+    /**
+     * The unique symbol used by implementors of `Eq`.
+     */
     export const eq = Symbol();
 }
 
 /**
- * Test whether two values are equal.
+ * Test whether two `Eq` values are equal.
  *
  * @remarks
  *
@@ -425,7 +428,7 @@ export function eq<A extends Eq<A>>(x: A, y: A): boolean {
 }
 
 /**
- * Test whether two values are inequal.
+ * Test whether two `Eq` values are inequal.
  *
  * @remarks
  *
@@ -436,12 +439,12 @@ export function ne<A extends Eq<A>>(x: A, y: A): boolean {
 }
 
 /**
- * Test whether two Iterables of arbitrary values are lexicographically equal.
+ * Test whether two iterables of arbitrary values are lexicographically equal.
  *
  * @remarks
  *
- * If two Iterables are the same length and their respective elements are
- * determined to be equal by a provided function, then the Iterables are
+ * If the iterables are the same length and their respective elements are
+ * determined to be equal by a provided function, then the iterables are
  * lexicographically equal.
  */
 export function ieqBy<A>(
@@ -473,12 +476,12 @@ export function ieqBy<A>(
 }
 
 /**
- * Test whether two Iterables are lexicographically equal.
+ * Test whether two iterables of `Eq` values are lexicographically equal.
  *
  * @remarks
  *
- * If two Iterables are the same length and their respective elements are equal,
- * then the Iterables are lexicographically equal.
+ * If the iterables are the same length and their respective elements are equal,
+ * then the iterables are lexicographically equal.
  */
 export function ieq<A extends Eq<A>>(
     xs: Iterable<A>,
@@ -494,15 +497,15 @@ export function ieq<A extends Eq<A>>(
  *
  * ## Properties
  *
- * In addition to being equivalence relations, instances of `Ord` must define a
- * method of comparison such that an instance is also:
+ * In addition to being equivalence relations, implementors of `Ord` must define
+ * a method of comparison such that an implementation is also:
  *
  * -   reflexive: `le(x, x)`;
  * -   antisymmetric: `le(x, y)` and `le(y, x)` implies `eq(x, y)`;
  * -   transitive: `le(x, y)` and `le(y, z)` implies `le(x, z)`; and
  * -   comparable: either `le(x, y)` or `le(y, x)`
  *
- * for all `x`, `y`, and `z`.
+ * for all values `x`, `y`, and `z`.
  *
  * ## Implementing `Ord`
  *
@@ -510,26 +513,24 @@ export function ieq<A extends Eq<A>>(
  * `[Eq.eq]` and `[Ord.cmp]`.
  *
  * The most common implementation strategies are writing classes and patching
- * existing prototypes.
- *
- * Implementation is implicit and does not require an `implements` clause.
- * TypeScript uses [structural subtyping] to determine whether a value
- * implements `Ord`.
+ * existing prototypes. Implementation is implicit and does not require an
+ * `implements` clause. TypeScript uses [structural subtyping] to determine
+ * whether a value implements `Ord`.
  *
  * ### Conditional implementation
  *
  * Working with generic types requires additional consideration: in some cases,
- * a generic type implements `Ord` **only** when one or more of its type
+ * a generic type implements `Ord` **only** when one or more of its generic
  * parameters implement `Ord`; in these cases, we must require an `Ord`
- * implementation for the parameter(s). In other cases, there are no such
+ * implementation from the parameter(s). In other cases, there are no such
  * requirements.
  *
  * ### Deriving `[Eq.eq]` from `[Ord.cmp]`
  *
  * Implementing `[Eq.eq]` for a type that has already implemented `[Ord.cmp]` is
  * trivial: simply check whether the result of comparing two instances is the
- * `Equal` Ordering. Sometimes, checking for equality can be done in a more
- * efficient manner without relying on `[Ord.cmp]`.
+ * `Equal` variant of `Ordering`. Sometimes, determining equality can be done in
+ * a more efficient manner without relying on `[Ord.cmp]`.
  *
  * ### Writing classes
  *
@@ -570,7 +571,7 @@ export function ieq<A extends Eq<A>>(
  *
  * @example Non-generic implementation
  *
- * Consider a Book type that determines ordering by comparing ISBNs:
+ * Consider a `Book` type that determines ordering by comparing ISBNs:
  *
  * ```ts
  * import { Eq, Ord, Ordering } from "@neotype/prelude/cmp.js";
@@ -590,8 +591,8 @@ export function ieq<A extends Eq<A>>(
  * }
  * ```
  *
- * If desired, we can also consider a Book's `BookFormat` property that helps
- * determine ordering:
+ * If desired, we can also consider the `BookFormat` property when ordering two
+ * `Book` values:
  *
  * ```ts
  * import { Eq, Ord, Ordering } from "@neotype/prelude/cmp.js";
@@ -614,13 +615,13 @@ export function ieq<A extends Eq<A>>(
  * }
  * ```
  *
- * In this example, Books are ordered first by their ISBN, then by their format.
- * Notice how the semigroup behavior of `Ordering` along with `cmb` is used here
- * to combine two Orderings.
+ * In this example, `Book` values are ordered first by their ISBN, then by their
+ * format. Notice how the semigroup behavior of `Ordering` along with the `cmb`
+ * function is used here to combine two `Ordering` values.
  *
  * @example Generic implementation with no `Ord` requirements
  *
- * Consider a type that determines ordering by comparing the length of Arrays:
+ * Consider a type that orders arrays by comparing their lengths:
  *
  * ```ts
  * import { Eq, Ord, Ordering } from "@neotype/prelude/cmp.js";
@@ -643,7 +644,7 @@ export function ieq<A extends Eq<A>>(
  *
  * @example Generic implementation with an `Ord` requirement
  *
- * Consider a type that determines ordering by comparing the elements of Arrays
+ * Consider a type that orders arrays by comparing their elements
  * lexicographically, which requires that the elements implement `Ord`:
  *
  * ```ts
@@ -663,17 +664,16 @@ export function ieq<A extends Eq<A>>(
  * ```
  *
  * Notice the extra syntax when implementing `[Ord.cmp]`. We introduce a
- * *method-scoped* type parameter `A` and require that it has a `Ord`
+ * *method-scoped* generic parameter `A` and require that it has an `Ord`
  * implementation by writing `A extends Ord<A>` (the name `A` is arbitrary).
  *
- * Then, we require that `this` and `that` are `Arr<A>` where
- * `A extends Ord<A>`. This allows us to use `icmp` to implement our desired
- * behavior.
+ * Then, we require that `this` and `that` are `Arr<A>` where `A extends
+ * Ord<A>`. This allows us to use `icmp` to implement our desired behavior.
  *
  * @example Generic implementation with multiple `Ord` requirements
  *
- * Consider a type that determines ordering by comparing a first then second
- * value, which requires that each value implement `Ord`:
+ * Consider a type that orders two distinct values lexicographically, which
+ * requires that each value has a distinct implementation for `Ord`:
  *
  * ```ts
  * import { cmb } from "@neotype/prelude/cmb.js";
@@ -699,11 +699,8 @@ export function ieq<A extends Eq<A>>(
  * ```
  *
  * The syntax is similar to the `Arr` implementation above. Notice there are now
- * two method-scoped type parameters that are each required to implement `Ord`.
- *
- * Notice how we're also taking advantage of the `Semigroup` implementation for
- * `Ordering` to combine two Orderings. We can say that the `fst` and `snd`
- * properties of `Pair` are compared lexicographically.
+ * two method-scoped generic parameters that are each required to implement
+ * `Ord`.
  *
  * @example Non-generic augmentation
  *
@@ -766,7 +763,7 @@ export function ieq<A extends Eq<A>>(
  */
 export interface Ord<in A> extends Eq<A> {
     /**
-     * Compare this and that instance of `Ord` to determine their ordering.
+     * Compare this and that `Ord` value to determine their ordering.
      */
     [Ord.cmp](that: A): Ordering;
 }
@@ -775,11 +772,14 @@ export interface Ord<in A> extends Eq<A> {
  * The companion namespace for the `Ord` interface.
  */
 export namespace Ord {
+    /**
+     * The unique symbol used by implementors of `Ord`.
+     */
     export const cmp = Symbol();
 }
 
 /**
- * Compare two values to determine their ordering.
+ * Compare two `Ord` values to determine their ordering.
  *
  * @remarks
  *
@@ -790,7 +790,7 @@ export function cmp<A extends Ord<A>>(x: A, y: A): Ordering {
 }
 
 /**
- * Compare two Iterables of arbitrary values to determine their lexicographical
+ * Compare two iterables of arbitrary values to determine their lexicographical
  * ordering.
  */
 export function icmpBy<A>(
@@ -823,7 +823,8 @@ export function icmpBy<A>(
 }
 
 /**
- * Compare two Iterables to determine their lexicographical ordering.
+ * Compare two iterables of `Ord` values to determine their lexicographical
+ * ordering.
  */
 export function icmp<A extends Ord<A>>(
     xs: Iterable<A>,
@@ -833,7 +834,7 @@ export function icmp<A extends Ord<A>>(
 }
 
 /**
- * Test for a "less than" ordering between two values.
+ * Test for a "less than" ordering between two `Ord` values.
  *
  * @remarks
  *
@@ -844,7 +845,7 @@ export function lt<A extends Ord<A>>(x: A, y: A): boolean {
 }
 
 /**
- * Test for a "greater than" ordering between two values.
+ * Test for a "greater than" ordering between two `Ord` values.
  *
  * @remarks
  *
@@ -855,7 +856,7 @@ export function gt<A extends Ord<A>>(x: A, y: A): boolean {
 }
 
 /**
- * Test for a "less than or equal" ordering between two values.
+ * Test for a "less than or equal" ordering between two `Ord` values.
  *
  * @remarks
  *
@@ -866,7 +867,7 @@ export function le<A extends Ord<A>>(x: A, y: A): boolean {
 }
 
 /**
- * Test for a "greater than or equal" ordering between two values.
+ * Test for a "greater than or equal" ordering between two `Ord` values.
  *
  * @remarks
  *
@@ -877,7 +878,7 @@ export function ge<A extends Ord<A>>(x: A, y: A): boolean {
 }
 
 /**
- * Return the lesser of two values.
+ * Return the lesser of two `Ord` values.
  *
  * @remarks
  *
@@ -888,7 +889,7 @@ export function min<A extends Ord<A>>(x: A, y: A): A {
 }
 
 /**
- * Return the greater of two values.
+ * Return the greater of two `Ord` values.
  *
  * @remarks
  *
@@ -899,7 +900,7 @@ export function max<A extends Ord<A>>(x: A, y: A): A {
 }
 
 /**
- * Restrict a value to an inclusive interval.
+ * Restrict an `Ord` value to an inclusive interval.
  *
  * @remarks
  *
@@ -928,7 +929,7 @@ export namespace Ordering {
     }
 
     /**
-     * Construct an Ordering from a number.
+     * Construct an `Ordering` from a `number`.
      *
      * @remarks
      *
@@ -966,49 +967,49 @@ export namespace Ordering {
         }
 
         /**
-         * Test whether this Ordering is `Equal`.
+         * Test whether this `Ordering` is `Equal`.
          */
         isEq(this: Ordering): this is Equal {
             return this.typ === Typ.Equal;
         }
 
         /**
-         * Test whether this Ordering is not `Equal`.
+         * Test whether this `Ordering` is not `Equal`.
          */
         isNe(this: Ordering): this is Less | Greater {
             return !this.isEq();
         }
 
         /**
-         * Test whether this Ordering is `Less`.
+         * Test whether this `Ordering` is `Less`.
          */
         isLt(this: Ordering): this is Less {
             return this.typ === Typ.Less;
         }
 
         /**
-         * Test whether this Ordering is `Greater`.
+         * Test whether this `Ordering` is `Greater`.
          */
         isGt(this: Ordering): this is Greater {
             return this.typ === Typ.Greater;
         }
 
         /**
-         * Test whether this Ordering is `Less` or `Equal`.
+         * Test whether this `Ordering` is `Less` or `Equal`.
          */
         isLe(this: Ordering): this is Less | Equal {
             return !this.isGt();
         }
 
         /**
-         * Test whether this Ordering is `Greater` or `Equal`.
+         * Test whether this `Ordering` is `Greater` or `Equal`.
          */
         isGe(this: Ordering): this is Greater | Equal {
             return !this.isLt();
         }
 
         /**
-         * Reverse this Ordering.
+         * Reverse this `Ordering`.
          *
          * @remarks
          *
@@ -1027,7 +1028,7 @@ export namespace Ordering {
         }
 
         /**
-         * Convert this Ordering to a number.
+         * Convert this `Ordering` to a `number`.
          *
          * @remarks
          *
@@ -1047,7 +1048,7 @@ export namespace Ordering {
     }
 
     /**
-     * An Ordering that models a "less than" comparison result.
+     * An `Ordering` that indicates a "less than" comparison result.
      */
     export class Less extends Syntax {
         static readonly singleton = new Less();
@@ -1063,7 +1064,7 @@ export namespace Ordering {
     }
 
     /**
-     * An Ordering that models an "equal" comparison result.
+     * An `Ordering` that indicates an "equal" comparison result.
      */
     export class Equal extends Syntax {
         static readonly singleton = new Equal();
@@ -1079,7 +1080,7 @@ export namespace Ordering {
     }
 
     /**
-     * An Ordering that models a "greater than" comparison result.
+     * An `Ordering` that indicates a "greater than" comparison result.
      */
     export class Greater extends Syntax {
         static readonly singleton = new Greater();
@@ -1095,23 +1096,23 @@ export namespace Ordering {
     }
 
     /**
-     * The Ordering that models a "less than" comparison result.
+     * The `Ordering` that indicates a "less than" comparison result.
      */
     export const less = Ordering.Less.singleton as Ordering;
 
     /**
-     * The Ordering that models an "equal" comparison result.
+     * The `Ordering` that indicates an "equal" comparison result.
      */
     export const equal = Ordering.Equal.singleton as Ordering;
 
     /**
-     * The Ordering that models a "greater than" comparison result.
+     * The `Ordering` that indicates a "greater than" comparison result.
      */
     export const greater = Ordering.Greater.singleton as Ordering;
 }
 
 /**
- * A helper type for reverse ordering.
+ * A helper type for reversing order.
  */
 export class Reverse<A> {
     readonly val: A;
