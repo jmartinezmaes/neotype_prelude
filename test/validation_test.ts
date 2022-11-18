@@ -149,14 +149,14 @@ describe("Validation", () => {
         assert.strictEqual(t1, true);
     });
 
-    specify("#fold", () => {
-        const t0 = mk("Err", _1, _2).fold(
+    specify("#unwrap", () => {
+        const t0 = mk("Err", _1, _2).unwrap(
             (x) => tuple(x, _3),
             (x) => tuple(x, _4),
         );
         assert.deepEqual(t0, [_1, _3]);
 
-        const t1 = mk("Ok", _1, _2).fold(
+        const t1 = mk("Ok", _1, _2).unwrap(
             (x) => tuple(x, _3),
             (x) => tuple(x, _4),
         );

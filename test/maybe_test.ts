@@ -197,22 +197,22 @@ describe("Maybe", () => {
         assert.strictEqual(t1, true);
     });
 
-    specify("#fold", () => {
-        const t0 = mk("N", _1).fold(
+    specify("#unwrap", () => {
+        const t0 = mk("N", _1).unwrap(
             () => _2,
             (x) => tuple(x, _2),
         );
         assert.strictEqual(t0, _2);
 
-        const t1 = mk("J", _1).fold(
+        const t1 = mk("J", _1).unwrap(
             () => _2,
             (x) => tuple(x, _2),
         );
         assert.deepEqual(t1, [_1, _2]);
     });
 
-    specify("#justOr", () => {
-        const t0 = mk("J", _1).justOr(_2);
+    specify("#getOrFallback", () => {
+        const t0 = mk("J", _1).getOrFallback(_2);
         assert.strictEqual(t0, _1);
     });
 

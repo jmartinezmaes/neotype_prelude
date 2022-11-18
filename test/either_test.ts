@@ -200,14 +200,14 @@ describe("Either", () => {
         assert.strictEqual(t1, true);
     });
 
-    specify("#fold", () => {
-        const t0 = mk("L", _1, _2).fold(
+    specify("#unwrap", () => {
+        const t0 = mk("L", _1, _2).unwrap(
             (x) => tuple(x, _3),
             (x) => tuple(x, _4),
         );
         assert.deepEqual(t0, [_1, _3]);
 
-        const t1 = mk("R", _1, _2).fold(
+        const t1 = mk("R", _1, _2).unwrap(
             (x) => tuple(x, _3),
             (x) => tuple(x, _4),
         );

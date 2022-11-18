@@ -80,7 +80,7 @@
  *
  * An Either's value can be accessed via the `val` property. The type of the
  * property can be narrowed by first querying the Either's variant.
- * Additionally, the `fold` method unwraps an `Either` by applying one of two
+ * Additionally, the `unwrap` method unwraps an `Either` by applying one of two
  * functions to the value, depending on Either's variant.
  *
  * ## Comparing `Either`
@@ -188,7 +188,7 @@
  * right in the context of `Either`. This is useful for mapping, filtering, and
  * accumulating values using `Either`.
  *
- * @example Basic matching and folding
+ * @example Basic matching and unwrapping
  *
  * ```ts
  * import { Either } from "@neotype/prelude/either.js";
@@ -211,10 +211,10 @@
  *         console.log(`Matched Right: ${strOrNum.val}`);
  * }
  *
- * // Case analysis using `fold`
- * strOrNum.fold(
- *     (str) => console.log(`Folded Left: ${str}`),
- *     (num) => console.log(`Folded Right: ${num}`),
+ * // Case analysis using `unwrap`
+ * strOrNum.unwrap(
+ *     (str) => console.log(`Unwrapped Left: ${str}`),
+ *     (num) => console.log(`Unwrapped Right: ${num}`),
  * );
  * ```
  *
@@ -436,7 +436,7 @@ export namespace Either {
      * Construct an Either from a Validation.
      */
     export function fromValidation<E, A>(vdn: Validation<E, A>): Either<E, A> {
-        return vdn.fold(left, right);
+        return vdn.unwrap(left, right);
     }
 
     /**
@@ -576,12 +576,12 @@ export namespace Either {
         /**
          * Case analysis for `Either`.
          */
-        fold<A, B, C, D>(
+        unwrap<A, B, C, D>(
             this: Either<A, B>,
-            foldL: (x: A) => C,
-            foldR: (x: B) => D,
+            onLeft: (x: A) => C,
+            onRight: (x: B) => D,
         ): C | D {
-            return this.isLeft() ? foldL(this.val) : foldR(this.val);
+            return this.isLeft() ? onLeft(this.val) : onRight(this.val);
         }
 
         /**
