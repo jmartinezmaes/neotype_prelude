@@ -148,6 +148,15 @@
  * -   `gather` turns a record or an object literal of `Validation` values
  *     inside out.
  *
+ * ## Lifting functions to work with `Validation`
+ *
+ * The `lift` function receives an ordinary function that accepts arbitrary
+ * agruments, and returns an adapted function that accepts `Validation` values
+ * as arguments instead. The arguments are evaluated from left to right, and if
+ * they all succeed, the original function is applied to their successes to
+ * succeed with the result. If any `Validation` fails, failures will begin
+ * accumulating instead.
+ *
  * @example Validating a single property
  *
  * First, our imports:
@@ -448,6 +457,21 @@ export namespace Validation {
             });
         }
         return acc;
+    }
+
+    /**
+     * Lift a function of any arity into the context of `Validation`.
+     */
+    export function lift<T extends readonly unknown[], A>(
+        f: (...args: T) => A,
+    ): <E extends Semigroup<E>>(
+        ...vdns: { [K in keyof T]: Validation<E, T[K]> }
+    ) => Validation<E, A> {
+        return (...vdns) =>
+            collect(vdns).map((args) => f(...(args as T))) as Validation<
+                any,
+                A
+            >;
     }
 
     /**

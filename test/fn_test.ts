@@ -1,6 +1,6 @@
 import { assert } from "chai";
 import * as fc from "fast-check";
-import { id, negate } from "../src/fn.js";
+import { id, negate, wrapCtor } from "../src/fn.js";
 
 describe("Functions", () => {
     specify("id", () => {
@@ -22,5 +22,14 @@ describe("Functions", () => {
         assert.strictEqual(f(2), true);
         assert.strictEqual(g(1), true);
         assert.strictEqual(g(2), false);
+    });
+
+    specify("wrapCtor", () => {
+        class Box<A> {
+            constructor(readonly val: A) {}
+        }
+        const fn = wrapCtor(Box);
+        const t0 = fn(1);
+        assert.deepEqual(t0, new Box(1));
     });
 });

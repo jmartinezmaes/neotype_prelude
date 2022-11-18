@@ -62,6 +62,11 @@ describe("Eval", () => {
         assert.deepEqual(t0.run(), { x: _1, y: _2 });
     });
 
+    specify("Eval.lift", () => {
+        const t0 = Eval.lift(tuple)(mk(_1), mk(_2));
+        assert.deepEqual(t0.run(), [_1, _2]);
+    });
+
     specify("#[Semigroup.cmb]", () => {
         fc.assert(
             fc.property(arbStr(), arbStr(), (x, y) => {
