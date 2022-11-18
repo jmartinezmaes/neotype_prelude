@@ -91,8 +91,8 @@
  * The left-hand and right-hand values of `Both` can also be accessed
  * individually via the `fst` and `snd` properties, respectively.
  *
- * Alternatively, the `fold` method will unwrap an Ior by applying one of three
- * functions to its left-hand and/or right-hand value(s).
+ * Alternatively, the `unwrap` method will unwrap an Ior by applying one of
+ * three functions to its left-hand and/or right-hand value(s).
  *
  * ## Comparing `Ior`
  *
@@ -194,7 +194,7 @@
  * right in the context of `Ior`. This is useful for mapping, filtering, and
  * accumulating values using `Ior`.
  *
- * @example Basic matching and folding
+ * @example Basic matching and unwrapping
  *
  * ```ts
  * import { Ior } from "@neotype/prelude/ior.js"
@@ -222,11 +222,11 @@
  *         console.log(`Matched Both: ${strIorNum.fst} and ${strIorNum.snd}`);
  * }
  *
- * // Case analysis using `fold`
- * strIorNum.fold(
- *     (str) => console.log(`Folded Left: ${str}`),
- *     (num) => console.log(`Folded Right: ${num}`),
- *     (str, num) => console.log(`Folded Both: ${str} and ${num}`),
+ * // Case analysis using `unwrap`
+ * strIorNum.unwrap(
+ *     (str) => console.log(`Unwrapped Left: ${str}`),
+ *     (num) => console.log(`Unwrapped Right: ${num}`),
+ *     (str, num) => console.log(`Unwrapped Both: ${str} and ${num}`),
  * );
  * ```
  *
@@ -492,7 +492,7 @@ export namespace Ior {
      * respectively.
      */
     export function fromEither<A, B>(either: Either<A, B>): Ior<A, B> {
-        return either.fold(left, right);
+        return either.unwrap(left, right);
     }
 
     /**
@@ -691,19 +691,19 @@ export namespace Ior {
         /**
          * Case analysis for `Ior`.
          */
-        fold<A, B, C, D, E>(
+        unwrap<A, B, C, D, E>(
             this: Ior<A, B>,
-            foldL: (x: A) => C,
-            foldR: (x: B) => D,
-            foldB: (x: A, y: B) => E,
+            onLeft: (x: A) => C,
+            onRight: (x: B) => D,
+            onBoth: (x: A, y: B) => E,
         ): C | D | E {
             if (this.isLeft()) {
-                return foldL(this.val);
+                return onLeft(this.val);
             }
             if (this.isRight()) {
-                return foldR(this.val);
+                return onRight(this.val);
             }
-            return foldB(this.fst, this.snd);
+            return onBoth(this.fst, this.snd);
         }
 
         /**

@@ -86,12 +86,13 @@
  * access the property, the Maybe's variant must first be queried and narrowed
  * to `Just`.
  *
- * Alternatively, the `fold` method will unwrap a Maybe by either evaluating a
+ * Alternatively, the `unwrap` method will unwrap a Maybe by either evaluating a
  * function in the case of `Nothing`, or applying a function to the `Just`
  * value.
  *
- * The `justOr` method also unwraps a Maybe by extracting the value in the case
- * of `Just`, or returning a provided fallback value in the case of `Nothing`.
+ * The `getOrFallback` method also unwraps a Maybe by extracting the value in
+ * the case of `Just`, or returning a provided fallback value in the case of
+ * `Nothing`.
  *
  * ## Comparing `Maybe`
  *
@@ -184,7 +185,7 @@
  * right in the context of `Maybe`. This is useful for mapping, filtering, and
  * accumulating values using `Maybe`.
  *
- * @example Basic matching and folding
+ * @example Basic matching and unwrapping
  *
  * ```ts
  * import { Maybe } from "@neotype/prelude/maybe.js"
@@ -207,10 +208,10 @@
  *         console.log(`Matched Just: ${maybeNum.val}`);
  * }
  *
- * // Case analysis using `fold`
- * maybeNum.fold(
- *     () => console.log("Folded Nothing"),
- *     (num) => console.log(`Folded Just: ${num}`),
+ * // Case analysis using `unwrap`
+ * maybeNum.unwrap(
+ *     () => console.log("Unwrapped Nothing"),
+ *     (num) => console.log(`Unwrapped Just: ${num}`),
  * );
  * ```
  *
@@ -240,7 +241,7 @@
  *
  * ["a", "1", "2", "-4", "+42", "0x2A"].forEach((input) => {
  *     const result = JSON.stringify(
- *         parseEvenInt(input).justOr("invalid input"),
+ *         parseEvenInt(input).getOrFallback("invalid input"),
  *     );
  *     console.log(`input "${input}": ${result}`);
  * });
@@ -280,7 +281,7 @@
  *     ["+42", "0x2A"],
  * ].forEach((inputs) => {
  *     const result = JSON.stringify(
- *         parseEvenInts(inputs).justOr("invalid input"),
+ *         parseEvenInts(inputs).getOrFallback("invalid input"),
  *     );
  *     console.log(`inputs ${JSON.stringify(inputs)}: ${result}`);
  * });
@@ -309,7 +310,9 @@
  *     ["+42", "0x2A"],
  * ].forEach((inputs) => {
  *     const result = JSON.stringify(
- *         parseEvenIntsUniq(inputs).map(Array.from).justOr("invalid input"),
+ *         parseEvenIntsUniq(inputs)
+ *             .map(Array.from)
+ *             .getOrFallback("invalid input"),
  *     );
  *     console.log(`inputs ${JSON.stringify(inputs)}: ${result}`);
  * });
@@ -339,7 +342,7 @@
  *     ["+42", "0x2A"],
  * ].forEach((inputs) => {
  *     const result = JSON.stringify(
- *         parseEvenIntsKeyed(inputs).justOr("invalid input"),
+ *         parseEvenIntsKeyed(inputs).getOrFallback("invalid input"),
  *     );
  *     console.log(`inputs ${JSON.stringify(inputs)}: ${result}`);
  * });
@@ -366,7 +369,7 @@
  *     ["+42", "0x2A"],
  * ].forEach((inputs) => {
  *     const result = JSON.stringify(
- *         parseEvenIntsAndSum(inputs).justOr("invalid input"),
+ *         parseEvenIntsAndSum(inputs).getOrFallback("invalid input"),
  *     );
  *     console.log(`inputs ${JSON.stringify(inputs)}: ${result}`);
  * });
@@ -565,20 +568,20 @@ export namespace Maybe {
         /**
          * Case analysis for Maybe.
          */
-        fold<A, B, C>(
+        unwrap<A, B, C>(
             this: Maybe<A>,
-            foldN: () => B,
-            foldJ: (x: A) => C,
+            onNothing: () => B,
+            onJust: (x: A) => C,
         ): B | C {
-            return this.isNothing() ? foldN() : foldJ(this.val);
+            return this.isNothing() ? onNothing() : onJust(this.val);
         }
 
         /**
          * If this Maybe is `Just`, extract its value; otherwise, return a
          * fallback value.
          */
-        justOr<A, B>(this: Maybe<A>, fallback: B): A | B {
-            return this.fold(() => fallback, id);
+        getOrFallback<A, B>(this: Maybe<A>, fallback: B): A | B {
+            return this.unwrap(() => fallback, id);
         }
 
         /**

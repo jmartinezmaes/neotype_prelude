@@ -88,7 +88,7 @@
  * property. The type of the `val` property can be narrowed by first querying
  * the variant.
  *
- * The `fold` method also unwraps a `Validation` by applying one of two
+ * The `unwrap` method also unwraps a `Validation` by applying one of two
  * functions to the failure or success, depending on the variant.
  *
  * ## Comparing `Validation`
@@ -348,7 +348,7 @@
  *     ["banana", "apple", "orange"],
  * ].forEach((inputs) => {
  *     const result = JSON.stringify(
- *         requireLowercaseElems(inputs).fold(
+ *         requireLowercaseElems(inputs).unwrap(
  *             (invalidInputs) => ({ invalid: invalidInputs }),
  *             (validInputs) => ({ valid: validInputs }),
  *         ),
@@ -409,7 +409,7 @@ export namespace Validation {
      * variants of `Validated`, respectively.
      */
     export function fromEither<E, A>(either: Either<E, A>): Validation<E, A> {
-        return either.fold(err, ok);
+        return either.unwrap(err, ok);
     }
 
     /**
@@ -498,7 +498,7 @@ export namespace Validation {
         /**
          * Case analysis for `Validation`.
          */
-        fold<E, A, B, B1>(
+        unwrap<E, A, B, B1>(
             this: Validation<E, A>,
             onErr: (x: E) => B,
             onOk: (x: A) => B1,

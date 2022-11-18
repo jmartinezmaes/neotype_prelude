@@ -48,8 +48,8 @@
  * properties, respectively. A 2-tuple of the values can be accessed via the
  * `val` property.
  *
- * Additionally, the `fold` method will unwrap a Pair by applying a function to
- * its first and second values.
+ * Additionally, the `unwrap` method will unwrap a Pair by applying a function
+ * to its first and second values.
  *
  * ## Comparing `Pair`
  *
@@ -128,9 +128,9 @@ export class Pair<out A, out B> {
     }
 
     /**
-     * Fold out of this Pair by applying a function to its values.
+     * Unwrap this Pair by applying a function to its values.
      */
-    fold<C>(f: (x: A, y: B) => C): C {
+    unwrap<C>(f: (x: A, y: B) => C): C {
         return f(this.fst, this.snd);
     }
 
