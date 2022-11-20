@@ -67,8 +67,8 @@
  *
  * These functions construct a `Validation`:
  *
- * -   `err` constructs an `Err` variant.
- * -   `ok` constructs an `Ok` variant.
+ * -   `err` constructs a failed `Validation`
+ * -   `ok` constructs a successful `Validation`.
  * -   `fromEither` constructs a `Validation` from an `Either`. The `Left` and
  *     `Right` variants of `Either` become the `Err` and `Ok` variants of
  *     `Validation`, respectively.
@@ -150,12 +150,12 @@
  *
  * ## Lifting functions to work with `Validation`
  *
- * The `lift` function receives an ordinary function that accepts arbitrary
- * agruments, and returns an adapted function that accepts `Validation` values
- * as arguments instead. The arguments are evaluated from left to right, and if
- * they are all `Ok`, the original function is applied to their successes to
- * succeed with the result. If any `Validation` is an `Err`, failures will begin
- * accumulating instead.
+ * The `lift` function receives a function that accepts arbitrary arguments, and
+ * returns an adapted function that accepts `Validation` values as arguments
+ * instead. The arguments are evaluated from left to right, and if they all
+ * succeed, the original function is applied to their successes to succeed with
+ * the result. If any `Validation` fails, failures will begin accumulating
+ * instead.
  *
  * @example Validating a single property
  *

@@ -110,7 +110,7 @@
  * `Maybe` has the following behavior as a total order:
  *
  * -   A `Maybe<A>` implements `Ord` when `A` implements `Ord`.
- * -   When ordered, `Nothing` always compares less than than any `Just`. If
+ * -   When ordered, `Nothing` always compares as less than than any `Just`. If
  *     both variants are `Just`, their values are compared to determine the
  *     ordering.
  *
