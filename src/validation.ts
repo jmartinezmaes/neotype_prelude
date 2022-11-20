@@ -34,8 +34,8 @@
  * and other arbitrary information sources.
  *
  * Most combinators for `Validation` will begin accumulating failures on the
- * first encountered `Err` variant. Combinators with this behavior will require
- * a `Semigroup` implementation from the accumulating failures.
+ * first encountered `Err`. Combinators with this behavior will require a
+ * `Semigroup` implementation from the accumulating failures.
  *
  * ## Importing from this module
  *
@@ -46,7 +46,7 @@
  * -   The `Err` and `Ok` variant classes
  * -   The abstract `Syntax` class that provides the fluent API for `Validation`
  * -   The `Typ` enumeration that discriminates `Validation`
- * -   Functions for constructing and collecting into `Validation`
+ * -   Functions for constructing, collecting, and lifting into `Validation`
  *
  * The type and namespace can be imported under the same alias:
  *
@@ -75,9 +75,9 @@
  *
  * ## Querying and narrowing the variant
  *
- * The `isErr` and `isOk` methods return `true` if a `Validation` is the `Err`
- * or `Ok` variant, respectively. These methods will also narrow the type of a
- * `Validation` to its queried variant.
+ * The `isErr` and `isOk` methods return `true` if a `Validation` is `Err` or
+ * `Ok`, respectively. These methods will also narrow the type of a `Validation`
+ * to its queried variant.
  *
  * The variant can also be queried and narrowed via the `typ` property, which
  * returns a member of the `Typ` enumeration.
@@ -104,9 +104,9 @@
  *
  * -   A `Validation<E, A>` implements `Ord` when both `E` and `A` implement
  *     `Ord`.
- * -   When ordered, `Err` variants are always less than `Ok` variants. If the
+ * -   When ordered, an `Err` always compares as less than any `Ok`. If the
  *     variants are equal, their failures or successes are compared to determine
- *     the order.
+ *     the ordering.
  *
  * ## `Validation` as a semigroup
  *
@@ -114,9 +114,9 @@
  *
  * -   A `Validation<E, A>` implements `Semigroup` when both `E` and `A`
  *     implement `Semigroup`.
- * -   When combined, the first `Err` variant will ignore the combination and
- *     begin accumulating failures instead. If both variants are `Ok`, their
- *     successes will be combined and returned in an `Ok`.
+ * -   When combined, any `Err` will ignore the combination and begin
+ *     accumulating failures instead. If both variants are `Ok`, their successes
+ *     will be combined and returned in an `Ok`.
  *
  * ## Transforming values
  *
@@ -128,7 +128,7 @@
  * -   `map` applies a function to the success, and leaves the failure as is.
  *
  * These methods combine the successes of two `Ok` variants, or begin
- * accumulating failures on any `Err` variant:
+ * accumulating failures on any `Err`:
  *
  * -   `zipWith` applies a function to the successes.
  * -   `zipFst` keeps only the first success, and discards the second.
@@ -153,8 +153,8 @@
  * The `lift` function receives an ordinary function that accepts arbitrary
  * agruments, and returns an adapted function that accepts `Validation` values
  * as arguments instead. The arguments are evaluated from left to right, and if
- * they all succeed, the original function is applied to their successes to
- * succeed with the result. If any `Validation` fails, failures will begin
+ * they are all `Ok`, the original function is applied to their successes to
+ * succeed with the result. If any `Validation` is an `Err`, failures will begin
  * accumulating instead.
  *
  * @example Validating a single property
