@@ -19,9 +19,13 @@
  *
  * @remarks
  *
- * `Maybe<A>` is a type that represents an optional value `A`, and is
- * represented by two variants: `Nothing` describes an absent value, and
- * `Just<A>` describes a present value.
+ * `Maybe<A>` is a type that represents an optional value. It is represented by
+ * two variants: `Nothing` and `Just<A>`.
+ *
+ * -   The `Nothing` variant represents an *absent* `Maybe`, and contains no
+ *     value.
+ * -   The `Just<A>` variant represents a *present* `Maybe`, and contains a
+ *     value of type `A`.
  *
  * Common uses for `Maybe` include:
  *
@@ -43,7 +47,8 @@
  * -   The abstract `Syntax` class that provides the fluent API for `Maybe`
  * -   The `Typ` enumeration that discriminates `Maybe`
  * -   The `nothing` constant
- * -   Functions for constructing, chaining, and collecting into `Maybe`
+ * -   Functions for constructing, chaining, collecting, and lifting into
+ *     `Maybe`
  *
  * The type and namespce can be imported under the same alias:
  *
@@ -59,63 +64,71 @@
  *
  * ## Constructing `Maybe`
  *
- * The `nothing` constant is the singleton instance of Maybe's `Nothing`
- * variant.
+ * The `nothing` constant is the singleton instance of of the `Nothing` variant
+ * of `Maybe`.
  *
- * These functions construct a Maybe:
+ * These functions construct a `Maybe`:
  *
  * -   `just` constructs a `Just` variant.
- * -   `fromMissing` constructs a Maybe from a value that is potentially `null`
- *     or `undefined`, and converts such values to `Nothing`.
- * -   `guard` constructs a Maybe from applying a predicate function to a value.
- *     A value that satisfies the predicate is returned in `Just`, and `Nothing`
- *     is returned otherwise.
+ * -   `fromMissing` constructs a `Maybe` from a value that is potentially
+ *     `null` or `undefined`, and converts such values to `Nothing`.
+ * -   `guard` constructs a `Maybe` from applying a predicate function to a
+ *     value. A value that satisfies the predicate is returned in a `Just`, and
+ *     `Nothing` is returned otherwise.
  *
  * ## Querying and narrowing the variant
  *
- * The `isNothing` and `isJust` methods return `true` if a Maybe is the
- * `Nothing` or `Just` variant, respectively. These methods will also narrow the
- * type of a Maybe to its queried variant.
+ * The `isNothing` and `isJust` methods return `true` if a `Maybe` is `Nothing`
+ * or `Just`, respectively. These methods will also narrow the type of a `Maybe`
+ * to its queried variant.
  *
- * A Maybe's variant can also be queried and narrowed via the `typ` property,
- * which returns a member of the `Typ` enumeration.
+ * The variant can also be queried and narrowed via the `typ` property, which
+ * returns a member of the `Typ` enumeration.
  *
  * ## Extracting values
  *
- * When a Maybe is `Just`, its value can be accessed via the `val` property. To
- * access the property, the Maybe's variant must first be queried and narrowed
- * to `Just`.
+ * When a `Maybe` is `Just`, its value can be accessed via the `val` property.
+ * To access the property, the variant must first be queried and narrowed to
+ * `Just`.
  *
- * Alternatively, the `unwrap` method will unwrap a Maybe by either evaluating a
- * function in the case of `Nothing`, or applying a function to the `Just`
- * value.
+ * Alternatively, the `unwrap` method will unwrap a `Maybe` by either evaluating
+ * a function in the case of `Nothing`, or applying a function to the value in
+ * the case of `Just`.
  *
- * The `getOrFallback` method also unwraps a Maybe by extracting the value in
- * the case of `Just`, or returning a provided fallback value in the case of
- * `Nothing`.
+ * The `getOrFallback` method also unwraps a `Maybe` by extracting the present
+ * value in the case of `Just`, or returning a provided fallback value in the
+ * case of `Nothing`.
  *
  * ## Comparing `Maybe`
  *
- * `Maybe` implements `Eq` and `Ord` when its generic type implements `Eq` and
- * `Ord`, respectively.
+ * `Maybe` has the following behavior as an equivalence relation:
  *
- * -   Two Maybes are equal if they are both `Nothing`, or they are both `Just`
- *     and their values are equal.
- * -   When ordered, `Nothing` is always less than `Just`. If both variants are
- *     `Just`, their values will determine the ordering.
+ * -   A `Maybe<A>` implements `Eq` when `A` implements `Eq`.
+ * -   Two `Maybe` values are equal if they are both `Nothing`, or they are both
+ *     `Just` and and their values are equal.
+ *
+ * `Maybe` has the following behavior as a total order:
+ *
+ * -   A `Maybe<A>` implements `Ord` when `A` implements `Ord`.
+ * -   When ordered, `Nothing` always compares less than than any `Just`. If
+ *     both variants are `Just`, their values are compared to determine the
+ *     ordering.
  *
  * ## `Maybe` as a semigroup
  *
- * `Maybe` implements `Semigroup` when its generic type implements `Semigroup`.
- * When combined, `Just` precedes `Nothing`. If both variants are `Just`, thier
- * values are combined and returned in `Just`.
+ * `Maybe` has the following behavior as a semigroup:
+ *
+ * -   A `Maybe<A>` implements `Semigroup` when `A` implements `Semigroup`.
+ * -   When combined, `Just` has precedence over `Nothing` If both variants are
+ *     `Just`, thier values are combined and returned in a `Just`.
  *
  * ## Transforming values
  *
- * The `map` method applies a function to a Maybe's `Just` value, and leaves
- * `Nothing` unaffected.
+ * When a `Maybe` is `Just`, the `map` method applies a function to the value
+ * returns the result in a `Just`. `Nothing` is returned as is.
  *
- * These methods combine the values of two `Just` variants:
+ * These methods combine the values of two `Just` variants, or short-circuit on
+ * the first `Nothing`:
  *
  * -   `zipWith` applies a function to their values.
  * -   `zipFst` keeps only the first value, and discards the second.
@@ -124,75 +137,63 @@
  * ## Chaining `Maybe`
  *
  * The `flatMap` method chains together computations that return `Maybe`. If a
- * Maybe is `Just`, a function is applied to its value and evaluated to return
- * another Maybe. If any Maybe is `Nothing`, the computation is halted and
+ * `Maybe` is `Just`, a function is applied to its value and evaluated to return
+ * another `Maybe`. If a `Maybe` is `Nothing`, the computation halts and
  * `Nothing` is returned instead.
  *
  * ### Generator comprehensions
  *
  * Generator comprehensions provide an imperative syntax for chaining together
- * computations that return `Maybe`. Instead of `flatMap`, a Generator is used
+ * computations that return `Maybe`. Instead of `flatMap`, a generator is used
  * to unwrap `Just` variants and apply functions to their values.
  *
- * The `go` function evaluates a Generator to return a Maybe. Within the
- * Generator, Maybes are yielded using the `yield*` keyword. This binds the
- * `Just` values to specified variables. When the computation is complete, a
- * final value can be computed and returned from the Generator.
- *
- * Generator comprehensions may contain:
- *
- * -   Variable declarations, assignments, and mutations
- * -   Function and class declarations
- * -   `for`, `while`, and `do`/`while` loops
- * -   `if`/`else if`/`else` blocks
- * -   `switch` blocks
- * -   `try`/`catch` blocks
+ * The `go` function evaluates a generator to return a `Maybe`. Within the
+ * generator, `Maybe` values are yielded using the `yield*` keyword. When a
+ * yielded `Maybe` is `Just`, its value may be bound to a specified variable.
+ * If any yielded `Maybe` is `Nothing`, the generator halts and `Nothing` is
+ * returned immediately; otherwise, when the computation is complete, a final
+ * result can be computed and returned from the generator and will be wrapped in
+ * a `Just`.
  *
  * ### Async generator comprehensions
  *
- * Async generator comprehensions provide `async`/`await` syntax and Promises to
- * `Maybe` generator comprehensions. Async computations that fulfill with
- * `Maybe` can be chained together using the familiar generator syntax.
+ * Async generator comprehensions provide `async`/`await` syntax to `Maybe`
+ * generator comprehensions, allowing promise-like computations that fulfill
+ * with `Maybe` to be chained together using the familiar generator syntax.
  *
- * The `goAsync` function evaluates an AsyncGenerator to return a Promise that
- * fulfills with a Maybe. The semantics of `yield*` and `return` within async
- * comprehensions are identical to their synchronous counterparts.
- *
- * In addition to the syntax permitted in synchronous generator comprehensions,
- * async comprehensions may contain:
- *
- * -   The `await` keyword
- * -   `for await` loops (asynchronous iteration)
+ * The `goAsync` function evaluates an async generator to return a `Promise`
+ * that fulfills with a `Maybe`. The semantics of `yield*` and `return` within
+ * async comprehensions are identical to their synchronous counterparts.
  *
  * ## Recovering from `Nothing`
  *
- * The `orElse` method returns a fallback Maybe in the case of `Nothing`.
+ * The `orElse` method returns a fallback `Maybe` in the case of `Nothing`, and
+ * returns any `Just` as is.
  *
  * ## Collecting into `Maybe`
  *
- * `Maybe` provides several functions for working with collections of Maybes.
- * Sometimes, a collection of Maybes must be turned "inside out" into a Maybe
- * that contains an equivalent collection of `Just` values.
+ * Sometimes, a collection of `Maybe` values must be turned "inside out" into a
+ * `Maybe` that contains an equivalent collection of values.
  *
- * These methods will traverse a collection of Maybes to extract the `Just`
- * values. If any Maybe in the collection is `Nothing`, the traversal is halted
- * and `Nothing` is returned instead.
+ * These methods will traverse a collection of `Maybe` values to extract the
+ * `Just` values. If any `Maybe` in the collection is `Nothing`, the traversal
+ * halts and `Nothing` is returned instead.
  *
- * -   `collect` turns an Array or a tuple literal of Maybes inside out.
- * -   `gather` turns a Record or an object literal of Maybes inside out.
+ * -   `collect` turns an array or a tuple literal of `Maybe` values inside out.
+ * -   `gather` turns a record or an object literal of `Maybe` values inside
+ *     out.
  *
- * Additionally, the `reduce` function reduces a finite Iterable from left to
- * right in the context of `Maybe`. This is useful for mapping, filtering, and
- * accumulating values using `Maybe`.
+ * The `reduce` function reduces a finite iterable from left to right in the
+ * context of `Maybe`. This is useful for mapping, filtering, and accumulating
+ * values using `Maybe`.
  *
  * ## Lifting functions to work with `Maybe`
  *
- * The `lift` function receives an ordinary function that accepts arbitrary
- * agruments, and returns an adapted function that accepts `Maybe` values as
- * arguments instead. The arguments are evaluated from left to right, and if
- * they are all `Just` variants, the original function is applied to their
- * values and returned in a `Just`. If any `Maybe` is `Nothing`, `Nothing` is
- * returned instead.
+ * The `lift` function receives an function that accepts arbitrary arguments,
+ * and returns an adapted function that accepts `Maybe` values as arguments
+ * instead. The arguments are evaluated from left to right, and if they are all
+ * `Just`, the original function is applied to their values and returned in a
+ * `Just`. If any `Maybe` is `Nothing`, `Nothing` is returned instead.
  *
  * @example Basic matching and unwrapping
  *
@@ -414,14 +415,20 @@ export namespace Maybe {
     }
 
     /**
-     * Construct a `Just` Maybe.
+     * Construct a present `Maybe`.
      */
     export function just<A>(x: A): Maybe<A> {
         return new Just(x);
     }
 
     /**
-     * Consruct a Maybe, converting `null` and `undefined` to `Nothing`.
+     * Consruct a `Maybe` from a value that is potentially `null` or
+     * `undefined`.
+     *
+     * @remarks
+     *
+     * If the value is `null` or `undefined`, return `Nothing`; otherwise,
+     * return the value wrapped in a `Just`.
      */
     export function fromMissing<A>(x: A | null | undefined): Maybe<A> {
         return x === null || x === undefined ? nothing : just(x);
@@ -443,7 +450,7 @@ export namespace Maybe {
     }
 
     /**
-     * Construct a Maybe using a generator comprehension.
+     * Construct a `Maybe` using a generator comprehension.
      */
     export function go<A>(
         f: () => Generator<Maybe<any>, A, unknown>,
@@ -462,7 +469,7 @@ export namespace Maybe {
     }
 
     /**
-     * Reduce a finite Iterable from left to right in the context of Maybe.
+     * Reduce a finite iterable from left to right in the context of `Maybe`.
      */
     export function reduce<A, B>(
         xs: Iterable<A>,
@@ -479,8 +486,10 @@ export namespace Maybe {
     }
 
     /**
-     * Evaluate the Maybes in an Array or a tuple literal from left to right and
-     * collect the `Just` values in an Array or a tuple literal, respectively.
+     * Evaluate the `Maybe` values in an array or a tuple literal from left to
+     * right. If they are all present, collect their values in an array or a
+     * tuple literal, respectively, and return the result in a `Just`;
+     * otherwise, return `Nothing`.
      */
     export function collect<T extends readonly Maybe<any>[]>(
         maybes: T,
@@ -495,8 +504,10 @@ export namespace Maybe {
     }
 
     /**
-     * Evaluate the Maybes in a Record or an object literal and collect the
-     * `Just` values in a Record or an object literal, respectively.
+     * Evaluate the `Maybe` values in a record or an object literal. If they are
+     * all present, collect their values in a record or an object literal,
+     * respectively, and return the result in a `Just`; otherwise, return
+     * `Nothing`.
      */
     export function gather<T extends Record<any, Maybe<any>>>(
         maybes: T,
@@ -520,8 +531,8 @@ export namespace Maybe {
     }
 
     /**
-     * Construct a Promise that fulfills with a Maybe using an async generator
-     * comprehension.
+     * Construct a `Promise` that fulfills with a `Maybe` using an async
+     * generator comprehension.
      */
     export async function goAsync<A>(
         f: () => AsyncGenerator<Maybe<any>, A, unknown>,
@@ -540,7 +551,7 @@ export namespace Maybe {
     }
 
     /**
-     * The fluent syntax for Maybe.
+     * The fluent syntax for `Maybe`.
      */
     export abstract class Syntax {
         [Eq.eq]<A extends Eq<A>>(this: Maybe<A>, that: Maybe<A>): boolean {
@@ -570,21 +581,21 @@ export namespace Maybe {
         }
 
         /**
-         * Test whether this Maybe is `Nothing`.
+         * Test whether this `Maybe` is absent.
          */
         isNothing(this: Maybe<any>): this is Nothing {
             return this.typ === Typ.Nothing;
         }
 
         /**
-         * Test whether this Maybe is `Just`.
+         * Test whether this `Maybe` is present.
          */
         isJust<A>(this: Maybe<A>): this is Just<A> {
             return this.typ === Typ.Just;
         }
 
         /**
-         * Case analysis for Maybe.
+         * Case analysis for `Maybe`.
          */
         unwrap<A, B, C>(
             this: Maybe<A>,
@@ -595,7 +606,7 @@ export namespace Maybe {
         }
 
         /**
-         * If this Maybe is `Just`, extract its value; otherwise, return a
+         * If this `Maybe` is present, extract its value; otherwise, return a
          * fallback value.
          */
         getOrFallback<A, B>(this: Maybe<A>, fallback: B): A | B {
@@ -603,30 +614,33 @@ export namespace Maybe {
         }
 
         /**
-         * If this Maybe is `Nothing`, return a fallback Maybe.
+         * If this `Maybe` is absent, return a fallback `Maybe`; otherwise,
+         * return this `Maybe` as is.
          */
         orElse<A, B>(this: Maybe<A>, that: Maybe<B>): Maybe<A | B> {
             return this.isNothing() ? that : this;
         }
 
         /**
-         * If this Maybe is `Just`, apply a function to its value to return a
-         * new Maybe.
+         * If this `Maybe` is present, apply a function to its value to return
+         * another `Maybe`; otherwise, return `Nothing`.
          */
         flatMap<A, B>(this: Maybe<A>, f: (x: A) => Maybe<B>): Maybe<B> {
             return this.isNothing() ? this : f(this.val);
         }
 
         /**
-         * If this Maybe is `Just` and contains another Maybe, return the inner
-         * Maybe.
+         * If this `Maybe` is present and contains another `Maybe`, return the
+         * inner `Maybe`; otherwise, return `Nothing`.
          */
         flat<A>(this: Maybe<Maybe<A>>): Maybe<A> {
             return this.flatMap(id);
         }
 
         /**
-         * If this and that Maybe are `Just`, apply a function to thier values.
+         * If this and that `Maybe` are both present, apply a function to thier
+         * values and return the result in a `Just`; otherwise, return
+         * `Nothing`.
          */
         zipWith<A, B, C>(
             this: Maybe<A>,
@@ -637,21 +651,24 @@ export namespace Maybe {
         }
 
         /**
-         * If this and that Maybe are `Just`, keep only this Maybe's value.
+         * If this and that `Maybe` are both present, keep only the first value
+         * and discard the second; otherwise, return `Nothing`.
          */
         zipFst<A>(this: Maybe<A>, that: Maybe<any>): Maybe<A> {
             return this.zipWith(that, id);
         }
 
         /**
-         * If this and that Maybe are `Just`, keep only that Maybe's value.
+         * If this and that `Maybe` are both present, keep only the second value
+         * and discard the first; otherwise, return `Nothing`.
          */
         zipSnd<B>(this: Maybe<any>, that: Maybe<B>): Maybe<B> {
             return this.flatMap(() => that);
         }
 
         /**
-         * If this Maybe is `Just`, apply a function to its value.
+         * If this `Maybe` is present, apply a function to its value and return
+         * the result in a `Just`; otherwise, return `Nothing`.
          */
         map<A, B>(this: Maybe<A>, f: (x: A) => B): Maybe<B> {
             return this.flatMap((x) => just(f(x)));
@@ -659,7 +676,7 @@ export namespace Maybe {
     }
 
     /**
-     * An absent Maybe.
+     * An absent `Maybe`.
      */
     export class Nothing extends Syntax {
         static readonly singleton = new Nothing();
@@ -674,9 +691,9 @@ export namespace Maybe {
         }
 
         /**
-         * Defining Iterable behavior for Maybe allows TypeScript to infer
-         * `Just` types when yielding Maybes in generator comprehensions using
-         * `yield*`.
+         * Defining Iterable behavior for `Maybe` allows TypeScript to infer
+         * `Just` types when yielding `Maybe` values in generator comprehensions
+         * using `yield*`.
          *
          * @hidden
          */
@@ -686,11 +703,11 @@ export namespace Maybe {
     }
 
     /**
-     * A present Maybe.
+     * A present `Maybe`.
      */
     export class Just<out A> extends Syntax {
         /**
-         * The property that discriminates Maybe.
+         * The property that discriminates `Maybe`.
          */
         readonly typ = Typ.Just;
 
@@ -702,9 +719,9 @@ export namespace Maybe {
         }
 
         /**
-         * Defining Iterable behavior for Maybe allows TypeScript to infer
-         * `Just` types when yielding Maybes in generator comprehensions using
-         * `yield*`.
+         * Defining Iterable behavior for `Maybe` allows TypeScript to infer
+         * `Just` types when yielding `Maybe` values in generator comprehensions
+         * using `yield*`.
          *
          * @hidden
          */
@@ -714,12 +731,12 @@ export namespace Maybe {
     }
 
     /**
-     * The absent Maybe.
+     * The absent `Maybe`.
      */
     export const nothing = Maybe.Nothing.singleton as Maybe<never>;
 
     /**
-     * Extract the present type `A` from the type `Maybe<A>`.
+     * Extract the present value type `A` from the type `Maybe<A>`.
      */
     // prettier-ignore
     export type JustT<T extends Maybe<any>> =
