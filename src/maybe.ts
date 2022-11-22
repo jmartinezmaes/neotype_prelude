@@ -189,7 +189,7 @@
  *
  * ## Lifting functions to work with `Maybe`
  *
- * The `lift` function receives an function that accepts arbitrary arguments,
+ * The `lift` function receives a function that accepts arbitrary arguments,
  * and returns an adapted function that accepts `Maybe` values as arguments
  * instead. The arguments are evaluated from left to right, and if they are all
  * `Just`, the original function is applied to their values and returned in a
