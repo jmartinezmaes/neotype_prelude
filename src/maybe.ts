@@ -434,7 +434,7 @@ export namespace Maybe {
     }
 
     /**
-     * Apply a predicate function to a value. If the predicate returns true,
+     * Apply a predicate function to a value. If the predicate returns `true`,
      * return the value in a `Just`; otherwise, return `Nothing`.
      */
     export function guard<A, A1 extends A>(
