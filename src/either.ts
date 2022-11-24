@@ -19,18 +19,31 @@
  *
  * @remarks
  *
- * `Either<A, B>` is a type that represents one of two values `A` and `B`; thus,
- * `Either` is represented by two variants: `Left<A>` and `Right<B>`.
+ * `Either<A, B>` is a type that represents one of two values; thus, `Either` is
+ * represented by two variants: `Left<A>` and `Right<B>`.
  *
- * `Either` is often used to represent a value which is either correct or a
- * failure. By convention, `Left` contains failures and `Right` contains correct
- * values ("right" is a synonym for "correct").
+ * -   The `Left<A>` variant represents a *left-sided* `Either` and contains a
+ *     value of type `A`.
+ * -   The `Right<B>` variant represents a *right-sided* `Either` and contains a
+ *     value of type `B`.
+ *
+ * ### Handling failure with `Either`
+ *
+ * `Either` is also often used to represent a value which is either correct or a
+ * failure. When using `Either` in this manner, the type is often written as
+ * `Either<E, A>`, where:
+ *
+ * -   The `Left<E>` variant represents a *failed* `Either` and contains a
+ *     *failure* of type `E`; and
+ * -   The `Right<A>` variant represents a *successful* `Either` and contains a
+ *     *success* of type `A`.
  *
  * Some combinators for `Either` are specialized for this failure-handling
  * use case, and provide a right-biased behavior that "short-circuits" a
- * computation on the first encountered `Left` value. This behavior allows
- * Eithers to be composed in a way that propogates `Left` values while applying
- * logic to `Right` values -- a useful feature for railway-oriented programming.
+ * computation on the first failed `Either`. This behavior allows functions
+ * that return `Either` to be composed in a way that propogates failures while
+ * applying logic to successes -- a useful feature for railway-oriented
+ * programming.
  *
  * ## Importing from this module
  *
@@ -41,7 +54,8 @@
  * -   The `Left` and `Right` variant classes
  * -   The abstract `Syntax` class that provides the fluent API for `Either`
  * -   The `Typ` enumeration that discriminates `Either`
- * -   Functions for constructing, chaining, and collecting into `Either`
+ * -   Functions for constructing, chaining, collecting into, and lifting into
+ *     `Either`
  *
  * The type and namespace can be imported under the same alias:
  *
@@ -59,62 +73,66 @@
  *
  * These functions construct an Either:
  *
- * -   `left` constructs a `Left` variant.
- * -   `right` constructs a `Right` variant.
- * -   `guard` constructs an Either from applying a predicate function to a
- *     value. The value is returned in `Right` or `Left` if it satisfies or does
- *     not satisfy the predicate, respectively.
- * -   `fromValidation` converts a Validation to an Either. `Err` becomes `Left`
- *     and `Ok` becomes `Right`.
+ * -   `left` constructs a left-sided `Either`.
+ * -   `right` constructs a right-sided `Either`.
+ * -   `guard` constructs an `Either` from applying a predicate function to a
+ *     value. The value is returned in a `Right` or `Left` if it satisfies or
+ *     does not satisfy the predicate, respectively.
+ * -   `fromValidation` constructs an `Either` from a `Validation`.
  *
  * ## Querying and narrowing the variant
  *
- * The `isLeft` and `isRight` methods return `true` if an Either is the `Left`
- * or `Right` variant, respectively. These methods will also narrow the type of
- * an Either to its queried variant.
+ * The `isLeft` and `isRight` methods return `true` if an `Either` is left-sided
+ * or right-sided, respectively. These methods will also narrow the type of an
+ * `Either` to the queried variant.
  *
- * An Either's variant can also be queried and narrowed via the `typ` property,
- * which returns a member of the `Typ` enumeration.
+ * The variant can also be queried and narrowed via the `typ` property, which
+ * returns a member of the `Typ` enumeration.
  *
  * ## Extracting values
  *
- * An Either's value can be accessed via the `val` property. The type of the
- * property can be narrowed by first querying the Either's variant.
- * Additionally, the `unwrap` method unwraps an `Either` by applying one of two
- * functions to the value, depending on Either's variant.
+ * The value within an `Either` can be accessed via the `val` property. The type
+ * of the property can be narrowed by first querying the variant.
+ *
+ * The `unwrap` method also unwraps an `Either` by applying one of two functions
+ * to the value, depending on the variant.
  *
  * ## Comparing `Either`
  *
- * `Either` implements `Eq` and `Ord` when both its `Left` and `Right` generic
- * types implement `Eq` and `Ord`, respectively.
+ * `Either` has the following behavior as an equivalence relation:
  *
- * -   Two Eithers are equal if they are the same variant and their values are
- *     equal.
- * -   When ordered, `Left` is always less than `Right`. If the variants are
- *     equal, their values will determine the ordering.
+ * -   An `Either<A, B>` implements `Eq` when both `A` and `B` implement `Eq`.
+ * -   Two `Either` values are equal if they are the same variant and their
+ *     values are equal.
+ *
+ * `Either` has the following behavior as a total order:
+ *
+ * -   An `Either<A, B>` implements `Ord` when both `A` and `B` implement `Ord`.
+ * -   When ordered, a left-sided `Either` always compares as less than any
+ *     right-sided `Either`. If the variants are the same, their values are
+ *     compared to determine the ordering.
  *
  * ## `Either` as a semigroup
  *
- * `Either` implements `Semigroup` when its `Right` generic type implements
- * `Semigroup`. When combined, the first `Left` Either will short-circuit the
- * operation. If both variants are `Right`, their values will be combined and
- * returned in `Right`.
+ * `Either` has the following behavior as a semigroup:
  *
- * In other words, `cmb(x, y)` is equivalent to `x.zipWith(y, cmb)` for all
- * Eithers `x` and `y`.
+ * -   An `Either<E, A>` implements `Semigroup` when both `E` and `A` implement
+ *     `Semigroup`.
+ * -   When combined, any left-sided `Either` short-circuits the combination and
+ *     is returned instead. If both are right-sided, their values are combined
+ *     and returned in a `Right`.
  *
  * ## Transforming values
  *
- * These methods transform an Either's value:
+ * These methods transform the value within an `Either`:
  *
- * -   `bimap` applies one of two functions to the `Left` or `Right` value,
- *     depending on the Either's variant.
- * -   `lmap` applies a function to the `Left` value, and leaves the `Right`
- *     value unaffected.
- * -   `map` applies a function to the `Right` value, and leaves the `Left`
- *     value unaffected.
+ * -   `bimap` applies one of two functions to the value, depending on the
+ *     variant.
+ * -   `lmap` applies a function to the value in a left-sided `Either`.
+ * -   `map` applies a function to the value in a right-sided `Either`.
  *
- * These methods combine the values of two `Right` variants:
+ * These methods combine the values of two successful `Eithers`, or
+ * short-circuit on the first failed `Either`:
  *
  * -   `zipWith` applies a function to their values.
  * -   `zipFst` keeps only the first value, and discards the second.
@@ -122,80 +140,61 @@
  *
  * ## Chaining `Either`
  *
- * The `flatMap` method chains together computations that return `Either`. If
- * an Either is `Right`, a function is applied to its value and evaluated to
- * return another Either. If any Either is `Left`, the computation is halted and
- * the `Left` is returned instead.
+ * The `flatMap` method chains together computations that return `Either`. If an
+ * `Either` succeeds, a function is applied to its value and evaluated to return
+ * another `Either`. If an `Either` fails, the computation halts and the failed
+ * `Either` is returned instead.
  *
  * ### Generator comprehenshions
  *
  * Generator comprehensions provide an imperative syntax for chaining together
- * computations that return `Either`. Instead of `flatMap`, a Generator is used
- * to unwrap `Right` variants and apply functions to their values.
+ * computations that return `Either`. Instead of `flatMap`, a generator is used
+ * to unwrap successful `Either` values and apply functions to their values.
  *
- * The `go` function evaluates a Generator to return an Either. Within the
- * Generator, Eithers are yielded using the `yield*` keyword. This binds the
- * `Right` values to specified variables. When the computation is complete, a
- * final value can be computed and returned from the Generator.
- *
- * Generator comprehensions may contain:
- *
- * -   Variable declarations, assignments, and mutations
- * -   Function and class declarations
- * -   `for`, `while`, and `do`/`while` loops
- * -   `if`/`else if`/`else` blocks
- * -   `switch` blocks
- * -   `try`/`catch` blocks
+ * The `go` function evaluates a generator to return an `Either`. Within the
+ * generator, `Either` values are yielded using the `yield*` keyword. When a
+ * yielded `Either` succeeds, its value may be bound to a specified variable.
+ * If any yielded `Either` fails, the generator halts and the failed `Either` is
+ * returned immediately; otherwise, when the computation is complete, a final
+ * result can be computed and returned from the generator and will be returned
+ * as a success.
  *
  * ### Async generator comprehensions
  *
- * Async generator comprehensions provide `async`/`await` syntax and Promises to
- * `Either` generator comprehensions. Async computations that fulfill with
- * `Either` can be chained together using the familiar generator syntax.
+ * Async generator comprehensions provide `async`/`await` syntax to `Either`
+ * generator comprehensions, allowing promise-like computations that fulfill
+ * with `Either` to be chained together using the familiar generator syntax.
  *
- * The `goAsync` function evaluates an AsyncGenerator to return a Promise that
- * fulfills with an Either. The semantics of `yield*` and `return` within async
- * comprehensions are identical to their synchronous counterparts.
- *
- * In addition to the syntax permitted in synchronous generator comprehensions,
- * async comprehensions may contain:
- *
- * -   The `await` keyword
- * -   `for await` loops (asynchronous iteration)
- *
- * ## Recovering from `Left` variants
- *
- * These methods allow an Either to recover from a `Left` variant:
- *
- * -   `recover` applies a function to the Either's value to return a new
- *     Either. This is the equivalent of `flatMap` for the `Left` variant.
- * -   `orElse` returns a fallback Either.
+ * The `goAsync` function evaluates an async generator to return a `Promise`
+ * that fulfills with an `Either`. The semantics of `yield*` and `return` within
+ * async comprehensions are identical to their synchronous counterparts.
  *
  * ## Collecting into `Either`
  *
- * `Either` provides several functions for working with collections of Eithers.
- * Sometimes, a collection of Eithers must be turned "inside out" into an Either
- * that contains an equivalent collection of `Right` values.
+ * Sometimes, a collection of `Either` values must be turned "inside out" into a
+ * `Either` that succeeds with an equivalent collection of successes.
  *
- * These functions will traverse a collection of Eithers to extract the `Right`
- * values. If any Either in the collection is `Left`, the traversal is halted
- * and the `Left` is returned instead.
+ * These methods will traverse a collection of `Either` values to extract the
+ * successes. If any `Either` in the collection fails, the traversal halts and
+ * the failed `Either` is returned instead.
  *
- * -   `collect` turns an Array or a tuple literal of Eithers inside out.
- * -   `gather` turns a Record or an object literal of Eithers inside out.
+ * -   `collect` turns an array or a tuple literal of `Either` values inside
+ *     out.
+ * -   `gather` turns a record or an object literal of `Either` values inside
+ *     out.
  *
- * Additionally, the `reduce` function reduces a finite Iterable from left to
- * right in the context of `Either`. This is useful for mapping, filtering, and
- * accumulating values using `Either`.
+ * The `reduce` function reduces a finite iterable from left to right in the
+ * context of `Either`. This is useful for mapping, filtering, and accumulating
+ * values using `Either`.
  *
  * ## Lifting functions to work with `Either`
  *
- * The `lift` function receives an ordinary function that accepts arbitrary
- * agruments, and returns an adapted function that accepts `Either` values as
- * arguments instead. The arguments are evaluated from left to right, and if
- * they are all `Right` variants, the original function is applied to their
- * values and returned in a `Right`. If any `Either` is a `Left`, that `Either`
- * is returned instead.
+ * The `lift` function receives a function that accepts arbitrary arguments,
+ * and returns an adapted function that accepts `Either` values as arguments
+ * instead. The arguments are evaluated from left to right, and if they all
+ * succeed, the original function is applied to their successes and the result
+ * is returned as a success. If any `Either` fails, the failed `Either` is
+ * returned instead.
  *
  * @example Basic matching and unwrapping
  *
@@ -281,7 +280,7 @@
  * }
  * ```
  *
- * Suppose we want to parse an Array of inputs and collect the successful
+ * Suppose we want to parse an array of inputs and collect the successful
  * results, or fail on the first parse error. We may write the following:
  *
  * ```ts
@@ -303,7 +302,7 @@
  * // inputs ["+42","0x2A"]: [42,42]
  * ```
  *
- * Perhaps we want to collect only distinct even numbers using a Set:
+ * Perhaps we want to collect only distinct even numbers using a `Set`:
  *
  * ```ts
  * function parseEvenIntsUniq(inputs: string[]): Either<string, Set<number>> {
@@ -411,23 +410,21 @@ export namespace Either {
     }
 
     /**
-     * Construct a `Left` Either with an optional type witness for the `Right`
-     * value.
+     * Construct a left-sided `Either` from a value.
      */
     export function left<A, B = never>(x: A): Either<A, B> {
         return new Left(x);
     }
 
     /**
-     * Construct a `Right` Either with an optional type witness for the `Left`
-     * value.
+     * Construct a right-sided `Either` from a value.
      */
     export function right<B, A = never>(x: B): Either<A, B> {
         return new Right(x);
     }
 
     /**
-     * Apply a predicate function to a value. If the predicate returns true,
+     * Apply a predicate function to a value. If the predicate returns `true`,
      * return the value in `Right`; otherwise, return the value in `Left`.
      */
     export function guard<A, A1 extends A>(
@@ -442,14 +439,19 @@ export namespace Either {
     }
 
     /**
-     * Construct an Either from a Validation.
+     * Construct an `Either` from a `Validation`.
+     *
+     * @remarks
+     *
+     * `Err` and `Ok` variants of `Validation` will become `Left` and `Right`
+     * variants of `Either`, respectively.
      */
     export function fromValidation<E, A>(vdn: Validation<E, A>): Either<E, A> {
         return vdn.unwrap(left, right);
     }
 
     /**
-     * Construct an Either using a generator comprehension.
+     * Construct an `Either` using a generator comprehension.
      */
     export function go<T extends Either<any, any>, A>(
         f: () => Generator<T, A, unknown>,
@@ -468,7 +470,7 @@ export namespace Either {
     }
 
     /**
-     * Reduce a finite Iterable from left to right in the context of `Either`.
+     * Reduce a finite iterable from left to right in the context of `Either`.
      */
     export function reduce<A, B, E>(
         xs: Iterable<A>,
@@ -485,9 +487,10 @@ export namespace Either {
     }
 
     /**
-     * Evaluate the Eithers in an Array or a tuple literal from left to right
-     * and collect the `Right` values in an Array or a tuple literal,
-     * respectively.
+     * Evaluate the `Either` values in an array or a tuple literal from left to
+     * right. If they all succeed, collect their successes in an array or a
+     * tuple literal, respectively, and succeed with the result; otherwise,
+     * return the first failed `Either`.
      */
     export function collect<T extends readonly Either<any, any>[]>(
         eithers: T,
@@ -502,8 +505,10 @@ export namespace Either {
     }
 
     /**
-     * Evaluate the Eithers in a Record or an object literal and collect the
-     * `Right` values in a Record or an object literal, respectively.
+     * Evaluate the `Either` values in a record or an object literal. If they
+     * all succeed, collect their successes in a record or an object literal,
+     * respectively, and succeed with the result; otherwise, return the first
+     * failed `Either`.
      */
     export function gather<T extends Record<any, Either<any, any>>>(
         eithers: T,
@@ -530,8 +535,8 @@ export namespace Either {
     }
 
     /**
-     * Construct a Promise that fulfills with an Either using an async generator
-     * comprehension.
+     * Construct a `Promise` that fulfills with an `Either` using an async
+     * generator comprehension.
      */
     export async function goAsync<T extends Either<any, any>, A>(
         f: () => AsyncGenerator<T, A, unknown>,
@@ -581,14 +586,14 @@ export namespace Either {
         }
 
         /**
-         * Test whether this Either is `Left`.
+         * Test whether this `Either` is left-sided.
          */
         isLeft<A>(this: Either<A, any>): this is Left<A> {
             return this.typ === Typ.Left;
         }
 
         /**
-         * Test whether this Either is `Right`.
+         * Test whether this `Either` is right-sided.
          */
         isRight<B>(this: Either<any, B>): this is Right<B> {
             return this.typ === Typ.Right;
@@ -606,8 +611,8 @@ export namespace Either {
         }
 
         /**
-         * If this Either is `Left`, apply a function to its value to return
-         * a new Either.
+         * If this `Either` fails, apply a function to its failure to return
+         * another `Either`; otherwise, return this `Either` as is.
          */
         recover<E, A, E1, B>(
             this: Either<E, A>,
@@ -617,7 +622,8 @@ export namespace Either {
         }
 
         /**
-         * If this Either is `Left`, return a fallback Either.
+         * If this `Either` fails, return a fallback `Either`; otherwise, return
+         * this `Either` as is.
          */
         orElse<A, E1, B>(
             this: Either<any, A>,
@@ -627,8 +633,8 @@ export namespace Either {
         }
 
         /**
-         * If this Either is `Right`, apply a function to its value to return
-         * a new Either.
+         * If this `Either` succeeds, apply a function to its success to return
+         * another `Either`; otherwise, return this `Either` as is.
          */
         flatMap<E, A, E1, B>(
             this: Either<E, A>,
@@ -638,16 +644,17 @@ export namespace Either {
         }
 
         /**
-         * If this Either is `Right` and contains another Either, return the
-         * inner Either.
+         * If this `Either` succeeds with another `Either`, return the inner
+         * `Either`; otherwise, return this `Either` as is.
          */
         flat<E, E1, A>(this: Either<E, Either<E1, A>>): Either<E | E1, A> {
             return this.flatMap(id);
         }
 
         /**
-         * If this and that Either are `Right`, apply a function to their
-         * values.
+         * If this and that `Either` both succeed, apply a function to their
+         * successes and succeed with the result; otherwise, return the first
+         * failed `Either`.
          */
         zipWith<E, A, E1, B, C>(
             this: Either<E, A>,
@@ -658,7 +665,9 @@ export namespace Either {
         }
 
         /**
-         * If this and that Either are `Right`, keep only this Either's value.
+         * If this and that `Either` both succeed, succeed with only the first
+         * success and discard the second; otherwise, return the first failed
+         * `Either`.
          */
         zipFst<E, A, E1>(
             this: Either<E, A>,
@@ -668,7 +677,9 @@ export namespace Either {
         }
 
         /**
-         * If this and that Either are `Right`, keep only that Either's value.
+         * If this and that `Either` both succeed, succeed with only the second
+         * success and discard the first; otherwise, return the first failed
+         * `Either`.
          */
         zipSnd<E, E1, B>(
             this: Either<E, any>,
@@ -678,8 +689,9 @@ export namespace Either {
         }
 
         /**
-         * Apply one of two functions to this Either's value if this is `Left`
-         * or `Right`, respectively.
+         * If this `Either` is left-sided, apply a function to its value and
+         * return the result in a `Left`; otherwise, apply a function to its
+         * value and return the result in a `Right`.
          */
         bimap<A, B, C, D>(
             this: Either<A, B>,
@@ -690,14 +702,17 @@ export namespace Either {
         }
 
         /**
-         * If this Either is `Left`, apply a function to its value.
+         * If this `Either` is left-sided, apply a function to its value and
+         * return the result in a `Left`; otherwise, return this `Either` as is.
          */
         lmap<A, B, C>(this: Either<A, B>, f: (x: A) => C): Either<C, B> {
             return this.recover((x) => left(f(x)));
         }
 
         /**
-         * If this Either is `Right`, apply a function to its value.
+         * If this `Either` is right-sided, apply a function to its value and
+         * return the result in a `Right`; otherwise, return this `Either` as
+         * is.
          */
         map<A, B, D>(this: Either<A, B>, f: (x: B) => D): Either<A, D> {
             return this.flatMap((x) => right(f(x)));
@@ -705,7 +720,7 @@ export namespace Either {
     }
 
     /**
-     * A leftsided Either.
+     * A left-sided Either.
      */
     export class Left<out A> extends Syntax {
         /**
@@ -721,9 +736,9 @@ export namespace Either {
         }
 
         /**
-         * Defining Iterable behavior for `Either` allows TypeScript to infer
-         * `Right` types when yielding Eithers in generator comprehensions using
-         * `yield*`.
+         * Defining iterable behavior for `Either` allows TypeScript to infer
+         * right-sided value types when yielding `Either` values in generator
+         * comprehensions using `yield*`.
          *
          * @hidden
          */
@@ -733,7 +748,7 @@ export namespace Either {
     }
 
     /**
-     * A rightsided Either.
+     * A right-sided Either.
      */
     export class Right<out B> extends Syntax {
         /**
@@ -749,9 +764,9 @@ export namespace Either {
         }
 
         /**
-         * Defining Iterable behavior for `Either` allows TypeScript to infer
-         * `Right` types when yielding Eithers in generator comprehensions using
-         * `yield*`.
+         * Defining iterable behavior for `Either` allows TypeScript to infer
+         * right-sided value types when yielding `Either` values in generator
+         * comprehensions using `yield*`.
          *
          * @hidden
          */
@@ -761,14 +776,14 @@ export namespace Either {
     }
 
     /**
-     * Extract the `Left` type `A` from the type `Either<A, B>`.
+     * Extract the left-sided value type `A` from the type `Either<A, B>`.
      */
     // prettier-ignore
     export type LeftT<T extends Either<any, any>> = 
         [T] extends [Either<infer A, any>] ? A : never;
 
     /**
-     * Extract the `Right` type `B` from the type `Either<A, B>`.
+     * Extract the right-sided value type `B` from the type `Either<A, B>`.
      */
     // prettier-ignore
     export type RightT<T extends Either<any, any>> = 
