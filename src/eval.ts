@@ -349,8 +349,8 @@ export class Eval<out A> {
 
     /**
      * Evaluate the `Eval` values in an array or a tuple literal from left to
-     * right. Collect the outcomes in an array or a tuple literal, respectively,
-     * and return the result in an `Eval`.
+     * right. Collect their outcomes in an array or a tuple literal,
+     * respectively, and return the result in an `Eval`.
      */
     static collect<T extends readonly Eval<any>[]>(
         evals: T,
@@ -365,9 +365,9 @@ export class Eval<out A> {
     }
 
     /**
-     * Evaluate the `Eval` values in a record or an object literal. Collect the
-     * outcomes in a record or an object literal, respectively, and return the
-     * result in an `Eval`.
+     * Evaluate the `Eval` values in a record or an object literal. Collect
+     * their outcomes in a record or an object literal, respectively, and return
+     * the result in an `Eval`.
      */
     static gather<T extends Record<any, Eval<any>>>(
         evals: T,

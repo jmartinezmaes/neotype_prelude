@@ -138,7 +138,7 @@
  * Sometimes, a collection of `Validation` values must be turned "inside out"
  * into a `Validation` that succeeds with an equivalent collection of successes.
  *
- * These functions traverse a collection of `Validation` values to extract the
+ * These functions traverse a collection of `Validation` values to extract their
  * successes. If any `Validation` in the collection fails, the traversal halts
  * and failures begin accumulating instead.
  *
@@ -422,7 +422,7 @@ export namespace Validation {
 
     /**
      * Evaluate the `Validation` values in an array or a tuple literal from left
-     * to right. If they all succeed, collect the successes in an array or a
+     * to right. If they all succeed, collect their successes in an array or a
      * tuple literal, respectively, and succeed with the result; otherwise,
      * begin accumulating failures on the first failed `Validation`.
      */
@@ -441,9 +441,9 @@ export namespace Validation {
 
     /**
      * Evaluate the `Validation` values in a record or an object literal. If
-     * they all succeed, collect the successes in a record or an object literal,
-     * respectively, and succeed with the result; otherwise, begin accumulating
-     * failures on the first failed `Validation`.
+     * they all succeed, collect their successes in a record or an object
+     * literal, respectively, and succeed with the result; otherwise, begin
+     * accumulating failures on the first failed `Validation`.
      */
     export function gather<
         T extends Record<string, Validation<Semigroup<any>, any>>,

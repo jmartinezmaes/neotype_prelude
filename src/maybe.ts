@@ -173,7 +173,7 @@
  * Sometimes, a collection of `Maybe` values must be turned "inside out" into a
  * `Maybe` that contains an equivalent collection of present values.
  *
- * These methods will traverse a collection of `Maybe` values to extract the
+ * These methods will traverse a collection of `Maybe` values to extract their
  * present values. If any `Maybe` in the collection is absent, the traversal
  * halts and `Nothing` is returned instead.
  *
