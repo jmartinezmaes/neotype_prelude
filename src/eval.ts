@@ -56,7 +56,7 @@
  * `Eval` has the following behavior as a semigroup:
  *
  * -   An `Eval<A>` implements `Semigroup` when `A` implements `Semigroup`.
- * -   When combined, the outcomes are combined and the result is returned
+ * -   When combined, their outcomes are combined and the result is returned
  *     in an `Eval`.
  *
  * ## Transforming values
@@ -114,7 +114,7 @@
  * The `lift` function receives a function that accepts arbitrary arguments, and
  * returns an adapted function that accepts `Eval` values as arguments instead.
  * The arguments are evaluated from left to right, then the original function is
- * applied to their outcomes and returned in an `Eval`.
+ * applied to their outcomes and the result is returned in an `Eval`.
  *
  * @example Recursive folds with `Eval`
  *
@@ -349,8 +349,8 @@ export class Eval<out A> {
 
     /**
      * Evaluate the `Eval` values in an array or a tuple literal from left to
-     * right and collect the outcomes in an array or a tuple literal,
-     * respectively.
+     * right. Collect the outcomes in an array or a tuple literal, respectively,
+     * and return the result in an `Eval`.
      */
     static collect<T extends readonly Eval<any>[]>(
         evals: T,
@@ -365,8 +365,9 @@ export class Eval<out A> {
     }
 
     /**
-     * Evaluate the `Eval` values in a record or an object literal and collect
-     * the outcomes in a record or an object literal, respectively.
+     * Evaluate the `Eval` values in a record or an object literal. Collect the
+     * outcomes in a record or an object literal, respectively, and return the
+     * result in an `Eval`.
      */
     static gather<T extends Record<any, Eval<any>>>(
         evals: T,
@@ -439,14 +440,16 @@ export class Eval<out A> {
     }
 
     /**
-     * Keep the outcome of this `Eval` and discard the outcome of that `Eval`.
+     * Evaluate this `Eval` and keep the outcome, then evaluate that `Eval` and
+     * discard that outcome.
      */
     zipFst(that: Eval<any>): Eval<A> {
         return this.zipWith(that, id);
     }
 
     /**
-     * Keep the outcome of that `Eval` and discard the outcome of this `Eval`.
+     * Evaluate this `Eval` and discard the outcome, then evaluate that `Eval`
+     * and keep that outcome.
      */
     zipSnd<B>(that: Eval<B>): Eval<B> {
         return this.flatMap(() => that);
