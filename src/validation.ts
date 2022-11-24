@@ -20,8 +20,7 @@
  * @remarks
  *
  * `Validation<E, A>` is a type that represents a state of accumulated failure
- * or success; thus, `Validation` is represented by two variants: `Err<E>` and
- * `Ok<A>`.
+ * or success. It is represented by two variants: `Err<E>` and `Ok<A>`.
  *
  * -   The `Err<E>` variant represents a *failed* `Validation` and contains a
  *     *failure* of type `E`.

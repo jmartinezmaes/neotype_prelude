@@ -19,8 +19,8 @@
  *
  * @remarks
  *
- * `Either<A, B>` is a type that represents one of two values; thus, `Either` is
- * represented by two variants: `Left<A>` and `Right<B>`.
+ * `Either<A, B>` is a type that represents one of two values. It is represented
+ * by two variants: `Left<A>` and `Right<B>`.
  *
  * -   The `Left<A>` variant represents a *left-sided* `Either` and contains a
  *     value of type `A`.
