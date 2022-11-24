@@ -47,7 +47,7 @@
  * -   The abstract `Syntax` class that provides the fluent API for `Maybe`
  * -   The `Typ` enumeration that discriminates `Maybe`
  * -   The `nothing` constant
- * -   Functions for constructing, chaining, collecting, and lifting into
+ * -   Functions for constructing, chaining, collecting into, and lifting into
  *     `Maybe`
  *
  * The type and namespce can be imported under the same alias:
@@ -78,57 +78,55 @@
  *
  * ## Querying and narrowing the variant
  *
- * The `isNothing` and `isJust` methods return `true` if a `Maybe` is `Nothing`
- * or `Just`, respectively. These methods will also narrow the type of a `Maybe`
- * to its queried variant.
+ * The `isNothing` and `isJust` methods return `true` if a `Maybe` is absent or
+ * present, respectively. These methods will also narrow the type of a `Maybe`
+ * to the queried variant.
  *
  * The variant can also be queried and narrowed via the `typ` property, which
  * returns a member of the `Typ` enumeration.
  *
  * ## Extracting values
  *
- * When a `Maybe` is `Just`, its value can be accessed via the `val` property.
- * To access the property, the variant must first be queried and narrowed to
- * `Just`.
+ * When a `Maybe` is present, its value can be accessed via the `val` property.
+ * To access the property, the variant must first be queried and narrowed.
  *
  * Alternatively, the `unwrap` method will unwrap a `Maybe` by either evaluating
- * a function in the case of `Nothing`, or applying a function to the value in
- * the case of `Just`.
+ * a function when absent, or applying a function to the value when present.
  *
- * The `getOrFallback` method also unwraps a `Maybe` by extracting the present
- * value in the case of `Just`, or returning a provided fallback value in the
- * case of `Nothing`.
+ * The `getOrFallback` method also unwraps a `Maybe` by extracting the value
+ * when present, or returning a provided fallback value when absent.
  *
  * ## Comparing `Maybe`
  *
  * `Maybe` has the following behavior as an equivalence relation:
  *
  * -   A `Maybe<A>` implements `Eq` when `A` implements `Eq`.
- * -   Two `Maybe` values are equal if they are both `Nothing`, or they are both
- *     `Just` and and their values are equal.
+ * -   Two `Maybe` values are equal if they are both absent, or they are both
+ *     present and and their values are equal.
  *
  * `Maybe` has the following behavior as a total order:
  *
  * -   A `Maybe<A>` implements `Ord` when `A` implements `Ord`.
- * -   When ordered, `Nothing` always compares as less than than any `Just`. If
- *     both variants are `Just`, their values are compared to determine the
- *     ordering.
+ * -   When ordered, an absent `Maybe` always compares as less than than any
+ *     present `Maybe`. If they are both present, their values are compared to
+ *     determine the ordering.
  *
  * ## `Maybe` as a semigroup
  *
  * `Maybe` has the following behavior as a semigroup:
  *
  * -   A `Maybe<A>` implements `Semigroup` when `A` implements `Semigroup`.
- * -   When combined, `Just` has precedence over `Nothing` If both variants are
- *     `Just`, thier values are combined and returned in a `Just`.
+ * -   When combined, present `Maybe` values have precedence over absent `Maybe`
+ *     values. If they are both present, thier values are combined and returned
+ *     in a `Just`.
  *
  * ## Transforming values
  *
- * When a `Maybe` is `Just`, the `map` method applies a function to the value
- * returns the result in a `Just`. `Nothing` is returned as is.
+ * The `map` method transforms the value within a `Maybe` when present, and
+ * does nothing when absent.
  *
- * These methods combine the values of two `Just` variants, or short-circuit on
- * the first `Nothing`:
+ * These methods combine the values of two `Maybe` values when both present, or
+ * short-circuit on the first absent `Maybe`:
  *
  * -   `zipWith` applies a function to their values.
  * -   `zipFst` keeps only the first value, and discards the second.
@@ -137,20 +135,20 @@
  * ## Chaining `Maybe`
  *
  * The `flatMap` method chains together computations that return `Maybe`. If a
- * `Maybe` is `Just`, a function is applied to its value and evaluated to return
- * another `Maybe`. If a `Maybe` is `Nothing`, the computation halts and
+ * `Maybe` is present, a function is applied to its value and evaluated to
+ * return another `Maybe`. If a `Maybe` is absent, the computation halts and
  * `Nothing` is returned instead.
  *
  * ### Generator comprehensions
  *
  * Generator comprehensions provide an imperative syntax for chaining together
  * computations that return `Maybe`. Instead of `flatMap`, a generator is used
- * to unwrap `Just` variants and apply functions to their values.
+ * to unwrap present `Maybe` values and apply functions to their values.
  *
  * The `go` function evaluates a generator to return a `Maybe`. Within the
  * generator, `Maybe` values are yielded using the `yield*` keyword. When a
- * yielded `Maybe` is `Just`, its value may be bound to a specified variable.
- * If any yielded `Maybe` is `Nothing`, the generator halts and `Nothing` is
+ * yielded `Maybe` is present, its value may be bound to a specified variable.
+ * If any yielded `Maybe` is absent, the generator halts and `Nothing` is
  * returned immediately; otherwise, when the computation is complete, a final
  * result can be computed and returned from the generator and will be wrapped in
  * a `Just`.
@@ -167,16 +165,16 @@
  *
  * ## Recovering from `Nothing`
  *
- * The `orElse` method returns a fallback `Maybe` in the case of `Nothing`, and
- * returns any `Just` as is.
+ * The `orElse` method returns a fallback `Maybe` when absent, and does nothing
+ * when present.
  *
  * ## Collecting into `Maybe`
  *
  * Sometimes, a collection of `Maybe` values must be turned "inside out" into a
- * `Maybe` that contains an equivalent collection of values.
+ * `Maybe` that contains an equivalent collection of present values.
  *
  * These methods will traverse a collection of `Maybe` values to extract the
- * `Just` values. If any `Maybe` in the collection is `Nothing`, the traversal
+ * present values. If any `Maybe` in the collection is absent, the traversal
  * halts and `Nothing` is returned instead.
  *
  * -   `collect` turns an array or a tuple literal of `Maybe` values inside out.
@@ -192,8 +190,9 @@
  * The `lift` function receives a function that accepts arbitrary arguments,
  * and returns an adapted function that accepts `Maybe` values as arguments
  * instead. The arguments are evaluated from left to right, and if they are all
- * `Just`, the original function is applied to their values and returned in a
- * `Just`. If any `Maybe` is `Nothing`, `Nothing` is returned instead.
+ * present, the original function is applied to their values and the result is
+ * returned in a `Just`. If any `Maybe` is absent, `Nothing` is returned
+ * instead.
  *
  * @example Basic matching and unwrapping
  *
@@ -415,7 +414,7 @@ export namespace Maybe {
     }
 
     /**
-     * Construct a present `Maybe`.
+     * Construct a present `Maybe` from a value.
      */
     export function just<A>(x: A): Maybe<A> {
         return new Just(x);
@@ -651,16 +650,17 @@ export namespace Maybe {
         }
 
         /**
-         * If this and that `Maybe` are both present, keep only the first value
-         * and discard the second; otherwise, return `Nothing`.
+         * If this and that `Maybe` are both present, return only the first
+         * value in a `Just` and discard the second; otherwise, return
+         * `Nothing`.
          */
         zipFst<A>(this: Maybe<A>, that: Maybe<any>): Maybe<A> {
             return this.zipWith(that, id);
         }
 
         /**
-         * If this and that `Maybe` are both present, keep only the second value
-         * and discard the first; otherwise, return `Nothing`.
+         * If this and that `Maybe` are both present, return only the second
+         * value in a `Just` and discard the first; otherwise, return `Nothing`.
          */
         zipSnd<B>(this: Maybe<any>, that: Maybe<B>): Maybe<B> {
             return this.flatMap(() => that);
