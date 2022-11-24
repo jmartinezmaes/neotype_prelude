@@ -73,8 +73,7 @@
  * -   `fromMissing` constructs a `Maybe` from a value that is potentially
  *     `null` or `undefined`, and converts such values to `Nothing`.
  * -   `guard` constructs a `Maybe` from applying a predicate function to a
- *     value. A value that satisfies the predicate is returned in a `Just`, and
- *     `Nothing` is returned otherwise.
+ *     value.
  *
  * ## Querying and narrowing the variant
  *

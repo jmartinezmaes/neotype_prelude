@@ -76,8 +76,7 @@
  * -   `left` constructs a left-sided `Either`.
  * -   `right` constructs a right-sided `Either`.
  * -   `guard` constructs an `Either` from applying a predicate function to a
- *     value. The value is returned in a `Right` or `Left` if it satisfies or
- *     does not satisfy the predicate, respectively.
+ *     value.
  * -   `fromValidation` constructs an `Either` from a `Validation`.
  *
  * ## Querying and narrowing the variant
