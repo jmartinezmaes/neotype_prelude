@@ -63,8 +63,7 @@
  * `Pair` has the following behavior an a total order:
  *
  * -   A `Pair<A, B>` implements `Ord` when both `A` and `B` implement `Ord`.
- * -   When ordered, `Pair` compares its first and second values
- *     lexicographically.
+ * -   When ordered, first and second values are compared lexicographically.
  *
  * ## `Pair` as a semigroup
  *
