@@ -275,7 +275,7 @@
  * }
  * ```
  *
- * Suppose we want to parse an Array of inputs and collect the successful
+ * Suppose we want to parse an array of inputs and collect the successful
  * results, or fail on the first parse error. We may write the following:
  *
  * ```ts
