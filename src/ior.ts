@@ -246,7 +246,7 @@
  *
  * @example Parsing with `Ior`
  *
- * First, our imports:
+ * First, the necessary imports:
  *
  * ```ts
  * import { Semigroup } from "@neotype/prelude/cmb.js";

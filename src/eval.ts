@@ -118,13 +118,13 @@
  *
  * @example Recursive folds with `Eval`
  *
- * First, our imports:
+ * First, the necessary imports:
  *
  * ```ts
  * import { Eval } from "@neotype/prelude/eval.js";
  * ```
  *
- * Now, consider a program that uses `Eval` to traverse and fold a recursive
+ * Now, consider a program that uses `Eval` to fold and traverse a recursive
  * `Tree` data structure:
  *
  * ```ts

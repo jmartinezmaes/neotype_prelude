@@ -225,7 +225,7 @@
  *
  * @example Parsing with `Maybe`
  *
- * First, our imports:
+ * First, the necessary imports:
  *
  * ```ts
  * import { Maybe } from "@neotype/prelude/maybe.js";

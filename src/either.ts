@@ -227,7 +227,7 @@
  *
  * @example Parsing with `Either`
  *
- * First, our imports:
+ * First, the necessary imports:
  *
  * ```ts
  * import { Either } from "@neotype/prelude/either.js";
