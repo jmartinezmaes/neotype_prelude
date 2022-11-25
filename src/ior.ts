@@ -19,25 +19,29 @@
  *
  * @remarks
  *
- * `Ior<A, B>` is a type that represents *one or both* of two values `A` and
- * `B`; thus, `Ior` is represented by three variants: `Left<A>`, `Right<B>`,
- * and `Both<A, B>`.
+ * `Ior<A, B>` is a type that represents one or both of two values. It is
+ * represented by three variants: `Left<A>`, `Right<B>`, and `Both<A, B>`.
+ *
+ * -   A `Left<A>` contains a *left-hand* value of type `A`.
+ * -   A `Right<B>` contains a *right-hand* value of type `B`.
+ * -   A `Both<A, B>` contains a left-hand value of type `A` and a right-hand
+ *     value of type `B`.
  *
  * `Ior` is often used to represent states of failure or success similar to
  * `Either` and `Validation`. However, `Ior` is capable of also representing a
  * unique state using the `Both` variant. `Both` can represent a success that
- * carries additional information, or a state of "partial failure".
+ * contains additional information, or a state of "partial failure".
  *
  * When composed, the behavior of `Ior` is a combination of the short-circuiting
  * behavior of `Either` and the failure-accumulating behavior of `Validation`:
  *
- * -   `Left` short-circuits a computation completely and combines its value
- *     with any existing left-hand value.
- * -   `Right` supplies its value to the next computation.
- * -   `Both` supplies its right-hand value to the next computation, and
+ * -   A `Left` short-circuits a computation completely and combines its
+ *     left-hand value with any existing left-hand value.
+ * -   A `Right` supplies its right-hand value to the next computation.
+ * -   A `Both` supplies its right-hand value to the next computation, and
  *     combines its left-hand value with any existing left-hand value.
  *
- * Combinators with this behavior will require a `Semigroup` implementation for
+ * Combinators with this behavior will require a `Semigroup` implementation from
  * the accumulating left-hand value.
  *
  * ## Importing from this module
@@ -48,7 +52,8 @@
  * -   The `Left`, `Right`, and `Both` variant classes
  * -   The abstract `Syntax` class that provides the fluent API for `Ior`
  * -   The `Typ` enumeration that discriminates `Ior`
- * -   Functions for constructing, chaining, and collecting into `Ior`
+ * -   Functions for constructing, chaining, collecting into, and lifting into
+ *     `Ior`
  *
  * The type and namespace can be imported under the same alias:
  *
@@ -64,143 +69,144 @@
  *
  * ## Constructing `Ior`
  *
- * These methods construct an Ior:
+ * These methods construct an `Ior`:
  *
  * -   `left` constructs a `Left` variant.
  * -   `right` constructs a `Right` variant.
  * -   `both` constructs a `Both` variant.
- * -   `fromEither` constructs an Ior from an Either. `Left` and `Right` Eithers
- *     become `Left` and `Right` Iors, respectively.
+ * -   `fromEither` constructs an `Ior` from an `Either`.
  *
  * ## Querying and narrowing the variant
  *
- * The `isLeft`, `isRight`, and `isBoth` methods return `true` if an Ior is the
- * `Left`, `Right`, or `Both`  variant, respectively. These methods will also
- * narrow the type of an Ior to its queried variant.
+ * The `isLeft`, `isRight`, and `isBoth` methods return `true` if an `Ior` is
+ * `Left`, `Right`, or `Both`, respectively. These methods will also narrow the
+ * type of an `Ior` to the queried variant.
  *
- * An Ior's variant can also be queried and narrowed via the `typ` property,
- * which returns a member of the `Typ` enumeration.
+ * The variant can also be queried and narrowed via the `typ` property, which
+ * returns a member of the `Typ` enumeration.
  *
  * ## Extracting values
  *
- * An Ior's value(s) can be accessed via the `val` property. When an Ior is
- * `Left` or `Right`, the `val` property is the left-hand or right-hand value,
- * respectively. When an Ior is `Both`, the `val` property is a 2-tuple of the
- * left-hand and right-hand values.
+ * The value(s) within an `Ior` can be accessed via the `val` property. When an
+ * `Ior` is `Left` or `Right`, the `val` property accesses the left-hand or
+ * right-hand value, respectively. When an `Ior` is `Both`, the `val` property
+ * is a 2-tuple of the left-hand and right-hand values.
  *
- * The left-hand and right-hand values of `Both` can also be accessed
+ * The left-hand and right-hand values of `Both` variants can also be accessed
  * individually via the `fst` and `snd` properties, respectively.
  *
- * Alternatively, the `unwrap` method will unwrap an Ior by applying one of
- * three functions to its left-hand and/or right-hand value(s).
+ * The `unwrap` method will unwrap an `Ior` by applying one of three functions
+ * to its left-hand and/or right-hand value(s).
  *
  * ## Comparing `Ior`
  *
- * `Ior` implements `Eq` and `Ord` when both its left-hand and right-hand
- * generic types implement `Eq` and `Ord`, respectively,
+ * `Ior` has the following behavior as an equivalence relation:
  *
- * -   Two Iors are equal if they are the same variant and their value(s) is
- *     (are) equal.
- * -   When compared, `Left` is less than `Right`, and `Right` is less than
- *     `Both`. If the variants are equal, their values determine the ordering.
- *     The `Both` variant compares its `fst` and `snd` properties
- *     lexicographically.
+ * -   An `Ior<A, B>` implements `Eq` when both `A` and `B` implement `Eq`.
+ * -   Two `Ior` values are equal if they are the same variant and their
+ *     left-hand and/or right-hand value(s) are equal.
+ *
+ * `Ior` has the following behavior as a total order:
+ *
+ * -   An `Ior<A, B>` implements `Ord` when both `A` and `B` implement `Ord`.
+ * -   When ordered, a `Left` always compares as less than any `Right`, and a
+ *     `Right` always compares as less than any `Both`. If the variants are the
+ *     same, their left-hand and/or right-hand values are compared to determine
+ *     the ordering. `Both` variants compare their left-hand and right-hand
+ *     values lexicographically.
  *
  * ## `Ior` as a semigroup
  *
- * `Ior` implements `Semigroup` when both its left-hand and right-hand generic
- * types implement `Semigroup`. Left-hand and right-hand values are combined
- * pairwise, and will accumulate into `Both`.
+ * `Ior` has the following behavior as a semigroup:
+ *
+ * -   An `Ior<A, B>` implements `Semigroup` when both `A` and `B` implement
+ *     `Semigroup`.
+ * -   When combined, left-hand and right-hand values are combined pairwise.
+ *     Combination is lossless and will merge values into `Both` variants when
+ *     there is no existing value to combine with.
  *
  * ## Transforming values
  *
- * These methods transform an Ior's value(s):
+ * These methods transform the value(s) within an `Ior`:
  *
  * -   `bimap` applies one or two functions to the left-hand and/or right-hand
- *     value(s) depending on the Ior's variant.
- * -   `lmap` applies a function to the left-hand value, leaving the right-hand
- *     value unaffected.
- * -   `map` applies a function to the right-hand value, leaving the left-hand
- *     value unaffected.
+ *     value(s), depending on the variant.
+ * -   `lmap` applies a function to the left-hand value, and leaves the
+ *     right-hand value as is.
+ * -   `map` applies a function to the left-hand value, and leaves the left-hand
+ *     value as is.
  *
  * These methods combine the right-hand values of two `Right` and/or `Both`
- * variants:
+ * variants, or short-circuit on the first `Left`:
  *
- * -   `zipWith` applies a function to their values.
- * -   `zipFst` keeps only the first value, and discards the second.
- * -   `zipSnd` keeps only the second value, and discards the first.
+ * -   `zipWith` applies a function to their right-hand values.
+ * -   `zipFst` keeps only the first right-hand value, and discards the second.
+ * -   `zipSnd` keeps only the second right-hand value, and discards the first.
  *
  * ## Chaining `Ior`
  *
  * The `flatMap` method chains together computations that return `Ior`. If an
- * Ior is `Right` or `Both`, a function is applied to its right-hand value and
- * evaluated to return another Ior. Left-hand values are accumulated along the
- * way and require an implementation for `Semigroup`. If any Ior is `Left`, the
- * computation is halted and the `Left` is returned instead.
+ * `Ior` has a right-hand value, a function is applied the value and evaluated
+ * to return another `Ior`. The left-hand values of `Both` variants accumulate
+ * using their behavior as a semigroup. If an `Ior` is a `Left`, the computation
+ * halts and left-hand value with any existing left-hand value, then returned in
+ * a `Left`.
  *
  * ### Generator comprehensions
  *
  * Generator comprehensions provide an imperative syntax for chaining together
- * computations that return `Ior`. Instead of `flatMap`, a Generator is used
- * to unwrap `Right` and `Both` variants, and apply functions to their
- * right-hand values.
+ * computations that return `Ior`. Instead of `flatMap`, a generator is used
+ * to unwrap `Ior` values and apply functions to right-hand values.
  *
- * The `go` function evaluates a Generator to return an Ior. Within the
- * Generator, Iors are yielded using the `yield*` keyword. This binds the
- * right-hand values to specified variables. When the computation is complete, a
- * final value can be computed and returned from the Generator.
- *
- * Generator comprehensions support all syntax that would otherwise be valid
- * within a Generator, including:
- *
- * -   Variable declarations, assignments, and mutations
- * -   Function and class declarations
- * -   `for`, `while`, and `do`/`while` loops
- * -   `if`/`else if`/`else` blocks
- * -   `switch` blocks
- * -   `try`/`catch` blocks
+ * The `go` function evaluates a generator to return an `Ior`. Within the
+ * generator, `Ior` values are yielded using the `yield*` keyword. When a
+ * yielded `Ior` has a right-hand value, the value may be bound to a specified
+ * variable. The left-hand values of `Both` variants accumulate using their
+ * behavior as a semigroup. If any yielded `Ior` is a `Left`, the generator
+ * halts and the left-hand value is combined with any existing left-hand value,
+ * then returned in a `Left`; otherwise, when the computation is complete, a
+ * final result can be computed and returned from the generator and will be
+ * returned as a right-hand value.
  *
  * ## Async generator comprehensions
  *
- * Async generator comprehensions provide `async`/`await` syntax and Promises to
- * `Ior` generator comprehensions. Async computations that fulfill with `Ior`
- * can be chained together using the familiar generator syntax.
+ * Async generator comprehensions provide `async`/`await` syntax to `Ior`
+ * generator comprehensions, allowing promise-like computations that fulfill
+ * with `Ior` to be chained together using the familiar generator syntax.
  *
- * The `goAsync` function evaluates an AsyncGenerator to return a Promise that
- * fulfills with an Ior. The semantics of `yield*` and `return` within async
- * comprehensions are identical to their synchronous counterparts.
- *
- * In addition to the syntax permitted in synchronous generator comprehensions,
- * async comprehensions also support:
- *
- * -   The `await` keyword
- * -   `for await` loops (asynchronous iteration)
+ * The `goAsync` function evaluates an async generator to return a `Promise`
+ * that fulfills with an `Ior`. The semantics of `yield*` and `return` within
+ * async comprehensions are identical to their synchronous counterparts.
  *
  * ## Collecting into `Ior`
  *
- * `Ior` provides several functions for working with collections of Iors.
- * Sometimes, a collection of Iors must be turned "inside out" into an Ior that
- * contains a "mapped" collection of right-hand values.
+ * Sometimes, a collection of `Ior` values must be turned "inside out" into a
+ * `Ior` with a right-hand value that contains an equivalent collection of the
+ * right-hand values.
  *
- * These methods will traverse a collection of Iors to extract the right-hand
- * values. If any Ior in the collection is `Left`, the traversal is halted and
- * the `Left` is returned instead. An implementation for `Semigroup` is required
- * for left-hand values so they may accumulate.
+ * These methods will traverse a collection of `Ior` values to extract the
+ * right-hand values. The left-hand values of `Both` variants accumulate using
+ * their behavior as a semigroup. If any `Ior` in the collection is a `Left`,
+ * the traversal halts and the left-hand value is combined with any existing
+ * left-hand value, then returned in a `Left`.
  *
- * -   `collect` turns an Array or a tuple literal of Iors inside out.
- * -   `gather` turns a Record or an object literal of Iors inside out.
+ * -   `collect` turns an array or a tuple literal of `Ior` values inside out.
+ * -   `gather` turns a record or an object literal of `Ior` values inside out.
  *
- * Additionally, the `reduce` function reduces a finite Iterable from left to
- * right in the context of `Ior`. This is useful for mapping, filtering, and
- * accumulating values using `Ior`.
+ * The `reduce` function reduces a finite iterable from left to right in the
+ * context of `Ior`. This is useful for mapping, filtering, and accumulating
+ * values using `Ior`.
  *
  * ## Lifting functions to work with `Ior`
  *
- * The `lift` function receives an ordinary function that accepts arbitrary
- * agruments, and returns an adapted function that accepts `Ior` values as
- * arguments instead. The arguments are evaluated from left to right, then the
- * original function is applied to the right-hand values and returned as a
- * right-hand value.
+ * The `lift` function receives a function that accepts arbitrary arguments,
+ * and returns an adapted function that accepts `Ior` values as arguments
+ * instead. The arguments are evaluated from left to right, and if they all
+ * have right-hand values, the original function is applied to the values and
+ * the result is returned as a right-hand value. The left-hand values of `Both`
+ * variants accumulate using their behavior as a semigroup. If any argument is a
+ * `Left`, the traversal halts and the left-hand value is combined with any
+ * existing left-hand value, then returned in a `Left`.
  *
  * @example Basic matching and unwrapping
  *
@@ -251,7 +257,7 @@
  * utilities:
  *
  * ```ts
- * // A semigroup that wraps Arrays.
+ * // A semigroup that wraps arrays.
  * class List<A> {
  *     readonly val: A[];
  *
@@ -325,7 +331,7 @@
  * }
  * ```
  *
- * Suppose we want to parse an Array of inputs and collect the successful
+ * Suppose we want to parse an array of inputs and collect the successful
  * results, or fail on the first parse error. We may write the following:
  *
  * ```ts
@@ -469,49 +475,47 @@ export namespace Ior {
     }
 
     /**
-     * Construct a `Left` Ior with an optional type witness for the right-hand
-     * value.
+     * Construct a `Left` variant of `Ior` from a value.
      */
     export function left<A, B = never>(x: A): Ior<A, B> {
         return new Left(x);
     }
 
     /**
-     * Construct a `Right` Ior with an optional type witness for the left-hand
-     * value.
+     * Construct a `Right` variant of `Ior` from a value.
      */
     export function right<B, A = never>(x: B): Ior<A, B> {
         return new Right(x);
     }
 
     /**
-     * Construct a `Both` Ior.
+     * Construct a `Both` variant of `Ior` from two values.
      */
     export function both<A, B>(x: A, y: B): Ior<A, B> {
         return new Both(x, y);
     }
 
     /**
-     * Construct an Ior from an Either.
+     * Construct an `Ior` from an `Either`.
      *
      * @remarks
      *
-     * `Right` and `Left` Eithers will become `Right` and `Left` Iors,
-     * respectively.
+     * `Right` and `Left` variants of `Either` will become `Right` and `Left`
+     * variants of `Ior`, respectively.
      */
     export function fromEither<A, B>(either: Either<A, B>): Ior<A, B> {
         return either.unwrap(left, right);
     }
 
     /**
-     * Construct an Ior using a generator comprehension.
+     * Construct an `Ior` using a generator comprehension.
      */
-    export function go<E extends Semigroup<E>, A>(
-        f: () => Generator<Ior<E, any>, A, unknown>,
-    ): Ior<E, A> {
+    export function go<A extends Semigroup<A>, B>(
+        f: () => Generator<Ior<A, any>, B, unknown>,
+    ): Ior<A, B> {
         const gen = f();
         let nxt = gen.next();
-        let acc: E | undefined;
+        let acc: A | undefined;
 
         while (!nxt.done) {
             const ior = nxt.value;
@@ -528,13 +532,13 @@ export namespace Ior {
     }
 
     /**
-     * Reduce a finite Iterable from left to right in the context of `Ior`.
+     * Reduce a finite iterable from left to right in the context of `Ior`.
      */
-    export function reduce<A, B, E extends Semigroup<E>>(
-        xs: Iterable<A>,
-        f: (acc: B, x: A) => Ior<E, B>,
-        initial: B,
-    ): Ior<E, B> {
+    export function reduce<B, C, A extends Semigroup<A>>(
+        xs: Iterable<B>,
+        f: (acc: C, x: B) => Ior<A, C>,
+        initial: C,
+    ): Ior<A, C> {
         return go(function* () {
             let acc = initial;
             for (const x of xs) {
@@ -545,9 +549,13 @@ export namespace Ior {
     }
 
     /**
-     * Evaluate the Iors in an Array or a tuple literal from left to right and
-     * collect the right-hand values in an Array or a tuple literal,
-     * respectively.
+     * Evaluate the `Ior` in an array or a tuple literal from left to right. If
+     * they all have right-hand values, collect the values in an array or a
+     * tuple literal, respectively, and return the result as a right-hand value.
+     * Accumulate the left-hand values of `Both` variants using their behavior
+     * as a semigroup. If any argument is a `Left`, halt the traversal and
+     * combine the left-hand value with any existing left-hand value, then
+     * return the result in a `Left`.
      */
     export function collect<T extends readonly Ior<Semigroup<any>, any>[]>(
         iors: T,
@@ -562,8 +570,13 @@ export namespace Ior {
     }
 
     /**
-     * Evaluate the Iors in a Record or an object literal and collect the
-     * right-hand values in a Record or an object literal, respectively.
+     * Evaluate the `Ior` in a record or an object literal. If they all have
+     * right-hand values, collect the values in a record or an object literal,
+     * tuple literal, respectively, and return the result as a right-hand value.
+     * Accumulate the left-hand values of `Both` variants using their behavior
+     * as a semigroup. If any argument is a `Left`, halt the traversal and
+     * combine the left-hand value with any existing left-hand value, then
+     * return the result in a `Left`.
      */
     export function gather<T extends Record<any, Ior<Semigroup<any>, any>>>(
         iors: T,
@@ -580,25 +593,25 @@ export namespace Ior {
     /**
      * Lift a function of any arity into the context of `Ior`.
      */
-    export function lift<T extends readonly unknown[], A>(
-        f: (...args: T) => A,
-    ): <E extends Semigroup<E>>(
-        ...iors: { [K in keyof T]: Ior<E, T[K]> }
-    ) => Ior<E, A> {
+    export function lift<T extends readonly unknown[], B>(
+        f: (...args: T) => B,
+    ): <A extends Semigroup<A>>(
+        ...iors: { [K in keyof T]: Ior<A, T[K]> }
+    ) => Ior<A, B> {
         return (...iors) =>
-            collect(iors).map((args) => f(...(args as T))) as Ior<any, A>;
+            collect(iors).map((args) => f(...(args as T))) as Ior<any, B>;
     }
 
     /**
-     * Construct a Promise that fulfills with an Ior using an async generator
-     * comprehension.
+     * Construct a `Promise` that fulfills with an `Ior` using an async
+     * generator comprehension.
      */
-    export async function goAsync<E extends Semigroup<E>, A>(
-        f: () => AsyncGenerator<Ior<E, any>, A, unknown>,
-    ): Promise<Ior<E, A>> {
+    export async function goAsync<A extends Semigroup<A>, B>(
+        f: () => AsyncGenerator<Ior<A, any>, B, unknown>,
+    ): Promise<Ior<A, B>> {
         const gen = f();
         let nxt = await gen.next();
-        let acc: E | undefined;
+        let acc: A | undefined;
 
         while (!nxt.done) {
             const ior = nxt.value;
@@ -688,21 +701,21 @@ export namespace Ior {
         }
 
         /**
-         * Test whether this Ior is `Left`.
+         * Test whether this `Ior` is the `Left` variant.
          */
         isLeft<A>(this: Ior<A, any>): this is Left<A> {
             return this.typ === Typ.Left;
         }
 
         /**
-         * Test whether this Ior is `Right`.
+         * Test whether this `Ior` is the `Right` variant.
          */
         isRight<B>(this: Ior<any, B>): this is Right<B> {
             return this.typ === Typ.Right;
         }
 
         /**
-         * Test whether this Ior is `Both`.
+         * Test whether this `Ior` is the `Both` variant.
          */
         isBoth<A, B>(this: Ior<A, B>): this is Both<A, B> {
             return this.typ === Typ.Both;
@@ -727,13 +740,16 @@ export namespace Ior {
         }
 
         /**
-         * If this Ior has a right-hand value, apply a function to the value
-         * to return a new Ior.
+         * If this `Ior` has a right-hand value, apply a function to the value
+         * to return another `Ior`. Accumulate the left-hand values of `Both`
+         * variants using their behavior as a semigroup. If any `Ior` is a
+         * `Left`, combine the left-hand value with any existing left-hand value
+         * and return ths result in a `Left` instead.
          */
-        flatMap<E extends Semigroup<E>, A, B>(
-            this: Ior<E, A>,
-            f: (x: A) => Ior<E, B>,
-        ): Ior<E, B> {
+        flatMap<A extends Semigroup<A>, B, C>(
+            this: Ior<A, B>,
+            f: (x: B) => Ior<A, C>,
+        ): Ior<A, C> {
             if (this.isLeft()) {
                 return this;
             }
@@ -751,48 +767,66 @@ export namespace Ior {
         }
 
         /**
-         * If this Ior's right-hand value is another Ior, return the inner Ior.
+         * If this `Ior` has a right-hand value and the value is another `Ior`,
+         * return the inner `Ior`. Accumulate the left-hand values of `Both`
+         * variants using their behavior as a semigroup. If any `Ior` is a
+         * `Left`, combine the left-hand value with any existing left-hand value
+         * and return ths result in a `Left` instead.
          */
-        flat<E extends Semigroup<E>, A>(this: Ior<E, Ior<E, A>>): Ior<E, A> {
+        flat<A extends Semigroup<A>, B>(this: Ior<A, Ior<A, B>>): Ior<A, B> {
             return this.flatMap(id);
         }
 
         /**
-         * If this and that Ior have a right-hand value, apply a function to
-         * the values.
+         * If this and that `Ior` have a right-hand value, apply a function to
+         * the values and return the result as a right-hand value. Accumulate
+         * the left-hand values of `Both` variants using their behavior as a
+         * semigroup. If any argument is a `Left`, combine the left-hand value
+         * with any existing left-hand value and return ths result in a `Left`
+         * instead.
          */
-        zipWith<E extends Semigroup<E>, A, B, C>(
-            this: Ior<E, A>,
-            that: Ior<E, B>,
-            f: (x: A, y: B) => C,
-        ): Ior<E, C> {
+        zipWith<A extends Semigroup<A>, B, C, D>(
+            this: Ior<A, B>,
+            that: Ior<A, C>,
+            f: (x: B, y: C) => D,
+        ): Ior<A, D> {
             return this.flatMap((x) => that.map((y) => f(x, y)));
         }
 
         /**
-         * If this and that Ior have a right-hand value, keep only this Ior's
-         * value.
+         * If this and that `Ior` have a right-hand value, keep only the first
+         * value as a right-hand value and discard the second. Accumulate the
+         * left-hand values of `Both` variants using their behavior as a
+         * semigroup. If any argument is a `Left`, combine the left-hand value
+         * with any existing left-hand value and return ths result in a `Left`
+         * instead.
          */
-        zipFst<E extends Semigroup<E>, A>(
-            this: Ior<E, A>,
-            that: Ior<E, any>,
-        ): Ior<E, A> {
+        zipFst<A extends Semigroup<A>, B>(
+            this: Ior<A, B>,
+            that: Ior<A, any>,
+        ): Ior<A, B> {
             return this.zipWith(that, id);
         }
 
         /**
-         * If this and that Ior have a right-hand value, keep only that Ior's
-         * value.
+         * If this and that `Ior` have a right-hand value, keep only the second
+         * value as a right-hand value and discard the first. Accumulate the
+         * left-hand values of `Both` variants using their behavior as a
+         * semigroup. If any argument is a `Left`, combine the left-hand value
+         * with any existing left-hand value and return ths result in a `Left`
+         * instead.
          */
-        zipSnd<E extends Semigroup<E>, B>(
-            this: Ior<E, any>,
-            that: Ior<E, B>,
-        ): Ior<E, B> {
+        zipSnd<A extends Semigroup<A>, C>(
+            this: Ior<A, any>,
+            that: Ior<A, C>,
+        ): Ior<A, C> {
             return this.flatMap(() => that);
         }
 
         /**
-         * Apply functions to this Ior's left and right values.
+         * Apply two functions to the left-hand and/or right-hand values of this
+         * `Ior`, and return the result(s) as left-hand and right-hand values,
+         * respectively.
          */
         bimap<A, B, C, D>(
             this: Ior<A, B>,
@@ -809,7 +843,9 @@ export namespace Ior {
         }
 
         /**
-         * If this Ior has a left-hand value, apply a function to the value.
+         * If this `Ior` has a left-hand value, apply a function to the value
+         * and return the result as a left-hand value; otherwise, return this
+         * `Ior` as is.
          */
         lmap<A, B, C>(this: Ior<A, B>, f: (x: A) => C): Ior<C, B> {
             if (this.isLeft()) {
@@ -822,7 +858,9 @@ export namespace Ior {
         }
 
         /**
-         * If this Ior has a right-hand value, apply a function to the value.
+         * If this `Ior` has a right-hand value, apply a function to the value
+         * and return the result as a right-hand value; otherwise, return this
+         * `Ior` as is.
          */
         map<A, B, D>(this: Ior<A, B>, f: (x: B) => D): Ior<A, D> {
             if (this.isLeft()) {
@@ -836,7 +874,7 @@ export namespace Ior {
     }
 
     /**
-     * An Ior with a left-hand value.
+     * An `Ior` with a left-hand value.
      */
     export class Left<out A> extends Syntax {
         /**
@@ -853,8 +891,8 @@ export namespace Ior {
 
         /**
          * Defining Iterable behavior for `Ior` allows TypeScript to infer
-         * right-hand value types when yielding Iors in generator comprehensions
-         * using `yield*`.
+         * right-hand value types when yielding `Ior` values in generator
+         * comprehensions using `yield*`.
          *
          * @hidden
          */
@@ -864,7 +902,7 @@ export namespace Ior {
     }
 
     /**
-     * An Ior with a right-hand value.
+     * An `Ior` with a right-hand value.
      */
     export class Right<out B> extends Syntax {
         /**
@@ -881,8 +919,8 @@ export namespace Ior {
 
         /**
          * Defining Iterable behavior for `Ior` allows TypeScript to infer
-         * right-hand value types when yielding Iors in generator comprehensions
-         * using `yield*`.
+         * right-hand value types when yielding `Ior` values in generator
+         * comprehensions using `yield*`.
          *
          * @hidden
          */
@@ -892,7 +930,7 @@ export namespace Ior {
     }
 
     /**
-     * An Ior with a left-hand and a right-hand value.
+     * An `Ior` with a left-hand and a right-hand value.
      */
     export class Both<out A, out B> extends Syntax {
         /**
@@ -916,8 +954,8 @@ export namespace Ior {
 
         /**
          * Defining Iterable behavior for `Ior` allows TypeScript to infer
-         * right-hand value types when yielding Iors in generator comprehensions
-         * using `yield*`.
+         * right-hand value types when yielding `Ior` values in generator
+         * comprehensions using `yield*`.
          *
          * @hidden
          */
@@ -927,14 +965,14 @@ export namespace Ior {
     }
 
     /**
-     * Extract the left-hand type `A` from the type `Ior<A, B>`.
+     * Extract the left-hand value type `A` from the type `Ior<A, B>`.
      */
     // prettier-ignore
     export type LeftT<T extends Ior<any, any>> =
         [T] extends [Ior<infer A, any>] ? A : never;
 
     /**
-     * Extract the right-hand type `B` from the type `Ior<A, B>`.
+     * Extract the right-hand value type `B` from the type `Ior<A, B>`.
      */
     // prettier-ignore
     export type RightT<T extends Ior<any, any>> =
