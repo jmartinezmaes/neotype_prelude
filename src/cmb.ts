@@ -273,7 +273,7 @@
  *
  * [semigroup]: https://mathworld.wolfram.com/Semigroup.html
  * [associative property]: https://mathworld.wolfram.com/Associative.html
- * [structural subypting]:
+ * [structural subtyping]:
  *     https://www.typescriptlang.org/docs/handbook/type-compatibility.html#site-content
  * [augmentation]:
  *     https://www.typescriptlang.org/docs/handbook/declaration-merging.html#module-augmentation
