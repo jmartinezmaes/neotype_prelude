@@ -149,8 +149,8 @@
  * yielded `Maybe` is present, its value may be bound to a specified variable.
  * If any yielded `Maybe` is absent, the generator halts and `Nothing` is
  * returned immediately; otherwise, when the computation is complete, a final
- * result can be computed and returned from the generator and will be wrapped in
- * a `Just`.
+ * result can be computed and returned from the generator and is wrapped in a
+ * `Just`.
  *
  * ### Async generator comprehensions
  *

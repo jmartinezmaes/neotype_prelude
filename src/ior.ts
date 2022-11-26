@@ -165,8 +165,8 @@
  * behavior as a semigroup. If any yielded `Ior` is a `Left`, the generator
  * halts and the left-hand value is combined with any existing left-hand value,
  * then returned in a `Left`; otherwise, when the computation is complete, a
- * final result can be computed and returned from the generator and will be
- * returned as a right-hand value.
+ * final result can be computed and returned from the generator and is returned
+ * as a right-hand value.
  *
  * ## Async generator comprehensions
  *

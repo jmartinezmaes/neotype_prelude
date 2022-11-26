@@ -87,7 +87,7 @@
  * generator, `Eval` values are yielded using the `yield*` keyword, allowing
  * their outcomes to be bound to specified variables. When the computation is
  * complete, a final result can be computed and returned from the generator and
- * will be wrapped in an `Eval`.
+ * is wrapped in an `Eval`.
  *
  * `Eval` is automatically deferred in its implementation of `go`. The body of
  * the provided generator will not run until the `Eval` is evaluated using
