@@ -155,8 +155,8 @@
  * yielded `Either` succeeds, its value may be bound to a specified variable.
  * If any yielded `Either` fails, the generator halts and the failed `Either` is
  * returned immediately; otherwise, when the computation is complete, a final
- * result can be computed and returned from the generator and will be returned
- * as a success.
+ * result can be computed and returned from the generator and is returned as a
+ * success.
  *
  * ### Async generator comprehensions
  *
@@ -178,9 +178,14 @@
  * the failed `Either` is returned instead.
  *
  * -   `collect` turns an array or a tuple literal of `Either` values inside
- *     out.
+ *     out. For example:
+ *     -   `Either<E, A>[]` becomes `Either<E, A[]>`
+ *     -   `[Either<E, A>, Either<E, B>] becomes `Either<E, [A, B]>`
  * -   `gather` turns a record or an object literal of `Either` values inside
- *     out.
+ *     out. For example:
+ *     -   `Record<string, Either<E, A>>` becomes `Either<E, Record<string, A>>`
+ *     -   `{ x: Either<E, A>, y: Either<E, B> }` becomes `Either<E, { x: A, y:
+ *         B }>`
  *
  * The `reduce` function reduces a finite iterable from left to right in the
  * context of `Either`. This is useful for mapping, filtering, and accumulating
@@ -451,6 +456,57 @@ export namespace Either {
 
     /**
      * Construct an `Either` using a generator comprehension.
+     *
+     * @remarks
+     *
+     * The contract for generator comprehensions is as follows:
+     *
+     * -   The generator provided to `go` must only yield `Either` values.
+     * -   `Either` values must only be yielded using the `yield*` keyword, and
+     *     never `yield` (without the `*`). Omitting the `*` will result in poor
+     *     type inference and undefined behavior.
+     * -   A `yield*` statement may bind a variable provided by the caller. The
+     *     variable inherits the type of the success of the yielded `Either`.
+     * -   If a yielded `Either` succeeds, its success is bound to a variable
+     *     (if provided) and the generator advances.
+     * -   If a yielded `Either` fails, the generator halts and `go` returns the
+     *     failed `Either` immediately.
+     * -   The `return` statement of the generator may return a final computed
+     *     value, which is returned from `go` as a success if all yielded
+     *     `Either` values succeed.
+     * -   All syntax normally permitted in generators (statements, loops,
+     *     declarations, etc.) is permitted within generator comprehensions.
+     *
+     * @example Basic yielding and returning
+     *
+     * Consider a comprehension that sums the successes of three `Either`
+     * values:
+     *
+     * ```ts
+     * import { Either } from "@neotype/prelude/either.js";
+     *
+     * const arg0: Either<string, number> = Either.right(1);
+     * const arg1: Either<string, number> = Either.right(2);
+     * const arg2: Either<string, number> = Either.right(3);
+     *
+     * const summed: Either<string, number> = Either.go(function* () {
+     *     const x = yield* arg0;
+     *     const y = yield* arg1;
+     *     const z = yield* arg2;
+     *
+     *     return x + y + z;
+     * });
+     *
+     * console.log(summed.val); // 6
+     * ```
+     *
+     * Now, observe the change in behavior if one of the yielded arguments was
+     * a failed `Either` instead. Replace the declaration of `arg1` with the
+     * following and re-run the program.
+     *
+     * ```ts
+     * const arg1: Either<string, number> = Either.left("oops");
+     * ```
      */
     export function go<T extends Either<any, any>, A>(
         f: () => Generator<T, A, unknown>,
@@ -470,6 +526,15 @@ export namespace Either {
 
     /**
      * Reduce a finite iterable from left to right in the context of `Either`.
+     *
+     * @remarks
+     *
+     * Start with an initial accumulator and reduce the elements of an iterable
+     * using a reducer function that returns an `Either`. While the function
+     * returns a successful `Either`, continue the reduction using the success
+     * as the new accumulator until there are no elements remaining, then
+     * succeed with the final accumulator; otherwise, return the first failed
+     * `Either`.
      */
     export function reduce<A, B, E>(
         xs: Iterable<A>,
@@ -486,10 +551,19 @@ export namespace Either {
     }
 
     /**
+     * Turn an array or a tuple literal of `Either` values "inside out".
+     *
+     * @remarks
+     *
      * Evaluate the `Either` values in an array or a tuple literal from left to
      * right. If they all succeed, collect their successes in an array or a
      * tuple literal, respectively, and succeed with the result; otherwise,
      * return the first failed `Either`.
+     *
+     * For example:
+     *
+     * -   `Either<E, A>[]` becomes `Either<E, A[]>`
+     * -   `[Either<E, A>, Either<E, B>]` becomes `Either<E, [A, B]>`
      */
     export function collect<T extends readonly Either<any, any>[]>(
         eithers: T,
@@ -504,10 +578,20 @@ export namespace Either {
     }
 
     /**
+     * Turn a record or an object literal of `Either` values "inside out".
+     *
+     * @remarks
+     *
      * Evaluate the `Either` values in a record or an object literal. If they
      * all succeed, collect their successes in a record or an object literal,
      * respectively, and succeed with the result; otherwise, return the first
      * failed `Either`.
+     *
+     * For example:
+     *
+     * -   `Record<string, Either<E, A>>` becomes `Either<E, Record<string, A>>`
+     * -   `{ x: Either<E, A>, y: Either<E, B> }` becomes `Either<E, { x: A, y:
+     *     B }`
      */
     export function gather<T extends Record<any, Either<any, any>>>(
         eithers: T,
@@ -523,6 +607,14 @@ export namespace Either {
 
     /**
      * Lift a function of any arity into the context of `Either`.
+     *
+     * @remarks
+     *
+     * Given a function that accepts arbitrary arguments, return an adapted
+     * function that accepts `Either` values as arguments. When applied,
+     * evaluate the arguments from left to right. If they all succeed, apply the
+     * original function to their successes and succeed with the result;
+     * otherwise, return the first failed `Either` argument.
      */
     export function lift<T extends readonly unknown[], A>(
         f: (...args: T) => A,
@@ -536,6 +628,33 @@ export namespace Either {
     /**
      * Construct a `Promise` that fulfills with an `Either` using an async
      * generator comprehension.
+     *
+     * @remarks
+     *
+     * The contract for async generator comprehensions is as follows:
+     *
+     * -   The async generator provided to `goAsync` must only yield `Either`
+     *     values.
+     *     -   `Promise` values must never be yielded. If a `Promise` contains
+     *         an `Either`, the `Promise` must first be awaited to access and
+     *         yield the `Either`. This is done with a `yield* await` statement.
+     * -   `Either` values must only be yielded using the `yield*` keyword, and
+     *     never `yield` (without the `*`). Omitting the `*` will result in poor
+     *     type inference and undefined behavior.
+     * -   A `yield*` statement may bind a variable provided by the caller. The
+     *     variable inherits the type of the success of the yielded `Either`.
+     * -   If a yielded `Either` succeeds, its success is bound to a variable
+     *     (if provided) and the generator advances.
+     * -   If a yielded `Either` fails, the generator halts and `goAsync`
+     *     fulfills immediately with the failed `Either`.
+     * -   If a `Promise` rejects or an operation throws, the generator halts
+     *     and `goAsync` rejects immediately with the error.
+     * -   The `return` statement of the generator may return a final computed
+     *     value, which is fulfilled as a success from `goAsync` if all yielded
+     *     `Either` values succeed and no errors are encountered.
+     * -   All syntax normally permitted in async generators (the `await`
+     *     keyword, statements, loops, declarations, etc.) is permitted within
+     *     async generator comprehensions.
      */
     export async function goAsync<T extends Either<any, any>, A>(
         f: () => AsyncGenerator<T, A, unknown>,
@@ -599,7 +718,8 @@ export namespace Either {
         }
 
         /**
-         * Case analysis for `Either`.
+         * Apply one of two functions to the value of this `Either` depending
+         * on its variant, and return the result.
          */
         unwrap<A, B, C, D>(
             this: Either<A, B>,
