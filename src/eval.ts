@@ -73,9 +73,9 @@
  *
  * ## Chaining `Eval`
  *
- * The `flatMap` method chains together computations that return `Eval` by
- * applying a function to the outcome to return another `Eval`. Composition with
- * `flatMap` is stack safe, even for recursive programs.
+ * The `flatMap` method chains together computations that return `Eval`. A
+ * function is applied to the outcome of one `Eval` to return another `Eval`.
+ * Composition with `flatMap` is stack safe, even for recursive programs.
  *
  * ### Generator comprehensions
  *
@@ -103,7 +103,13 @@
  * outcomes:
  *
  * -   `collect` turns an array or a tuple literal of `Eval` values inside out.
+ *     For example:
+ *     -   `Eval<A>[]` becomes `Eval<A[]>`
+ *     -   `[Eval<A>, Eval<B>]` becomes `Eval<[A, B]>`
  * -   `gather` turns a record or an object literal of `Eval` values inside out.
+ *     For example:
+ *     -   `Record<string, Eval<A>>` becomes `Eval<Record<string, A>>`
+ *     -   `{ x: Eval<A>, y: Eval<B> }` becomes `Eval<{ x: A, y: B }>`
  *
  * The `reduce` function reduces a finite iterable from left to right in the
  * context of `Eval`. This is useful for mapping, filtering, and accumulating
@@ -322,6 +328,43 @@ export class Eval<out A> {
 
     /**
      * Construct an `Eval` using a generator comprehension.
+     *
+     * @remarks
+     *
+     * The contract for generator comprehensions is as follows:
+     *
+     * -   The generator provided to `go` must only yield `Eval` values.
+     * -   `Eval` values must only be yielded using the `yield*` keyword, and
+     *     never `yield` (without the `*`). Omitting the `*` will result in poor
+     *     type inference and undefined behavior.
+     * -   A `yield*` statement may bind a variable provided by the caller. The
+     *     variable inherits the type of the outcome of the yielded `Eval`.
+     * -   The `return` statement of the generator may return a final computed
+     *     value, which is returned from `go` in an `Eval`.
+     * -   All syntax normally permitted in generators (statements, loops,
+     *     declarations, etc.) is permitted within generator comprehensions.
+     *
+     * @example Basic yielding and returning
+     *
+     * Consider a comprehension that sums the outcomes of three `Eval` values:
+     *
+     * ```ts
+     * import { Eval } from "@neotype/prelude/eval.js";
+     *
+     * const arg0: Eval<number> = Eval.now(1);
+     * const arg1: Eval<number> = Eval.now(2);
+     * const arg2: Eval<number> = Eval.now(3);
+     *
+     * const summed: Eval<number> = Eval.go(function* () {
+     *     const x = yield* arg0;
+     *     const y = yield* arg1;
+     *     const z = yield* arg2;
+     *
+     *     return x + y + z;
+     * });
+     *
+     * console.log(summed.run()); // 6
+     * ```
      */
     static go<A>(f: () => Generator<Eval<any>, A, unknown>): Eval<A> {
         return Eval.defer(() => {
@@ -332,6 +375,13 @@ export class Eval<out A> {
 
     /**
      * Reduce a finite iterable from left to right in the context of `Eval`.
+     *
+     * @remarks
+     *
+     * Start with an initial accumulator and reduce the elements of an iterable
+     * using a reducer function that returns an `Eval`. Use the outcome of the
+     * returned `Eval` as the new accumulator until there are no elements
+     * remaining, then return the final accumulator in an `Eval`.
      */
     static reduce<A, B>(
         xs: Iterable<A>,
@@ -348,9 +398,18 @@ export class Eval<out A> {
     }
 
     /**
+     * Turn an array or a tuple literal of `Eval` values "inside out".
+     *
+     * @remarks
+     *
      * Evaluate the `Eval` values in an array or a tuple literal from left to
      * right. Collect their outcomes in an array or a tuple literal,
      * respectively, and return the result in an `Eval`.
+     *
+     * For example:
+     *
+     * -   `Eval<A>[]` becomes `Eval<A[]>`
+     * -   `[Eval<A>, Eval<B>]` becomes `Eval<[A, B]>`
      */
     static collect<T extends readonly Eval<any>[]>(
         evals: T,
@@ -365,9 +424,18 @@ export class Eval<out A> {
     }
 
     /**
+     * Turn a record or an object literal of `Eval` values "inside out".
+     *
+     * @remarks
+     *
      * Evaluate the `Eval` values in a record or an object literal. Collect
      * their outcomes in a record or an object literal, respectively, and return
      * the result in an `Eval`.
+     *
+     * For example:
+     *
+     * -   `Record<string, Eval<A>>` becomes `Eval<Record<string, A>>`
+     * -   `{ x: Eval<A>, y: Eval<B> }` becomes `Eval<{ x: A, y: B }>`
      */
     static gather<T extends Record<any, Eval<any>>>(
         evals: T,
@@ -383,6 +451,13 @@ export class Eval<out A> {
 
     /**
      * Lift a function of any arity into the context of `Eval`.
+     *
+     * @remarks
+     *
+     * Given a function that accepts arbitrary arguments, return an adapted
+     * function that accepts `Eval` values as arguments. When applied, evaluate
+     * the arguments from left to right, then apply the original function to
+     * their outcomes and return the result in an `Eval`
      */
     static lift<T extends readonly unknown[], A>(
         f: (...args: T) => A,
