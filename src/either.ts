@@ -472,7 +472,7 @@ export namespace Either {
      * -   If a yielded `Either` fails, the generator halts and `go` returns the
      *     failed `Either` immediately.
      * -   The `return` statement of the generator may return a final computed
-     *     value, which is returned from `go` as a success if all yielded
+     *     result, which is returned from `go` as a success if all yielded
      *     `Either` values succeed.
      * -   All syntax normally permitted in generators (statements, loops,
      *     declarations, etc.) is permitted within generator comprehensions.
@@ -650,7 +650,7 @@ export namespace Either {
      * -   If a `Promise` rejects or an operation throws, the generator halts
      *     and `goAsync` rejects immediately with the error.
      * -   The `return` statement of the generator may return a final computed
-     *     value, which is fulfilled as a success from `goAsync` if all yielded
+     *     result, which is fulfilled from `goAsync` as a success if all yielded
      *     `Either` values succeed and no errors are encountered.
      * -   All syntax normally permitted in async generators (the `await`
      *     keyword, statements, loops, declarations, etc.) is permitted within

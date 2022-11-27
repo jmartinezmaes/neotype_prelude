@@ -340,7 +340,7 @@ export class Eval<out A> {
      * -   A `yield*` statement may bind a variable provided by the caller. The
      *     variable inherits the type of the outcome of the yielded `Eval`.
      * -   The `return` statement of the generator may return a final computed
-     *     value, which is returned from `go` in an `Eval`.
+     *     result, which is returned from `go` in an `Eval`.
      * -   All syntax normally permitted in generators (statements, loops,
      *     declarations, etc.) is permitted within generator comprehensions.
      *
