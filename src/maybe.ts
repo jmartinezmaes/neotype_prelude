@@ -177,8 +177,13 @@
  * halts and `Nothing` is returned instead.
  *
  * -   `collect` turns an array or a tuple literal of `Maybe` values inside out.
+ *     For example:
+ *     -   `Maybe<A>[]` becomes `Maybe<A[]>`
+ *     -   `[Maybe<A>, Maybe<B>]` becomes `Maybe<[A, B]>`
  * -   `gather` turns a record or an object literal of `Maybe` values inside
- *     out.
+ *     out. For example:
+ *     -   `Record<string, Maybe<A>>` becomes `Maybe<Record<string, A>>`
+ *     -   `{ x: Maybe<A>, y: Maybe<B> }` becomes `Maybe<{ x: A, y: B }>`
  *
  * The `reduce` function reduces a finite iterable from left to right in the
  * context of `Maybe`. This is useful for mapping, filtering, and accumulating
@@ -426,7 +431,7 @@ export namespace Maybe {
      * @remarks
      *
      * If the value is `null` or `undefined`, return `Nothing`; otherwise,
-     * return the value wrapped in a `Just`.
+     * return the value in a `Just`.
      */
     export function fromMissing<A>(x: A | null | undefined): Maybe<A> {
         return x === null || x === undefined ? nothing : just(x);
@@ -449,6 +454,56 @@ export namespace Maybe {
 
     /**
      * Construct a `Maybe` using a generator comprehension.
+     *
+     * @remarks
+     *
+     * The contract for generator comprehensions is as follows:
+     *
+     * -   The generator provided to `go` must only yield `Maybe` values.
+     * -   `Maybe` values must only be yielded using the `yield*` keyword, and
+     *     never `yield` (without the `*`). Omitting the `*` will result in poor
+     *     type inference and undefined behavior.
+     * -   A `yield*` statement may bind a variable provided by the caller. The
+     *     variable inherits the type of the value of the yielded `Maybe`.
+     * -   If a yielded `Maybe` is present, its value is bound to a variable (if
+     *     provided) and the generator advances.
+     * -   If a yielded `Maybe` is absent, the generator halts and `go` returns
+     *     `Nothing` immediately.
+     * -   The `return` statement of the generator may return a final computed
+     *     result, which is returned from `go` in a `Just` if all yielded
+     *     `Maybe` values are present.
+     * -   All syntax normally permitted in generators (statements, loops,
+     *     declarations, etc.) is permitted within generator comprehensions.
+     *
+     * @example Basic yielding and returning
+     *
+     * Consider a comprehension that sums the successes of three `Maybe` values:
+     *
+     * ```ts
+     * import { Maybe } from "@neotype/prelude/maybe.js";
+     *
+     * const arg0: Maybe<number> = Maybe.just(1);
+     * const arg1: Maybe<number> = Maybe.just(2);
+     * const arg2: Maybe<number> = Maybe.just(3);
+     *
+     * const summed: Maybe<number> = Maybe.go(function* () {
+     *     const x = yield* arg0;
+     *     const y = yield* arg1;
+     *     const z = yield* arg2;
+     *
+     *     return x + y + z;
+     * });
+     *
+     * console.log(summed.getOrFallback("Nothing")); // 6
+     * ```
+     *
+     * Now, observe the change in behavior if one of the yielded arguments was
+     * an absent `Maybe` instead. Replace the declaration of `arg1` with the
+     * following and re-run the program.
+     *
+     * ```ts
+     * const arg1: Maybe<number> = Maybe.nothing;
+     * ```
      */
     export function go<A>(
         f: () => Generator<Maybe<any>, A, unknown>,
@@ -468,6 +523,14 @@ export namespace Maybe {
 
     /**
      * Reduce a finite iterable from left to right in the context of `Maybe`.
+     *
+     * @remarks
+     *
+     * Start with an initial accumulator and reduce the elements of an iterable
+     * using a reducer function that returns a `Maybe`. While the function
+     * returns a present `Maybe`, continue the reduction using the value as the
+     * new accumulator until there are no elements remaining, then return the
+     * final accumulator in a `Just`; otherwise, return `Nothing`.
      */
     export function reduce<A, B>(
         xs: Iterable<A>,
@@ -484,10 +547,19 @@ export namespace Maybe {
     }
 
     /**
+     * Turn an array or a tuple literal of `Maybe` values "inside out".
+     *
+     * @remarks
+     *
      * Evaluate the `Maybe` values in an array or a tuple literal from left to
      * right. If they are all present, collect their values in an array or a
      * tuple literal, respectively, and return the result in a `Just`;
      * otherwise, return `Nothing`.
+     *
+     * For example:
+     *
+     * -   `Maybe<A>[]` becomes `Maybe<A[]>`
+     * -   `[Maybe<A>, Maybe<B>]` becomes `Maybe<[A, B]>`
      */
     export function collect<T extends readonly Maybe<any>[]>(
         maybes: T,
@@ -502,10 +574,19 @@ export namespace Maybe {
     }
 
     /**
+     * Turn a record or an object literal of `Maybe` values "inside out".
+     *
+     * @remarks
+     *
      * Evaluate the `Maybe` values in a record or an object literal. If they are
      * all present, collect their values in a record or an object literal,
      * respectively, and return the result in a `Just`; otherwise, return
      * `Nothing`.
+     *
+     * For example:
+     *
+     * -   `Record<string, Maybe<A>>` becomes `Maybe<Record<string, A>>`
+     * -   `{ x: Maybe<A>, y: Maybe<B> }` becomes `Maybe<{ x: A, y: B }>`
      */
     export function gather<T extends Record<any, Maybe<any>>>(
         maybes: T,
@@ -521,6 +602,14 @@ export namespace Maybe {
 
     /**
      * Lift a function of any arity into the context of `Maybe`.
+     *
+     * @remarks
+     *
+     * Given a function that accepts arbitrary arguments, return an adapted
+     * function that accepts `Maybe` values as arguments. When applied, evaluate
+     * the arguments from left to right. If they are all present, apply the
+     * original function to their values and return the result in a `Just`;
+     * otherwise, return `Nothing`.
      */
     export function lift<T extends readonly unknown[], A>(
         f: (...args: T) => A,
@@ -531,6 +620,33 @@ export namespace Maybe {
     /**
      * Construct a `Promise` that fulfills with a `Maybe` using an async
      * generator comprehension.
+     *
+     * @remarks
+     *
+     * The contract for async generator comprehensions is as follows:
+     *
+     * -   The async generator provided to `goAsync` must only yield `Maybe`
+     *     values.
+     *     -   `Promise` values must never be yielded. If a `Promise` contains
+     *         a `Maybe`, the `Promise` must first be awaited to access and
+     *         yield the `Maybe`. This is done with a `yield* await` statement.
+     * -   `Maybe` values must only be yielded using the `yield*` keyword, and
+     *     never `yield` (without the `*`). Omitting the `*` will result in poor
+     *     type inference and undefined behavior.
+     * -   A `yield*` statement may bind a variable provided by the caller. The
+     *     variable inherits the type of the value of the yielded `Maybe`.
+     * -   If a yielded `Maybe` is present, its value is bound to a variable (if
+     *     provided) and the generator advances.
+     * -   If a yielded `Maybe` is absent, the generator halts and `goAsync`
+     *     fulfills immediately with `Nothing`.
+     * -   If a `Promise` rejects or an operation throws, the generator halts
+     *     and `goAsync` rejects immediately with the error.
+     * -   The `return` statement of the generator may return a final computed
+     *     result, which is fulfilled from `goAsync` in a `Just` if all yielded
+     *     `Maybe` values are present and no errors are encountered.
+     * -   All syntax normally permitted in async generators (the `await`
+     *     keyword, statements, loops, declarations, etc.) is permitted within
+     *     async generator comprehensions.
      */
     export async function goAsync<A>(
         f: () => AsyncGenerator<Maybe<any>, A, unknown>,
@@ -593,7 +709,9 @@ export namespace Maybe {
         }
 
         /**
-         * Case analysis for `Maybe`.
+         * If this `Maybe` is present, apply a function to its value and return
+         * the result; otherwise, evaluate a fallback function and return the
+         * result.
          */
         unwrap<A, B, C>(
             this: Maybe<A>,
