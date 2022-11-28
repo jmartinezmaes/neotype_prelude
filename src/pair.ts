@@ -145,14 +145,14 @@ export class Pair<out A, out B> {
 
     /**
      * Apply two functions to the first and second values of this `Pair`,
-     * respectively, then return a new `Pair` of the results.
+     * respectively, and return a new `Pair` of the results.
      */
     bimap<C, D>(lmap: (x: A) => C, rmap: (x: B) => D): Pair<C, D> {
         return new Pair(lmap(this.fst), rmap(this.snd));
     }
 
     /**
-     * Apply a function to the first value in this `Pair`, then return a new
+     * Apply a function to the first value in this `Pair`, and return a new
      * `Pair` of the result and the existing second value.
      */
     lmap<C>(f: (x: A) => C): Pair<C, B> {
@@ -160,7 +160,7 @@ export class Pair<out A, out B> {
     }
 
     /**
-     * Apply a function to the second value in this `Pair`, then return a new
+     * Apply a function to the second value in this `Pair`, and return a new
      * `Pair` of the existing first value and the result.
      */
     map<D>(f: (x: B) => D): Pair<A, D> {

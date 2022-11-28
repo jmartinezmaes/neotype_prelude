@@ -529,8 +529,8 @@ export namespace Maybe {
      * Start with an initial accumulator and reduce the elements of an iterable
      * using a reducer function that returns a `Maybe`. While the function
      * returns a present `Maybe`, continue the reduction using the value as the
-     * new accumulator until there are no elements remaining, then return the
-     * final accumulator in a `Just`; otherwise, return `Nothing`.
+     * new accumulator until there are no elements remaining, and then return
+     * the final accumulator in a `Just`; otherwise, return `Nothing`.
      */
     export function reduce<A, B>(
         xs: Iterable<A>,

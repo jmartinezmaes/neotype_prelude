@@ -119,8 +119,9 @@
  *
  * The `lift` function receives a function that accepts arbitrary arguments, and
  * returns an adapted function that accepts `Eval` values as arguments instead.
- * The arguments are evaluated from left to right, then the original function is
- * applied to their outcomes and the result is returned in an `Eval`.
+ * The arguments are evaluated from left to right, and then the original
+ * function is applied to their outcomes and the result is returned in an
+ * `Eval`.
  *
  * @example Recursive folds with `Eval`
  *
@@ -381,7 +382,7 @@ export class Eval<out A> {
      * Start with an initial accumulator and reduce the elements of an iterable
      * using a reducer function that returns an `Eval`. Use the outcome of the
      * returned `Eval` as the new accumulator until there are no elements
-     * remaining, then return the final accumulator in an `Eval`.
+     * remaining, and then return the final accumulator in an `Eval`.
      */
     static reduce<A, B>(
         xs: Iterable<A>,
@@ -456,8 +457,8 @@ export class Eval<out A> {
      *
      * Given a function that accepts arbitrary arguments, return an adapted
      * function that accepts `Eval` values as arguments. When applied, evaluate
-     * the arguments from left to right, then apply the original function to
-     * their outcomes and return the result in an `Eval`
+     * the arguments from left to right, and then apply the original function to
+     * their outcomes and return the result in an `Eval`.
      */
     static lift<T extends readonly unknown[], A>(
         f: (...args: T) => A,
@@ -515,16 +516,16 @@ export class Eval<out A> {
     }
 
     /**
-     * Evaluate this `Eval` and keep the outcome, then evaluate that `Eval` and
-     * discard that outcome.
+     * Keep only the first outcome of this and that `Eval`, and return it in an
+     * `Eval`.
      */
     zipFst(that: Eval<any>): Eval<A> {
         return this.zipWith(that, id);
     }
 
     /**
-     * Evaluate this `Eval` and discard the outcome, then evaluate that `Eval`
-     * and keep that outcome.
+     * Keep only the second outcome of this and that `Eval`, and return it in an
+     * `Eval`.
      */
     zipSnd<B>(that: Eval<B>): Eval<B> {
         return this.flatMap(() => that);

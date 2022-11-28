@@ -84,7 +84,7 @@
  * -   Two iterables are compared element by element.
  * -   Two empty iterables are lexicographically equal.
  * -   If two iterables have equivalent elements and are of the same length,
- *     then the iterables are lexicographically equal.
+ *     the iterables are lexicographically equal.
  * -   An empty iterable is lexicographically less than any non-empty iterable.
  * -   If one iterable is a prefix of another, the shorter iterable is
  *     lexicographically less than the other.
@@ -444,7 +444,7 @@ export function ne<A extends Eq<A>>(x: A, y: A): boolean {
  * @remarks
  *
  * If the iterables are the same length and their respective elements are
- * determined to be equal by a provided function, then the iterables are
+ * determined to be equal by a provided function, the iterables are
  * lexicographically equal.
  */
 export function ieqBy<A>(
@@ -615,9 +615,9 @@ export function ieq<A extends Eq<A>>(
  * }
  * ```
  *
- * In this example, `Book` values are ordered first by their ISBN, then by their
- * format. Notice how the semigroup behavior of `Ordering` along with the `cmb`
- * function is used here to combine two `Ordering` values.
+ * In this example, `Book` values are ordered first by their ISBN, and then by
+ * their format. Notice how the semigroup behavior of `Ordering` along with the
+ * `cmb` function is used here to combine two `Ordering` values.
  *
  * @example Generic implementation with no `Ord` requirements
  *

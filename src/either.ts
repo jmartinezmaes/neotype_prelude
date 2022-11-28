@@ -532,7 +532,7 @@ export namespace Either {
      * Start with an initial accumulator and reduce the elements of an iterable
      * using a reducer function that returns an `Either`. While the function
      * returns a successful `Either`, continue the reduction using the success
-     * as the new accumulator until there are no elements remaining, then
+     * as the new accumulator until there are no elements remaining, and then
      * succeed with the final accumulator; otherwise, return the first failed
      * `Either`.
      */
