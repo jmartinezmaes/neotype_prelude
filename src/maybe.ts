@@ -808,7 +808,7 @@ export namespace Maybe {
         }
 
         /**
-         * Defining Iterable behavior for `Maybe` allows TypeScript to infer
+         * Defining iterable behavior for `Maybe` allows TypeScript to infer
          * `Just` types when yielding `Maybe` values in generator comprehensions
          * using `yield*`.
          *
@@ -836,7 +836,7 @@ export namespace Maybe {
         }
 
         /**
-         * Defining Iterable behavior for `Maybe` allows TypeScript to infer
+         * Defining iterable behavior for `Maybe` allows TypeScript to infer
          * `Just` types when yielding `Maybe` values in generator comprehensions
          * using `yield*`.
          *
