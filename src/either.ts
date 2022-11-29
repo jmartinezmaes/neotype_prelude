@@ -140,9 +140,9 @@
  * ## Chaining `Either`
  *
  * The `flatMap` method chains together computations that return `Either`. If an
- * `Either` succeeds, a function is applied to its value and evaluated to return
- * another `Either`. If an `Either` fails, the computation halts and the failed
- * `Either` is returned instead.
+ * `Either` succeeds, a function is applied to its value to return another
+ * `Either`. If an `Either` fails, the computation halts and the failed `Either`
+ * is returned instead.
  *
  * ### Generator comprehenshions
  *
@@ -153,10 +153,9 @@
  * The `go` function evaluates a generator to return an `Either`. Within the
  * generator, `Either` values are yielded using the `yield*` keyword. When a
  * yielded `Either` succeeds, its value may be bound to a specified variable.
- * If any yielded `Either` fails, the generator halts and the failed `Either` is
- * returned immediately; otherwise, when the computation is complete, a final
- * result can be computed and returned from the generator and is returned as a
- * success.
+ * If any yielded `Either` fails, the generator halts and `go` returns the
+ * failed `Either`; otherwise, when the computation is complete, the generator
+ * may return a final result and `go` returns the result as a success.
  *
  * ### Async generator comprehensions
  *
@@ -470,10 +469,10 @@ export namespace Either {
      * -   If a yielded `Either` succeeds, its success is bound to a variable
      *     (if provided) and the generator advances.
      * -   If a yielded `Either` fails, the generator halts and `go` returns the
-     *     failed `Either` immediately.
-     * -   The `return` statement of the generator may return a final computed
-     *     result, which is returned from `go` as a success if all yielded
-     *     `Either` values succeed.
+     *     failed `Either`.
+     * -   The `return` statement of the generator may return a final result,
+     *     which is returned from `go` as a success if all yielded `Either`
+     *     values succeed.
      * -   All syntax normally permitted in generators (statements, loops,
      *     declarations, etc.) is permitted within generator comprehensions.
      *
@@ -646,11 +645,11 @@ export namespace Either {
      * -   If a yielded `Either` succeeds, its success is bound to a variable
      *     (if provided) and the generator advances.
      * -   If a yielded `Either` fails, the generator halts and `goAsync`
-     *     fulfills immediately with the failed `Either`.
+     *     fulfills with the failed `Either`.
      * -   If a `Promise` rejects or an operation throws, the generator halts
-     *     and `goAsync` rejects immediately with the error.
-     * -   The `return` statement of the generator may return a final computed
-     *     result, which is fulfilled from `goAsync` as a success if all yielded
+     *     and `goAsync` rejects with the error.
+     * -   The `return` statement of the generator may return a final result,
+     *     which is fulfilled from `goAsync` as a success if all yielded
      *     `Either` values succeed and no errors are encountered.
      * -   All syntax normally permitted in async generators (the `await`
      *     keyword, statements, loops, declarations, etc.) is permitted within

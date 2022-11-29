@@ -86,8 +86,8 @@
  * The `go` function evaluates a generator to return an `Eval`. Within the
  * generator, `Eval` values are yielded using the `yield*` keyword, allowing
  * their outcomes to be bound to specified variables. When the computation is
- * complete, a final result can be computed and returned from the generator and
- * is wrapped in an `Eval`.
+ * complete, the generator may return a final result and `go` returns the result
+ * in an `Eval`.
  *
  * `Eval` is automatically deferred in its implementation of `go`. The body of
  * the provided generator will not run until the `Eval` is evaluated using
@@ -340,8 +340,8 @@ export class Eval<out A> {
      *     type inference and undefined behavior.
      * -   A `yield*` statement may bind a variable provided by the caller. The
      *     variable inherits the type of the outcome of the yielded `Eval`.
-     * -   The `return` statement of the generator may return a final computed
-     *     result, which is returned from `go` in an `Eval`.
+     * -   The `return` statement of the generator may return a final result,
+     *     which is returned from `go` in an `Eval`.
      * -   All syntax normally permitted in generators (statements, loops,
      *     declarations, etc.) is permitted within generator comprehensions.
      *
