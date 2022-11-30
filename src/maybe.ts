@@ -639,8 +639,8 @@ export namespace Maybe {
      * -   If a `Promise` rejects or an operation throws, the generator halts
      *     and `goAsync` rejects with the error.
      * -   The `return` statement of the generator may return a final result,
-     *     which is fulfilled from `goAsync` in a `Just` if all yielded `Maybe`
-     *     values are present and no errors are encountered.
+     *     and `goAsync` fulfills with the result in a `Just` if all yielded
+     *     `Maybe` values are present and no errors are encountered.
      * -   All syntax normally permitted in async generators (the `await`
      *     keyword, statements, loops, declarations, etc.) is permitted within
      *     async generator comprehensions.
