@@ -90,7 +90,8 @@
  * The value(s) within an `Ior` can be accessed via the `val` property. If an
  * `Ior` is a `Left` or a `Right`, the `val` property accesses the left-hand or
  * right-hand value, respectively. If an `Ior` is a `Both`, the `val` property
- * is a 2-tuple of the left-hand and right-hand values.
+ * is a 2-tuple of the left-hand and right-hand values. The type of the property
+ * can be narrowed by first querying the variant.
  *
  * The left-hand and right-hand values of `Both` variants can also be accessed
  * individually via the `fst` and `snd` properties, respectively.
