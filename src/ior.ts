@@ -87,9 +87,9 @@
  *
  * ## Extracting values
  *
- * The value(s) within an `Ior` can be accessed via the `val` property. When an
+ * The value(s) within an `Ior` can be accessed via the `val` property. If an
  * `Ior` is a `Left` or a `Right`, the `val` property accesses the left-hand or
- * right-hand value, respectively. When an `Ior` is a `Both`, the `val` property
+ * right-hand value, respectively. If an `Ior` is a `Both`, the `val` property
  * is a 2-tuple of the left-hand and right-hand values.
  *
  * The left-hand and right-hand values of `Both` variants can also be accessed
@@ -157,14 +157,14 @@
  * to unwrap `Ior` values and apply functions to right-hand values.
  *
  * The `go` function evaluates a generator to return an `Ior`. Within the
- * generator, `Ior` values are yielded using the `yield*` keyword. When a
- * yielded `Ior` has a right-hand value, the value may be bound to a specified
- * variable. The left-hand values of `Both` variants accumulate using their
- * behavior as a semigroup. If any yielded `Ior` is a `Left`, the generator
- * halts and the left-hand value is combined with any existing left-hand value,
- * and the result is  returned in a `Left`; otherwise, when the computation is
- * complete, the generator may return a final result and `go` returns the result
- * as a right-hand value.
+ * generator, `Ior` values are yielded using the `yield*` keyword. If a yielded
+ * `Ior` has a right-hand value, the value may be bound to a specified variable.
+ * The left-hand values of `Both` variants accumulate using their behavior as a
+ * semigroup. If any yielded `Ior` is a `Left`, the generator halts and the
+ * left-hand value is combined with any existing left-hand value, and the result
+ * is returned in a `Left`; otherwise, when the computation is complete, the
+ * generator may return a final result and `go` returns the result as a
+ * right-hand value.
  *
  * ## Async generator comprehensions
  *

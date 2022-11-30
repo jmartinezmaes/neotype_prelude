@@ -86,14 +86,15 @@
  *
  * ## Extracting values
  *
- * When a `Maybe` is present, its value can be accessed via the `val` property.
- * To access the property, the variant must first be queried and narrowed.
+ * If a `Maybe` is present, its value can be accessed via the `val` property. To
+ * access the property, the variant must first be queried and narrowed to the
+ * `Just` variant.
  *
- * Alternatively, the `unwrap` method will unwrap a `Maybe` by either evaluating
- * a function when absent, or applying a function to the value when present.
+ * The `unwrap` method unwraps a `Maybe` by either evaluating a function if
+ * absent, or applying a function to its value if present.
  *
- * The `getOrFallback` method also unwraps a `Maybe` by extracting the value
- * when present, or returning a provided fallback value when absent.
+ * The `getOrFallback` method extracts the value from a `Maybe` if present, or
+ * returns a fallback result if absent.
  *
  * ## Comparing `Maybe`
  *
@@ -121,11 +122,11 @@
  *
  * ## Transforming values
  *
- * The `map` method transforms the value within a `Maybe` when present, and
- * does nothing when absent.
+ * The `map` method transforms the value within a `Maybe` if present, and does
+ * nothing if absent.
  *
- * These methods combine the values of two `Maybe` values when both present, or
- * short-circuit on the first absent `Maybe`:
+ * These methods combine the values of two `Maybe` values if both are present,
+ * or short-circuit on the first absent `Maybe`:
  *
  * -   `zipWith` applies a function to their values.
  * -   `zipFst` keeps only the first value, and discards the second.
@@ -145,7 +146,7 @@
  * to unwrap present `Maybe` values and apply functions to their values.
  *
  * The `go` function evaluates a generator to return a `Maybe`. Within the
- * generator, `Maybe` values are yielded using the `yield*` keyword. When a
+ * generator, `Maybe` values are yielded using the `yield*` keyword. If a
  * yielded `Maybe` is present, its value may be bound to a specified variable.
  * If any yielded `Maybe` is absent, the generator halts and `go` returns
  * `Nothing`; otherwise, when the computation is complete, the generator may
@@ -163,8 +164,8 @@
  *
  * ## Recovering from `Nothing`
  *
- * The `orElse` method returns a fallback `Maybe` when absent, and does nothing
- * when present.
+ * The `orElse` method returns a fallback `Maybe` if absent, and does nothing if
+ * present.
  *
  * ## Collecting into `Maybe`
  *

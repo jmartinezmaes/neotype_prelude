@@ -93,8 +93,8 @@
  * The value within an `Either` can be accessed via the `val` property. The type
  * of the property can be narrowed by first querying the variant.
  *
- * The `unwrap` method also unwraps an `Either` by applying one of two functions
- * to the value, depending on the variant.
+ * The `unwrap` method unwraps an `Either` by applying one of two functions to
+ * its value, depending on the variant.
  *
  * ## Comparing `Either`
  *
@@ -151,7 +151,7 @@
  * to unwrap successful `Either` values and apply functions to their values.
  *
  * The `go` function evaluates a generator to return an `Either`. Within the
- * generator, `Either` values are yielded using the `yield*` keyword. When a
+ * generator, `Either` values are yielded using the `yield*` keyword. If a
  * yielded `Either` succeeds, its value may be bound to a specified variable.
  * If any yielded `Either` fails, the generator halts and `go` returns the
  * failed `Either`; otherwise, when the computation is complete, the generator

@@ -49,8 +49,8 @@
  * `snd` properties, respectively. A 2-tuple of the values can be accessed via
  * the `val` property.
  *
- * Additionally, the `unwrap` method will unwrap a `Pair` by applying a function
- * to its first and second values.
+ * The `unwrap` method unwraps a `Pair` by applying a function to its first and
+ * second values.
  *
  * ## Comparing `Pair`
  *
@@ -71,7 +71,7 @@
  *
  * -   A `Pair<A, B>` implements `Semigroup` when both `A` and `B` implement
  *     `Semigroup`.
- * -   When combined, `Pair` combines its first and second values pairwise.
+ * -   When combined, first and second values are combined pairwise.
  *
  * ## Transforming values
  *
@@ -79,10 +79,8 @@
  *
  * -   `bimap` applies two functions to the first and second values,
  *     respectively.
- * -   `lmap` applies a function to the first value, and leaves the second value
- *     as is.
- * -   `map` applies a function to the second value, and leaves the first value
- *     as is.
+ * -   `lmap` applies a function to the first value.
+ * -   `map` applies a function to the second value.
  *
  * @module
  */
