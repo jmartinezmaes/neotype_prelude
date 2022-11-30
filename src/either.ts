@@ -82,7 +82,7 @@
  * ## Querying and narrowing the variant
  *
  * The `isLeft` and `isRight` methods return `true` if an `Either` is left-sided
- * or right-sided, respectively. These methods will also narrow the type of an
+ * or right-sided, respectively. These methods also narrow the type of an
  * `Either` to the queried variant.
  *
  * The variant can also be queried and narrowed via the `typ` property, which
@@ -444,7 +444,7 @@ export namespace Either {
      *
      * @remarks
      *
-     * `Err` and `Ok` variants of `Validation` will become `Left` and `Right`
+     * `Err` and `Ok` variants of `Validation` become `Left` and `Right`
      * variants of `Either`, respectively.
      */
     export function fromValidation<E, A>(vdn: Validation<E, A>): Either<E, A> {
@@ -460,8 +460,8 @@ export namespace Either {
      *
      * -   The generator provided to `go` must only yield `Either` values.
      * -   `Either` values must only be yielded using the `yield*` keyword, and
-     *     never `yield` (without the `*`). Omitting the `*` will result in poor
-     *     type inference and undefined behavior.
+     *     never `yield` (without the `*`). Omitting the `*` inhibits proper
+     *     type inference and may cause undefined behavior.
      * -   A `yield*` statement may bind a variable provided by the caller. The
      *     variable inherits the type of the success of the yielded `Either`.
      * -   If a yielded `Either` succeeds, its success is bound to a variable
@@ -636,8 +636,8 @@ export namespace Either {
      *         an `Either`, the `Promise` must first be awaited to access and
      *         yield the `Either`. This is done with a `yield* await` statement.
      * -   `Either` values must only be yielded using the `yield*` keyword, and
-     *     never `yield` (without the `*`). Omitting the `*` will result in poor
-     *     type inference and undefined behavior.
+     *     never `yield` (without the `*`). Omitting the `*` inhibits proper
+     *     type inference and may cause undefined behavior.
      * -   A `yield*` statement may bind a variable provided by the caller. The
      *     variable inherits the type of the success of the yielded `Either`.
      * -   If a yielded `Either` succeeds, its success is bound to a variable

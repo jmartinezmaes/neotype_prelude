@@ -78,8 +78,8 @@
  * ## Querying and narrowing the variant
  *
  * The `isNothing` and `isJust` methods return `true` if a `Maybe` is absent or
- * present, respectively. These methods will also narrow the type of a `Maybe`
- * to the queried variant.
+ * present, respectively. These methods also narrow the type of a `Maybe` to the
+ * queried variant.
  *
  * The variant can also be queried and narrowed via the `typ` property, which
  * returns a member of the `Typ` enumeration.
@@ -459,8 +459,8 @@ export namespace Maybe {
      *
      * -   The generator provided to `go` must only yield `Maybe` values.
      * -   `Maybe` values must only be yielded using the `yield*` keyword, and
-     *     never `yield` (without the `*`). Omitting the `*` will result in poor
-     *     type inference and undefined behavior.
+     *     never `yield` (without the `*`). Omitting the `*` inhibits proper
+     *     type inference and may cause undefined behavior.
      * -   A `yield*` statement may bind a variable provided by the caller. The
      *     variable inherits the type of the value of the yielded `Maybe`.
      * -   If a yielded `Maybe` is present, its value is bound to a variable (if
@@ -629,8 +629,8 @@ export namespace Maybe {
      *         a `Maybe`, the `Promise` must first be awaited to access and
      *         yield the `Maybe`. This is done with a `yield* await` statement.
      * -   `Maybe` values must only be yielded using the `yield*` keyword, and
-     *     never `yield` (without the `*`). Omitting the `*` will result in poor
-     *     type inference and undefined behavior.
+     *     never `yield` (without the `*`). Omitting the `*` inhibits proper
+     *     type inference and may cause undefined behavior.
      * -   A `yield*` statement may bind a variable provided by the caller. The
      *     variable inherits the type of the value of the yielded `Maybe`.
      * -   If a yielded `Maybe` is present, its value is bound to a variable (if

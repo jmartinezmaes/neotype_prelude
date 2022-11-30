@@ -41,8 +41,8 @@
  * -   A `Both` supplies its right-hand value to the next computation, and
  *     combines its left-hand value with any existing left-hand value.
  *
- * Combinators with this behavior will require a `Semigroup` implementation from
- * the accumulating left-hand value.
+ * Combinators with this behavior require a `Semigroup` implementation from the
+ * accumulating left-hand value.
  *
  * ## Importing from this module
  *
@@ -79,8 +79,8 @@
  * ## Querying and narrowing the variant
  *
  * The `isLeft`, `isRight`, and `isBoth` methods return `true` if an `Ior` is
- * a `Left`, a `Right`, or a `Both`, respectively. These methods will also
- * narrow the type of an `Ior` to the queried variant.
+ * a `Left`, a `Right`, or a `Both`, respectively. These methods also narrow the
+ * type of an `Ior` to the queried variant.
  *
  * The variant can also be queried and narrowed via the `typ` property, which
  * returns a member of the `Typ` enumeration.
@@ -95,8 +95,8 @@
  * The left-hand and right-hand values of `Both` variants can also be accessed
  * individually via the `fst` and `snd` properties, respectively.
  *
- * The `unwrap` method will unwrap an `Ior` by applying one of three functions
- * to its left-hand and/or right-hand value(s).
+ * The `unwrap` method unwraps an `Ior` by applying one of three functions to
+ * its left-hand and/or right-hand value(s).
  *
  * ## Comparing `Ior`
  *
@@ -122,8 +122,8 @@
  * -   An `Ior<A, B>` implements `Semigroup` when both `A` and `B` implement
  *     `Semigroup`.
  * -   When combined, left-hand and right-hand values are combined pairwise.
- *     Combination is lossless and will merge values into `Both` variants when
- *     there is no existing value to combine with.
+ *     Combination is lossless and merges values into `Both` variants when there
+ *     is no existing value to combine with.
  *
  * ## Transforming values
  *
@@ -501,7 +501,7 @@ export namespace Ior {
      *
      * @remarks
      *
-     * `Right` and `Left` variants of `Either` will become `Right` and `Left`
+     * `Right` and `Left` variants of `Either` become `Right` and `Left`
      * variants of `Ior`, respectively.
      */
     export function fromEither<A, B>(either: Either<A, B>): Ior<A, B> {
@@ -517,8 +517,8 @@ export namespace Ior {
      *
      * -   The generator provided to `go` must only yield `Ior` values.
      * -   `Ior` values must only be yielded using the `yield*` keyword, and
-     *     never `yield` (without the `*`). Omitting the `*` will result in poor
-     *     type inference and undefined behavior.
+     *     never `yield` (without the `*`). Omitting the `*` inhibits proper
+     *     type inference and may cause undefined behavior.
      * -   A `yield*` statement may bind a variable provided by the caller. The
      *     variable inherits the type of the right-hand value of the yielded
      *     `Ior`.
@@ -727,8 +727,8 @@ export namespace Ior {
      *         an `Ior`, the `Promise` must first be awaited to access and yield
      *         the `Ior`. This is done with a `yield* await` statement.
      * -   `Ior` values must only be yielded using the `yield*` keyword, and
-     *     never `yield` (without the `*`). Omitting the `*` will result in poor
-     *     type inference and undefined behavior.
+     *     never `yield` (without the `*`). Omitting the `*` inhibits proper
+     *     type inference and may cause undefined behavior.
      * -   A `yield*` statement may bind a variable provided by the caller. The
      *     variable inherits the type of the right-hand value of the yielded
      *     `Ior`.

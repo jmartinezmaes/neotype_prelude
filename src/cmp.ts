@@ -937,8 +937,8 @@ export namespace Ordering {
      * -   If `n > 0`, return `Greater`.
      * -   If `n === 0`, return `Equal`.
      *
-     * This function assumes all arguments are never `NaN`. Passing `NaN` as an
-     * argument to this function will result in undefined behavior.
+     * An argument must never be `NaN`. This is the caller's responsibility to
+     * enforce!
      */
     export function fromNumber(n: number): Ordering {
         if (n < 0) {

@@ -90,7 +90,7 @@
  * in an `Eval`.
  *
  * `Eval` is automatically deferred in its implementation of `go`. The body of
- * the provided generator will not run until the `Eval` is evaluated using
+ * the provided generator does not execute until the `Eval` is evaluated using
  * `run`. This behavior helps ensure stack safety, especially for recursive
  * programs.
  *
@@ -181,7 +181,7 @@
  * // [1,2,3,4,5,6,7]
  * ```
  *
- * We may refactor the `foldTree` function to use a generator comprehension
+ * We can refactor the `foldTree` function to use a generator comprehension
  * instead:
  *
  * ```ts
@@ -333,8 +333,8 @@ export class Eval<out A> {
      *
      * -   The generator provided to `go` must only yield `Eval` values.
      * -   `Eval` values must only be yielded using the `yield*` keyword, and
-     *     never `yield` (without the `*`). Omitting the `*` will result in poor
-     *     type inference and undefined behavior.
+     *     never `yield` (without the `*`). Omitting the `*` inhibits proper
+     *     type inference and may cause undefined behavior.
      * -   A `yield*` statement may bind a variable provided by the caller. The
      *     variable inherits the type of the outcome of the yielded `Eval`.
      * -   The `return` statement of the generator may return a final result,
