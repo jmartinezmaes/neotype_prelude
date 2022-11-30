@@ -611,7 +611,7 @@ export namespace Either {
      * function that accepts `Either` values as arguments. When applied,
      * evaluate the arguments from left to right. If they all succeed, apply the
      * original function to their successes and succeed with the result;
-     * otherwise, return the first failed `Either` argument.
+     * otherwise, return the first failed `Either`.
      */
     export function lift<T extends readonly unknown[], A>(
         f: (...args: T) => A,
