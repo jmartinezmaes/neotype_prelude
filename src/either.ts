@@ -169,18 +169,16 @@
  *
  * ## Collecting into `Either`
  *
- * Sometimes, a collection of `Either` values must be turned "inside out" into a
- * `Either` that succeeds with an equivalent collection of successes.
+ * These functions turn a container of `Either` elements "inside out". If the
+ * elements all succeed, their successes are collected into an equivalent
+ * container and returned as a success. If any element fails, the failed
+ * `Either` is returned instead.
  *
- * These methods will traverse a collection of `Either` values to extract the
- * successes. If any `Either` in the collection fails, the traversal halts and
- * the failed `Either` is returned instead.
- *
- * -   `collect` turns an array or a tuple literal of `Either` values inside
+ * -   `collect` turns an array or a tuple literal of `Either` elements inside
  *     out. For example:
  *     -   `Either<E, A>[]` becomes `Either<E, A[]>`
  *     -   `[Either<E, A>, Either<E, B>] becomes `Either<E, [A, B]>`
- * -   `gather` turns a record or an object literal of `Either` values inside
+ * -   `gather` turns a record or an object literal of `Either` elements inside
  *     out. For example:
  *     -   `Record<string, Either<E, A>>` becomes `Either<E, Record<string, A>>`
  *     -   `{ x: Either<E, A>, y: Either<E, B> }` becomes `Either<E, { x: A, y:
@@ -196,7 +194,7 @@
  * and returns an adapted function that accepts `Either` values as arguments
  * instead. The arguments are evaluated from left to right, and if they all
  * succeed, the original function is applied to their successes and the result
- * is returned as a success. If any `Either` fails, the failed `Either` is
+ * is returned as a success. If any argument fails, the failed `Either` is
  * returned instead.
  *
  * @example Basic matching and unwrapping
@@ -550,12 +548,12 @@ export namespace Either {
     }
 
     /**
-     * Turn an array or a tuple literal of `Either` values "inside out".
+     * Turn an array or a tuple literal of `Either` elements "inside out".
      *
      * @remarks
      *
-     * Evaluate the `Either` values in an array or a tuple literal from left to
-     * right. If they all succeed, collect their successes in an array or a
+     * Evaluate the `Either` elements in an array or a tuple literal from left
+     * to right. If they all succeed, collect their successes in an array or a
      * tuple literal, respectively, and succeed with the result; otherwise,
      * return the first failed `Either`.
      *
@@ -577,11 +575,11 @@ export namespace Either {
     }
 
     /**
-     * Turn a record or an object literal of `Either` values "inside out".
+     * Turn a record or an object literal of `Either` elements "inside out".
      *
      * @remarks
      *
-     * Evaluate the `Either` values in a record or an object literal. If they
+     * Evaluate the `Either` elements in a record or an object literal. If they
      * all succeed, collect their successes in a record or an object literal,
      * respectively, and succeed with the result; otherwise, return the first
      * failed `Either`.

@@ -168,18 +168,16 @@
  *
  * ## Collecting into `Maybe`
  *
- * Sometimes, a collection of `Maybe` values must be turned "inside out" into a
- * `Maybe` that contains an equivalent collection of present values.
+ * These functions turn a container of `Maybe` elements "inside out". If the
+ * elements are all present, their values are collected into an equivalent
+ * container and returned in a `Just`. If any element is absent, `Nothing` is
+ * returned instead.
  *
- * These methods will traverse a collection of `Maybe` values to extract their
- * present values. If any `Maybe` in the collection is absent, the traversal
- * halts and `Nothing` is returned instead.
- *
- * -   `collect` turns an array or a tuple literal of `Maybe` values inside out.
- *     For example:
+ * -   `collect` turns an array or a tuple literal of `Maybe` elements inside
+ *     out. For example:
  *     -   `Maybe<A>[]` becomes `Maybe<A[]>`
  *     -   `[Maybe<A>, Maybe<B>]` becomes `Maybe<[A, B]>`
- * -   `gather` turns a record or an object literal of `Maybe` values inside
+ * -   `gather` turns a record or an object literal of `Maybe` elements inside
  *     out. For example:
  *     -   `Record<string, Maybe<A>>` becomes `Maybe<Record<string, A>>`
  *     -   `{ x: Maybe<A>, y: Maybe<B> }` becomes `Maybe<{ x: A, y: B }>`
@@ -194,7 +192,7 @@
  * and returns an adapted function that accepts `Maybe` values as arguments
  * instead. The arguments are evaluated from left to right, and if they are all
  * present, the original function is applied to their values and the result is
- * returned in a `Just`. If any `Maybe` is absent, `Nothing` is returned
+ * returned in a `Just`. If any argument is absent, `Nothing` is returned
  * instead.
  *
  * @example Basic matching and unwrapping
@@ -546,11 +544,11 @@ export namespace Maybe {
     }
 
     /**
-     * Turn an array or a tuple literal of `Maybe` values "inside out".
+     * Turn an array or a tuple literal of `Maybe` elements "inside out".
      *
      * @remarks
      *
-     * Evaluate the `Maybe` values in an array or a tuple literal from left to
+     * Evaluate the `Maybe` elements in an array or a tuple literal from left to
      * right. If they are all present, collect their values in an array or a
      * tuple literal, respectively, and return the result in a `Just`;
      * otherwise, return `Nothing`.
@@ -573,12 +571,12 @@ export namespace Maybe {
     }
 
     /**
-     * Turn a record or an object literal of `Maybe` values "inside out".
+     * Turn a record or an object literal of `Maybe` elements "inside out".
      *
      * @remarks
      *
-     * Evaluate the `Maybe` values in a record or an object literal. If they are
-     * all present, collect their values in a record or an object literal,
+     * Evaluate the `Maybe` elements in a record or an object literal. If they
+     * are all present, collect their values in a record or an object literal,
      * respectively, and return the result in a `Just`; otherwise, return
      * `Nothing`.
      *

@@ -83,7 +83,7 @@
  * computations that return `Eval`. Instead of `flatMap`, a generator is used
  * to apply functions to the the outcomes of `Eval` values.
  *
- * The `go` function evaluates a generator to return an `Eval`. Within the
+ * The `go` static method evaluates a generator to return an `Eval`. Within the
  * generator, `Eval` values are yielded using the `yield*` keyword, allowing
  * their outcomes to be bound to specified variables. When the computation is
  * complete, the generator may return a final result and `go` returns the result
@@ -96,32 +96,29 @@
  *
  * ## Collecting into `Eval`
  *
- * Sometimes, a collection of `Eval` values must be turned "inside out" into an
- * `Eval` that contains an equivalent collection of outcomes.
+ * These static methods turn a container of `Eval` elements "inside out" into an
+ * `Eval` that contains an equivalent container of outcomes:
  *
- * These methods will traverse a collection of `Eval` values to extract their
- * outcomes:
- *
- * -   `collect` turns an array or a tuple literal of `Eval` values inside out.
- *     For example:
+ * -   `collect` turns an array or a tuple literal of `Eval` elements inside
+ *     out. For example:
  *     -   `Eval<A>[]` becomes `Eval<A[]>`
  *     -   `[Eval<A>, Eval<B>]` becomes `Eval<[A, B]>`
- * -   `gather` turns a record or an object literal of `Eval` values inside out.
- *     For example:
+ * -   `gather` turns a record or an object literal of `Eval` elements inside
+ *     out. For example:
  *     -   `Record<string, Eval<A>>` becomes `Eval<Record<string, A>>`
  *     -   `{ x: Eval<A>, y: Eval<B> }` becomes `Eval<{ x: A, y: B }>`
  *
- * The `reduce` function reduces a finite iterable from left to right in the
- * context of `Eval`. This is useful for mapping, filtering, and accumulating
- * values using `Eval`.
+ * The `reduce` static method reduces a finite iterable from left to right in
+ * the context of `Eval`. This is useful for mapping, filtering, and
+ * accumulating values using `Eval`.
  *
  * ## Lifting functions to work with `Eval`
  *
- * The `lift` function receives a function that accepts arbitrary arguments, and
- * returns an adapted function that accepts `Eval` values as arguments instead.
- * The arguments are evaluated from left to right, and then the original
- * function is applied to their outcomes and the result is returned in an
- * `Eval`.
+ * The `lift` static method receives a function that accepts arbitrary
+ * arguments, and returns an adapted function that accepts `Eval` values as
+ * arguments instead. The arguments are evaluated from left to right, and then
+ * the original function is applied to their outcomes and the result is returned
+ * in an `Eval`.
  *
  * @example Recursive folds with `Eval`
  *
@@ -399,11 +396,11 @@ export class Eval<out A> {
     }
 
     /**
-     * Turn an array or a tuple literal of `Eval` values "inside out".
+     * Turn an array or a tuple literal of `Eval` elements "inside out".
      *
      * @remarks
      *
-     * Evaluate the `Eval` values in an array or a tuple literal from left to
+     * Evaluate the `Eval` elements in an array or a tuple literal from left to
      * right. Collect their outcomes in an array or a tuple literal,
      * respectively, and return the result in an `Eval`.
      *
@@ -425,11 +422,11 @@ export class Eval<out A> {
     }
 
     /**
-     * Turn a record or an object literal of `Eval` values "inside out".
+     * Turn a record or an object literal of `Eval` elements "inside out".
      *
      * @remarks
      *
-     * Evaluate the `Eval` values in a record or an object literal. Collect
+     * Evaluate the `Eval` elements in a record or an object literal. Collect
      * their outcomes in a record or an object literal, respectively, and return
      * the result in an `Eval`.
      *
