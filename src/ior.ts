@@ -912,17 +912,6 @@ export namespace Ior {
         }
 
         /**
-         * If this `Ior` has a right-hand value and the value is another `Ior`,
-         * return the inner `Ior`. Accumulate the left-hand values of `Both`
-         * variants using their behavior as a semigroup. If either `Ior` is a
-         * `Left`, combine the left-hand value with any existing left-hand value
-         * and return the result in a `Left`.
-         */
-        flat<A extends Semigroup<A>, B>(this: Ior<A, Ior<A, B>>): Ior<A, B> {
-            return this.flatMap(id);
-        }
-
-        /**
          * If this and that `Ior` have a right-hand value, apply a function to
          * the values and return the result as a right-hand value. Accumulate
          * the left-hand values of `Both` variants using their behavior as a

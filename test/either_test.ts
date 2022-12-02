@@ -252,11 +252,6 @@ describe("Either", () => {
         assert.deepEqual(t3, Either.right([_2, _4] as const));
     });
 
-    specify("#flat", () => {
-        const t0 = mk("R", _1, mk("R", _3, _4)).flat();
-        assert.deepEqual(t0, Either.right(_4));
-    });
-
     specify("#zipWith", () => {
         const t0 = mk("R", _1, _2).zipWith(mk("R", _3, _4), tuple);
         assert.deepEqual(t0, Either.right([_2, _4] as const));

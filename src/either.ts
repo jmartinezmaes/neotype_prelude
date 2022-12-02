@@ -760,14 +760,6 @@ export namespace Either {
         }
 
         /**
-         * If this `Either` succeeds with another `Either`, return the inner
-         * `Either`; otherwise, return this `Either` as is.
-         */
-        flat<E, E1, A>(this: Either<E, Either<E1, A>>): Either<E | E1, A> {
-            return this.flatMap(id);
-        }
-
-        /**
          * If this and that `Either` both succeed, apply a function to their
          * successes and succeed with the result; otherwise, return the first
          * failed `Either`.

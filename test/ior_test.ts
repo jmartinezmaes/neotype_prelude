@@ -389,11 +389,6 @@ describe("Ior", () => {
         assert.deepEqual(t8, Ior.both(cmb(sa, sc), [_2, _4] as const));
     });
 
-    specify("#flat", () => {
-        const t0 = mk("B", sa, mk("B", sc, _2)).flat();
-        assert.deepEqual(t0, Ior.both(cmb(sa, sc), _2));
-    });
-
     specify("#zipWith", () => {
         const t0 = mk("B", sa, _2).zipWith(mk("B", sc, _4), tuple);
         assert.deepEqual(t0, Ior.both(cmb(sa, sc), [_2, _4] as const));

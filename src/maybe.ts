@@ -744,14 +744,6 @@ export namespace Maybe {
         }
 
         /**
-         * If this `Maybe` is present and contains another `Maybe`, return the
-         * inner `Maybe`; otherwise, return `Nothing`.
-         */
-        flat<A>(this: Maybe<Maybe<A>>): Maybe<A> {
-            return this.flatMap(id);
-        }
-
-        /**
          * If this and that `Maybe` are both present, apply a function to thier
          * values and return the result in a `Just`; otherwise, return
          * `Nothing`.

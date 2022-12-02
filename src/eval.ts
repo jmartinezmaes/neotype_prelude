@@ -498,13 +498,6 @@ export class Eval<out A> {
     }
 
     /**
-     * If the outcome of this `Eval` is another `Eval`, return the inner `Eval`.
-     */
-    flat<A>(this: Eval<Eval<A>>): Eval<A> {
-        return this.flatMap(id);
-    }
-
-    /**
      * Apply a function to the outcomes of this and that `Eval` and return the
      * result in an `Eval`.
      */
