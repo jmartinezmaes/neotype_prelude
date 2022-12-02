@@ -37,7 +37,7 @@
  *
  * ## Combining semigroups
  *
- * The `cmb` function combines two instances of the same `Semigroup`.
+ * The `cmb` function combines two of the same `Semigroup` values.
  *
  * ## Working with generic semigroups
  *
@@ -77,31 +77,29 @@
  *
  * ## Properties
  *
- * Instances of `Semigroup` must implement an operation that satisfies the
+ * Implementors of `Semigroup` must implement an operation that satisfies the
  * [associative property], such that:
  *
  * -   `cmb(x, cmb(y, z))` is equivalent to `cmb(cmb(x, y), z)`
  *
- * for all `x`, `y`, and `z`.
+ * for all values `x`, `y`, and `z`.
  *
  * ## Implementing `Semigroup`
  *
  * `Semigroup` requires an implementation for `[Semigroup.cmb]`.
  *
  * The most common implementation strategies are writing classes and patching
- * existing prototypes.
- *
- * Implementation is implicit and does not require an `implements` clause.
- * TypeScript uses [structural subtyping] to determine whether a value
- * implements `Semigroup`.
+ * existing prototypes. Implementation is implicit and does not require an
+ * `implements` clause. TypeScript uses [structural subtyping] to determine
+ * whether a value implements `Semigroup`.
  *
  * ### Conditional implementation
  *
  * Working with generic types requires additional consideration: in some cases,
- * a generic type implements `Semigroup` **only** when one or more of its type
- * parameters implement `Semigroup`; in these cases, we must require a
- * `Semigroup` implementation for the parameter(s). In other cases, there are no
- * such requirements.
+ * a generic type implements `Semigroup` **only** when one or more of its
+ * generic parameters implement `Semigroup`; in these cases, we must require a
+ * `Semigroup` implementation from the parameter(s). In other cases, there are
+ * no such requirements.
  *
  * ### Writing classes
  *
@@ -159,7 +157,7 @@
  *
  * @example Generic implementation with no `Semigroup` requirements
  *
- * Consider a type that combines Arrays using concatenation:
+ * Consider a type that combines arrays using concatenation:
  *
  * ```ts
  * import { Semigroup } from "@neotype/prelude/cmb.js";
@@ -178,8 +176,8 @@
  *
  * @example Generic implementation with a `Semigroup` requirement
  *
- * Consider a type that combines Promises by combining their values, which
- * requires that their values also implement `Semigroup`:
+ * Consider a type that combines `Promise` values by combining their results,
+ * which requires that the results also implement `Semigroup`:
  *
  * ```ts
  * import { cmb, Semigroup } from "@neotype/prelude/cmb.js";
@@ -199,13 +197,12 @@
  * ```
  *
  * Notice the extra syntax when implementing `[Semigroup.cmb]`. We introduce
- * a *method-scoped* type parameter `A` and require that it has a `Semigroup`
+ * a *method-scoped* generic parameter `A` and require that it has a `Semigroup`
  * implementation by writing `A extends Semigroup<A>` (the name `A` is
  * arbitrary).
  *
- * Then, we require that `this` and `that` are `Async<A>` where
- * `A extends Semigroup<A>`. This allows us to use `cmb` to implement our
- * desired behavior.
+ * Then, we require that `this` and `that` are `Async<A>` where `A extends
+ * Semigroup<A>`. This allows us to use `cmb` to implement our desired behavior.
  *
  * @example Generic implementation with multiple `Semigroup` requirements
  *
@@ -228,7 +225,7 @@
  * ```
  *
  * The syntax is similar to the `Async` implementation above. Notice there are
- * now two method-scoped type parameters that are each required to implement
+ * now two method-scoped generic parameters that are each required to implement
  * `Semigroup`.
  *
  * @example Non-generic augmentation
@@ -276,14 +273,14 @@
  *
  * [semigroup]: https://mathworld.wolfram.com/Semigroup.html
  * [associative property]: https://mathworld.wolfram.com/Associative.html
- * [structural subypting]:
+ * [structural subtyping]:
  *     https://www.typescriptlang.org/docs/handbook/type-compatibility.html#site-content
  * [augmentation]:
  *     https://www.typescriptlang.org/docs/handbook/declaration-merging.html#module-augmentation
  */
 export interface Semigroup<in out A> {
     /**
-     * Combine this and that instance of `Semigroup` using an associative binary
+     * Combine this and that `Semigroup` value using an associative binary
      * operation.
      */
     [Semigroup.cmb](that: A): A;
@@ -293,11 +290,14 @@ export interface Semigroup<in out A> {
  * The companion namespace for the `Semigroup` interface.
  */
 export namespace Semigroup {
+    /**
+     * The unique symbol used by implementors of `Semigroup`.
+     */
     export const cmb = Symbol();
 }
 
 /**
- * Combine two values of the same semigroup.
+ * Combine two of the same `Semigroup` values.
  *
  * @remarks
  *

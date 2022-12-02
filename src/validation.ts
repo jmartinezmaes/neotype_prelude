@@ -20,12 +20,11 @@
  * @remarks
  *
  * `Validation<E, A>` is a type that represents a state of accumulated failure
- * or success; thus, `Validation` is represented by two variants: `Err<E>` and
- * `Ok<A>`.
+ * or success. It is represented by two variants: `Err<E>` and `Ok<A>`.
  *
- * -   The `Err` variant represents a *failed* `Validation` and contains a
+ * -   The `Err<E>` variant represents a *failed* `Validation` and contains a
  *     *failure* of type `E`.
- * -   The `Ok` variant represents a *successful* `Validation` and contains a
+ * -   The `Ok<A>` variant represents a *successful* `Validation` and contains a
  *     *success* of type `A`.
  *
  * `Validation` is useful for collecting information about **all** failures in a
@@ -33,9 +32,9 @@
  * makes `Validation` a suitable type for validating data from inputs, forms,
  * and other arbitrary information sources.
  *
- * Most combinators for `Validation` will begin accumulating failures on the
- * first encountered `Err` variant. Combinators with this behavior will require
- * a `Semigroup` implementation from the accumulating failures.
+ * Most combinators for `Validation` begin accumulating failures on the first
+ * failed `Validation`. Combinators with this behavior require a `Semigroup`
+ * implementation from the accumulating failures.
  *
  * ## Importing from this module
  *
@@ -46,7 +45,8 @@
  * -   The `Err` and `Ok` variant classes
  * -   The abstract `Syntax` class that provides the fluent API for `Validation`
  * -   The `Typ` enumeration that discriminates `Validation`
- * -   Functions for constructing and collecting into `Validation`
+ * -   Functions for constructing, collecting into, and lifting into
+ *     `Validation`
  *
  * The type and namespace can be imported under the same alias:
  *
@@ -67,29 +67,27 @@
  *
  * These functions construct a `Validation`:
  *
- * -   `err` constructs an `Err` variant.
- * -   `ok` constructs an `Ok` variant.
- * -   `fromEither` constructs a `Validation` from an `Either`. The `Left` and
- *     `Right` variants of `Either` become the `Err` and `Ok` variants of
- *     `Validation`, respectively.
+ * -   `err` constructs a failed `Validation`
+ * -   `ok` constructs a successful `Validation`.
+ * -   `fromEither` constructs a `Validation` from an `Either`.
  *
  * ## Querying and narrowing the variant
  *
- * The `isErr` and `isOk` methods return `true` if a `Validation` is the `Err`
- * or `Ok` variant, respectively. These methods will also narrow the type of a
- * `Validation` to its queried variant.
+ * The `isErr` and `isOk` methods return `true` if a `Validation` fails or
+ * succeeds, respectively. These methods also narrow the type of a `Validation`
+ * to the queried variant.
  *
  * The variant can also be queried and narrowed via the `typ` property, which
  * returns a member of the `Typ` enumeration.
  *
  * ## Extracting values
  *
- * The failure or success within a `Validation` can be accessed via the `val`
- * property. The type of the `val` property can be narrowed by first querying
- * the variant.
+ * The failure or the success within a `Validation` can be accessed via the
+ * `val` property. The type of the property can be narrowed by first querying
+ * variant.
  *
- * The `unwrap` method also unwraps a `Validation` by applying one of two
- * functions to the failure or success, depending on the variant.
+ * The `unwrap` method unwraps a `Validation` by applying one of two functions
+ * to its failure or success, depending on the variant.
  *
  * ## Comparing `Validation`
  *
@@ -104,9 +102,9 @@
  *
  * -   A `Validation<E, A>` implements `Ord` when both `E` and `A` implement
  *     `Ord`.
- * -   When ordered, `Err` variants are always less than `Ok` variants. If the
- *     variants are equal, their failures or successes are compared to determine
- *     the order.
+ * -   When ordered, a failed `Validation` always compares as less than any
+ *     successful `Validation`. If the variants are the same, their failures or
+ *     successes are compared to determine the ordering.
  *
  * ## `Validation` as a semigroup
  *
@@ -114,21 +112,21 @@
  *
  * -   A `Validation<E, A>` implements `Semigroup` when both `E` and `A`
  *     implement `Semigroup`.
- * -   When combined, the first `Err` variant will ignore the combination and
- *     begin accumulating failures instead. If both variants are `Ok`, their
- *     successes will be combined and returned in an `Ok`.
+ * -   When combined, a failed `Validation` ignores the combination and begins
+ *     accumulating failures instead. If both succeed, their successes are
+ *     combined and returned as a success.
  *
  * ## Transforming values
  *
- * These methods transform the failure or success within a `Validation`:
+ * These methods transform the failure or the success within a `Validation`:
  *
- * -   `bimap` applies one of two functions to the failure or success, depending
- *     on the variant.
- * -   `lmap` applies a function to the failure, and leaves the success as is.
- * -   `map` applies a function to the success, and leaves the failure as is.
+ * -   `bimap` applies one of two functions to the failure or the success,
+ *     depending on the variant.
+ * -   `lmap` applies a function to the failure.
+ * -   `map` applies a function to the success.
  *
- * These methods combine the successes of two `Ok` variants, or begin
- * accumulating failures on any `Err` variant:
+ * These methods combine the successes of two successful `Validation` values, or
+ * begin accumulating failures on any failed `Validation`:
  *
  * -   `zipWith` applies a function to the successes.
  * -   `zipFst` keeps only the first success, and discards the second.
@@ -136,30 +134,35 @@
  *
  * ## Collecting into `Validation`
  *
- * Sometimes, a collection of `Validation` values must be turned "inside out"
- * into a `Validation` that succeeds with an equivalent collection of successes.
+ * These methods turn a container of `Validation` elements "inside out". If the
+ * elements all succeed, their successes are collected into an equivalent
+ * container and returned as a success. If any element fails, the collection
+ * halts and failures begin accumulating instead.
  *
- * These functions traverse a collection of `Validation` values to extract the
- * successes. If any `Validation` in the collection fails, the traversal halts
- * and failures begin accumulating instead.
- *
- * -   `collect` turns an array or a tuple literal of `Validation` values inside
- *     out.
- * -   `gather` turns a record or an object literal of `Validation` values
- *     inside out.
+ * -   `collect` turns an array or a tuple literal of `Validation` elements
+ *     inside out. For example:
+ *     -   `Validation<E, A>[]` becomes `Validation<E, A[]>`
+ *     -   `[Validation<E, A>, Validation<E, B>]` becomes `Validation<E, [A,
+ *         B]>`
+ * -   `gather` turns a record or an object literal of `Validation` elements
+ *     inside out. For example:
+ *     -   `Record<string, Validation<E, A>>` becomes `Validation<E,
+ *         Record<string, A>>`
+ *     -   `{ x: Validation<E, A>, y: Validation<E, B> }` becomes `Validation<E,
+ *         { x: A, y: B }>`
  *
  * ## Lifting functions to work with `Validation`
  *
- * The `lift` function receives an ordinary function that accepts arbitrary
- * agruments, and returns an adapted function that accepts `Validation` values
- * as arguments instead. The arguments are evaluated from left to right, and if
- * they all succeed, the original function is applied to their successes to
- * succeed with the result. If any `Validation` fails, failures will begin
+ * The `lift` function receives a function that accepts arbitrary arguments, and
+ * returns an adapted function that accepts `Validation` values as arguments
+ * instead. The arguments are evaluated from left to right, and if they all
+ * succeed, the original function is applied to their successes and the result
+ * is returned as a success. If any `Validation` fails, failures begin
  * accumulating instead.
  *
  * @example Validating a single property
  *
- * First, our imports:
+ * First, the necessary imports:
  *
  * ```ts
  * import { Semigroup } from "@neotype/prelude/cmb.js";
@@ -230,7 +233,7 @@
  *
  * @example Validating multiple properties
  *
- * First, our imports:
+ * First, the necessary imports:
  *
  * ```ts
  * import { Semigroup } from "@neotype/prelude/cmb.js";
@@ -308,7 +311,7 @@
  *
  * @example Validating arbitrary properties
  *
- * First, our imports:
+ * First, the necessary imports:
  *
  * ```ts
  * import { Semigroup } from "@neotype/prelude/cmb.js";
@@ -414,18 +417,28 @@ export namespace Validation {
      *
      * @remarks
      *
-     * `Left` and `Right` variants of `Either` will become `Err` and `Ok`
-     * variants of `Validated`, respectively.
+     * `Left` and `Right` variants of `Either` become `Err` and `Ok` variants of
+     * `Validation`, respectively.
      */
     export function fromEither<E, A>(either: Either<E, A>): Validation<E, A> {
         return either.unwrap(err, ok);
     }
 
     /**
-     * Evaluate the `Validation` values in an array or a tuple literal from left
-     * to right. If they all succeed, collect the successes in an array or a
-     * tuple literal, respectively; otherwise, begin accumulating failures on
-     * the first failed `Validation`.
+     * Turn an array or a tuple literal of `Validation` elements "inside out".
+     *
+     * @remarks
+     *
+     * Evaluate the `Validation` elements in an array or a tuple literal from
+     * left to right. If they all succeed, collect their successes in an array
+     * or a tuple literal, respectively, and succeed with the result; otherwise,
+     * begin accumulating failures on the first failed `Validation`.
+     *
+     * For example:
+     *
+     * -   `Validation<E, A>[]` becomes `Validation<E, A[]>`
+     * -   `[Validation<E, A>, Validation<E, B>]` becomes `Validation<E, [A,
+     *     B]>`
      */
     export function collect<
         T extends readonly Validation<Semigroup<any>, any>[],
@@ -441,10 +454,21 @@ export namespace Validation {
     }
 
     /**
-     * Evaluate the `Validation` values in a record or an object literal. If
-     * they all succeed, collect the successes in a record or an object literal,
-     * respectively; otherwise, begin accumulating failures on the first failed
-     * `Validation`.
+     * Turn a record or an object literal of `Validation` elements "inside out".
+     *
+     * @remarks
+     *
+     * Evaluate the `Validation` elements in a record or an object literal. If
+     * they all succeed, collect their successes in a record or an object
+     * literal, respectively, and succeed with the result; otherwise, begin
+     * accumulating failures on the first failed `Validation`.
+     *
+     * For example:
+     *
+     * -   `Record<string, Validation<E, A>>` becomes `Validation<E,
+     *     Record<string, A>`
+     * -   `{ x: Validation<E, A>, y: Validation<E, B> }` becomes `Validation<E,
+     *     { x: A, y: B }>`
      */
     export function gather<
         T extends Record<string, Validation<Semigroup<any>, any>>,
@@ -461,6 +485,14 @@ export namespace Validation {
 
     /**
      * Lift a function of any arity into the context of `Validation`.
+     *
+     * @remarks
+     *
+     * Given a function that accepts arbitrary arguments, return an adapted
+     * function that accepts `Validation` values as arguments. When applied,
+     * evaluate the arguments from left to right. If they all succeed, apply the
+     * original function to their successes and succeed with the result;
+     * otherwise, begin accumulating failures on the first failed `Validation`.
      */
     export function lift<T extends readonly unknown[], A>(
         f: (...args: T) => A,
@@ -547,8 +579,8 @@ export namespace Validation {
         }
 
         /**
-         * If this and that `Validation` both succeed, keep only the first
-         * success and discard the second; otherwise, begin accumulating
+         * If this and that `Validation` both succeed, succeed with only the
+         * first success and discard the second; otherwise, begin accumulating
          * failures on the first failed `Validation`.
          */
         zipFst<E extends Semigroup<E>, A>(
@@ -559,9 +591,9 @@ export namespace Validation {
         }
 
         /**
-         * If this and that `Validation` both succeed, keep only the second
-         * success and discard the first; otherwise, begin accumulating failures
-         * on the first failed `Validation`.
+         * If this and that `Validation` both succeed, succeed with only the
+         * second success and discard the first; otherwise, begin accumulating
+         * failures on the first failed `Validation`.
          */
         zipSnd<E extends Semigroup<E>, B>(
             this: Validation<E, any>,
@@ -638,14 +670,14 @@ export namespace Validation {
     }
 
     /**
-     * Extract the failure type `E` from a `Validation<E, A>`.
+     * Extract the failure type `E` from the type `Validation<E, A>`.
      */
     // prettier-ignore
     export type ErrT<T extends Validation<any, any>> =
         [T] extends [Validation<infer E, any>] ? E : never;
 
     /**
-     * Extract the success type `A` from a `Validation<E, A>`.
+     * Extract the success type `A` from the type `Validation<E, A>`.
      */
     // prettier-ignore
     export type OkT<T extends Validation<any, any>> =

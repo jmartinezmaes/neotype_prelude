@@ -20,8 +20,8 @@
  * @remarks
  *
  * `Eval<A>` is a type that controls the execution of a synchronous computation
- * that returns a result `A`. `Eval` can suspend and memoize evaluation for a
- * variety of use cases, and it provides stack-safe execution for recursive
+ * that returns an *outcome* `A`. `Eval` can suspend and memoize evaluation for
+ * a variety of use cases, and it provides stack-safe execution for recursive
  * programs.
  *
  * ## Importing from this module
@@ -40,98 +40,95 @@
  *
  * ## Constructing `Eval`
  *
- * `Eval` has four static methods for constructing Evals:
+ * There are four static methods for constructing an `Eval`:
  *
- * -   `now` for eager, memoized evaluation;
- * -   `once` for lazy, memoized evaluation;
- * -   `always` for lazy, non-memoized evaluation; and
- * -   `defer` for suspended evaluation of another Eval.
+ * -   `now` for eager, memoized evaluation of a value;
+ * -   `once` for lazy, memoized evaluation of a value;
+ * -   `always` for lazy, non-memoized evaluation of a value; and
+ * -   `defer` for suspended evaluation of another `Eval`.
  *
  * ## Running computations
  *
- * The `run` method evaluates an Eval and returns its result.
+ * The `run` method evaluates an `Eval` and returns its outcome.
  *
  * ## `Eval` as a semigroup
  *
- * `Eval` implements `Semigroup` when its generic type implements `Semigroup`.
- * When combined, the Evals are evaluated from left to right, then their results
- * are combined.
+ * `Eval` has the following behavior as a semigroup:
  *
- * In other words, `cmb(x, y)` is equivalent to `x.zipWith(y, cmb)` for all
- * Evals `x` and `y`.
+ * -   An `Eval<A>` implements `Semigroup` when `A` implements `Semigroup`.
+ * -   When combined, their outcomes are combined and the result is returned
+ *     in an `Eval`.
  *
  * ## Transforming values
  *
- * The `map` method applies a function to an Eval's result.
+ * The `map` method applies a function to outcome of an `Eval` and returns the
+ * result in an `Eval`.
  *
- * These methods combine the results of two Evals:
+ * These methods combine the outcomes of two `Eval` values and return the result
+ * in an `Eval`:
  *
- * -   `zipWith` applies a function to the results.
- * -   `zipFst` keeps only the first result, and discards the second.
- * -   `zipSnd` keeps only the second result, and discards the first.
+ * -   `zipWith` applies a function to the outcomes.
+ * -   `zipFst` keeps only the first outcome, and discards the second.
+ * -   `zipSnd` keeps only the second outcome, and discards the first.
  *
  * ## Chaining `Eval`
  *
- * The `flatMap` method chains together computations that return `Eval`. Upon
- * calling `flatMap`, a function is applied to an Eval's result and evaluated to
- * return another Eval. Composing Evals with `flatMap` is stack safe, even for
- * recursive programs.
+ * The `flatMap` method chains together computations that return `Eval`. A
+ * function is applied to the outcome of one `Eval` to return another `Eval`.
+ * Composition with `flatMap` is stack safe, even for recursive programs.
  *
  * ### Generator comprehensions
  *
  * Generator comprehensions provide an imperative syntax for chaining together
- * computations that return `Eval`. Instead of `flatMap`, a Generator is used
- * to unwrap Evals' results and apply functions to their values.
+ * computations that return `Eval`. Instead of `flatMap`, a generator is used
+ * to apply functions to the the outcomes of `Eval` values.
  *
- * The `go` static method evaluates a Generator to return an Eval. Within the
- * Generator, Evals are yielded using the `yield*` keyword. This binds the
- * results to specified variables. When the computation is complete, a final
- * value can be computed and returned from the Generator.
- *
- * Generator comprehensions may contain:
- *
- * -   Variable declarations, assignments, and mutations
- * -   Function and class declarations
- * -   `for`, `while`, and `do`/`while` loops
- * -   `if`/`else if`/`else` blocks
- * -   `switch` blocks
- * -   `try`/`catch` blocks
+ * The `go` static method evaluates a generator to return an `Eval`. Within the
+ * generator, `Eval` values are yielded using the `yield*` keyword, allowing
+ * their outcomes to be bound to specified variables. When the computation is
+ * complete, the generator may return a final result and `go` returns the result
+ * in an `Eval`.
  *
  * `Eval` is automatically deferred in its implementation of `go`. The body of
- * the provided Generator will not run until the Eval is evaluated using `run`.
- * This behavior helps ensure stack safety, especially for recursive programs.
+ * the provided generator does not execute until the `Eval` is evaluated using
+ * `run`. This behavior helps ensure stack safety, especially for recursive
+ * programs.
  *
  * ## Collecting into `Eval`
  *
- * `Eval` provides several functions for working with collections of Evals.
- * Sometimes, a collection of Evals must be turned "inside out" into an Eval
- * that contains an equivalent collection of results.
+ * These static methods turn a container of `Eval` elements "inside out" into an
+ * `Eval` that contains an equivalent container of outcomes:
  *
- * These methods will traverse a collection of Evals to extract the results.
+ * -   `collect` turns an array or a tuple literal of `Eval` elements inside
+ *     out. For example:
+ *     -   `Eval<A>[]` becomes `Eval<A[]>`
+ *     -   `[Eval<A>, Eval<B>]` becomes `Eval<[A, B]>`
+ * -   `gather` turns a record or an object literal of `Eval` elements inside
+ *     out. For example:
+ *     -   `Record<string, Eval<A>>` becomes `Eval<Record<string, A>>`
+ *     -   `{ x: Eval<A>, y: Eval<B> }` becomes `Eval<{ x: A, y: B }>`
  *
- * -   `collect` turns an Array or a tuple literal of Evals inside out.
- * -   `gather` turns a Record or an object literal of Evals inside out.
- *
- * Additionally, the `reduce` function reduces a finite Iterable from left to
- * right in the context of `Eval`. This is useful for mapping, filtering, and
+ * The `reduce` static method reduces a finite iterable from left to right in
+ * the context of `Eval`. This is useful for mapping, filtering, and
  * accumulating values using `Eval`.
  *
  * ## Lifting functions to work with `Eval`
  *
- * The `lift` function receives an ordinary function that accepts arbitrary
- * agruments, and returns an adapted function that accepts `Eval` values as
- * arguments instead. The arguments are evaluated from left to right, then the
- * original function is applied to the results.
+ * The `lift` static method receives a function that accepts arbitrary
+ * arguments, and returns an adapted function that accepts `Eval` values as
+ * arguments instead. The arguments are evaluated from left to right, and then
+ * the original function is applied to their outcomes and the result is returned
+ * in an `Eval`.
  *
  * @example Recursive folds with `Eval`
  *
- * First, our imports:
+ * First, the necessary imports:
  *
  * ```ts
  * import { Eval } from "@neotype/prelude/eval.js";
  * ```
  *
- * Now, consider a program that uses `Eval` to traverse and fold a recursive
+ * Now, consider a program that uses `Eval` to fold and traverse a recursive
  * `Tree` data structure:
  *
  * ```ts
@@ -184,7 +181,7 @@
  * // [1,2,3,4,5,6,7]
  * ```
  *
- * We may refactor the `foldTree` function to use a generator comprehension
+ * We can refactor the `foldTree` function to use a generator comprehension
  * instead:
  *
  * ```ts
@@ -256,7 +253,7 @@
  * // {"in":[1,2,3,4,5,6,7],"pre":[4,2,1,3,6,5,7],"post":[1,3,2,5,7,6,4]}
  * ```
  *
- * Or, perhaps we want to return a Map instead:
+ * Or, perhaps we want to return a `Map` instead:
  *
  * ```ts
  * function traversalsMap(tree: Tree<A>): Eval<Map<string, A[]>> {
@@ -288,30 +285,30 @@ import { MutStack } from "./internal/mut_stack.js";
  */
 export class Eval<out A> {
     /**
-     * Construct an Eval with an immediately known value.
+     * Construct an `Eval` eagerly from a value.
      */
     static now<A>(x: A): Eval<A> {
         return new Eval(Instr.now(x));
     }
 
     /**
-     * Construct an Eval from a thunk. The thunk will be called at most once,
-     * and all evaluations after the first will return a memoized value.
+     * Construct an `Eval` lazily from a thunk, and memoize the value upon the
+     * first evaluation.
      */
     static once<A>(f: () => A): Eval<A> {
         return new Eval(Instr.once(f));
     }
 
     /**
-     * Construct an Eval from a thunk. The thunk will be called on every
-     * evaluation.
+     * Construct an `Eval` lazily from a thunk, and re-compute the value upon
+     * every evaluation.
      */
     static always<A>(f: () => A): Eval<A> {
         return new Eval(Instr.always(f));
     }
 
     /**
-     * Construct an Eval from function that returns an Eval.
+     * Construct an `Eval` from a function that returns another `Eval`.
      */
     static defer<A>(f: () => Eval<A>): Eval<A> {
         return Eval.now(undefined).flatMap(f);
@@ -328,7 +325,44 @@ export class Eval<out A> {
     }
 
     /**
-     * Construct an Eval using a generator comprehension.
+     * Construct an `Eval` using a generator comprehension.
+     *
+     * @remarks
+     *
+     * The contract for generator comprehensions is as follows:
+     *
+     * -   The generator provided to `go` must only yield `Eval` values.
+     * -   `Eval` values must only be yielded using the `yield*` keyword, and
+     *     never `yield` (without the `*`). Omitting the `*` inhibits proper
+     *     type inference and may cause undefined behavior.
+     * -   A `yield*` statement may bind a variable provided by the caller. The
+     *     variable inherits the type of the outcome of the yielded `Eval`.
+     * -   The `return` statement of the generator may return a final result,
+     *     which is returned from `go` in an `Eval`.
+     * -   All syntax normally permitted in generators (statements, loops,
+     *     declarations, etc.) is permitted within generator comprehensions.
+     *
+     * @example Basic yielding and returning
+     *
+     * Consider a comprehension that sums the outcomes of three `Eval` values:
+     *
+     * ```ts
+     * import { Eval } from "@neotype/prelude/eval.js";
+     *
+     * const arg0: Eval<number> = Eval.now(1);
+     * const arg1: Eval<number> = Eval.now(2);
+     * const arg2: Eval<number> = Eval.now(3);
+     *
+     * const summed: Eval<number> = Eval.go(function* () {
+     *     const x = yield* arg0;
+     *     const y = yield* arg1;
+     *     const z = yield* arg2;
+     *
+     *     return x + y + z;
+     * });
+     *
+     * console.log(summed.run()); // 6
+     * ```
      */
     static go<A>(f: () => Generator<Eval<any>, A, unknown>): Eval<A> {
         return Eval.defer(() => {
@@ -338,7 +372,14 @@ export class Eval<out A> {
     }
 
     /**
-     * Reduce a finite Iterable from left to right in the context of Eval.
+     * Reduce a finite iterable from left to right in the context of `Eval`.
+     *
+     * @remarks
+     *
+     * Start with an initial accumulator and reduce the elements of an iterable
+     * using a reducer function that returns an `Eval`. Use the outcome of the
+     * returned `Eval` as the new accumulator until there are no elements
+     * remaining, and then return the final accumulator in an `Eval`.
      */
     static reduce<A, B>(
         xs: Iterable<A>,
@@ -355,8 +396,18 @@ export class Eval<out A> {
     }
 
     /**
-     * Evaluate the Evals in an Array or a tuple literal from left to right and
-     * collect the results in an Array or a tuple literal, respectively.
+     * Turn an array or a tuple literal of `Eval` elements "inside out".
+     *
+     * @remarks
+     *
+     * Evaluate the `Eval` elements in an array or a tuple literal from left to
+     * right. Collect their outcomes in an array or a tuple literal,
+     * respectively, and return the result in an `Eval`.
+     *
+     * For example:
+     *
+     * -   `Eval<A>[]` becomes `Eval<A[]>`
+     * -   `[Eval<A>, Eval<B>]` becomes `Eval<[A, B]>`
      */
     static collect<T extends readonly Eval<any>[]>(
         evals: T,
@@ -371,8 +422,18 @@ export class Eval<out A> {
     }
 
     /**
-     * Evaluate the Evals in a Record or an object literal and collect the
-     * results in a Record or an object literal, respectively.
+     * Turn a record or an object literal of `Eval` elements "inside out".
+     *
+     * @remarks
+     *
+     * Evaluate the `Eval` elements in a record or an object literal. Collect
+     * their outcomes in a record or an object literal, respectively, and return
+     * the result in an `Eval`.
+     *
+     * For example:
+     *
+     * -   `Record<string, Eval<A>>` becomes `Eval<Record<string, A>>`
+     * -   `{ x: Eval<A>, y: Eval<B> }` becomes `Eval<{ x: A, y: B }>`
      */
     static gather<T extends Record<any, Eval<any>>>(
         evals: T,
@@ -388,6 +449,13 @@ export class Eval<out A> {
 
     /**
      * Lift a function of any arity into the context of `Eval`.
+     *
+     * @remarks
+     *
+     * Given a function that accepts arbitrary arguments, return an adapted
+     * function that accepts `Eval` values as arguments. When applied, evaluate
+     * the arguments from left to right, and then apply the original function to
+     * their outcomes and return the result in an `Eval`.
      */
     static lift<T extends readonly unknown[], A>(
         f: (...args: T) => A,
@@ -396,7 +464,7 @@ export class Eval<out A> {
     }
 
     /**
-     * An instruction that builds an evaluation tree for Eval.
+     * An instruction that builds an evaluation tree for `Eval`.
      */
     readonly #i: Instr;
 
@@ -405,8 +473,9 @@ export class Eval<out A> {
     }
 
     /**
-     * Defining Iterable behavior for Eval allows TypeScript to infer result
-     * types when yielding Eithers in generator comprehensions using `yield*`.
+     * Defining iterable behavior for `Eval` allows TypeScript to infer outcome
+     * types when yielding `Eval` values in generator comprehensions using
+     * `yield*`.
      *
      * @hidden
      */
@@ -414,9 +483,6 @@ export class Eval<out A> {
         return (yield this) as A;
     }
 
-    /**
-     * If this and that Eval's results are a Semigroup, combine the results.
-     */
     [Semigroup.cmb]<A extends Semigroup<A>>(
         this: Eval<A>,
         that: Eval<A>,
@@ -425,49 +491,53 @@ export class Eval<out A> {
     }
 
     /**
-     * Apply a function to this Eval's result to return a new Eval.
+     * Apply a function to the outcome of this `Eval` to return another `Eval`.
      */
     flatMap<B>(f: (x: A) => Eval<B>): Eval<B> {
         return new Eval(Instr.flatMap(this, f));
     }
 
     /**
-     * If this Eval's result is another Eval, return the inner Eval.
+     * If the outcome of this `Eval` is another `Eval`, return the inner `Eval`.
      */
     flat<A>(this: Eval<Eval<A>>): Eval<A> {
         return this.flatMap(id);
     }
 
     /**
-     * Apply a function to this and that Eval's results.
+     * Apply a function to the outcomes of this and that `Eval` and return the
+     * result in an `Eval`.
      */
     zipWith<B, C>(that: Eval<B>, f: (x: A, y: B) => C): Eval<C> {
         return this.flatMap((x) => that.map((y) => f(x, y)));
     }
 
     /**
-     * Evaluate this Eval then that Eval, then keep only this Eval's result.
+     * Keep only the first outcome of this and that `Eval`, and return it in an
+     * `Eval`.
      */
     zipFst(that: Eval<any>): Eval<A> {
         return this.zipWith(that, id);
     }
 
     /**
-     * Evaluate this Eval then that Eval, then keep only that Eval's result.
+     * Keep only the second outcome of this and that `Eval`, and return it in an
+     * `Eval`.
      */
     zipSnd<B>(that: Eval<B>): Eval<B> {
         return this.flatMap(() => that);
     }
 
     /**
-     * Apply a function to this Eval's result.
+     * Apply a function to the outcome of this `Eval` and return the result
+     * in an `Eval`.
      */
     map<B>(f: (a: A) => B): Eval<B> {
         return this.flatMap((x) => Eval.now(f(x)));
     }
 
     /**
-     * Evaluate this Eval to return a result.
+     * Evaluate this `Eval` to return its outcome.
      */
     run(): A {
         const ks = new MutStack<(x: any) => Eval<any>>();
@@ -508,9 +578,12 @@ export class Eval<out A> {
     }
 }
 
+/**
+ * The companion namespace for the `Eval` class.
+ */
 export namespace Eval {
     /**
-     * Extract the result type `A` from the type `Eval<A>`.
+     * Extract the outcome type `A` from the type `Eval<A>`.
      */
     // prettier-ignore
     export type ResultT<T extends Eval<any>> = 

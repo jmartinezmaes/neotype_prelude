@@ -19,11 +19,11 @@
     -   Handle failures with `Either`.
     -   Validate forms and user input with `Validation`.
     -   Implement stack-safe recursion with `Eval`.
-    -   Get creative with more exotic types like `Ior`.
--   **Generator comprehensions**: simplify working with monads by writing
+    -   Get creative with more types like `Ior` and `Pair`.
+-   **Generator comprehensions**: chain computations together by writing
     imperative style code blocks using a coroutine syntax.
--   **Async generator comprehensions**: take generator comprehensions to the
-    next level using the power of Promises and `async`/`await` syntax.
+-   **Async generator comprehensions**: work with `Promise` values inside of
+    generator comprehensions using `async`/`await` syntax.
 
 ## Install
 
