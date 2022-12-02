@@ -81,11 +81,6 @@ describe("Eval", () => {
         assert.deepEqual(t0.run(), [_1, _2]);
     });
 
-    specify("#flat", () => {
-        const t0 = mk(mk(_1)).flat();
-        assert.strictEqual(t0.run(), _1);
-    });
-
     specify("#zipWith", () => {
         const t0 = mk(_1).zipWith(mk(_2), tuple);
         assert.deepEqual(t0.run(), [_1, _2]);

@@ -249,11 +249,6 @@ describe("Maybe", () => {
         assert.deepEqual(t3, Maybe.just([_1, _2] as const));
     });
 
-    specify("#flat", () => {
-        const t0 = mk("J", mk("J", _1)).flat();
-        assert.deepEqual(t0, Maybe.just(_1));
-    });
-
     specify("#zipWith", () => {
         const t0 = mk("J", _1).zipWith(mk("J", _2), tuple);
         assert.deepEqual(t0, Maybe.just([_1, _2] as const));
