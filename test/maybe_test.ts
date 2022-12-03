@@ -216,8 +216,8 @@ describe("Maybe", () => {
         assert.deepEqual(t1, [_1, _2]);
     });
 
-    specify("#getOrFallback", () => {
-        const t0 = mk("J", _1).getOrFallback(_2);
+    specify("#getOr", () => {
+        const t0 = mk("J", _1).getOr(_2);
         assert.strictEqual(t0, _1);
     });
 
