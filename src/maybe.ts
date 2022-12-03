@@ -87,14 +87,14 @@
  * ## Extracting values
  *
  * If a `Maybe` is present, its value can be accessed via the `val` property. To
- * access the property, the variant must first be queried and narrowed to the
- * `Just` variant.
+ * access the property, the variant must first be queried and narrowed to
+ * `Just`.
  *
  * The `unwrap` method unwraps a `Maybe` by either evaluating a function if
  * absent, or applying a function to its value if present.
  *
- * The `getOrFallback` method extracts the value from a `Maybe` if present, or
- * returns a fallback result if absent.
+ * The `getOr` method extracts the value from a `Maybe` if present, or returns a
+ * fallback value if absent.
  *
  * ## Comparing `Maybe`
  *
@@ -252,7 +252,7 @@
  *
  * ["a", "1", "2", "-4", "+42", "0x2A"].forEach((input) => {
  *     const result = JSON.stringify(
- *         parseEvenInt(input).getOrFallback("invalid input"),
+ *         parseEvenInt(input).getOr("invalid input"),
  *     );
  *     console.log(`input "${input}": ${result}`);
  * });
@@ -292,7 +292,7 @@
  *     ["+42", "0x2A"],
  * ].forEach((inputs) => {
  *     const result = JSON.stringify(
- *         parseEvenInts(inputs).getOrFallback("invalid input"),
+ *         parseEvenInts(inputs).getOr("invalid input"),
  *     );
  *     console.log(`inputs ${JSON.stringify(inputs)}: ${result}`);
  * });
@@ -321,9 +321,7 @@
  *     ["+42", "0x2A"],
  * ].forEach((inputs) => {
  *     const result = JSON.stringify(
- *         parseEvenIntsUniq(inputs)
- *             .map(Array.from)
- *             .getOrFallback("invalid input"),
+ *         parseEvenIntsUniq(inputs).map(Array.from).getOr("invalid input"),
  *     );
  *     console.log(`inputs ${JSON.stringify(inputs)}: ${result}`);
  * });
@@ -353,7 +351,7 @@
  *     ["+42", "0x2A"],
  * ].forEach((inputs) => {
  *     const result = JSON.stringify(
- *         parseEvenIntsKeyed(inputs).getOrFallback("invalid input"),
+ *         parseEvenIntsKeyed(inputs).getOr("invalid input"),
  *     );
  *     console.log(`inputs ${JSON.stringify(inputs)}: ${result}`);
  * });
@@ -380,7 +378,7 @@
  *     ["+42", "0x2A"],
  * ].forEach((inputs) => {
  *     const result = JSON.stringify(
- *         parseEvenIntsAndSum(inputs).getOrFallback("invalid input"),
+ *         parseEvenIntsAndSum(inputs).getOr("invalid input"),
  *     );
  *     console.log(`inputs ${JSON.stringify(inputs)}: ${result}`);
  * });
@@ -492,7 +490,7 @@ export namespace Maybe {
      *     return x + y + z;
      * });
      *
-     * console.log(summed.getOrFallback("Nothing")); // 6
+     * console.log(summed.getOr("Nothing")); // 6
      * ```
      *
      * Now, observe the change in behavior if one of the yielded arguments was
@@ -723,7 +721,7 @@ export namespace Maybe {
          * If this `Maybe` is present, extract its value; otherwise, return a
          * fallback value.
          */
-        getOrFallback<A, B>(this: Maybe<A>, fallback: B): A | B {
+        getOr<A, B>(this: Maybe<A>, fallback: B): A | B {
             return this.unwrap(() => fallback, id);
         }
 
