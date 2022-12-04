@@ -494,7 +494,7 @@ export namespace Validation {
      * original function to their successes and succeed with the result;
      * otherwise, begin accumulating failures on the first failed `Validation`.
      */
-    export function lift<T extends readonly unknown[], A>(
+    export function lift<T extends unknown[], A>(
         f: (...args: T) => A,
     ): <E extends Semigroup<E>>(
         ...vdns: { [K in keyof T]: Validation<E, T[K]> }

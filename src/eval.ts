@@ -461,7 +461,7 @@ export class Eval<out A> {
      * the arguments from left to right, and then apply the original function to
      * their outcomes and return the result in an `Eval`.
      */
-    static lift<T extends readonly unknown[], A>(
+    static lift<T extends unknown[], A>(
         f: (...args: T) => A,
     ): (...evals: { [K in keyof T]: Eval<T[K]> }) => Eval<A> {
         return (...evals) => Eval.collect(evals).map((args) => f(...args));

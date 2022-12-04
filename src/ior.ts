@@ -705,7 +705,7 @@ export namespace Ior {
      * the operation and combine the left-hand value with any existing left-hand
      * value, and return the result in a `Left`.
      */
-    export function lift<T extends readonly unknown[], B>(
+    export function lift<T extends unknown[], B>(
         f: (...args: T) => B,
     ): <A extends Semigroup<A>>(
         ...iors: { [K in keyof T]: Ior<A, T[K]> }
