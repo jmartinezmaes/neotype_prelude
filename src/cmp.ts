@@ -109,6 +109,7 @@
  * -   The `less`, `equal`, and `greater` constants, which each represent their
  *     equivalent variant
  * -   The `fromNumber` function that constructs an `Ordering` from a `number`
+ *     or a `bigint`
  *
  * ### Comparing `Ordering`
  *
@@ -927,7 +928,7 @@ export namespace Ordering {
     }
 
     /**
-     * Construct an `Ordering` from a `number`.
+     * Construct an `Ordering` from a `number` or a `bigint`.
      *
      * @remarks
      *
@@ -938,7 +939,7 @@ export namespace Ordering {
      * An argument must never be `NaN`. This is the caller's responsibility to
      * enforce!
      */
-    export function fromNumber(n: number): Ordering {
+    export function fromNumber(n: number | bigint): Ordering {
         if (n < 0) {
             return less;
         }
