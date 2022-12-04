@@ -173,7 +173,7 @@
  *
  * ```ts
  * // A semigroup that wraps arrays
- * class List<A> {
+ * class List<out A> {
  *     readonly val: A[]
  *
  *     constructor(...vals: A[]) {
@@ -244,7 +244,7 @@
  *
  * ```ts
  * // A semigroup that wraps arrays
- * class List<A> {
+ * class List<out A> {
  *     readonly val: A[]
  *
  *     constructor(...vals: A[]) {
@@ -322,7 +322,7 @@
  *
  * ```ts
  * // A semigroup that wraps arrays
- * class List<A> {
+ * class List<out A> {
  *     readonly val: A[]
  *
  *     constructor(...vals: A[]) {
