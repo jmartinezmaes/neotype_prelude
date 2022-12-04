@@ -292,7 +292,7 @@ import { cmb, Semigroup } from "./cmb.js";
  * ```ts
  * import { Eq } from "@neotype/prelude/cmp.js";
  *
- * class Len<A> {
+ * class Len<out A> {
  *     constructor(readonly val: A[]) {}
  *
  *     [Eq.eq](that: Len<A>): boolean {
@@ -312,7 +312,7 @@ import { cmb, Semigroup } from "./cmb.js";
  * ```ts
  * import { Eq, ieq } from "@neotype/prelude/cmp.js";
  *
- * class Arr<A> {
+ * class Arr<out A> {
  *     constructor(readonly val: A[]) {}
  *
  *     [Eq.eq]<A extends Eq<A>>(this: Arr<A>, that: Arr<A>): boolean {
@@ -336,7 +336,7 @@ import { cmb, Semigroup } from "./cmb.js";
  * ```ts
  * import { Eq, eq } from "@neotype/prelude/cmp.js";
  *
- * class Pair<A, B> {
+ * class Pair<out A, out B> {
  *     constructor(readonly fst: A, readonly snd: B) {}
  *
  *     [Eq.eq]<A extends Eq<A>, B extends Eq<B>>(
@@ -625,7 +625,7 @@ export function ieq<A extends Eq<A>>(
  * ```ts
  * import { Eq, Ord, Ordering } from "@neotype/prelude/cmp.js";
  *
- * class Len<A> {
+ * class Len<out A> {
  *     constructor(readonly val: A[]) {}
  *
  *     [Eq.eq](that: Len<A>): boolean {
@@ -649,7 +649,7 @@ export function ieq<A extends Eq<A>>(
  * ```ts
  * import { Eq, icmp, Ord, Ordering } from "@neotype/prelude/cmp.js";
  *
- * class Arr<A> {
+ * class Arr<out A> {
  *     constructor(readonly val: A[]) {}
  *
  *     [Eq.eq]<A extends Eq<A>>(this: Arr<A>, that: Arr<A>): boolean {
@@ -678,7 +678,7 @@ export function ieq<A extends Eq<A>>(
  * import { cmb } from "@neotype/prelude/cmb.js";
  * import { Eq, cmp, Ord, Ordering } from "@neotype/prelude/cmp.js";
  *
- * class Pair<A, B> {
+ * class Pair<out A, out B> {
  *     constructor(readonly fst: A, readonly snd: B) {}
  *
  *     [Eq.eq]<A extends Eq<A>, B extends Eq<B>>(
@@ -1112,7 +1112,7 @@ export namespace Ordering {
 /**
  * A helper type for reversing order.
  */
-export class Reverse<A> {
+export class Reverse<out A> {
     readonly val: A;
 
     constructor(val: A) {

@@ -16,7 +16,7 @@
 
 type Node<A> = undefined | readonly [A, Node<A>];
 
-export class MutStack<A> {
+export class MutStack<out A> {
     #hd: Node<A> = undefined;
 
     push(x: A): void {

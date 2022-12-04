@@ -162,7 +162,7 @@
  * ```ts
  * import { Semigroup } from "@neotype/prelude/cmb.js";
  *
- * class Concat<A> {
+ * class Concat<out A> {
  *     constructor(readonly val: A[]) {}
  *
  *     [Semigroup.cmb](that: Concat<A>): Concat<A> {
@@ -182,7 +182,7 @@
  * ```ts
  * import { cmb, Semigroup } from "@neotype/prelude/cmb.js";
  *
- * class Async<A> {
+ * class Async<out A> {
  *     constructor(readonly val: Promise<A>) {}
  *
  *     [Semigroup.cmb]<A extends Semigroup<A>>(
@@ -212,7 +212,7 @@
  * ```ts
  * import { cmb, Semigroup } from "@neotype/prelude/cmb.js";
  *
- * class Pair<A, B> {
+ * class Pair<out A, out B> {
  *     constructor(readonly fst: A, readonly snd: B) {}
  *
  *     [Semigroup.cmb]<A extends Semigroup<A>, B extends Semigroup<B>>(

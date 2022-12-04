@@ -133,13 +133,17 @@
  *
  * ```ts
  * type Tree<A> = Tip | Bin<A>;
- * type Tip = { typ: "Tip" };
- * type Bin<A> = {
- *     typ: "Bin",
- *     val: A,       // value
- *     lst: Tree<A>, // left subtree
- *     rst: Tree<A>, // right subtree
- * };
+ *
+ * interface Tip {
+ *     typ: "Tip";
+ * }
+ *
+ * interface Bin<out A> {
+ *     typ: "Bin";
+ *     val: A;       // value
+ *     lst: Tree<A>; // left subtree
+ *     rst: Tree<A>; // right subtree
+ * }
  *
  * const tip: Tree<never> = { typ: "Tip" };
  *
