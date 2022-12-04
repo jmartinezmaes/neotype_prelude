@@ -607,7 +607,7 @@ export namespace Maybe {
      * original function to their values and return the result in a `Just`;
      * otherwise, return `Nothing`.
      */
-    export function lift<T extends readonly unknown[], A>(
+    export function lift<T extends unknown[], A>(
         f: (...args: T) => A,
     ): (...maybes: { [K in keyof T]: Maybe<T[K]> }) => Maybe<A> {
         return (...maybes) => collect(maybes).map((args) => f(...args));

@@ -613,7 +613,7 @@ export namespace Either {
      * original function to their successes and succeed with the result;
      * otherwise, return the first failed `Either`.
      */
-    export function lift<T extends readonly unknown[], A>(
+    export function lift<T extends unknown[], A>(
         f: (...args: T) => A,
     ): <T1 extends { [K in keyof T]: Either<any, T[K]> }>(
         ...eithers: T1
