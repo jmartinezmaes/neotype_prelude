@@ -353,7 +353,7 @@
  * // inputs ["a","-4"]:
  * //   ["err: cannot parse 'a' as int"]
  * // inputs ["2","-7"]:
- * //   ["info: parse '2' ok","err: -7 is not even"]
+ * //   ["info: parse '2' ok","info: parse '-7' ok","err: -7 is not even"]
  * // inputs ["+42" "0x2A"]:
  * //   [["info: parse '+42' ok","info: parse '0x2A' ok"],[42,42]]
  * ```
@@ -385,7 +385,7 @@
  * // inputs ["a","-4"]:
  * //   ["err: cannot parse 'a' as int"]
  * // inputs ["2","-7"]:
- * //   ["info: parse '2' ok,"err: -7 is not even"]
+ * //   ["info: parse '2' ok","info: parse '-7' ok","err: -7 is not even"]
  * // inputs ["+42" "0x2A"]:
  * //   [["info: parse '+42' ok","info: parse '0x2A' ok"],[42]]
  * ```
@@ -416,7 +416,7 @@
  * // inputs ["a","-4"]:
  * //   ["err: cannot parse 'a' as int"]
  * // inputs ["2","-7"]:
- * //   ["info: parse '2' ok,"err: -7 is not even"]
+ * //   ["info: parse '2' ok","info: parse '-7' ok","err: -7 is not even"]
  * // inputs ["+42" "0x2A"]:
  * //   [["info: parse '+42' ok","info: parse '0x2A' ok"],{"+42":42,"0x2A":42}]
  * ```
@@ -444,7 +444,7 @@
  * // inputs ["a","-4"]:
  * //   ["err: cannot parse 'a' as int"]
  * // inputs ["2","-7"]:
- * //   ["info: parse '2' ok,"err: -7 is not even"]
+ * //   ["info: parse '2' ok","info: parse '-7' ok","err: -7 is not even"]
  * // inputs ["+42" "0x2A"]:
  * //   [["info: parse '+42' ok","info: parse '0x2A' ok"],84]
  * ```
