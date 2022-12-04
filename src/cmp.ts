@@ -134,8 +134,8 @@
  *
  * ## Reversing order
  *
- * The `Reverse` class reverses the order of an underlying `Ord` value, and
- * provides pass-through implementations for `Eq` and `Semigroup`.
+ * The `Reverse` class provides an implementation for `Ord` that reverses the 
+ * order of an underlying implementor of `Ord`.
  *
  * ## Working with generic equivalence relations and total orders
  *
@@ -179,7 +179,7 @@
  * @module
  */
 
-import { cmb, Semigroup } from "./cmb.js";
+import { Semigroup } from "./cmb.js";
 
 /**
  * An interface that provides evidence of an [equivalence relation].
@@ -1125,12 +1125,5 @@ export class Reverse<out A> {
 
     [Ord.cmp]<A extends Ord<A>>(this: Reverse<A>, that: Reverse<A>): Ordering {
         return cmp(this.val, that.val).reverse();
-    }
-
-    [Semigroup.cmb]<A extends Semigroup<A>>(
-        this: Reverse<A>,
-        that: Reverse<A>,
-    ): Reverse<A> {
-        return new Reverse(cmb(this.val, that.val));
     }
 }

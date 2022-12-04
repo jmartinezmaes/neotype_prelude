@@ -21,14 +21,10 @@ import {
     Ordering,
     Reverse,
 } from "../src/cmp.js";
-import { arbNum, arbStr, Num, Str } from "./common.js";
+import { arbNum, Num } from "./common.js";
 
 function arbRevNum(): fc.Arbitrary<Reverse<Num>> {
     return arbNum().map((x) => new Reverse(x));
-}
-
-function arbRevStr(): fc.Arbitrary<Reverse<Str>> {
-    return arbStr().map((x) => new Reverse(x));
 }
 
 describe("Eq", () => {
@@ -428,14 +424,6 @@ describe("Reverse", () => {
         fc.assert(
             fc.property(arbRevNum(), arbRevNum(), (x, y) =>
                 assert.strictEqual(cmp(x, y), cmp(x.val, y.val).reverse()),
-            ),
-        );
-    });
-
-    specify("#[Semigroup.cmb]", () => {
-        fc.assert(
-            fc.property(arbRevStr(), arbRevStr(), (x, y) =>
-                assert.deepEqual(cmb(x, y), new Reverse(cmb(x.val, y.val))),
             ),
         );
     });
