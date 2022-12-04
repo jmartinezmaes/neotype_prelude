@@ -537,8 +537,7 @@ export class Eval<out A> {
         // eslint-disable-next-line @typescript-eslint/no-this-alias
         let c: Eval<any> = this;
 
-        // eslint-disable-next-line no-constant-condition
-        while (true) {
+        for (;;) {
             switch (c.#i.t) {
                 case Instr.Tag.Now: {
                     const k = ks.pop();

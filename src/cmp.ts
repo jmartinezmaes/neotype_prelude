@@ -454,18 +454,17 @@ export function ieqBy<A>(
 ): boolean {
     const nxs = xs[Symbol.iterator]();
     const nys = ys[Symbol.iterator]();
-    let nx = nxs.next();
-    let ny = nys.next();
 
-    // eslint-disable-next-line no-constant-condition
-    while (true) {
+    for (
+        let nx = nxs.next(), ny = nys.next();
+        ;
+        nx = nxs.next(), ny = nys.next()
+    ) {
         if (!nx.done) {
             if (!ny.done) {
                 if (!f(nx.value, ny.value)) {
                     return false;
                 }
-                nx = nxs.next();
-                ny = nys.next();
             } else {
                 return false;
             }
@@ -800,19 +799,18 @@ export function icmpBy<A>(
 ): Ordering {
     const nxs = xs[Symbol.iterator]();
     const nys = ys[Symbol.iterator]();
-    let nx = nxs.next();
-    let ny = nys.next();
 
-    // eslint-disable-next-line no-constant-condition
-    while (true) {
+    for (
+        let nx = nxs.next(), ny = nys.next();
+        ;
+        nx = nxs.next(), ny = nys.next()
+    ) {
         if (!nx.done) {
             if (!ny.done) {
                 const ordering = f(nx.value, ny.value);
                 if (ordering.isNe()) {
                     return ordering;
                 }
-                nx = nxs.next();
-                ny = nys.next();
             } else {
                 return Ordering.greater;
             }
