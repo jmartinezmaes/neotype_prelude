@@ -233,6 +233,19 @@ describe("Ordering", () => {
                 }
             }),
         );
+
+        fc.assert(
+            fc.property(fc.bigInt(), (x) => {
+                const t0 = Ordering.fromNumber(x);
+                if (x < 0) {
+                    assert.strictEqual(t0, Ordering.less);
+                } else if (x > 0) {
+                    assert.strictEqual(t0, Ordering.greater);
+                } else {
+                    assert.strictEqual(t0, Ordering.equal);
+                }
+            }),
+        );
     });
 
     specify("#[Eq.eq]", () => {
