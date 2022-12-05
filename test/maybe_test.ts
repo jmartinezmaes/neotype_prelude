@@ -30,6 +30,17 @@ describe("Maybe", () => {
         assert.deepEqual(t2, Maybe.just(_1));
     });
 
+    specify("Maybe.wrapFn", () => {
+        const t0 = Maybe.wrapFn<[1], 1>(() => undefined)(_1);
+        assert.deepEqual(t0, Maybe.nothing);
+
+        const t1 = Maybe.wrapFn<[1], 1>(() => null)(_1);
+        assert.deepEqual(t1, Maybe.nothing);
+
+        const t2 = Maybe.wrapFn<[1], 1>((x) => x)(_1);
+        assert.deepEqual(t2, Maybe.just(_1));
+    });
+
     specify("Maybe.wrapPred", () => {
         const f = (x: 1 | 2): x is 1 => x === _1;
 
