@@ -1,6 +1,6 @@
 import { assert } from "chai";
 import * as fc from "fast-check";
-import { id, negate, wrapCtor } from "../src/fn.js";
+import { id, negatePred, wrapCtor } from "../src/fn.js";
 
 describe("Functions", () => {
     specify("id", () => {
@@ -12,11 +12,11 @@ describe("Functions", () => {
         );
     });
 
-    specify("negate", () => {
+    specify("negatePred", () => {
         function f(x: 1 | 2): x is 2 {
             return x === 2;
         }
-        const g = negate(f);
+        const g = negatePred(f);
 
         assert.strictEqual(f(1), false);
         assert.strictEqual(f(2), true);

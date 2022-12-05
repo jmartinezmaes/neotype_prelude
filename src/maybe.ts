@@ -64,16 +64,17 @@
  *
  * ## Constructing `Maybe`
  *
- * The `nothing` constant is the singleton instance of of the `Nothing` variant
- * of `Maybe`.
+ * The `nothing` constant is the singleton instance of the absent `Maybe`.
  *
  * These functions construct a `Maybe`:
  *
- * -   `just` constructs a `Just` variant.
+ * -   `just` constructs a present `Maybe`.
  * -   `fromMissing` constructs a `Maybe` from a value that is potentially
- *     `null` or `undefined`, and converts such values to `Nothing`.
- * -   `guard` constructs a `Maybe` from applying a predicate function to a
- *     value.
+ *     `null` or `undefined`.
+ *
+ * These functions adapt other functions to return a `Maybe`:
+ *
+ * -   `wrapPred` adapts a predicate.
  *
  * ## Querying and narrowing the variant
  *
@@ -434,18 +435,21 @@ export namespace Maybe {
     }
 
     /**
-     * Apply a predicate function to a value. If the predicate returns `true`,
-     * return the value in a `Just`; otherwise, return `Nothing`.
+     * Adapt a predicate into a function that returns a `Maybe`.
+     *
+     * @remarks
+     *
+     * If the predicate returns `true`, return the argument in a `Just`;
+     * otherwise, return `Nothing`.
      */
-    export function guard<A, A1 extends A>(
-        x: A,
+    export function wrapPred<A, A1 extends A>(
         f: (x: A) => x is A1,
-    ): Maybe<A1>;
+    ): (x: A) => Maybe<A1>;
 
-    export function guard<A>(x: A, f: (x: A) => boolean): Maybe<A>;
+    export function wrapPred<A>(f: (x: A) => boolean): (x: A) => Maybe<A>;
 
-    export function guard<A>(x: A, f: (x: A) => boolean): Maybe<A> {
-        return f(x) ? just(x) : nothing;
+    export function wrapPred<A>(f: (x: A) => boolean): (x: A) => Maybe<A> {
+        return (x) => (f(x) ? just(x) : nothing);
     }
 
     /**
