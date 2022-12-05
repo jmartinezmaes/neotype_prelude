@@ -74,6 +74,7 @@
  *
  * These functions adapt other functions to return a `Maybe`:
  *
+ * -   `wrapFn` adapts a function that may return `null` or `undefined`.
  * -   `wrapPred` adapts a predicate.
  *
  * ## Querying and narrowing the variant
@@ -432,6 +433,21 @@ export namespace Maybe {
      */
     export function fromMissing<A>(x: A | null | undefined): Maybe<A> {
         return x === null || x === undefined ? nothing : just(x);
+    }
+
+    /**
+     * Adapt a function that may return `null` or `undefined` into a function
+     * that returns a `Maybe`.
+     *
+     * @remarks
+     *
+     * If the function returns `null` or `undefined`, return `Nothing`;
+     * otherwise, return the result in a `Just`.
+     */
+    export function wrapFn<T extends unknown[], A>(
+        f: (...args: T) => A | null | undefined,
+    ): (...args: T) => Maybe<A> {
+        return (...args) => fromMissing(f(...args));
     }
 
     /**
