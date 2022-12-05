@@ -40,17 +40,18 @@ export function constant<A>(x: A): (...args: any[]) => A {
 }
 
 /**
- * Reverse a refinement function or a predicate function.
+ * Adapt a predicate of any arity into an identical predicate that negates its
+ * result.
  */
-export function negate<A, A1 extends A>(
+export function negatePred<A, A1 extends A>(
     f: (x: A) => x is A1,
 ): (x: A) => x is Exclude<A, A1>;
 
-export function negate<T extends unknown[]>(
+export function negatePred<T extends unknown[]>(
     f: (...args: T) => boolean,
 ): (...args: T) => boolean;
 
-export function negate<T extends unknown[]>(
+export function negatePred<T extends unknown[]>(
     f: (...args: T) => boolean,
 ): (...args: T) => boolean {
     return (...args) => !f(...args);

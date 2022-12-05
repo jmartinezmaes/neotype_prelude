@@ -30,13 +30,13 @@ describe("Maybe", () => {
         assert.deepEqual(t2, Maybe.just(_1));
     });
 
-    specify("Maybe.guard", () => {
+    specify("Maybe.wrapPred", () => {
         const f = (x: 1 | 2): x is 1 => x === _1;
 
-        const t0 = Maybe.guard(_1 as 1 | 2, f);
+        const t0 = Maybe.wrapPred(f)(_1 as 1 | 2);
         assert.deepEqual(t0, Maybe.just(_1));
 
-        const t1 = Maybe.guard(_2 as 1 | 2, f);
+        const t1 = Maybe.wrapPred(f)(_2 as 1 | 2);
         assert.deepEqual(t1, Maybe.nothing);
     });
 

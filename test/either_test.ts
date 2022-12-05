@@ -20,16 +20,6 @@ const _3 = 3 as const;
 const _4 = 4 as const;
 
 describe("Either", () => {
-    specify("Either.guard", () => {
-        const f = (x: 2 | 4): x is 2 => x === _2;
-
-        const t0 = Either.guard(_2 as 2 | 4, f);
-        assert.deepEqual(t0, Either.right(_2));
-
-        const t1 = Either.guard(_4 as 2 | 4, f);
-        assert.deepEqual(t1, Either.left(_4));
-    });
-
     specify("Either.fromValidation", () => {
         const t0 = Either.fromValidation(Validation.err<1, 2>(_1));
         assert.deepEqual(t0, Either.left(_1));

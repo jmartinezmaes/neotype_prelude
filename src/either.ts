@@ -75,8 +75,6 @@
  *
  * -   `left` constructs a left-sided `Either`.
  * -   `right` constructs a right-sided `Either`.
- * -   `guard` constructs an `Either` from applying a predicate function to a
- *     value.
  * -   `fromValidation` constructs an `Either` from a `Validation`.
  *
  * ## Querying and narrowing the variant
@@ -422,21 +420,6 @@ export namespace Either {
      */
     export function right<B, A = never>(x: B): Either<A, B> {
         return new Right(x);
-    }
-
-    /**
-     * Apply a predicate function to a value. If the predicate returns `true`,
-     * return the value in `Right`; otherwise, return the value in `Left`.
-     */
-    export function guard<A, A1 extends A>(
-        x: A,
-        f: (x: A) => x is A1,
-    ): Either<Exclude<A, A1>, A1>;
-
-    export function guard<A>(x: A, f: (x: A) => boolean): Either<A, A>;
-
-    export function guard<A>(x: A, f: (x: A) => boolean): Either<A, A> {
-        return f(x) ? right(x) : left(x);
     }
 
     /**
