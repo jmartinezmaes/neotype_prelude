@@ -40,8 +40,7 @@ export function constant<A>(x: A): (...args: any[]) => A {
 }
 
 /**
- * Adapt a predicate of any arity into an identical predicate that negates its
- * result.
+ * Adapt a predicate into an identical predicate that negates its result.
  */
 export function negatePred<A, A1 extends A>(
     f: (x: A) => x is A1,
@@ -58,7 +57,7 @@ export function negatePred<T extends unknown[]>(
 }
 
 /**
- * Adapt a constructor of any arity into a callable function.
+ * Adapt a constructor into a callable function.
  */
 export function wrapCtor<T extends unknown[], A>(
     ctor: new (...args: T) => A,

@@ -586,7 +586,7 @@ export namespace Either {
     }
 
     /**
-     * Lift a function of any arity into the context of `Either`.
+     * Lift a function into the context of `Either`.
      *
      * @remarks
      *

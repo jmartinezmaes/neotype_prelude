@@ -692,7 +692,7 @@ export namespace Ior {
     }
 
     /**
-     * Lift a function of any arity into the context of `Ior`.
+     * Lift a function into the context of `Ior`.
      *
      * @remarks
      *

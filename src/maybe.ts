@@ -601,7 +601,7 @@ export namespace Maybe {
     }
 
     /**
-     * Lift a function of any arity into the context of `Maybe`.
+     * Lift a function into the context of `Maybe`.
      *
      * @remarks
      *
