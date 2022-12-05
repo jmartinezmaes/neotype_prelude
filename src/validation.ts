@@ -484,7 +484,7 @@ export namespace Validation {
     }
 
     /**
-     * Lift a function of any arity into the context of `Validation`.
+     * Lift a function into the context of `Validation`.
      *
      * @remarks
      *

@@ -452,7 +452,7 @@ export class Eval<out A> {
     }
 
     /**
-     * Lift a function of any arity into the context of `Eval`.
+     * Lift a function into the context of `Eval`.
      *
      * @remarks
      *
