@@ -141,5 +141,9 @@
             }
         ],
         "proseWrap": "always"
+    },
+    "volta": {
+        "node": "18.12.1",
+        "npm": "9.1.3"
     }
 }
