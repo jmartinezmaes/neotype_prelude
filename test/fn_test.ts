@@ -2,7 +2,7 @@ import { assert } from "chai";
 import * as fc from "fast-check";
 import { id, negatePred, wrapCtor } from "../src/fn.js";
 
-describe("Functions", () => {
+describe("fn.js", () => {
     specify("id", () => {
         fc.assert(
             fc.property(
