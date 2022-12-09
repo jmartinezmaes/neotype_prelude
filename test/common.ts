@@ -21,10 +21,6 @@ export class Num implements Ord<Num> {
     }
 }
 
-export function arbNum(): fc.Arbitrary<Num> {
-    return fc.float({ noNaN: true }).map((x) => new Num(x));
-}
-
 export class Str implements Semigroup<Str> {
     constructor(readonly val: string) {}
 
@@ -33,19 +29,33 @@ export class Str implements Semigroup<Str> {
     }
 }
 
-export function arbStr(): fc.Arbitrary<Str> {
-    return fc.string().map((x) => new Str(x));
-}
-
 export function tuple<A, B>(x: A, y: B): readonly [A, B] {
     return [x, y] as const;
+}
+
+export namespace arb {
+    export function float(): fc.Arbitrary<number> {
+        return fc.float({ noNaN: true });
+    }
+
+    export function bigint(): fc.Arbitrary<bigint> {
+        return fc.bigInt();
+    }
+
+    export function num(): fc.Arbitrary<Num> {
+        return float().map((x) => new Num(x));
+    }
+
+    export function str(): fc.Arbitrary<Str> {
+        return fc.string().map((x) => new Str(x));
+    }
 }
 
 describe("common.js", () => {
     describe("Num", () => {
         specify("#[Eq.eq]", () => {
             fc.assert(
-                fc.property(arbNum(), arbNum(), (x, y) =>
+                fc.property(arb.num(), arb.num(), (x, y) =>
                     assert.strictEqual(eq(x, y), x.val === y.val),
                 ),
             );
@@ -53,7 +63,7 @@ describe("common.js", () => {
 
         specify("#[Ord.cmp]", () => {
             fc.assert(
-                fc.property(arbNum(), arbNum(), (x, y) =>
+                fc.property(arb.num(), arb.num(), (x, y) =>
                     assert.strictEqual(
                         cmp(x, y),
                         x.val < y.val
@@ -70,7 +80,7 @@ describe("common.js", () => {
     describe("Str", () => {
         specify("#[Semigroup.cmb]", () => {
             fc.assert(
-                fc.property(arbStr(), arbStr(), (x, y) =>
+                fc.property(arb.str(), arb.str(), (x, y) =>
                     assert.deepEqual(cmb(x, y), new Str(x.val + y.val)),
                 ),
             );

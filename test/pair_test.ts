@@ -3,7 +3,7 @@ import * as fc from "fast-check";
 import { cmb } from "../src/cmb.js";
 import { cmp, eq } from "../src/cmp.js";
 import { Pair } from "../src/pair.js";
-import { arbNum, arbStr, tuple } from "./common.js";
+import { arb, tuple } from "./common.js";
 
 const _1 = 1 as const;
 const _2 = 2 as const;
@@ -20,10 +20,10 @@ describe("pair.js", () => {
         specify("#[Eq.eq]", () => {
             fc.assert(
                 fc.property(
-                    arbNum(),
-                    arbNum(),
-                    arbNum(),
-                    arbNum(),
+                    arb.num(),
+                    arb.num(),
+                    arb.num(),
+                    arb.num(),
                     (a, x, b, y) => {
                         const t0 = eq(new Pair(a, x), new Pair(b, y));
                         assert.strictEqual(t0, eq(a, b) && eq(x, y));
@@ -35,10 +35,10 @@ describe("pair.js", () => {
         specify("#[Ord.cmp]", () => {
             fc.assert(
                 fc.property(
-                    arbNum(),
-                    arbNum(),
-                    arbNum(),
-                    arbNum(),
+                    arb.num(),
+                    arb.num(),
+                    arb.num(),
+                    arb.num(),
                     (a, x, b, y) => {
                         const t0 = cmp(new Pair(a, x), new Pair(b, y));
                         assert.strictEqual(t0, cmb(cmp(a, b), cmp(x, y)));
@@ -50,10 +50,10 @@ describe("pair.js", () => {
         specify("#[Semigroup.cmb]", () => {
             fc.assert(
                 fc.property(
-                    arbStr(),
-                    arbStr(),
-                    arbStr(),
-                    arbStr(),
+                    arb.str(),
+                    arb.str(),
+                    arb.str(),
+                    arb.str(),
                     (a, x, b, y) => {
                         const t0 = cmb(new Pair(a, x), new Pair(b, y));
                         assert.deepEqual(t0, new Pair(cmb(a, b), cmb(x, y)));

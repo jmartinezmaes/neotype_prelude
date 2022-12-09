@@ -4,10 +4,17 @@ import { cmb } from "../src/cmb.js";
 import { cmp, eq, Ordering } from "../src/cmp.js";
 import { Either } from "../src/either.js";
 import { Validation } from "../src/validation.js";
-import { arbNum, arbStr, Str, tuple } from "./common.js";
+import { arb, Str, tuple } from "./common.js";
 
-function mk<A, B>(t: "Err" | "Ok", x: A, y: B): Validation<A, B> {
-    return t === "Err" ? Validation.err(x) : Validation.ok(y);
+namespace t {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    export function err<E, A>(x: E, _: A): Validation<E, A> {
+        return Validation.err(x);
+    }
+
+    export function ok<E, A>(_: E, y: A): Validation<E, A> {
+        return Validation.ok(y);
+    }
 }
 
 const _1 = 1 as const;
@@ -15,8 +22,8 @@ const _2 = 2 as const;
 const _3 = 3 as const;
 const _4 = 4 as const;
 
-const sa = new Str("a");
-const sc = new Str("c");
+const str_a = new Str("a");
+const str_c = new Str("c");
 
 describe("validation.js", () => {
     describe("Validation", () => {
@@ -30,67 +37,67 @@ describe("validation.js", () => {
 
         specify("collect", () => {
             const t0 = Validation.collect([
-                mk("Err", sa, _2),
-                mk("Err", sc, _4),
+                t.err(str_a, _2),
+                t.err(str_c, _4),
             ] as const);
-            assert.deepEqual(t0, Validation.err(cmb(sa, sc)));
+            assert.deepEqual(t0, Validation.err(cmb(str_a, str_c)));
 
             const t1 = Validation.collect([
-                mk("Err", sa, _2),
-                mk("Ok", sc, _4),
+                t.err(str_a, _2),
+                t.ok(str_c, _4),
             ] as const);
-            assert.deepEqual(t1, Validation.err(sa));
+            assert.deepEqual(t1, Validation.err(str_a));
 
             const t2 = Validation.collect([
-                mk("Ok", sa, _2),
-                mk("Err", sc, _4),
+                t.ok(str_a, _2),
+                t.err(str_c, _4),
             ] as const);
-            assert.deepEqual(t2, Validation.err(sc));
+            assert.deepEqual(t2, Validation.err(str_c));
 
             const t3 = Validation.collect([
-                mk("Ok", sa, _2),
-                mk("Ok", sc, _4),
+                t.ok(str_a, _2),
+                t.ok(str_c, _4),
             ] as const);
             assert.deepEqual(t3, Validation.ok([_2, _4] as const));
         });
 
         specify("gather", () => {
             const t0 = Validation.gather({
-                x: mk("Err", sa, _2),
-                y: mk("Err", sc, _4),
+                x: t.err(str_a, _2),
+                y: t.err(str_c, _4),
             });
-            assert.deepEqual(t0, Validation.err(cmb(sa, sc)));
+            assert.deepEqual(t0, Validation.err(cmb(str_a, str_c)));
 
             const t1 = Validation.gather({
-                x: mk("Err", sa, _2),
-                y: mk("Ok", sc, _4),
+                x: t.err(str_a, _2),
+                y: t.ok(str_c, _4),
             });
-            assert.deepEqual(t1, Validation.err(sa));
+            assert.deepEqual(t1, Validation.err(str_a));
 
             const t2 = Validation.gather({
-                x: mk("Ok", sa, _2),
-                y: mk("Err", sc, _4),
+                x: t.ok(str_a, _2),
+                y: t.err(str_c, _4),
             });
-            assert.deepEqual(t2, Validation.err(sc));
+            assert.deepEqual(t2, Validation.err(str_c));
 
             const t3 = Validation.gather({
-                x: mk("Ok", sa, _2),
-                y: mk("Ok", sc, _4),
+                x: t.ok(str_a, _2),
+                y: t.ok(str_c, _4),
             });
             assert.deepEqual(t3, Validation.ok({ x: _2, y: _4 }));
         });
 
         specify("lift", () => {
             const t0 = Validation.lift(tuple<2, 4>)(
-                mk("Ok", sa, _2),
-                mk("Ok", sc, _4),
+                t.ok(str_a, _2),
+                t.ok(str_c, _4),
             );
             assert.deepEqual(t0, Validation.ok([_2, _4] as const));
         });
 
         specify("#[Eq.eq]", () => {
             fc.assert(
-                fc.property(arbNum(), arbNum(), (x, y) => {
+                fc.property(arb.num(), arb.num(), (x, y) => {
                     const t0 = eq(Validation.err(x), Validation.err(y));
                     assert.strictEqual(t0, eq(x, y));
 
@@ -108,7 +115,7 @@ describe("validation.js", () => {
 
         specify("#[Ord.cmp]", () => {
             fc.assert(
-                fc.property(arbNum(), arbNum(), (x, y) => {
+                fc.property(arb.num(), arb.num(), (x, y) => {
                     const t0 = cmp(Validation.err(x), Validation.err(y));
                     assert.strictEqual(t0, cmp(x, y));
 
@@ -126,7 +133,7 @@ describe("validation.js", () => {
 
         specify("#[Semigroup.cmb]", () => {
             fc.assert(
-                fc.property(arbStr(), arbStr(), (x, y) => {
+                fc.property(arb.str(), arb.str(), (x, y) => {
                     const t0 = cmb(Validation.err(x), Validation.err(y));
                     assert.deepEqual(t0, Validation.err(cmb(x, y)));
 
@@ -143,29 +150,29 @@ describe("validation.js", () => {
         });
 
         specify("#isErr", () => {
-            const t0 = mk("Err", _1, _2).isErr();
+            const t0 = t.err(_1, _2).isErr();
             assert.strictEqual(t0, true);
 
-            const t1 = mk("Ok", _1, _2).isErr();
+            const t1 = t.ok(_1, _2).isErr();
             assert.strictEqual(t1, false);
         });
 
         specify("#isOk", () => {
-            const t0 = mk("Err", _1, _2).isOk();
+            const t0 = t.err(_1, _2).isOk();
             assert.strictEqual(t0, false);
 
-            const t1 = mk("Ok", _1, _2).isOk();
+            const t1 = t.ok(_1, _2).isOk();
             assert.strictEqual(t1, true);
         });
 
         specify("#unwrap", () => {
-            const t0 = mk("Err", _1, _2).unwrap(
+            const t0 = t.err(_1, _2).unwrap(
                 (x) => tuple(x, _3),
                 (x) => tuple(x, _4),
             );
             assert.deepEqual(t0, [_1, _3]);
 
-            const t1 = mk("Ok", _1, _2).unwrap(
+            const t1 = t.ok(_1, _2).unwrap(
                 (x) => tuple(x, _3),
                 (x) => tuple(x, _4),
             );
@@ -173,53 +180,53 @@ describe("validation.js", () => {
         });
 
         specify("#zipWith", () => {
-            const t0 = mk("Err", sa, _2).zipWith(mk("Err", sc, _4), tuple);
-            assert.deepEqual(t0, Validation.err(cmb(sa, sc)));
+            const t0 = t.err(str_a, _2).zipWith(t.err(str_c, _4), tuple);
+            assert.deepEqual(t0, Validation.err(cmb(str_a, str_c)));
 
-            const t1 = mk("Err", sa, _2).zipWith(mk("Ok", sc, _4), tuple);
-            assert.deepEqual(t1, Validation.err(sa));
+            const t1 = t.err(str_a, _2).zipWith(t.ok(str_c, _4), tuple);
+            assert.deepEqual(t1, Validation.err(str_a));
 
-            const t2 = mk("Ok", sa, _2).zipWith(mk("Err", sc, _4), tuple);
-            assert.deepEqual(t2, Validation.err(sc));
+            const t2 = t.ok(str_a, _2).zipWith(t.err(str_c, _4), tuple);
+            assert.deepEqual(t2, Validation.err(str_c));
 
-            const t3 = mk("Ok", sa, _2).zipWith(mk("Ok", sc, _4), tuple);
+            const t3 = t.ok(str_a, _2).zipWith(t.ok(str_c, _4), tuple);
             assert.deepEqual(t3, Validation.ok([_2, _4] as const));
         });
 
         specify("#zipFst", () => {
-            const t0 = mk("Ok", sa, _2).zipFst(mk("Ok", sc, _4));
+            const t0 = t.ok(str_a, _2).zipFst(t.ok(str_c, _4));
             assert.deepEqual(t0, Validation.ok(_2));
         });
 
         specify("#zipSnd", () => {
-            const t0 = mk("Ok", sa, _2).zipSnd(mk("Ok", sc, _4));
+            const t0 = t.ok(str_a, _2).zipSnd(t.ok(str_c, _4));
             assert.deepEqual(t0, Validation.ok(_4));
         });
 
         specify("#map", () => {
-            const t0 = mk("Err", _1, _2).map((x) => tuple(x, _4));
+            const t0 = t.err(_1, _2).map((x) => tuple(x, _4));
             assert.deepEqual(t0, Validation.err(_1));
 
-            const t1 = mk("Ok", _1, _2).map((x) => tuple(x, _4));
+            const t1 = t.ok(_1, _2).map((x) => tuple(x, _4));
             assert.deepEqual(t1, Validation.ok([_2, _4] as const));
         });
 
         specify("#lmap", () => {
-            const t0 = mk("Err", _1, _2).lmap((x) => tuple(x, _3));
+            const t0 = t.err(_1, _2).lmap((x) => tuple(x, _3));
             assert.deepEqual(t0, Validation.err([_1, _3] as const));
 
-            const t1 = mk("Ok", _1, _2).lmap((x) => tuple(x, _3));
+            const t1 = t.ok(_1, _2).lmap((x) => tuple(x, _3));
             assert.deepEqual(t1, Validation.ok(_2));
         });
 
         specify("#bimap", () => {
-            const t0 = mk("Err", _1, _2).bimap(
+            const t0 = t.err(_1, _2).bimap(
                 (x) => tuple(x, _3),
                 (x) => tuple(x, _4),
             );
             assert.deepEqual(t0, Validation.err([_1, _3] as const));
 
-            const t1 = mk("Ok", _1, _2).bimap(
+            const t1 = t.ok(_1, _2).bimap(
                 (x) => tuple(x, _3),
                 (x) => tuple(x, _4),
             );

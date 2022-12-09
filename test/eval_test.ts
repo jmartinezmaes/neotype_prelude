@@ -2,9 +2,7 @@ import { assert } from "chai";
 import * as fc from "fast-check";
 import { cmb } from "../src/cmb.js";
 import { Eval } from "../src/eval.js";
-import { arbStr, tuple } from "./common.js";
-
-const mk = Eval.now;
+import { arb, tuple } from "./common.js";
 
 const _1 = 1 as const;
 const _2 = 2 as const;
@@ -41,64 +39,64 @@ describe("eval.js", () => {
 
         specify("go", () => {
             const t0 = Eval.go(function* () {
-                const x = yield* mk(_1);
-                const [y, z] = yield* mk(tuple(x, _2));
+                const x = yield* Eval.now(_1);
+                const [y, z] = yield* Eval.now(tuple(x, _2));
                 return [x, y, z] as const;
             });
             assert.deepEqual(t0.run(), [_1, _1, _2]);
         });
 
         specify("reduce", () => {
-            const t0 = Eval.reduce(["x", "y"], (xs, x) => mk(xs + x), "");
+            const t0 = Eval.reduce(["x", "y"], (xs, x) => Eval.now(xs + x), "");
             assert.deepEqual(t0.run(), "xy");
         });
 
         specify("collect", () => {
-            const t0 = Eval.collect([mk(_1), mk(_2)] as const);
+            const t0 = Eval.collect([Eval.now(_1), Eval.now(_2)] as const);
             assert.deepEqual(t0.run(), [_1, _2]);
         });
 
         specify("gather", () => {
-            const t0 = Eval.gather({ x: mk(_1), y: mk(_2) });
+            const t0 = Eval.gather({ x: Eval.now(_1), y: Eval.now(_2) });
             assert.deepEqual(t0.run(), { x: _1, y: _2 });
         });
 
         specify("lift", () => {
-            const t0 = Eval.lift(tuple)(mk(_1), mk(_2));
+            const t0 = Eval.lift(tuple)(Eval.now(_1), Eval.now(_2));
             assert.deepEqual(t0.run(), [_1, _2]);
         });
 
         specify("#[Semigroup.cmb]", () => {
             fc.assert(
-                fc.property(arbStr(), arbStr(), (x, y) => {
-                    const t0 = cmb(mk(x), mk(y));
+                fc.property(arb.str(), arb.str(), (x, y) => {
+                    const t0 = cmb(Eval.now(x), Eval.now(y));
                     assert.deepEqual(t0.run(), cmb(x, y));
                 }),
             );
         });
 
         specify("#flatMap", () => {
-            const t0 = mk(_1).flatMap((x) => mk(tuple(x, _2)));
+            const t0 = Eval.now(_1).flatMap((x) => Eval.now(tuple(x, _2)));
             assert.deepEqual(t0.run(), [_1, _2]);
         });
 
         specify("#zipWith", () => {
-            const t0 = mk(_1).zipWith(mk(_2), tuple);
+            const t0 = Eval.now(_1).zipWith(Eval.now(_2), tuple);
             assert.deepEqual(t0.run(), [_1, _2]);
         });
 
         specify("#zipFst", () => {
-            const t0 = mk(_1).zipFst(mk(_2));
+            const t0 = Eval.now(_1).zipFst(Eval.now(_2));
             assert.strictEqual(t0.run(), _1);
         });
 
         specify("#zipSnd", () => {
-            const t0 = mk(_1).zipSnd(mk(_2));
+            const t0 = Eval.now(_1).zipSnd(Eval.now(_2));
             assert.strictEqual(t0.run(), _2);
         });
 
         specify("#map", () => {
-            const t0 = mk(_1).map((x) => tuple(x, _2));
+            const t0 = Eval.now(_1).map((x) => tuple(x, _2));
             assert.deepEqual(t0.run(), [_1, _2]);
         });
     });

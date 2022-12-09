@@ -21,16 +21,12 @@ import {
     Ordering,
     Reverse,
 } from "../src/cmp.js";
-import { arbNum, Num } from "./common.js";
-
-function arbRevNum(): fc.Arbitrary<Reverse<Num>> {
-    return arbNum().map((x) => new Reverse(x));
-}
+import { arb, Num } from "./common.js";
 
 describe("cmp.js", () => {
     specify("eq", () => {
         fc.assert(
-            fc.property(arbNum(), arbNum(), (x, y) =>
+            fc.property(arb.num(), arb.num(), (x, y) =>
                 assert.strictEqual(eq(x, y), x[Eq.eq](y)),
             ),
         );
@@ -38,7 +34,7 @@ describe("cmp.js", () => {
 
     specify("ne", () => {
         fc.assert(
-            fc.property(arbNum(), arbNum(), (x, y) =>
+            fc.property(arb.num(), arb.num(), (x, y) =>
                 assert.strictEqual(ne(x, y), !x[Eq.eq](y)),
             ),
         );
@@ -50,10 +46,10 @@ describe("cmp.js", () => {
         }
         fc.assert(
             fc.property(
-                fc.float({ noNaN: true }),
-                fc.float({ noNaN: true }),
-                fc.float({ noNaN: true }),
-                fc.float({ noNaN: true }),
+                arb.float(),
+                arb.float(),
+                arb.float(),
+                arb.float(),
                 (a, x, b, y) => {
                     assert.strictEqual(ieqBy([a], [], comparer), false);
                     assert.strictEqual(ieqBy([], [b], comparer), false);
@@ -71,10 +67,10 @@ describe("cmp.js", () => {
     specify("ieq", () => {
         fc.assert(
             fc.property(
-                arbNum(),
-                arbNum(),
-                arbNum(),
-                arbNum(),
+                arb.num(),
+                arb.num(),
+                arb.num(),
+                arb.num(),
                 (a, x, b, y) => {
                     assert.strictEqual(ieq([a], []), false);
                     assert.strictEqual(ieq([], [b]), false);
@@ -91,7 +87,7 @@ describe("cmp.js", () => {
 
     specify("cmp", () => {
         fc.assert(
-            fc.property(arbNum(), arbNum(), (x, y) =>
+            fc.property(arb.num(), arb.num(), (x, y) =>
                 assert.strictEqual(cmp(x, y), x[Ord.cmp](y)),
             ),
         );
@@ -103,10 +99,10 @@ describe("cmp.js", () => {
         }
         fc.assert(
             fc.property(
-                fc.float({ noNaN: true }),
-                fc.float({ noNaN: true }),
-                fc.float({ noNaN: true }),
-                fc.float({ noNaN: true }),
+                arb.float(),
+                arb.float(),
+                arb.float(),
+                arb.float(),
                 (a, x, b, y) => {
                     assert.strictEqual(
                         icmpBy([a], [], comparer),
@@ -136,10 +132,10 @@ describe("cmp.js", () => {
     specify("icmp", () => {
         fc.assert(
             fc.property(
-                arbNum(),
-                arbNum(),
-                arbNum(),
-                arbNum(),
+                arb.num(),
+                arb.num(),
+                arb.num(),
+                arb.num(),
                 (a, x, b, y) => {
                     assert.strictEqual(icmp([a], []), Ordering.greater);
                     assert.strictEqual(icmp([], [b]), Ordering.less);
@@ -162,7 +158,7 @@ describe("cmp.js", () => {
 
     specify("lt", () => {
         fc.assert(
-            fc.property(arbNum(), arbNum(), (x, y) =>
+            fc.property(arb.num(), arb.num(), (x, y) =>
                 assert.strictEqual(lt(x, y), cmp(x, y).isLt()),
             ),
         );
@@ -170,7 +166,7 @@ describe("cmp.js", () => {
 
     specify("gt", () => {
         fc.assert(
-            fc.property(arbNum(), arbNum(), (x, y) =>
+            fc.property(arb.num(), arb.num(), (x, y) =>
                 assert.strictEqual(gt(x, y), cmp(x, y).isGt()),
             ),
         );
@@ -178,7 +174,7 @@ describe("cmp.js", () => {
 
     specify("le", () => {
         fc.assert(
-            fc.property(arbNum(), arbNum(), (x, y) =>
+            fc.property(arb.num(), arb.num(), (x, y) =>
                 assert.strictEqual(le(x, y), cmp(x, y).isLe()),
             ),
         );
@@ -186,7 +182,7 @@ describe("cmp.js", () => {
 
     specify("ge", () => {
         fc.assert(
-            fc.property(arbNum(), arbNum(), (x, y) =>
+            fc.property(arb.num(), arb.num(), (x, y) =>
                 assert.strictEqual(ge(x, y), cmp(x, y).isGe()),
             ),
         );
@@ -194,7 +190,7 @@ describe("cmp.js", () => {
 
     specify("min", () => {
         fc.assert(
-            fc.property(arbNum(), arbNum(), (x, y) =>
+            fc.property(arb.num(), arb.num(), (x, y) =>
                 assert.deepEqual(min(x, y), new Num(Math.min(x.val, y.val))),
             ),
         );
@@ -202,7 +198,7 @@ describe("cmp.js", () => {
 
     specify("max", () => {
         fc.assert(
-            fc.property(arbNum(), arbNum(), (x, y) =>
+            fc.property(arb.num(), arb.num(), (x, y) =>
                 assert.deepEqual(max(x, y), new Num(Math.max(x.val, y.val))),
             ),
         );
@@ -210,7 +206,7 @@ describe("cmp.js", () => {
 
     specify("clamp", () => {
         fc.assert(
-            fc.property(arbNum(), arbNum(), arbNum(), (x, y, z) => {
+            fc.property(arb.num(), arb.num(), arb.num(), (x, y, z) => {
                 assert.deepEqual(clamp(x, y, z), min(max(x, y), z));
             }),
         );
@@ -219,7 +215,7 @@ describe("cmp.js", () => {
     describe("Ordering", () => {
         specify("fromNumber", () => {
             fc.assert(
-                fc.property(fc.float({ noNaN: true }), (x) => {
+                fc.property(arb.float(), (x) => {
                     const t0 = Ordering.fromNumber(x);
                     if (x < 0) {
                         assert.strictEqual(t0, Ordering.less);
@@ -422,6 +418,10 @@ describe("cmp.js", () => {
     });
 
     describe("Reverse", () => {
+        function arbRevNum(): fc.Arbitrary<Reverse<Num>> {
+            return arb.num().map((x) => new Reverse(x));
+        }
+
         specify("#[Eq.eq]", () => {
             fc.assert(
                 fc.property(arbRevNum(), arbRevNum(), (x, y) =>
