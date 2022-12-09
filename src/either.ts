@@ -553,7 +553,7 @@ export namespace Either {
             for (const [idx, either] of eithers.entries()) {
                 results[idx] = yield* either;
             }
-            return results as { [K in keyof T]: RightT<T[K]> };
+            return results as unknown as { [K in keyof T]: RightT<T[K]> };
         });
     }
 
@@ -581,7 +581,7 @@ export namespace Either {
             for (const [key, either] of Object.entries(eithers)) {
                 results[key] = yield* either;
             }
-            return results as { [K in keyof T]: RightT<T[K]> };
+            return results as unknown as { [K in keyof T]: RightT<T[K]> };
         });
     }
 
