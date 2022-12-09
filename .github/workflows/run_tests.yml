@@ -8,25 +8,33 @@ on:
   workflow_dispatch:
 
 jobs:
-  test:
+  test_node:
+    name: Node.js v${{ matrix.node-version }}
     runs-on: ubuntu-latest
     strategy:
       matrix:
         node-version:
           - 16
           - 18
-    name: Node.js v${{ matrix.node-version }}
     steps:
-      - name: Checkout
-        uses: actions/checkout@v3
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v3
+      - uses: actions/checkout@v3
+      - uses: volta-cli/action@v3
         with:
           node-version: ${{ matrix.node-version }}
+      - run: npm ci
+      - run: npm test
 
-      - name: Clean-install dependencies
-        run: npm ci
-
-      - name: Run tests
-        run: npm test
+  test_ts:
+    name: TypeScript v${{ matrix.ts-version }}
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        ts-version:
+          - 4.7
+          - 4.8
+    steps:
+      - uses: actions/checkout@v3
+      - uses: volta-cli/action@v3
+      - run: npm ci
+      - run: npm i -D typescript@${{ matrix.ts-version }}
+      - run: npx mocha
