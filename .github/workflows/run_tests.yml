@@ -41,9 +41,10 @@ jobs:
         ts-version:
           - 4.7
           - 4.8
+          - 4.9
     steps:
       - uses: actions/checkout@v3
       - uses: volta-cli/action@v3
       - run: npm ci
-      - run: npm i -D typescript@${{ matrix.ts-version }}
+      - run: npm i -D typescript@~${{ matrix.ts-version }}
       - run: npx mocha
