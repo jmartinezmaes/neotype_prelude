@@ -140,7 +140,7 @@
  *
  * ## Working with generic equivalence relations and total orders
  *
- * Often, code must be written to accept arbitrary equivalence relations and
+ * Sometimes it is necessary to work with arbitrary equivalence relations and
  * total orders. To require that a generic type `A` implements `Eq` or `Ord`, we
  * write `A extends Eq<A>` or `A extends Ord<A>`, respectively.
  *
@@ -402,7 +402,7 @@ import { Semigroup } from "./cmb.js";
  */
 export interface Eq<in A> {
     /**
-     * Test whether this and `Eq` value are equal.
+     * Test whether this and that `Eq` value are equal.
      */
     [Eq.eq](that: A): boolean;
 }
@@ -903,7 +903,7 @@ export function max<A extends Ord<A>>(x: A, y: A): A {
  *
  * @remarks
  *
- * `clamp(x, lo, hi)` is equivalent to `min(max(x, lo, hi))`.
+ * `clamp(x, lo, hi)` is equivalent to `min(max(x, lo), hi)`.
  */
 export function clamp<A extends Ord<A>>(x: A, lo: A, hi: A) {
     return min(max(x, lo), hi);

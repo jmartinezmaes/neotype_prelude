@@ -15,7 +15,7 @@
  */
 
 /**
- * Control over synchronous execution.
+ * Control of synchronous execution.
  *
  * @remarks
  *
