@@ -29,12 +29,12 @@
  *
  * ### Handling failure with `Either`
  *
- * `Either` is also often used to represent a value which is either correct or a
- * failure. When using `Either` in this manner, the type is often written as
- * `Either<E, A>`, where:
+ * `Either` is also used to represent a value which is either a success or a
+ * failure. In this context, the type is written as `Either<E, A>` and its two
+ * variants are `Left<E>` and `Right<A>`.
  *
  * -   The `Left<E>` variant represents a *failed* `Either` and contains a
- *     *failure* of type `E`; and
+ *     *failure* of type `E`.
  * -   The `Right<A>` variant represents a *successful* `Either` and contains a
  *     *success* of type `A`.
  *

@@ -41,7 +41,7 @@
  *
  * ## Working with generic semigroups
  *
- * Often, code must be written to accept arbitrary semigroups. To require that
+ * Sometimes it is necessary to work with arbitrary semigroups. To require that
  * a generic type `A` implements `Semigroup`, we write `A extends Semigroup<A>`.
  *
  * @example Working with generic semigroups
