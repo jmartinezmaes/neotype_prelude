@@ -130,8 +130,6 @@
  *
  * These methods transform the value(s) within an `Ior`:
  *
- * -   `bimap` applies one or two functions to the left-hand and/or the
- *     right-hand value(s), depending on the variant.
  * -   `lmap` applies a function to the left-hand value.
  * -   `map` applies a function to the left-hand value.
  *
@@ -952,25 +950,6 @@ export namespace Ior {
             that: Ior<A, C>,
         ): Ior<A, C> {
             return this.flatMap(() => that);
-        }
-
-        /**
-         * Apply two functions to the left-hand and/or right-hand values of this
-         * `Ior`, and return the result(s) as left-hand and right-hand values,
-         * respectively.
-         */
-        bimap<A, B, C, D>(
-            this: Ior<A, B>,
-            lmap: (x: A) => C,
-            rmap: (x: B) => D,
-        ): Ior<C, D> {
-            if (this.isLeft()) {
-                return left(lmap(this.val));
-            }
-            if (this.isRight()) {
-                return right(rmap(this.val));
-            }
-            return both(lmap(this.fst), rmap(this.snd));
         }
 
         /**

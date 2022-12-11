@@ -75,10 +75,8 @@
  *
  * ## Transforming values
  *
- * These methods transform the first and/or second values within a `Pair`:
+ * These methods transform the first or the second value within a `Pair`:
  *
- * -   `bimap` applies two functions to the first and second values,
- *     respectively.
  * -   `lmap` applies a function to the first value.
  * -   `map` applies a function to the second value.
  *
@@ -139,14 +137,6 @@ export class Pair<out A, out B> {
      */
     unwrap<C>(f: (x: A, y: B) => C): C {
         return f(this.fst, this.snd);
-    }
-
-    /**
-     * Apply two functions to the first and second values of this `Pair`,
-     * respectively, and return a new `Pair` of the results.
-     */
-    bimap<C, D>(lmap: (x: A) => C, rmap: (x: B) => D): Pair<C, D> {
-        return new Pair(lmap(this.fst), rmap(this.snd));
     }
 
     /**
