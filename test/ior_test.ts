@@ -1,499 +1,790 @@
-import { assert } from "chai";
+import { expect } from "chai";
 import * as fc from "fast-check";
 import { cmb } from "../src/cmb.js";
 import { cmp, eq, Ordering } from "../src/cmp.js";
+import { Either } from "../src/either.js";
 import { Ior } from "../src/ior.js";
-import { arb, Str, tuple } from "./common.js";
-
-namespace t {
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    export function left<A, B>(x: A, _: B): Ior<A, B> {
-        return Ior.left(x);
-    }
-
-    export function right<A, B>(_: A, y: B): Ior<A, B> {
-        return Ior.right(y);
-    }
-
-    export function both<A, B>(x: A, y: B): Ior<A, B> {
-        return Ior.both(x, y);
-    }
-}
-
-namespace t.async {
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    export function left<A, B>(x: A, _: B): Promise<Ior<A, B>> {
-        return Promise.resolve(Ior.left(x));
-    }
-
-    export function right<A, B>(_: A, y: B): Promise<Ior<A, B>> {
-        return Promise.resolve(Ior.right(y));
-    }
-
-    export function both<A, B>(x: A, y: B): Promise<Ior<A, B>> {
-        return Promise.resolve(Ior.both(x, y));
-    }
-}
-
-const _1 = 1 as const;
-const _2 = 2 as const;
-const _3 = 3 as const;
-const _4 = 4 as const;
-
-const str_a = new Str("a");
-const str_c = new Str("c");
+import { arbNum, arbStr, Str, tuple } from "./common.js";
 
 describe("ior.js", () => {
     describe("Ior", () => {
-        specify("go", () => {
-            const t0 = Ior.go(function* () {
-                const x = yield* t.left(str_a, _2);
-                const [y, z] = yield* t.left(str_c, tuple(x, _4));
-                return [x, y, z] as const;
+        describe("fromEither", () => {
+            it("returns a Left if the input is a Left", () => {
+                const result = Ior.fromEither(Either.left<1, 2>(1));
+                expect(result).to.deep.equal(Ior.left(1));
             });
-            assert.deepEqual(t0, Ior.left(str_a));
 
-            const t1 = Ior.go(function* () {
-                const x = yield* t.left(str_a, _2);
-                const [y, z] = yield* t.right(str_c, tuple(x, _4));
-                return [x, y, z] as const;
+            it("returns a Right if the input is a Right", () => {
+                const result = Ior.fromEither(Either.right<2, 1>(2));
+                expect(result).to.deep.equal(Ior.right(2));
             });
-            assert.deepEqual(t1, Ior.left(str_a));
+        });
 
-            const t2 = Ior.go(function* () {
-                const x = yield* t.left(str_a, _2);
-                const [y, z] = yield* t.both(str_c, tuple(x, _4));
-                return [x, y, z] as const;
+        describe("go", () => {
+            it("short-circuits on the first yielded Left", () => {
+                fc.assert(
+                    fc.property(arbStr(), (b) => {
+                        const result = Ior.go(function* () {
+                            const x = yield* Ior.right<2, Str>(2);
+                            expect(x).to.equal(2);
+                            const [y, z] = yield* Ior.left<Str, [2, 4]>(b);
+                            return tuple(x, y, z);
+                        });
+                        expect(result).to.deep.equal(Ior.left(b));
+                    }),
+                );
             });
-            assert.deepEqual(t2, Ior.left(str_a));
 
-            const t3 = Ior.go(function* () {
-                const x = yield* t.right(str_a, _2);
-                const [y, z] = yield* t.left(str_c, tuple(x, _4));
-                return [x, y, z] as const;
+            it("completes if all yielded values are Right", () => {
+                const result = Ior.go(function* () {
+                    const x = yield* Ior.right<2, Str>(2);
+                    const [y, z] = yield* Ior.right<[2, 4], Str>([x, 4]);
+                    return tuple(x, y, z);
+                });
+                expect(result).to.deep.equal(Ior.right([2, 2, 4]));
             });
-            assert.deepEqual(t3, Ior.left(str_c));
 
-            const t4 = Ior.go(function* () {
-                const x = yield* t.right(str_a, _2);
-                const [y, z] = yield* t.right(str_c, tuple(x, _4));
-                return [x, y, z] as const;
+            it("completes and retains the left-hand value if a Both is yielded after a Right", () => {
+                fc.assert(
+                    fc.property(arbStr(), (b) => {
+                        const result = Ior.go(function* () {
+                            const x = yield* Ior.right<2, Str>(2);
+                            const [y, z] = yield* Ior.both(
+                                b,
+                                tuple<[2, 4]>(x, 4),
+                            );
+                            return tuple(x, y, z);
+                        });
+                        expect(result).to.deep.equal(Ior.both(b, [2, 2, 4]));
+                    }),
+                );
             });
-            assert.deepEqual(t4, Ior.right([_2, _2, _4] as const));
 
-            const t5 = Ior.go(function* () {
-                const x = yield* t.right(str_a, _2);
-                const [y, z] = yield* t.both(str_c, tuple(x, _4));
-                return [x, y, z] as const;
+            it("short-circuits and combines the left-hand values if a Left is yielded after a Both", () => {
+                fc.assert(
+                    fc.property(arbStr(), arbStr(), (a, b) => {
+                        const result = Ior.go(function* () {
+                            const x = yield* Ior.both<Str, 2>(a, 2);
+                            expect(x).to.equal(2);
+                            const [y, z] = yield* Ior.left<Str, [2, 4]>(b);
+                            return tuple(x, y, z);
+                        });
+                        expect(result).to.deep.equal(Ior.left(cmb(a, b)));
+                    }),
+                );
             });
-            assert.deepEqual(t5, Ior.both(str_c, [_2, _2, _4] as const));
 
-            const t6 = Ior.go(function* () {
-                const x = yield* t.both(str_a, _2);
-                const [y, z] = yield* t.left(str_c, tuple(x, _4));
-                return [x, y, z] as const;
+            it("completes and retains the left-hand value if a Right is yielded after a Both", () => {
+                fc.assert(
+                    fc.property(arbStr(), (a) => {
+                        const result = Ior.go(function* () {
+                            const x = yield* Ior.both<Str, 2>(a, 2);
+                            const [y, z] = yield* Ior.right<[2, 4], Str>([
+                                x,
+                                4,
+                            ]);
+                            return tuple(x, y, z);
+                        });
+                        expect(result).to.deep.equal(Ior.both(a, [2, 2, 4]));
+                    }),
+                );
             });
-            assert.deepEqual(t6, Ior.left(cmb(str_a, str_c)));
 
-            const t7 = Ior.go(function* () {
-                const x = yield* t.both(str_a, _2);
-                const [y, z] = yield* t.right(str_c, tuple(x, _4));
-                return [x, y, z] as const;
+            it("completes and combines the left-hand values if a Both is yielded after a Both", () => {
+                fc.assert(
+                    fc.property(arbStr(), arbStr(), (a, b) => {
+                        const result = Ior.go(function* () {
+                            const x = yield* Ior.both<Str, 2>(a, 2);
+                            const [y, z] = yield* Ior.both(
+                                b,
+                                tuple<[2, 4]>(x, 4),
+                            );
+                            return tuple(x, y, z);
+                        });
+                        expect(result).to.deep.equal(
+                            Ior.both(cmb(a, b), [2, 2, 4]),
+                        );
+                    }),
+                );
             });
-            assert.deepEqual(t7, Ior.both(str_a, [_2, _2, _4] as const));
-
-            const t8 = Ior.go(function* () {
-                const x = yield* t.both(str_a, _2);
-                const [y, z] = yield* t.both(str_c, tuple(x, _4));
-                return [x, y, z] as const;
-            });
-            assert.deepEqual(
-                t8,
-                Ior.both(cmb(str_a, str_c), [_2, _2, _4] as const),
-            );
         });
 
         specify("reduce", () => {
-            const t0 = Ior.reduce(
-                ["x", "y"],
-                (xs, x) => t.both(str_a, xs + x),
-                "",
+            fc.assert(
+                fc.property(arbStr(), (a) => {
+                    const result = Ior.reduce(
+                        ["x", "y"],
+                        (xs, x) => Ior.both(a, xs + x),
+                        "",
+                    );
+                    expect(result).to.deep.equal(Ior.both(cmb(a, a), "xy"));
+                }),
             );
-            assert.deepEqual(t0, Ior.both(cmb(str_a, str_a), "xy"));
         });
 
         specify("collect", () => {
-            const t0 = Ior.collect([
-                t.both(str_a, _2),
-                t.both(str_c, _4),
-            ] as const);
-            assert.deepEqual(
-                t0,
-                Ior.both(cmb(str_a, str_c), [_2, _4] as const),
+            fc.assert(
+                fc.property(arbStr(), arbStr(), (a, b) => {
+                    const inputs: [Ior<Str, 2>, Ior<Str, 4>] = [
+                        Ior.both(a, 2),
+                        Ior.both(b, 4),
+                    ];
+                    const result = Ior.collect(inputs);
+                    expect(result).to.deep.equal(Ior.both(cmb(a, b), [2, 4]));
+                }),
             );
         });
 
         specify("gather", () => {
-            const t0 = Ior.gather({
-                x: t.both(str_a, _2),
-                y: t.both(str_c, _4),
-            });
-            assert.deepEqual(t0, Ior.both(cmb(str_a, str_c), { x: _2, y: _4 }));
+            fc.assert(
+                fc.property(arbStr(), arbStr(), (a, b) => {
+                    const result = Ior.gather({
+                        x: Ior.both<Str, 2>(a, 2),
+                        y: Ior.both<Str, 4>(b, 4),
+                    });
+                    expect(result).to.deep.equal(
+                        Ior.both(cmb(a, b), { x: 2, y: 4 }),
+                    );
+                }),
+            );
         });
 
         specify("lift", () => {
-            const t0 = Ior.lift(tuple<2, 4>)(
-                t.both(str_a, _2),
-                t.both(str_c, _4),
-            );
-            assert.deepEqual(
-                t0,
-                Ior.both(cmb(str_a, str_c), [_2, _4] as const),
+            fc.assert(
+                fc.property(arbStr(), arbStr(), (a, b) => {
+                    const result = Ior.lift(tuple<[2, 4]>)(
+                        Ior.both(a, 2),
+                        Ior.both(b, 4),
+                    );
+                    expect(result).to.deep.equal(Ior.both(cmb(a, b), [2, 4]));
+                }),
             );
         });
 
-        specify("goAsync", async () => {
-            const t0 = await Ior.goAsync(async function* () {
-                const x = yield* await t.async.left(str_a, _2);
-                const [y, z] = yield* await t.async.left(str_c, tuple(x, _4));
-                return [x, y, z] as const;
-            });
-            assert.deepEqual(t0, Ior.left(str_a));
-
-            const t1 = await Ior.goAsync(async function* () {
-                const x = yield* await t.async.left(str_a, _2);
-                const [y, z] = yield* await t.async.right(str_c, tuple(x, _4));
-                return [x, y, z] as const;
-            });
-            assert.deepEqual(t1, Ior.left(str_a));
-
-            const t2 = await Ior.goAsync(async function* () {
-                const x = yield* await t.async.left(str_a, _2);
-                const [y, z] = yield* await t.async.both(str_c, tuple(x, _4));
-                return [x, y, z] as const;
-            });
-            assert.deepEqual(t2, Ior.left(str_a));
-
-            const t3 = await Ior.goAsync(async function* () {
-                const x = yield* await t.async.right(str_a, _2);
-                const [y, z] = yield* await t.async.left(str_c, tuple(x, _4));
-                return [x, y, z] as const;
-            });
-            assert.deepEqual(t3, Ior.left(str_c));
-
-            const t4 = await Ior.goAsync(async function* () {
-                const x = yield* await t.async.right(str_a, _2);
-                const [y, z] = yield* await t.async.right(str_c, tuple(x, _4));
-                return [x, y, z] as const;
-            });
-            assert.deepEqual(t4, Ior.right([_2, _2, _4] as const));
-
-            const t5 = await Ior.goAsync(async function* () {
-                const x = yield* await t.async.right(str_a, _2);
-                const [y, z] = yield* await t.async.both(str_c, tuple(x, _4));
-                return [x, y, z] as const;
-            });
-            assert.deepEqual(t5, Ior.both(str_c, [_2, _2, _4] as const));
-
-            const t6 = await Ior.goAsync(async function* () {
-                const x = yield* await t.async.both(str_a, _2);
-                const [y, z] = yield* await t.async.left(str_c, tuple(x, _4));
-                return [x, y, z] as const;
-            });
-            assert.deepEqual(t6, Ior.left(cmb(str_a, str_c)));
-
-            const t7 = await Ior.goAsync(async function* () {
-                const x = yield* await t.async.both(str_a, _2);
-                const [y, z] = yield* await t.async.right(str_c, tuple(x, _4));
-                return [x, y, z] as const;
-            });
-            assert.deepEqual(t7, Ior.both(str_a, [_2, _2, _4] as const));
-
-            const t8 = await Ior.goAsync(async function* () {
-                const x = yield* await t.async.both(str_a, _2);
-                const [y, z] = yield* await t.async.both(str_c, tuple(x, _4));
-                return [x, y, z] as const;
-            });
-            assert.deepEqual(
-                t8,
-                Ior.both(cmb(str_a, str_c), [_2, _2, _4] as const),
-            );
-
-            const t9 = await Ior.goAsync(async function* () {
-                const x = yield* await t.async.both(str_a, Promise.resolve(_2));
-                const [y, z] = yield* await t.async.both(
-                    str_c,
-                    Promise.resolve(tuple(x, _4)),
+        describe("goAsync", async () => {
+            it("short-circuits on the first yielded Left", async () => {
+                await fc.assert(
+                    fc.asyncProperty(arbStr(), async (b) => {
+                        const result = await Ior.goAsync(async function* () {
+                            const x = yield* await Promise.resolve(
+                                Ior.right<2, Str>(2),
+                            );
+                            expect(x).to.equal(2);
+                            const [y, z] = yield* await Promise.resolve(
+                                Ior.left<Str, [2, 4]>(b),
+                            );
+                            return tuple(x, y, z);
+                        });
+                        expect(result).to.deep.equal(Ior.left(b));
+                    }),
                 );
-                return Promise.resolve([x, y, z] as const);
             });
-            assert.deepEqual(
-                t9,
-                Ior.both(cmb(str_a, str_c), [_2, _2, _4] as const),
-            );
+
+            it("completes if all yielded values are Right", async () => {
+                const result = await Ior.goAsync(async function* () {
+                    const x = yield* await Promise.resolve(
+                        Ior.right<2, Str>(2),
+                    );
+                    const [y, z] = yield* await Promise.resolve(
+                        Ior.right<[2, 4], Str>([x, 4]),
+                    );
+                    return tuple(x, y, z);
+                });
+                expect(result).to.deep.equal(Ior.right([2, 2, 4]));
+            });
+
+            it("completes and retains the left-hand value if a Both is yielded after a Right", async () => {
+                await fc.assert(
+                    fc.asyncProperty(arbStr(), async (b) => {
+                        const result = await Ior.goAsync(async function* () {
+                            const x = yield* await Promise.resolve(
+                                Ior.right<2, Str>(2),
+                            );
+                            const [y, z] = yield* await Promise.resolve(
+                                Ior.both(b, tuple<[2, 4]>(x, 4)),
+                            );
+                            return tuple(x, y, z);
+                        });
+                        expect(result).to.deep.equal(Ior.both(b, [2, 2, 4]));
+                    }),
+                );
+            });
+
+            it("short-circuits and combines the left-hand values if a Left is yielded after a Both", async () => {
+                await fc.assert(
+                    fc.asyncProperty(arbStr(), arbStr(), async (a, b) => {
+                        const result = await Ior.goAsync(async function* () {
+                            const x = yield* await Promise.resolve(
+                                Ior.both<Str, 2>(a, 2),
+                            );
+                            expect(x).to.equal(2);
+                            const [y, z] = yield* await Promise.resolve(
+                                Ior.left<Str, [2, 4]>(b),
+                            );
+                            return tuple(x, y, z);
+                        });
+                        expect(result).to.deep.equal(Ior.left(cmb(a, b)));
+                    }),
+                );
+            });
+
+            it("completes and retains the left-hand value if a Right is yielded after a Both", async () => {
+                await fc.assert(
+                    fc.asyncProperty(arbStr(), async (a) => {
+                        const result = await Ior.goAsync(async function* () {
+                            const x = yield* await Promise.resolve(
+                                Ior.both<Str, 2>(a, 2),
+                            );
+                            const [y, z] = yield* await Promise.resolve(
+                                Ior.right<[2, 4], Str>([x, 4]),
+                            );
+                            return tuple(x, y, z);
+                        });
+                        expect(result).to.deep.equal(Ior.both(a, [2, 2, 4]));
+                    }),
+                );
+            });
+
+            it("completes and combines the left-hand values if a Both is yielded after", async () => {
+                await fc.assert(
+                    fc.asyncProperty(arbStr(), arbStr(), async (a, b) => {
+                        const result = await Ior.goAsync(async function* () {
+                            const x = yield* await Promise.resolve(
+                                Ior.both<Str, 2>(a, 2),
+                            );
+                            const [y, z] = yield* await Promise.resolve(
+                                Ior.both(b, tuple<[2, 4]>(x, 4)),
+                            );
+                            return tuple(x, y, z);
+                        });
+                        expect(result).to.deep.equal(
+                            Ior.both(cmb(a, b), [2, 2, 4]),
+                        );
+                    }),
+                );
+            });
+
+            it("unwraps Promises in right-hand channels and in return", async () => {
+                await fc.assert(
+                    fc.asyncProperty(arbStr(), arbStr(), async (a, b) => {
+                        const result = await Ior.goAsync(async function* () {
+                            const x = yield* await Promise.resolve(
+                                Ior.both<Str, Promise<2>>(
+                                    a,
+                                    Promise.resolve(2),
+                                ),
+                            );
+                            const [y, z] = yield* await Promise.resolve(
+                                Ior.both(
+                                    b,
+                                    Promise.resolve(tuple<[2, 4]>(x, 4)),
+                                ),
+                            );
+                            return Promise.resolve(tuple(x, y, z));
+                        });
+                        expect(result).to.deep.equal(
+                            Ior.both(cmb(a, b), [2, 2, 4]),
+                        );
+                    }),
+                );
+            });
         });
 
-        specify("#[Eq.eq]", () => {
-            fc.assert(
-                fc.property(
-                    arb.num(),
-                    arb.num(),
-                    arb.num(),
-                    arb.num(),
-                    (a, x, b, y) => {
-                        const t0 = eq(Ior.left(a), Ior.left(b));
-                        assert.strictEqual(t0, eq(a, b));
+        describe("#[Eq.eq]", () => {
+            it("compares a Left and a Left by their values", () => {
+                fc.assert(
+                    fc.property(arbNum(), arbNum(), (a, b) => {
+                        expect(eq(Ior.left(a), Ior.left(b))).to.equal(eq(a, b));
+                    }),
+                );
+            });
 
-                        const t1 = eq(Ior.left(a), Ior.right(y));
-                        assert.strictEqual(t1, false);
+            it("compares a Left and a Right as inequal", () => {
+                fc.assert(
+                    fc.property(arbNum(), arbNum(), (a, y) => {
+                        expect(eq(Ior.left(a), Ior.right(y))).to.be.false;
+                    }),
+                );
+            });
 
-                        const t2 = eq(Ior.left(a), Ior.both(b, y));
-                        assert.strictEqual(t2, false);
+            it("compares a Left and a Both as inequal", () => {
+                fc.assert(
+                    fc.property(arbNum(), arbNum(), arbNum(), (a, b, y) => {
+                        expect(eq(Ior.left(a), Ior.both(b, y))).to.be.false;
+                    }),
+                );
+            });
 
-                        const t3 = eq(Ior.right(x), Ior.left(b));
-                        assert.strictEqual(t3, false);
+            it("compares a Right and a Left as inequal", () => {
+                fc.assert(
+                    fc.property(arbNum(), arbNum(), (x, b) => {
+                        expect(eq(Ior.right(x), Ior.left(b))).to.be.false;
+                    }),
+                );
+            });
 
-                        const t4 = eq(Ior.right(x), Ior.right(y));
-                        assert.strictEqual(t4, eq(x, y));
+            it("compares a Right and a Right by their values", () => {
+                fc.assert(
+                    fc.property(arbNum(), arbNum(), (x, y) => {
+                        expect(eq(Ior.right(x), Ior.right(y))).to.equal(
+                            eq(x, y),
+                        );
+                    }),
+                );
+            });
 
-                        const t5 = eq(Ior.right(x), Ior.both(b, y));
-                        assert.strictEqual(t5, false);
+            it("compares a Right and a Both as inequal", () => {
+                fc.assert(
+                    fc.property(arbNum(), arbNum(), arbNum(), (x, b, y) => {
+                        expect(eq(Ior.right(x), Ior.both(b, y))).to.be.false;
+                    }),
+                );
+            });
 
-                        const t6 = eq(Ior.both(a, x), Ior.left(b));
-                        assert.strictEqual(t6, false);
+            it("compares a Both and a Left as inequal", () => {
+                fc.assert(
+                    fc.property(arbNum(), arbNum(), arbNum(), (a, x, b) => {
+                        expect(eq(Ior.both(a, x), Ior.left(b))).to.be.false;
+                    }),
+                );
+            });
 
-                        const t7 = eq(Ior.both(a, x), Ior.right(y));
-                        assert.strictEqual(t7, false);
+            it("compares a Both and a Right as inequal", () => {
+                fc.assert(
+                    fc.property(arbNum(), arbNum(), arbNum(), (a, x, y) => {
+                        expect(eq(Ior.both(a, x), Ior.right(y))).to.be.false;
+                    }),
+                );
+            });
 
-                        const t8 = eq(Ior.both(a, x), Ior.both(b, y));
-                        assert.strictEqual(t8, eq(a, b) && eq(x, y));
-                    },
-                ),
-            );
+            it("compares a Both and a Both by their values", () => {
+                fc.assert(
+                    fc.property(
+                        arbNum(),
+                        arbNum(),
+                        arbNum(),
+                        arbNum(),
+                        (a, x, b, y) => {
+                            expect(eq(Ior.both(a, x), Ior.both(b, y))).to.equal(
+                                eq(a, b) && eq(x, y),
+                            );
+                        },
+                    ),
+                );
+            });
         });
 
-        specify("#[Ord.cmp]", () => {
-            fc.assert(
-                fc.property(
-                    arb.num(),
-                    arb.num(),
-                    arb.num(),
-                    arb.num(),
-                    (a, x, b, y) => {
-                        const t0 = cmp(Ior.left(a), Ior.left(b));
-                        assert.strictEqual(t0, cmp(a, b));
+        describe("#[Ord.cmp]", () => {
+            it("compares a Left and a Left by their values", () => {
+                fc.assert(
+                    fc.property(arbNum(), arbNum(), (a, b) => {
+                        expect(cmp(Ior.left(a), Ior.left(b))).to.equal(
+                            cmp(a, b),
+                        );
+                    }),
+                );
+            });
 
-                        const t1 = cmp(Ior.left(a), Ior.right(y));
-                        assert.strictEqual(t1, Ordering.less);
+            it("compares a Left as less than a Right", () => {
+                fc.assert(
+                    fc.property(arbNum(), arbNum(), (a, y) => {
+                        expect(cmp(Ior.left(a), Ior.right(y))).to.equal(
+                            Ordering.less,
+                        );
+                    }),
+                );
+            });
 
-                        const t2 = cmp(Ior.left(a), Ior.both(b, y));
-                        assert.strictEqual(t2, Ordering.less);
+            it("compares a Left as less than a Both", () => {
+                fc.assert(
+                    fc.property(arbNum(), arbNum(), arbNum(), (a, b, y) => {
+                        expect(cmp(Ior.left(a), Ior.both(b, y))).to.equal(
+                            Ordering.less,
+                        );
+                    }),
+                );
+            });
 
-                        const t3 = cmp(Ior.right(x), Ior.left(b));
-                        assert.strictEqual(t3, Ordering.greater);
+            it("compares a Right as greater than a Left", () => {
+                fc.assert(
+                    fc.property(arbNum(), arbNum(), (x, b) => {
+                        expect(cmp(Ior.right(x), Ior.left(b))).to.equal(
+                            Ordering.greater,
+                        );
+                    }),
+                );
+            });
 
-                        const t4 = cmp(Ior.right(x), Ior.right(y));
-                        assert.strictEqual(t4, cmp(x, y));
+            it("compares a Right and a Right by their values", () => {
+                fc.assert(
+                    fc.property(arbNum(), arbNum(), (x, y) => {
+                        expect(cmp(Ior.right(x), Ior.right(y))).to.equal(
+                            cmp(x, y),
+                        );
+                    }),
+                );
+            });
 
-                        const t5 = cmp(Ior.right(x), Ior.both(b, y));
-                        assert.strictEqual(t5, Ordering.less);
+            it("compares a Right as less than a Both", () => {
+                fc.assert(
+                    fc.property(arbNum(), arbNum(), arbNum(), (x, b, y) => {
+                        expect(cmp(Ior.right(x), Ior.both(b, y))).to.equal(
+                            Ordering.less,
+                        );
+                    }),
+                );
+            });
 
-                        const t6 = cmp(Ior.both(a, x), Ior.left(b));
-                        assert.strictEqual(t6, Ordering.greater);
+            it("compares a Both as greater than a Left", () => {
+                fc.assert(
+                    fc.property(arbNum(), arbNum(), arbNum(), (a, x, b) => {
+                        expect(cmp(Ior.both(a, x), Ior.left(b))).to.equal(
+                            Ordering.greater,
+                        );
+                    }),
+                );
+            });
 
-                        const t7 = cmp(Ior.both(a, x), Ior.right(y));
-                        assert.strictEqual(t7, Ordering.greater);
+            it("compares a Both as greater than a Right", () => {
+                fc.assert(
+                    fc.property(arbNum(), arbNum(), arbNum(), (a, x, y) => {
+                        expect(cmp(Ior.both(a, x), Ior.right(y))).to.equal(
+                            Ordering.greater,
+                        );
+                    }),
+                );
+            });
 
-                        const t8 = cmp(Ior.both(a, x), Ior.both(b, y));
-                        assert.strictEqual(t8, cmb(cmp(a, b), cmp(x, y)));
-                    },
-                ),
-            );
+            it("compares a Both and a Both by their values lexicographically", () => {
+                fc.assert(
+                    fc.property(
+                        arbNum(),
+                        arbNum(),
+                        arbNum(),
+                        arbNum(),
+                        (a, x, b, y) => {
+                            expect(
+                                cmp(Ior.both(a, x), Ior.both(b, y)),
+                            ).to.equal(cmb(cmp(a, b), cmp(x, y)));
+                        },
+                    ),
+                );
+            });
         });
 
-        specify("#[Semigroup.cmb]", () => {
-            fc.assert(
-                fc.property(
-                    arb.str(),
-                    arb.str(),
-                    arb.str(),
-                    arb.str(),
-                    (a, x, b, y) => {
-                        const t0 = cmb(Ior.left(a), Ior.left(b));
-                        assert.deepEqual(t0, Ior.left(cmb(a, b)));
+        describe("#[Semigroup.cmb]", () => {
+            it("combines a Left and a Left into a Left", () => {
+                fc.assert(
+                    fc.property(arbStr(), arbStr(), (a, b) => {
+                        expect(cmb(Ior.left(a), Ior.left(b))).to.deep.equal(
+                            Ior.left(cmb(a, b)),
+                        );
+                    }),
+                );
+            });
 
-                        const t1 = cmb(Ior.left(a), Ior.right(y));
-                        assert.deepEqual(t1, Ior.both(a, y));
+            it("combines a Left and a Right into a Both", () => {
+                fc.assert(
+                    fc.property(arbStr(), arbStr(), (a, y) => {
+                        expect(cmb(Ior.left(a), Ior.right(y))).to.deep.equal(
+                            Ior.both(a, y),
+                        );
+                    }),
+                );
+            });
 
-                        const t2 = cmb(Ior.left(a), Ior.both(b, y));
-                        assert.deepEqual(t2, Ior.both(cmb(a, b), y));
+            it("combines a Left and a Both into a Both", () => {
+                fc.assert(
+                    fc.property(arbStr(), arbStr(), arbStr(), (a, b, y) => {
+                        expect(cmb(Ior.left(a), Ior.both(b, y))).to.deep.equal(
+                            Ior.both(cmb(a, b), y),
+                        );
+                    }),
+                );
+            });
 
-                        const t3 = cmb(Ior.right(x), Ior.left(b));
-                        assert.deepEqual(t3, Ior.both(b, x));
+            it("combines a Right and a Left into a Both", () => {
+                fc.assert(
+                    fc.property(arbStr(), arbStr(), (x, b) => {
+                        expect(cmb(Ior.right(x), Ior.left(b))).to.deep.equal(
+                            Ior.both(b, x),
+                        );
+                    }),
+                );
+            });
 
-                        const t4 = cmb(Ior.right(x), Ior.right(y));
-                        assert.deepEqual(t4, Ior.right(cmb(x, y)));
+            it("combines a Right and a Right into a Right", () => {
+                fc.assert(
+                    fc.property(arbStr(), arbStr(), (x, y) => {
+                        expect(cmb(Ior.right(x), Ior.right(y))).to.deep.equal(
+                            Ior.right(cmb(x, y)),
+                        );
+                    }),
+                );
+            });
 
-                        const t5 = cmb(Ior.right(x), Ior.both(b, y));
-                        assert.deepEqual(t5, Ior.both(b, cmb(x, y)));
+            it("combines a Right and a Both into a Both", () => {
+                fc.assert(
+                    fc.property(arbStr(), arbStr(), arbStr(), (x, b, y) => {
+                        expect(cmb(Ior.right(x), Ior.both(b, y))).to.deep.equal(
+                            Ior.both(b, cmb(x, y)),
+                        );
+                    }),
+                );
+            });
 
-                        const t6 = cmb(Ior.both(a, x), Ior.left(b));
-                        assert.deepEqual(t6, Ior.both(cmb(a, b), x));
+            it("combines a Both and a Left into a Both", () => {
+                fc.assert(
+                    fc.property(arbStr(), arbStr(), arbStr(), (a, x, b) => {
+                        expect(cmb(Ior.both(a, x), Ior.left(b))).to.deep.equal(
+                            Ior.both(cmb(a, b), x),
+                        );
+                    }),
+                );
+            });
 
-                        const t7 = cmb(Ior.both(a, x), Ior.right(y));
-                        assert.deepEqual(t7, Ior.both(a, cmb(x, y)));
+            it("combines a Both and a Right into a Both", () => {
+                fc.assert(
+                    fc.property(arbStr(), arbStr(), arbStr(), (a, x, y) => {
+                        expect(cmb(Ior.both(a, x), Ior.right(y))).to.deep.equal(
+                            Ior.both(a, cmb(x, y)),
+                        );
+                    }),
+                );
+            });
 
-                        const t8 = cmb(Ior.both(a, x), Ior.both(b, y));
-                        assert.deepEqual(t8, Ior.both(cmb(a, b), cmb(x, y)));
-                    },
-                ),
-            );
+            it("combines a Both and a Both into a Both", () => {
+                fc.assert(
+                    fc.property(
+                        arbStr(),
+                        arbStr(),
+                        arbStr(),
+                        arbStr(),
+                        (a, x, b, y) => {
+                            expect(
+                                cmb(Ior.both(a, x), Ior.both(b, y)),
+                            ).to.deep.equal(Ior.both(cmb(a, b), cmb(x, y)));
+                        },
+                    ),
+                );
+            });
         });
 
-        specify("#unwrap", () => {
-            const t0 = t.left(_1, _2).unwrap(
-                (x) => tuple(x, _3),
-                (x) => tuple(x, _4),
-                tuple,
-            );
-            assert.deepEqual(t0, [_1, _3]);
+        describe("#unwrap", () => {
+            it("applies the first function if the variant is Left", () => {
+                const result = Ior.left<1, 2>(1).unwrap(
+                    (x): [1, 3] => [x, 3],
+                    (x): [2, 4] => [x, 4],
+                    tuple,
+                );
+                expect(result).to.deep.equal([1, 3]);
+            });
 
-            const t1 = t.right(_1, _2).unwrap(
-                (x) => tuple(x, _3),
-                (x) => tuple(x, _4),
-                tuple,
-            );
-            assert.deepEqual(t1, [_2, _4]);
+            it("applies the second function if the variant is Right", () => {
+                const result = Ior.right<2, 1>(2).unwrap(
+                    (x): [1, 3] => [x, 3],
+                    (x): [2, 4] => [x, 4],
+                    tuple,
+                );
+                expect(result).to.deep.equal([2, 4]);
+            });
 
-            const t2 = t.both(_1, _2).unwrap(
-                (x) => tuple(x, _3),
-                (x) => tuple(x, _4),
-                tuple,
-            );
-            assert.deepEqual(t2, [_1, _2]);
+            it("applies the third function if the variant is Both", () => {
+                const result = Ior.both<1, 2>(1, 2).unwrap(
+                    (x): [1, 3] => [x, 3],
+                    (x): [2, 4] => [x, 4],
+                    tuple,
+                );
+                expect(result).to.deep.equal([1, 2]);
+            });
         });
 
-        specify("#isLeft", () => {
-            const t0 = t.left(_1, _2).isLeft();
-            assert.strictEqual(t0, true);
+        describe("#isLeft", () => {
+            it("returns true if the variant is Left", () => {
+                const result = Ior.left<1, 2>(1).isLeft();
+                expect(result).to.be.true;
+            });
 
-            const t1 = t.right(_1, _2).isLeft();
-            assert.strictEqual(t1, false);
+            it("returns false if the variant is Right", () => {
+                const result = Ior.right<2, 1>(2).isLeft();
+                expect(result).to.be.false;
+            });
 
-            const t2 = t.both(_1, _2).isLeft();
-            assert.strictEqual(t2, false);
+            it("returns false if the variant is Both", () => {
+                const result = Ior.both<1, 2>(1, 2).isLeft();
+                expect(result).to.be.false;
+            });
         });
 
-        specify("#isRight", () => {
-            const t0 = t.left(_1, _2).isRight();
-            assert.strictEqual(t0, false);
+        describe("#isRight", () => {
+            it("returns false if the variant is Left", () => {
+                const result = Ior.left<1, 2>(1).isRight();
+                expect(result).to.be.false;
+            });
 
-            const t1 = t.right(_1, _2).isRight();
-            assert.strictEqual(t1, true);
+            it("returns true if the variant is Right", () => {
+                const result = Ior.right<2, 1>(2).isRight();
+                expect(result).to.be.true;
+            });
 
-            const t2 = t.both(_1, _2).isRight();
-            assert.strictEqual(t2, false);
+            it("returns false if the variant is Both", () => {
+                const result = Ior.both<1, 2>(1, 2).isRight();
+                expect(result).to.be.false;
+            });
         });
 
-        specify("#isBoth", () => {
-            const t0 = t.left(_1, _2).isBoth();
-            assert.strictEqual(t0, false);
+        describe("#isBoth", () => {
+            it("returns false if the variant is Left", () => {
+                const result = Ior.left<1, 2>(1).isBoth();
+                expect(result).to.be.false;
+            });
 
-            const t1 = t.right(_1, _2).isBoth();
-            assert.strictEqual(t1, false);
+            it("returns false if the variant is Right", () => {
+                const result = Ior.right<2, 1>(2).isBoth();
+                expect(result).to.be.false;
+            });
 
-            const t2 = t.both(_1, _2).isBoth();
-            assert.strictEqual(t2, true);
+            it("returns true if the variant is Both", () => {
+                const result = Ior.both<1, 2>(1, 2).isBoth();
+                expect(result).to.be.true;
+            });
         });
 
-        specify("#flatMap", () => {
-            const t0 = t
-                .left(str_a, _2)
-                .flatMap((x) => t.left(str_c, tuple(x, _4)));
-            assert.deepEqual(t0, Ior.left(str_a));
+        describe("#flatMap", () => {
+            it("does not apply the continuation if the variant is Left", () => {
+                fc.assert(
+                    fc.property(arbStr(), arbStr(), (a, b) => {
+                        const result = Ior.left<Str, 2>(a).flatMap(
+                            (x): Ior<Str, [2, 4]> => Ior.both(b, [x, 4]),
+                        );
+                        expect(result).to.deep.equal(Ior.left(a));
+                    }),
+                );
+            });
 
-            const t1 = t
-                .left(str_a, _2)
-                .flatMap((x) => t.right(str_c, tuple(x, _4)));
-            assert.deepEqual(t1, Ior.left(str_a));
+            it("applies the continuation if the variant is Right", () => {
+                const result = Ior.right<2, Str>(2).flatMap(
+                    (x): Ior<Str, [2, 4]> => Ior.right([x, 4]),
+                );
+                expect(result).to.deep.equal(Ior.right([2, 4]));
+            });
 
-            const t2 = t
-                .left(str_a, _2)
-                .flatMap((x) => t.both(str_c, tuple(x, _4)));
-            assert.deepEqual(t2, Ior.left(str_a));
+            it("retains the left-hand value if a continuation on a Right returns a Both", () => {
+                fc.assert(
+                    fc.property(arbStr(), (b) => {
+                        const result = Ior.right<2, Str>(2).flatMap(
+                            (x): Ior<Str, [2, 4]> => Ior.both(b, [x, 4]),
+                        );
+                        expect(result).to.deep.equal(Ior.both(b, [2, 4]));
+                    }),
+                );
+            });
 
-            const t3 = t
-                .right(str_a, _2)
-                .flatMap((x) => t.left(str_c, tuple(x, _4)));
-            assert.deepEqual(t3, Ior.left(str_c));
+            it("combines the left-hand values if a continuation on a Both returns a Left", () => {
+                fc.assert(
+                    fc.property(arbStr(), arbStr(), (a, b) => {
+                        const result = Ior.both<Str, 2>(a, 2).flatMap(
+                            (x): Ior<Str, [2, 4]> => {
+                                expect(x).to.equal(2);
+                                return Ior.left(b);
+                            },
+                        );
+                        expect(result).to.deep.equal(Ior.left(cmb(a, b)));
+                    }),
+                );
+            });
 
-            const t4 = t
-                .right(str_a, _2)
-                .flatMap((x) => t.right(str_c, tuple(x, _4)));
-            assert.deepEqual(t4, Ior.right([_2, _4] as const));
+            it("retains the left-hand value if a continuation on a Both returns a Right", () => {
+                fc.assert(
+                    fc.property(arbStr(), (a) => {
+                        const result = Ior.both<Str, 2>(a, 2).flatMap((x) =>
+                            Ior.right<[2, 4], Str>([x, 4]),
+                        );
+                        expect(result).to.deep.equal(Ior.both(a, [2, 4]));
+                    }),
+                );
+            });
 
-            const t5 = t
-                .right(str_a, _2)
-                .flatMap((x) => t.both(str_c, tuple(x, _4)));
-            assert.deepEqual(t5, Ior.both(str_c, [_2, _4] as const));
-
-            const t6 = t
-                .both(str_a, _2)
-                .flatMap((x) => t.left(str_c, tuple(x, _4)));
-            assert.deepEqual(t6, Ior.left(cmb(str_a, str_c)));
-
-            const t7 = t
-                .both(str_a, _2)
-                .flatMap((x) => t.right(str_c, tuple(x, _4)));
-            assert.deepEqual(t7, Ior.both(str_a, [_2, _4] as const));
-
-            const t8 = t
-                .both(str_a, _2)
-                .flatMap((x) => t.both(str_c, tuple(x, _4)));
-            assert.deepEqual(
-                t8,
-                Ior.both(cmb(str_a, str_c), [_2, _4] as const),
-            );
+            it("combines the left-hand values if a continuation on a Both returns a Both", () => {
+                fc.assert(
+                    fc.property(arbStr(), arbStr(), (a, b) => {
+                        const result = Ior.both<Str, 2>(a, 2).flatMap(
+                            (x): Ior<Str, [2, 4]> => Ior.both(b, [x, 4]),
+                        );
+                        expect(result).to.deep.equal(
+                            Ior.both(cmb(a, b), [2, 4]),
+                        );
+                    }),
+                );
+            });
         });
 
         specify("#zipWith", () => {
-            const t0 = t.both(str_a, _2).zipWith(t.both(str_c, _4), tuple);
-            assert.deepEqual(
-                t0,
-                Ior.both(cmb(str_a, str_c), [_2, _4] as const),
+            fc.assert(
+                fc.property(arbStr(), arbStr(), (a, b) => {
+                    const result = Ior.both<Str, 2>(a, 2).zipWith(
+                        Ior.both<Str, 4>(b, 4),
+                        tuple,
+                    );
+                    expect(result).to.deep.equal(Ior.both(cmb(a, b), [2, 4]));
+                }),
             );
         });
 
         specify("#zipFst", () => {
-            const t0 = t.both(str_a, _2).zipFst(t.both(str_c, _4));
-            assert.deepEqual(t0, Ior.both(cmb(str_a, str_c), _2));
+            fc.assert(
+                fc.property(arbStr(), arbStr(), (a, b) => {
+                    const result = Ior.both<Str, 2>(a, 2).zipFst(
+                        Ior.both<Str, 4>(b, 4),
+                    );
+                    expect(result).to.deep.equal(Ior.both(cmb(a, b), 2));
+                }),
+            );
         });
 
         specify("#zipSnd", () => {
-            const t0 = t.both(str_a, _2).zipSnd(t.both(str_c, _4));
-            assert.deepEqual(t0, Ior.both(cmb(str_a, str_c), _4));
+            fc.assert(
+                fc.property(arbStr(), arbStr(), (a, b) => {
+                    const result = Ior.both<Str, 2>(a, 2).zipSnd(
+                        Ior.both<Str, 4>(b, 4),
+                    );
+                    expect(result).to.deep.equal(Ior.both(cmb(a, b), 4));
+                }),
+            );
         });
 
-        specify("#map", () => {
-            const t0 = t.left(_1, _2).map((x) => tuple(x, _4));
-            assert.deepEqual(t0, Ior.left(_1));
+        describe("#lmap", () => {
+            it("applies the function to the value if the variant is Left", () => {
+                const result = Ior.left<1, 2>(1).lmap((x): [1, 3] => [x, 3]);
+                expect(result).to.deep.equal(Ior.left([1, 3]));
+            });
 
-            const t1 = t.right(_1, _2).map((x) => tuple(x, _4));
-            assert.deepEqual(t1, Ior.right([_2, _4] as const));
+            it("does not apply the function if the variant is Right", () => {
+                const result = Ior.right<2, 1>(2).lmap((x): [1, 3] => [x, 3]);
+                expect(result).to.deep.equal(Ior.right(2));
+            });
 
-            const t2 = t.both(_1, _2).map((x) => tuple(x, _4));
-            assert.deepEqual(t2, Ior.both(_1, [_2, _4] as const));
+            it("applies a function to the first value if the variant is Both", () => {
+                const result = Ior.both<1, 2>(1, 2).lmap((x): [1, 3] => [x, 3]);
+                expect(result).to.deep.equal(Ior.both([1, 3], 2));
+            });
         });
 
-        specify("#lmap", () => {
-            const t0 = t.left(_1, _2).lmap((x) => tuple(x, _3));
-            assert.deepEqual(t0, Ior.left([_1, _3] as const));
+        describe("#map", () => {
+            it("does not apply the function if the variant is Left", () => {
+                const result = Ior.left<1, 2>(1).map((x): [2, 4] => [x, 4]);
+                expect(result).to.deep.equal(Ior.left(1));
+            });
 
-            const t1 = t.right(_1, _2).lmap((x) => tuple(x, _3));
-            assert.deepEqual(t1, Ior.right(_2));
+            it("applies the function to the value if the variant is Right", () => {
+                const result = Ior.right<2, 1>(2).map((x): [2, 4] => [x, 4]);
+                expect(result).to.deep.equal(Ior.right([2, 4]));
+            });
 
-            const t2 = t.both(_1, _2).lmap((x) => tuple(x, _3));
-            assert.deepEqual(t2, Ior.both([_1, _3] as const, _2));
+            it("applies the function to the second value if the variant is Both", () => {
+                const result = Ior.both<1, 2>(1, 2).map((x): [2, 4] => [x, 4]);
+                expect(result).to.deep.equal(Ior.both(1, [2, 4]));
+            });
         });
     });
 });

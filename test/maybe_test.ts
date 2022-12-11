@@ -1,293 +1,356 @@
-import { assert } from "chai";
+import { expect } from "chai";
 import * as fc from "fast-check";
 import { cmb } from "../src/cmb.js";
 import { cmp, eq, Ordering } from "../src/cmp.js";
 import { Maybe } from "../src/maybe.js";
-import { arb, tuple } from "./common.js";
+import { arbNum, arbStr, Num, Str, tuple } from "./common.js";
 
-namespace t {
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    export function nothing<A>(_: A): Maybe<A> {
-        return Maybe.nothing;
-    }
-
-    export function just<A>(x: A): Maybe<A> {
-        return Maybe.just(x);
-    }
+function nothing<A>(): Maybe<A> {
+    return Maybe.nothing;
 }
-
-namespace t.async {
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    export function nothing<A>(_: A): Promise<Maybe<A>> {
-        return Promise.resolve(Maybe.nothing);
-    }
-
-    export function just<A>(x: A): Promise<Maybe<A>> {
-        return Promise.resolve(Maybe.just(x));
-    }
-}
-
-const _1 = 1 as const;
-const _2 = 2 as const;
 
 describe("maybe.js", () => {
     describe("Maybe", () => {
-        specify("fromMissing", () => {
-            const t0 = Maybe.fromMissing<1>(undefined);
-            assert.deepEqual(t0, Maybe.nothing);
+        describe("fromMissing", () => {
+            it("returns Nothing if the argument is undefined", () => {
+                expect(Maybe.fromMissing<1>(undefined)).to.equal(Maybe.nothing);
+            });
 
-            const t1 = Maybe.fromMissing<1>(null);
-            assert.deepEqual(t1, Maybe.nothing);
+            it("returns Nothing if the argument is null", () => {
+                expect(Maybe.fromMissing<1>(null)).to.equal(Maybe.nothing);
+            });
 
-            const t2 = Maybe.fromMissing(_1);
-            assert.deepEqual(t2, Maybe.just(_1));
+            it("returns any non-undefined, non-null argument in a Just", () => {
+                expect(Maybe.fromMissing<1>(1)).to.deep.equal(Maybe.just(1));
+            });
         });
 
-        specify("wrapFn", () => {
-            const t0 = Maybe.wrapFn<[1], 1>(() => undefined)(_1);
-            assert.deepEqual(t0, Maybe.nothing);
+        describe("wrapFn", () => {
+            it("adapts a function to return Nothing if it returns undefined", () => {
+                const f = Maybe.wrapFn((): 1 | undefined => undefined);
+                const result = f();
+                expect(result).to.equal(Maybe.nothing);
+            });
 
-            const t1 = Maybe.wrapFn<[1], 1>(() => null)(_1);
-            assert.deepEqual(t1, Maybe.nothing);
+            it("adapts a function to return Nothing if it returns null", () => {
+                const f = Maybe.wrapFn((): 1 | null => null);
+                const result = f();
+                expect(result).to.equal(Maybe.nothing);
+            });
 
-            const t2 = Maybe.wrapFn<[1], 1>((x) => x)(_1);
-            assert.deepEqual(t2, Maybe.just(_1));
+            it("adapts a function to wrap a non-undefined, non-null result in a Just", () => {
+                const f = Maybe.wrapFn((): 1 => 1);
+                const result = f();
+                expect(result).to.deep.equal(Maybe.just(1));
+            });
         });
 
-        specify("wrapPred", () => {
-            const f = (x: 1 | 2): x is 1 => x === _1;
+        describe("wrapPred", () => {
+            it("adapts a predicate to return Nothing if not satisfied", () => {
+                const f = Maybe.wrapPred((x: number) => x === 1);
+                const result = f(2);
+                expect(result).to.equal(Maybe.nothing);
+            });
 
-            const t0 = Maybe.wrapPred(f)(_1 as 1 | 2);
-            assert.deepEqual(t0, Maybe.just(_1));
-
-            const t1 = Maybe.wrapPred(f)(_2 as 1 | 2);
-            assert.deepEqual(t1, Maybe.nothing);
+            it("adapts a predicate to return a result in a Just if satisfied", () => {
+                const f = Maybe.wrapPred((x: number) => x === 1);
+                const result = f(1);
+                expect(result).to.deep.equal(Maybe.just(1));
+            });
         });
 
-        specify("go", () => {
-            const t0 = Maybe.go(function* () {
-                const x = yield* t.nothing(_1);
-                const [y, z] = yield* t.nothing(tuple(x, _2));
-                return [x, y, z] as const;
+        describe("go", () => {
+            it("short-circuits on the first yielded Nothing", () => {
+                const result = Maybe.go(function* () {
+                    const x = yield* Maybe.just<1>(1);
+                    const [y, z] = yield* nothing<[1, 2]>();
+                    return tuple(x, y, z);
+                });
+                expect(result).to.equal(Maybe.nothing);
             });
-            assert.deepEqual(t0, Maybe.nothing);
 
-            const t1 = Maybe.go(function* () {
-                const x = yield* t.nothing(_1);
-                const [y, z] = yield* t.just(tuple(x, _2));
-                return [x, y, z] as const;
+            it("completes if all yielded values are Just", () => {
+                const result = Maybe.go(function* () {
+                    const x = yield* Maybe.just<1>(1);
+                    const [y, z] = yield* Maybe.just<[1, 2]>([x, 2]);
+                    return tuple(x, y, z);
+                });
+                expect(result).to.deep.equal(Maybe.just([1, 1, 2]));
             });
-            assert.deepEqual(t1, Maybe.nothing);
-
-            const t2 = Maybe.go(function* () {
-                const x = yield* t.just(_1);
-                const [y, z] = yield* t.nothing(tuple(x, _2));
-                return [x, y, z] as const;
-            });
-            assert.deepEqual(t2, Maybe.nothing);
-
-            const t3 = Maybe.go(function* () {
-                const x = yield* t.just(_1);
-                const [y, z] = yield* t.just(tuple(x, _2));
-                return [x, y, z] as const;
-            });
-            assert.deepEqual(t3, Maybe.just([1, 1, 2] as const));
         });
 
         specify("reduce", () => {
-            const t0 = Maybe.reduce(["x", "y"], (xs, x) => t.just(xs + x), "");
-            assert.deepEqual(t0, Maybe.just("xy"));
+            const result = Maybe.reduce(
+                ["x", "y"],
+                (xs, x) => Maybe.just(xs + x),
+                "",
+            );
+            expect(result).to.deep.equal(Maybe.just("xy"));
         });
 
         specify("collect", () => {
-            const t0 = Maybe.collect([t.just(_1), t.just(_2)] as const);
-            assert.deepEqual(t0, Maybe.just([_1, _2] as const));
+            const inputs: [Maybe<1>, Maybe<2>] = [Maybe.just(1), Maybe.just(2)];
+            const result = Maybe.collect(inputs);
+            expect(result).to.deep.equal(Maybe.just([1, 2]));
         });
 
         specify("gather", () => {
-            const t0 = Maybe.gather({ x: t.just(_1), y: t.just(_2) });
-            assert.deepEqual(t0, Maybe.just({ x: _1, y: _2 }));
+            const result = Maybe.gather({
+                x: Maybe.just<1>(1),
+                y: Maybe.just<2>(2),
+            });
+            expect(result).to.deep.equal(Maybe.just({ x: 1, y: 2 }));
         });
 
         specify("lift", () => {
-            const t0 = Maybe.lift(tuple)(t.just(_1), t.just(_2));
-            assert.deepEqual(t0, Maybe.just([_1, _2] as const));
+            const result = Maybe.lift(tuple<[1, 2]>)(
+                Maybe.just(1),
+                Maybe.just(2),
+            );
+            expect(result).to.deep.equal(Maybe.just([1, 2]));
         });
 
-        specify("goAsync", async () => {
-            const t0 = await Maybe.goAsync(async function* () {
-                const x = yield* await t.async.nothing(_1);
-                const [y, z] = yield* await t.async.nothing(tuple(x, _2));
-                return [x, y, z] as const;
+        describe("goAsync", async () => {
+            it("short-circuits on the first yielded Nothing", async () => {
+                const result = await Maybe.goAsync(async function* () {
+                    const x = yield* await Promise.resolve(Maybe.just<1>(1));
+                    const [y, z] = yield* await Promise.resolve(
+                        nothing<[1, 2]>(),
+                    );
+                    return tuple(x, y, z);
+                });
+                expect(result).to.equal(Maybe.nothing);
             });
-            assert.deepEqual(t0, Maybe.nothing);
 
-            const t1 = await Maybe.goAsync(async function* () {
-                const x = yield* await t.async.nothing(_1);
-                const [y, z] = yield* await t.async.just(tuple(x, _2));
-                return [x, y, z] as const;
+            it("completes if all yielded values are Just", async () => {
+                const result = await Maybe.goAsync(async function* () {
+                    const x = yield* await Promise.resolve(Maybe.just<1>(1));
+                    const [y, z] = yield* await Promise.resolve(
+                        Maybe.just<[1, 2]>([x, 2]),
+                    );
+                    return tuple(x, y, z);
+                });
+                expect(result).to.deep.equal(Maybe.just([1, 1, 2]));
             });
-            assert.deepEqual(t1, Maybe.nothing);
 
-            const t2 = await Maybe.goAsync(async function* () {
-                const x = yield* await t.async.just(_1);
-                const [y, z] = yield* await t.async.nothing(tuple(x, _2));
-                return [x, y, z] as const;
+            it("unwraps Promises in Just variants and in return", async () => {
+                const result = await Maybe.goAsync(async function* () {
+                    const x = yield* await Promise.resolve(
+                        Maybe.just(Promise.resolve<1>(1)),
+                    );
+                    const [y, z] = yield* await Promise.resolve(
+                        Maybe.just(Promise.resolve<[1, 2]>([x, 2])),
+                    );
+                    return Promise.resolve(tuple(x, y, z));
+                });
+                expect(result).to.deep.equal(Maybe.just([1, 1, 2]));
             });
-            assert.deepEqual(t2, Maybe.nothing);
+        });
 
-            const t3 = await Maybe.goAsync(async function* () {
-                const x = yield* await t.async.just(_1);
-                const [y, z] = yield* await t.async.just(tuple(x, _2));
-                return [x, y, z] as const;
+        describe("#[Eq.eq]", () => {
+            it("compares Nothing and Nothing as equal", () => {
+                expect(eq<Maybe<Num>>(Maybe.nothing, Maybe.nothing)).to.be.true;
             });
-            assert.deepEqual(t3, Maybe.just([_1, _1, _2] as const));
 
-            const t4 = await Maybe.goAsync(async function* () {
-                const x = yield* await t.async.just(Promise.resolve(_1));
-                const [y, z] = yield* await t.async.just(
-                    Promise.resolve(tuple(x, _2)),
+            it("compares Nothing and a Just as inequal", () => {
+                fc.assert(
+                    fc.property(arbNum(), (y) => {
+                        expect(eq(Maybe.nothing, Maybe.just(y))).to.be.false;
+                    }),
                 );
-                return Promise.resolve([x, y, z] as const);
             });
-            assert.deepEqual(t4, Maybe.just([_1, _1, _2] as const));
+
+            it("compares a Just and Nothing as inequal", () => {
+                fc.assert(
+                    fc.property(arbNum(), (x) => {
+                        expect(eq(Maybe.just(x), Maybe.nothing)).to.be.false;
+                    }),
+                );
+            });
+
+            it("compares a Just and a Just by their values", () => {
+                fc.assert(
+                    fc.property(arbNum(), arbNum(), (x, y) => {
+                        expect(eq(Maybe.just(x), Maybe.just(y))).to.equal(
+                            eq(x, y),
+                        );
+                    }),
+                );
+            });
         });
 
-        specify("#[Eq.eq]", () => {
-            fc.assert(
-                fc.property(arb.num(), arb.num(), (x, y) => {
-                    const t0 = eq(Maybe.nothing, Maybe.nothing);
-                    assert.strictEqual(t0, true);
+        describe("#[Ord.cmp]", () => {
+            it("compares Nothing as equal to Nothing", () => {
+                expect(cmp<Maybe<Num>>(Maybe.nothing, Maybe.nothing)).to.equal(
+                    Ordering.equal,
+                );
+            });
 
-                    const t1 = eq(Maybe.nothing, Maybe.just(y));
-                    assert.strictEqual(t1, false);
+            it("compares Nothing as less than a Just", () => {
+                fc.assert(
+                    fc.property(arbNum(), (y) => {
+                        expect(cmp(Maybe.nothing, Maybe.just(y))).to.equal(
+                            Ordering.less,
+                        );
+                    }),
+                );
+            });
 
-                    const t2 = eq(Maybe.just(x), Maybe.nothing);
-                    assert.strictEqual(t2, false);
+            it("compares a Just as greater than Nothing", () => {
+                fc.assert(
+                    fc.property(arbNum(), (x) => {
+                        expect(cmp(Maybe.just(x), Maybe.nothing)).to.equal(
+                            Ordering.greater,
+                        );
+                    }),
+                );
+            });
 
-                    const t3 = eq(Maybe.just(x), Maybe.just(y));
-                    assert.strictEqual(t3, eq(x, y));
-                }),
-            );
+            it("compares a Just and a Just by their values", () => {
+                fc.assert(
+                    fc.property(arbNum(), arbNum(), (x, y) => {
+                        expect(cmp(Maybe.just(x), Maybe.just(y))).to.equal(
+                            cmp(x, y),
+                        );
+                    }),
+                );
+            });
         });
 
-        specify("#[Ord.cmp]", () => {
-            fc.assert(
-                fc.property(arb.num(), arb.num(), (x, y) => {
-                    const t0 = cmp(Maybe.nothing, Maybe.nothing);
-                    assert.strictEqual(t0, Ordering.equal);
+        describe("#[Semigroup.cmb]", () => {
+            it("returns Nothing if both arguments are Nothing", () => {
+                expect(cmb<Maybe<Str>>(Maybe.nothing, Maybe.nothing)).to.equal(
+                    Maybe.nothing,
+                );
+            });
 
-                    const t1 = cmp(Maybe.nothing, Maybe.just(y));
-                    assert.strictEqual(t1, Ordering.less);
+            it("keeps the second Just if the first argument is Nothing", () => {
+                fc.assert(
+                    fc.property(arbStr(), (y) => {
+                        expect(cmb(Maybe.nothing, Maybe.just(y))).to.deep.equal(
+                            Maybe.just(y),
+                        );
+                    }),
+                );
+            });
 
-                    const t2 = cmp(Maybe.just(x), Maybe.nothing);
-                    assert.strictEqual(t2, Ordering.greater);
+            it("keeps the first Just if the second argument is Nothing", () => {
+                fc.assert(
+                    fc.property(arbStr(), (x) => {
+                        expect(cmb(Maybe.just(x), Maybe.nothing)).to.deep.equal(
+                            Maybe.just(x),
+                        );
+                    }),
+                );
+            });
 
-                    const t3 = cmp(Maybe.just(x), Maybe.just(y));
-                    assert.strictEqual(t3, cmp(x, y));
-                }),
-            );
+            it("combines the values in a Just if both arguments are Just", () => {
+                fc.assert(
+                    fc.property(arbStr(), arbStr(), (x, y) => {
+                        expect(cmb(Maybe.just(x), Maybe.just(y))).to.deep.equal(
+                            Maybe.just(cmb(x, y)),
+                        );
+                    }),
+                );
+            });
         });
 
-        specify("#[Semigroup.cmb]", () => {
-            fc.assert(
-                fc.property(arb.str(), arb.str(), (x, y) => {
-                    const t0 = cmb(Maybe.nothing, Maybe.nothing);
-                    assert.deepEqual(t0, Maybe.nothing);
+        describe("#isNothing", () => {
+            it("returns true if the variant is Nothing", () => {
+                expect(nothing<1>().isNothing()).to.be.true;
+            });
 
-                    const t1 = cmb(Maybe.nothing, Maybe.just(y));
-                    assert.deepEqual(t1, Maybe.just(y));
-
-                    const t2 = cmb(Maybe.just(x), Maybe.nothing);
-                    assert.deepEqual(t2, Maybe.just(x));
-
-                    const t3 = cmb(Maybe.just(x), Maybe.just(y));
-                    assert.deepEqual(t3, Maybe.just(cmb(x, y)));
-                }),
-            );
+            it("returns false if the variant is Just", () => {
+                expect(Maybe.just<1>(1).isNothing()).to.be.false;
+            });
         });
 
-        specify("#isNothing", () => {
-            const t0 = t.nothing(_1).isNothing();
-            assert.strictEqual(t0, true);
+        describe("#isJust", () => {
+            it("returns false if the variant is Nothing", () => {
+                expect(nothing<1>().isJust()).to.be.false;
+            });
 
-            const t1 = t.just(_1).isNothing();
-            assert.strictEqual(t1, false);
+            it("returns true if the variant is Just", () => {
+                expect(Maybe.just<1>(1).isJust()).to.be.true;
+            });
         });
 
-        specify("#isJust", () => {
-            const t0 = t.nothing(_1).isJust();
-            assert.strictEqual(t0, false);
+        describe("#unwrap", () => {
+            it("evaluates the first function if the variant is Nothing", () => {
+                const result = nothing<1>().unwrap(
+                    (): 2 => 2,
+                    (x): [1, 3] => [x, 3],
+                );
+                expect(result).to.equal(2);
+            });
 
-            const t1 = t.just(_1).isJust();
-            assert.strictEqual(t1, true);
+            it("applies the second function if the variant is Just", () => {
+                const result = Maybe.just<1>(1).unwrap(
+                    (): 2 => 2,
+                    (x): [1, 3] => [x, 3],
+                );
+                expect(result).to.deep.equal([1, 3]);
+            });
         });
 
-        specify("#unwrap", () => {
-            const t0 = t.nothing(_1).unwrap(
-                () => _2,
-                (x) => tuple(x, _2),
-            );
-            assert.strictEqual(t0, _2);
+        describe("#getOr", () => {
+            it("returns the fallback value if the variant is Nothing", () => {
+                const result = nothing<1>().getOr(2 as const);
+                expect(result).to.equal(2);
+            });
 
-            const t1 = t.just(_1).unwrap(
-                () => _2,
-                (x) => tuple(x, _2),
-            );
-            assert.deepEqual(t1, [_1, _2]);
+            it("extracts the value if the variant is Just", () => {
+                const result = Maybe.just<1>(1).getOr(2 as const);
+                expect(result).to.equal(1);
+            });
         });
 
-        specify("#getOr", () => {
-            const t0 = t.just(_1).getOr(_2);
-            assert.strictEqual(t0, _1);
+        describe("#orElse", () => {
+            it("returns the other Maybe if the variant is Nothing", () => {
+                const result = nothing<1>().orElse(Maybe.just<2>(2));
+                expect(result).to.deep.equal(Maybe.just(2));
+            });
+
+            it("returns a Just as is", () => {
+                const result = Maybe.just<1>(1).orElse(Maybe.just<2>(2));
+                expect(result).to.deep.equal(Maybe.just(1));
+            });
         });
 
-        specify("#orElse", () => {
-            const t0 = t.nothing(_1).orElse(t.nothing(_2));
-            assert.deepEqual(t0, Maybe.nothing);
+        describe("#flatMap", () => {
+            it("does not apply the continuation if the variant is Nothing", () => {
+                const result = nothing<1>().flatMap(
+                    (x): Maybe<[1, 2]> => Maybe.just([x, 2]),
+                );
+                expect(result).to.equal(Maybe.nothing);
+            });
 
-            const t1 = t.nothing(_1).orElse(t.just(_2));
-            assert.deepEqual(t1, Maybe.just(_2));
-
-            const t2 = t.just(_1).orElse(t.nothing(_2));
-            assert.deepEqual(t2, Maybe.just(_1));
-
-            const t3 = t.just(_1).orElse(t.just(_2));
-            assert.deepEqual(t3, Maybe.just(_1));
-        });
-
-        specify("#flatMap", () => {
-            const t0 = t.nothing(_1).flatMap((x) => t.nothing(tuple(x, _2)));
-            assert.deepEqual(t0, Maybe.nothing);
-
-            const t1 = t.nothing(_1).flatMap((x) => t.just(tuple(x, _2)));
-            assert.deepEqual(t1, Maybe.nothing);
-
-            const t2 = t.just(_1).flatMap((x) => t.nothing(tuple(x, _2)));
-            assert.deepEqual(t2, Maybe.nothing);
-
-            const t3 = t.just(_1).flatMap((x) => t.just(tuple(x, _2)));
-            assert.deepEqual(t3, Maybe.just([_1, _2] as const));
+            it("applies the continuation if the variant is Just", () => {
+                const result = Maybe.just<1>(1).flatMap(
+                    (x): Maybe<[1, 2]> => Maybe.just([x, 2]),
+                );
+                expect(result).to.deep.equal(Maybe.just([1, 2]));
+            });
         });
 
         specify("#zipWith", () => {
-            const t0 = t.just(_1).zipWith(t.just(_2), tuple);
-            assert.deepEqual(t0, Maybe.just([_1, _2] as const));
+            const result = Maybe.just<1>(1).zipWith(Maybe.just<2>(2), tuple);
+            expect(result).to.deep.equal(Maybe.just([1, 2]));
         });
 
         specify("#zipFst", () => {
-            const t0 = t.just(_1).zipFst(t.just(_2));
-            assert.deepEqual(t0, Maybe.just(_1));
+            const result = Maybe.just<1>(1).zipFst(Maybe.just<2>(2));
+            expect(result).to.deep.equal(Maybe.just(1));
         });
 
         specify("#zipSnd", () => {
-            const t0 = t.just(_1).zipSnd(t.just(_2));
-            assert.deepEqual(t0, Maybe.just(_2));
+            const result = Maybe.just<1>(1).zipSnd(Maybe.just<2>(2));
+            expect(result).to.deep.equal(Maybe.just(2));
         });
 
         specify("#map", () => {
-            const t1 = t.just(_1).map((x) => tuple(x, _2));
-            assert.deepEqual(t1, Maybe.just([_1, _2] as const));
+            const result = Maybe.just<1>(1).map((x): [1, 2] => tuple(x, 2));
+            expect(result).to.deep.equal(Maybe.just([1, 2]));
         });
     });
 });
