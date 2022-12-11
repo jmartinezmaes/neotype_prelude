@@ -62,17 +62,6 @@ describe("pair.js", () => {
             );
         });
 
-        specify("#bimap", () => {
-            const t0 = new Pair(_1, _2).bimap(
-                (x) => tuple(x, _3),
-                (x) => tuple(x, _4),
-            );
-            assert.deepEqual(
-                t0,
-                new Pair([_1, _3] as const, [_2, _4] as const),
-            );
-        });
-
         specify("#lmap", () => {
             const t0 = new Pair(_1, _2).lmap((x) => tuple(x, _3));
             assert.deepEqual(t0, new Pair([_1, _3] as const, _2));

@@ -291,19 +291,5 @@ describe("either.js", () => {
             const t0 = t.left(_1, _2).lmap((x) => tuple(x, _3));
             assert.deepEqual(t0, Either.left([_1, _3] as const));
         });
-
-        specify("#bimap", () => {
-            const t1 = t.left(_1, _2).bimap(
-                (x) => tuple(x, _3),
-                (x) => tuple(x, _4),
-            );
-            assert.deepEqual(t1, Either.left([_1, _3] as const));
-
-            const t0 = t.right(_1, _2).bimap(
-                (x) => tuple(x, _3),
-                (x) => tuple(x, _4),
-            );
-            assert.deepEqual(t0, Either.right([_2, _4] as const));
-        });
     });
 });

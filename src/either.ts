@@ -123,8 +123,6 @@
  *
  * These methods transform the value within an `Either`:
  *
- * -   `bimap` applies one of two functions to the value, depending on the
- *     variant.
  * -   `lmap` applies a function to the value in a left-sided `Either`.
  * -   `map` applies a function to the value in a right-sided `Either`.
  *
@@ -777,19 +775,6 @@ export namespace Either {
             that: Either<E1, B>,
         ): Either<E | E1, B> {
             return this.flatMap(() => that);
-        }
-
-        /**
-         * If this `Either` is left-sided, apply a function to its value and
-         * return the result in a `Left`; otherwise, apply a function to its
-         * value and return the result in a `Right`.
-         */
-        bimap<A, B, C, D>(
-            this: Either<A, B>,
-            lmap: (x: A) => C,
-            rmap: (x: B) => D,
-        ): Either<C, D> {
-            return this.isLeft() ? left(lmap(this.val)) : right(rmap(this.val));
         }
 
         /**

@@ -120,8 +120,6 @@
  *
  * These methods transform the failure or the success within a `Validation`:
  *
- * -   `bimap` applies one of two functions to the failure or the success,
- *     depending on the variant.
  * -   `lmap` applies a function to the failure.
  * -   `map` applies a function to the success.
  *
@@ -600,19 +598,6 @@ export namespace Validation {
             that: Validation<E, B>,
         ): Validation<E, B> {
             return this.zipWith(that, (_, y) => y);
-        }
-
-        /**
-         * If this `Validation` fails, apply a function to its failure and fail
-         * with the result; otherwise, apply a function to its success and
-         * succeed with the result.
-         */
-        bimap<E, A, E1, B>(
-            this: Validation<E, A>,
-            lmap: (x: E) => E1,
-            rmap: (x: A) => B,
-        ): Validation<E1, B> {
-            return this.isErr() ? err(lmap(this.val)) : ok(rmap(this.val));
         }
 
         /**

@@ -495,28 +495,5 @@ describe("ior.js", () => {
             const t2 = t.both(_1, _2).lmap((x) => tuple(x, _3));
             assert.deepEqual(t2, Ior.both([_1, _3] as const, _2));
         });
-
-        specify("#bimap", () => {
-            const t0 = t.left(_1, _2).bimap(
-                (x) => tuple(x, _3),
-                (x) => tuple(x, _4),
-            );
-            assert.deepEqual(t0, Ior.left([_1, _3] as const));
-
-            const t1 = t.right(_1, _2).bimap(
-                (x) => tuple(x, _3),
-                (x) => tuple(x, _4),
-            );
-            assert.deepEqual(t1, Ior.right([_2, _4] as const));
-
-            const t2 = t.both(_1, _2).bimap(
-                (x) => tuple(x, _3),
-                (x) => tuple(x, _4),
-            );
-            assert.deepEqual(
-                t2,
-                Ior.both([_1, _3] as const, [_2, _4] as const),
-            );
-        });
     });
 });
