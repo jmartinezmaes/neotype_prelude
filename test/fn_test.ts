@@ -1,4 +1,4 @@
-import { assert } from "chai";
+import { expect } from "chai";
 import * as fc from "fast-check";
 import { id, negatePred, wrapCtor } from "../src/fn.js";
 
@@ -7,29 +7,32 @@ describe("fn.js", () => {
         fc.assert(
             fc.property(
                 fc.anything().filter((x) => !Number.isNaN(x)),
-                (x) => assert.strictEqual(id(x), x),
+                (x) => {
+                    expect(id(x)).to.equal(x);
+                },
             ),
         );
     });
 
     specify("negatePred", () => {
-        function f(x: 1 | 2): x is 2 {
-            return x === 2;
+        function isOne(x: 1 | 2): boolean {
+            return x === 1;
         }
-        const g = negatePred(f);
+        const isNotOne = negatePred(isOne);
 
-        assert.strictEqual(f(1), false);
-        assert.strictEqual(f(2), true);
-        assert.strictEqual(g(1), true);
-        assert.strictEqual(g(2), false);
+        expect(isOne(1)).to.be.true;
+        expect(isOne(2)).to.be.false;
+        expect(isNotOne(1)).to.be.false;
+        expect(isNotOne(2)).to.be.true;
     });
 
     specify("wrapCtor", () => {
         class Box<A> {
             constructor(readonly val: A) {}
         }
-        const fn = wrapCtor(Box);
-        const t0 = fn(1);
-        assert.deepEqual(t0, new Box(1));
+        const f = wrapCtor(Box);
+
+        const result = f<1>(1);
+        expect(result).to.deep.equal(new Box(1));
     });
 });

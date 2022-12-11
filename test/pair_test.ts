@@ -1,32 +1,33 @@
-import { assert } from "chai";
+import { expect } from "chai";
 import * as fc from "fast-check";
 import { cmb } from "../src/cmb.js";
 import { cmp, eq } from "../src/cmp.js";
 import { Pair } from "../src/pair.js";
-import { arb, tuple } from "./common.js";
-
-const _1 = 1 as const;
-const _2 = 2 as const;
-const _3 = 3 as const;
-const _4 = 4 as const;
+import { arbNum, arbStr, tuple } from "./common.js";
 
 describe("pair.js", () => {
     describe("Pair", () => {
+        specify("fromTuple", () => {
+            const result = Pair.fromTuple<1, 2>([1, 2]);
+            expect(result).to.deep.equal(new Pair(1, 2));
+        });
+
         specify("get#val", () => {
-            const t0 = new Pair(_1, _2).val;
-            assert.deepEqual(t0, [_1, _2]);
+            const result = new Pair<1, 2>(1, 2).val;
+            expect(result).to.deep.equal([1, 2]);
         });
 
         specify("#[Eq.eq]", () => {
             fc.assert(
                 fc.property(
-                    arb.num(),
-                    arb.num(),
-                    arb.num(),
-                    arb.num(),
+                    arbNum(),
+                    arbNum(),
+                    arbNum(),
+                    arbNum(),
                     (a, x, b, y) => {
-                        const t0 = eq(new Pair(a, x), new Pair(b, y));
-                        assert.strictEqual(t0, eq(a, b) && eq(x, y));
+                        expect(eq(new Pair(a, x), new Pair(b, y))).to.equal(
+                            eq(a, b) && eq(x, y),
+                        );
                     },
                 ),
             );
@@ -35,13 +36,14 @@ describe("pair.js", () => {
         specify("#[Ord.cmp]", () => {
             fc.assert(
                 fc.property(
-                    arb.num(),
-                    arb.num(),
-                    arb.num(),
-                    arb.num(),
+                    arbNum(),
+                    arbNum(),
+                    arbNum(),
+                    arbNum(),
                     (a, x, b, y) => {
-                        const t0 = cmp(new Pair(a, x), new Pair(b, y));
-                        assert.strictEqual(t0, cmb(cmp(a, b), cmp(x, y)));
+                        expect(cmp(new Pair(a, x), new Pair(b, y))).to.equal(
+                            cmb(cmp(a, b), cmp(x, y)),
+                        );
                     },
                 ),
             );
@@ -50,26 +52,32 @@ describe("pair.js", () => {
         specify("#[Semigroup.cmb]", () => {
             fc.assert(
                 fc.property(
-                    arb.str(),
-                    arb.str(),
-                    arb.str(),
-                    arb.str(),
+                    arbStr(),
+                    arbStr(),
+                    arbStr(),
+                    arbStr(),
                     (a, x, b, y) => {
-                        const t0 = cmb(new Pair(a, x), new Pair(b, y));
-                        assert.deepEqual(t0, new Pair(cmb(a, b), cmb(x, y)));
+                        expect(
+                            cmb(new Pair(a, x), new Pair(b, y)),
+                        ).to.deep.equal(new Pair(cmb(a, b), cmb(x, y)));
                     },
                 ),
             );
         });
 
+        specify("#unwrap", () => {
+            const result = new Pair<1, 2>(1, 2).unwrap(tuple);
+            expect(result).to.deep.equal([1, 2]);
+        });
+
         specify("#lmap", () => {
-            const t0 = new Pair(_1, _2).lmap((x) => tuple(x, _3));
-            assert.deepEqual(t0, new Pair([_1, _3] as const, _2));
+            const result = new Pair<1, 2>(1, 2).lmap((x): [1, 3] => [x, 3]);
+            expect(result).to.deep.equal(new Pair([1, 3], 2));
         });
 
         specify("#map", () => {
-            const t0 = new Pair(_1, _2).map((x) => tuple(x, _4));
-            assert.deepEqual(t0, new Pair(_1, [_2, _4] as const));
+            const result = new Pair<1, 2>(1, 2).map((x): [2, 4] => [x, 4]);
+            expect(result).to.deep.equal(new Pair(1, [2, 4]));
         });
     });
 });

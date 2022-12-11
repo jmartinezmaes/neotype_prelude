@@ -1,103 +1,111 @@
-import { assert } from "chai";
+import { expect } from "chai";
 import * as fc from "fast-check";
 import { cmb } from "../src/cmb.js";
 import { Eval } from "../src/eval.js";
-import { arb, tuple } from "./common.js";
-
-const _1 = 1 as const;
-const _2 = 2 as const;
+import { arbStr, tuple } from "./common.js";
 
 describe("eval.js", () => {
     describe("Eval", () => {
         specify("once", () => {
-            function f() {
+            function f(): 1 {
                 f.counter++;
-                return _1;
+                return 1;
             }
             f.counter = 0;
 
-            const t0 = Eval.once(f);
-            const t1 = t0.flatMap((x) => t0.map((y) => tuple(x, y)));
+            const evOnce = Eval.once(f);
 
-            assert.deepEqual(t1.run(), [_1, _1]);
-            assert.strictEqual(f.counter, 1);
+            const result = evOnce.zipWith(evOnce, tuple);
+            expect(result.run()).to.deep.equal([1, 1]);
+            expect(f.counter).to.equal(1);
         });
 
         specify("always", () => {
-            function f() {
+            function f(): 1 {
                 f.counter++;
-                return _1;
+                return 1;
             }
             f.counter = 0;
 
-            const t0 = Eval.always(f);
-            const t1 = t0.flatMap((x) => t0.map((y) => tuple(x, y)));
+            const evAlways = Eval.always(f);
 
-            assert.deepEqual(t1.run(), [_1, _1]);
-            assert.strictEqual(f.counter, 2);
+            const result = evAlways.zipWith(evAlways, tuple);
+            expect(result.run()).to.deep.equal([1, 1]);
+            expect(f.counter).to.equal(2);
         });
 
         specify("go", () => {
-            const t0 = Eval.go(function* () {
-                const x = yield* Eval.now(_1);
-                const [y, z] = yield* Eval.now(tuple(x, _2));
-                return [x, y, z] as const;
+            const result = Eval.go(function* () {
+                const x = yield* Eval.now<1>(1);
+                const [y, z] = yield* Eval.now(tuple<[1, 2]>(x, 2));
+                return tuple(x, y, z);
             });
-            assert.deepEqual(t0.run(), [_1, _1, _2]);
+            expect(result.run()).to.deep.equal([1, 1, 2]);
         });
 
         specify("reduce", () => {
-            const t0 = Eval.reduce(["x", "y"], (xs, x) => Eval.now(xs + x), "");
-            assert.deepEqual(t0.run(), "xy");
+            const result = Eval.reduce(
+                ["x", "y"],
+                (xs, x) => Eval.now(xs + x),
+                "",
+            );
+            expect(result.run()).to.equal("xy");
         });
 
         specify("collect", () => {
-            const t0 = Eval.collect([Eval.now(_1), Eval.now(_2)] as const);
-            assert.deepEqual(t0.run(), [_1, _2]);
+            const inputs: [Eval<1>, Eval<2>] = [Eval.now(1), Eval.now(2)];
+            const result = Eval.collect(inputs);
+            expect(result.run()).to.deep.equal([1, 2]);
         });
 
         specify("gather", () => {
-            const t0 = Eval.gather({ x: Eval.now(_1), y: Eval.now(_2) });
-            assert.deepEqual(t0.run(), { x: _1, y: _2 });
+            const result = Eval.gather({
+                x: Eval.now<1>(1),
+                y: Eval.now<2>(2),
+            });
+            expect(result.run()).to.deep.equal({ x: 1, y: 2 });
         });
 
         specify("lift", () => {
-            const t0 = Eval.lift(tuple)(Eval.now(_1), Eval.now(_2));
-            assert.deepEqual(t0.run(), [_1, _2]);
+            const result = Eval.lift(tuple)(Eval.now<1>(1), Eval.now<2>(2));
+            expect(result.run()).to.deep.equal([1, 2]);
         });
 
         specify("#[Semigroup.cmb]", () => {
             fc.assert(
-                fc.property(arb.str(), arb.str(), (x, y) => {
-                    const t0 = cmb(Eval.now(x), Eval.now(y));
-                    assert.deepEqual(t0.run(), cmb(x, y));
+                fc.property(arbStr(), arbStr(), (x, y) => {
+                    expect(cmb(Eval.now(x), Eval.now(y)).run()).to.deep.equal(
+                        cmb(x, y),
+                    );
                 }),
             );
         });
 
         specify("#flatMap", () => {
-            const t0 = Eval.now(_1).flatMap((x) => Eval.now(tuple(x, _2)));
-            assert.deepEqual(t0.run(), [_1, _2]);
+            const result = Eval.now<1>(1).flatMap(
+                (x): Eval<[1, 2]> => Eval.now([x, 2]),
+            );
+            expect(result.run()).to.deep.equal([1, 2]);
         });
 
         specify("#zipWith", () => {
-            const t0 = Eval.now(_1).zipWith(Eval.now(_2), tuple);
-            assert.deepEqual(t0.run(), [_1, _2]);
+            const result = Eval.now<1>(1).zipWith(Eval.now<2>(2), tuple);
+            expect(result.run()).to.deep.equal([1, 2]);
         });
 
         specify("#zipFst", () => {
-            const t0 = Eval.now(_1).zipFst(Eval.now(_2));
-            assert.strictEqual(t0.run(), _1);
+            const result = Eval.now<1>(1).zipFst(Eval.now<2>(2));
+            expect(result.run()).to.equal(1);
         });
 
         specify("#zipSnd", () => {
-            const t0 = Eval.now(_1).zipSnd(Eval.now(_2));
-            assert.strictEqual(t0.run(), _2);
+            const result = Eval.now<1>(1).zipSnd(Eval.now<2>(2));
+            expect(result.run()).to.equal(2);
         });
 
         specify("#map", () => {
-            const t0 = Eval.now(_1).map((x) => tuple(x, _2));
-            assert.deepEqual(t0.run(), [_1, _2]);
+            const result = Eval.now<1>(1).map((x): [1, 2] => tuple(x, 2));
+            expect(result.run()).to.deep.equal([1, 2]);
         });
     });
 });

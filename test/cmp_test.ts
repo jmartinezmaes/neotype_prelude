@@ -1,4 +1,4 @@
-import { assert } from "chai";
+import { expect } from "chai";
 import * as fc from "fast-check";
 import { cmb } from "../src/cmb.js";
 import {
@@ -21,65 +21,102 @@ import {
     Ordering,
     Reverse,
 } from "../src/cmp.js";
-import { arb, Num } from "./common.js";
+import { arbNum, Num } from "./common.js";
 
 describe("cmp.js", () => {
     specify("eq", () => {
         fc.assert(
-            fc.property(arb.num(), arb.num(), (x, y) =>
-                assert.strictEqual(eq(x, y), x[Eq.eq](y)),
-            ),
+            fc.property(arbNum(), arbNum(), (x, y) => {
+                expect(eq(x, y)).to.equal(x[Eq.eq](y));
+            }),
         );
     });
 
     specify("ne", () => {
         fc.assert(
-            fc.property(arb.num(), arb.num(), (x, y) =>
-                assert.strictEqual(ne(x, y), !x[Eq.eq](y)),
-            ),
+            fc.property(arbNum(), arbNum(), (x, y) => {
+                expect(ne(x, y)).to.equal(!x[Eq.eq](y));
+            }),
         );
     });
 
-    specify("ieqBy", () => {
+    describe("ieqBy", () => {
         function comparer(x: number, y: number): boolean {
             return x === y;
         }
-        fc.assert(
-            fc.property(
-                arb.float(),
-                arb.float(),
-                arb.float(),
-                arb.float(),
-                (a, x, b, y) => {
-                    assert.strictEqual(ieqBy([a], [], comparer), false);
-                    assert.strictEqual(ieqBy([], [b], comparer), false);
-                    assert.strictEqual(ieqBy([a, x], [b], comparer), false);
-                    assert.strictEqual(ieqBy([a], [b, y], comparer), false);
-                    assert.strictEqual(
-                        ieqBy([a, x], [b, y], comparer),
-                        comparer(a, b) && comparer(x, y),
-                    );
-                },
-            ),
-        );
+
+        it("compares two empty iterables as equal", () => {
+            expect(ieqBy([], [], comparer)).to.be.true;
+        });
+
+        it("compares a non-empty and an empty iterable as inequal", () => {
+            fc.assert(
+                fc.property(fc.float({ noNaN: true }), (a) => {
+                    expect(ieqBy([a], [], comparer)).to.be.false;
+                }),
+            );
+        });
+
+        it("compares an empty and a non-empty iterable as inequal", () => {
+            fc.assert(
+                fc.property(fc.float({ noNaN: true }), (b) => {
+                    expect(ieqBy([], [b], comparer)).to.be.false;
+                }),
+            );
+        });
+
+        it("compares a longer and a shorter iterable as inequal", () => {
+            fc.assert(
+                fc.property(
+                    fc.float({ noNaN: true }),
+                    fc.float({ noNaN: true }),
+                    fc.float({ noNaN: true }),
+                    (a, x, b) => {
+                        expect(ieqBy([a, x], [b], comparer)).to.be.false;
+                    },
+                ),
+            );
+        });
+
+        it("compares a shorter and a longer iterable as inequal", () => {
+            fc.assert(
+                fc.property(
+                    fc.float({ noNaN: true }),
+                    fc.float({ noNaN: true }),
+                    fc.float({ noNaN: true }),
+                    (a, b, y) => {
+                        expect(ieqBy([a], [b, y], comparer)).to.be.false;
+                    },
+                ),
+            );
+        });
+
+        it("compares two same-length iterables by element", () => {
+            fc.assert(
+                fc.property(
+                    fc.float({ noNaN: true }),
+                    fc.float({ noNaN: true }),
+                    fc.float({ noNaN: true }),
+                    fc.float({ noNaN: true }),
+                    (a, x, b, y) => {
+                        expect(ieqBy([a, x], [b, y], comparer)).to.equal(
+                            comparer(a, b) && comparer(x, y),
+                        );
+                    },
+                ),
+            );
+        });
     });
 
     specify("ieq", () => {
         fc.assert(
             fc.property(
-                arb.num(),
-                arb.num(),
-                arb.num(),
-                arb.num(),
+                arbNum(),
+                arbNum(),
+                arbNum(),
+                arbNum(),
                 (a, x, b, y) => {
-                    assert.strictEqual(ieq([a], []), false);
-                    assert.strictEqual(ieq([], [b]), false);
-                    assert.strictEqual(ieq([a, x], [b]), false);
-                    assert.strictEqual(ieq([a], [b, y]), false);
-                    assert.strictEqual(
-                        ieq([a, x], [b, y]),
-                        eq(a, b) && eq(x, y),
-                    );
+                    expect(ieq([a, x], [b, y])).to.equal(eq(a, b) && eq(x, y));
                 },
             ),
         );
@@ -87,68 +124,95 @@ describe("cmp.js", () => {
 
     specify("cmp", () => {
         fc.assert(
-            fc.property(arb.num(), arb.num(), (x, y) =>
-                assert.strictEqual(cmp(x, y), x[Ord.cmp](y)),
-            ),
+            fc.property(arbNum(), arbNum(), (x, y) => {
+                expect(cmp(x, y)).to.equal(x[Ord.cmp](y));
+            }),
         );
     });
 
-    specify("icmpBy", () => {
+    describe("icmpBy", () => {
         function comparer(x: number, y: number): Ordering {
             return Ordering.fromNumber(x - y);
         }
-        fc.assert(
-            fc.property(
-                arb.float(),
-                arb.float(),
-                arb.float(),
-                arb.float(),
-                (a, x, b, y) => {
-                    assert.strictEqual(
-                        icmpBy([a], [], comparer),
+
+        it("compares two empty iterables as equal", () => {
+            expect(icmpBy([], [], comparer)).to.equal(Ordering.equal);
+        });
+
+        it("compares a non-empty iterable as greater than an empty iterable", () => {
+            fc.assert(
+                fc.property(fc.float({ noNaN: true }), (a) => {
+                    expect(icmpBy([a], [], comparer)).to.equal(
                         Ordering.greater,
                     );
-                    assert.strictEqual(
-                        icmpBy([], [b], comparer),
-                        Ordering.less,
-                    );
-                    assert.strictEqual(
-                        icmpBy([a, x], [b], comparer),
-                        cmb(comparer(a, b), Ordering.greater),
-                    );
-                    assert.strictEqual(
-                        icmpBy([a], [b, y], comparer),
-                        cmb(comparer(a, b), Ordering.less),
-                    );
-                    assert.strictEqual(
-                        icmpBy([a, x], [b, y], comparer),
-                        cmb(comparer(a, b), comparer(x, y)),
-                    );
-                },
-            ),
-        );
+                }),
+            );
+        });
+
+        it("compares an empty iterable as less than a non-empty iterable", () => {
+            fc.assert(
+                fc.property(fc.float({ noNaN: true }), (b) => {
+                    expect(icmpBy([], [b], comparer)).to.equal(Ordering.less);
+                }),
+            );
+        });
+
+        it("compares a longer and a shorter iterable lexicographically", () => {
+            fc.assert(
+                fc.property(
+                    fc.float({ noNaN: true }),
+                    fc.float({ noNaN: true }),
+                    fc.float({ noNaN: true }),
+                    (a, x, b) => {
+                        expect(icmpBy([a, x], [b], comparer)).to.equal(
+                            cmb(comparer(a, b), Ordering.greater),
+                        );
+                    },
+                ),
+            );
+        });
+
+        it("compares a shorter and a longer iterable lexicographically", () => {
+            fc.assert(
+                fc.property(
+                    fc.float({ noNaN: true }),
+                    fc.float({ noNaN: true }),
+                    fc.float({ noNaN: true }),
+                    (a, b, y) => {
+                        expect(icmpBy([a], [b, y], comparer)).to.equal(
+                            cmb(comparer(a, b), Ordering.less),
+                        );
+                    },
+                ),
+            );
+        });
+
+        it("compares two same-length iterables lexicographically", () => {
+            fc.assert(
+                fc.property(
+                    fc.float({ noNaN: true }),
+                    fc.float({ noNaN: true }),
+                    fc.float({ noNaN: true }),
+                    fc.float({ noNaN: true }),
+                    (a, x, b, y) => {
+                        expect(icmpBy([a, x], [b, y], comparer)).to.equal(
+                            cmb(comparer(a, b), comparer(x, y)),
+                        );
+                    },
+                ),
+            );
+        });
     });
 
     specify("icmp", () => {
         fc.assert(
             fc.property(
-                arb.num(),
-                arb.num(),
-                arb.num(),
-                arb.num(),
+                arbNum(),
+                arbNum(),
+                arbNum(),
+                arbNum(),
                 (a, x, b, y) => {
-                    assert.strictEqual(icmp([a], []), Ordering.greater);
-                    assert.strictEqual(icmp([], [b]), Ordering.less);
-                    assert.strictEqual(
-                        icmp([a, x], [b]),
-                        cmb(cmp(a, b), Ordering.greater),
-                    );
-                    assert.strictEqual(
-                        icmp([a], [b, y]),
-                        cmb(cmp(a, b), Ordering.less),
-                    );
-                    assert.strictEqual(
-                        icmp([a, x], [b, y]),
+                    expect(icmp([a, x], [b, y])).to.equal(
                         cmb(cmp(a, b), cmp(x, y)),
                     );
                 },
@@ -158,283 +222,378 @@ describe("cmp.js", () => {
 
     specify("lt", () => {
         fc.assert(
-            fc.property(arb.num(), arb.num(), (x, y) =>
-                assert.strictEqual(lt(x, y), cmp(x, y).isLt()),
-            ),
+            fc.property(arbNum(), arbNum(), (x, y) => {
+                expect(lt(x, y)).to.equal(cmp(x, y).isLt());
+            }),
         );
     });
 
     specify("gt", () => {
         fc.assert(
-            fc.property(arb.num(), arb.num(), (x, y) =>
-                assert.strictEqual(gt(x, y), cmp(x, y).isGt()),
-            ),
+            fc.property(arbNum(), arbNum(), (x, y) => {
+                expect(gt(x, y)).to.equal(cmp(x, y).isGt());
+            }),
         );
     });
 
     specify("le", () => {
         fc.assert(
-            fc.property(arb.num(), arb.num(), (x, y) =>
-                assert.strictEqual(le(x, y), cmp(x, y).isLe()),
-            ),
+            fc.property(arbNum(), arbNum(), (x, y) => {
+                expect(le(x, y)).to.equal(cmp(x, y).isLe());
+            }),
         );
     });
 
     specify("ge", () => {
         fc.assert(
-            fc.property(arb.num(), arb.num(), (x, y) =>
-                assert.strictEqual(ge(x, y), cmp(x, y).isGe()),
-            ),
+            fc.property(arbNum(), arbNum(), (x, y) => {
+                expect(ge(x, y)).to.equal(cmp(x, y).isGe());
+            }),
         );
     });
 
     specify("min", () => {
         fc.assert(
-            fc.property(arb.num(), arb.num(), (x, y) =>
-                assert.deepEqual(min(x, y), new Num(Math.min(x.val, y.val))),
-            ),
+            fc.property(arbNum(), arbNum(), (x, y) => {
+                expect(min(x, y)).to.deep.equal(
+                    new Num(Math.min(x.val, y.val)),
+                );
+            }),
         );
     });
 
     specify("max", () => {
         fc.assert(
-            fc.property(arb.num(), arb.num(), (x, y) =>
-                assert.deepEqual(max(x, y), new Num(Math.max(x.val, y.val))),
-            ),
+            fc.property(arbNum(), arbNum(), (x, y) => {
+                expect(max(x, y)).to.deep.equal(
+                    new Num(Math.max(x.val, y.val)),
+                );
+            }),
         );
     });
 
     specify("clamp", () => {
         fc.assert(
-            fc.property(arb.num(), arb.num(), arb.num(), (x, y, z) => {
-                assert.deepEqual(clamp(x, y, z), min(max(x, y), z));
+            fc.property(arbNum(), arbNum(), arbNum(), (x, y, z) => {
+                expect(clamp(x, y, z)).to.deep.equal(min(max(x, y), z));
             }),
         );
     });
 
     describe("Ordering", () => {
-        specify("fromNumber", () => {
-            fc.assert(
-                fc.property(arb.float(), (x) => {
-                    const t0 = Ordering.fromNumber(x);
-                    if (x < 0) {
-                        assert.strictEqual(t0, Ordering.less);
-                    } else if (x > 0) {
-                        assert.strictEqual(t0, Ordering.greater);
-                    } else {
-                        assert.strictEqual(t0, Ordering.equal);
-                    }
-                }),
-            );
+        describe("fromNumber", () => {
+            it("returns Less if the input is less than 0", () => {
+                fc.assert(
+                    fc.property(
+                        fc.float({ min: -Infinity, max: -1, noNaN: true }),
+                        (x) => {
+                            expect(Ordering.fromNumber(x)).to.equal(
+                                Ordering.less,
+                            );
+                        },
+                    ),
+                );
+            });
 
-            fc.assert(
-                fc.property(fc.bigInt(), (x) => {
-                    const t0 = Ordering.fromNumber(x);
-                    if (x < 0) {
-                        assert.strictEqual(t0, Ordering.less);
-                    } else if (x > 0) {
-                        assert.strictEqual(t0, Ordering.greater);
-                    } else {
-                        assert.strictEqual(t0, Ordering.equal);
-                    }
-                }),
-            );
+            it("returns Greater if the input is greater than 0", () => {
+                fc.assert(
+                    fc.property(
+                        fc.float({ min: 1, max: Infinity, noNaN: true }),
+                        (x) => {
+                            expect(Ordering.fromNumber(x)).to.equal(
+                                Ordering.greater,
+                            );
+                        },
+                    ),
+                );
+            });
+
+            it("returns Equal if the input is 0", () => {
+                expect(Ordering.fromNumber(0)).to.equal(Ordering.equal);
+            });
         });
 
-        specify("#[Eq.eq]", () => {
-            const t0 = eq(Ordering.less, Ordering.less);
-            assert.strictEqual(t0, true);
+        describe("#[Eq.eq]", () => {
+            it("compares Less and Less as equal", () => {
+                expect(eq(Ordering.less, Ordering.less)).to.be.true;
+            });
 
-            const t1 = eq(Ordering.less, Ordering.equal);
-            assert.strictEqual(t1, false);
+            it("compares Less and Equal as inequal", () => {
+                expect(eq(Ordering.less, Ordering.equal)).to.be.false;
+            });
 
-            const t2 = eq(Ordering.less, Ordering.greater);
-            assert.strictEqual(t2, false);
+            it("compares Less and Greater as inequal", () => {
+                expect(eq(Ordering.less, Ordering.greater)).to.be.false;
+            });
 
-            const t3 = eq(Ordering.equal, Ordering.less);
-            assert.strictEqual(t3, false);
+            it("compares Equal and Less as inequal", () => {
+                expect(eq(Ordering.equal, Ordering.less)).to.be.false;
+            });
 
-            const t4 = eq(Ordering.equal, Ordering.equal);
-            assert.strictEqual(t4, true);
+            it("compares Equal and Equal as equal", () => {
+                expect(eq(Ordering.equal, Ordering.equal)).to.be.true;
+            });
 
-            const t5 = eq(Ordering.equal, Ordering.greater);
-            assert.strictEqual(t5, false);
+            it("compares Equal and Greater as inequal", () => {
+                expect(eq(Ordering.equal, Ordering.greater)).to.be.false;
+            });
 
-            const t6 = eq(Ordering.greater, Ordering.less);
-            assert.strictEqual(t6, false);
+            it("compares Greater and Less as inequal", () => {
+                expect(eq(Ordering.greater, Ordering.less)).to.be.false;
+            });
 
-            const t7 = eq(Ordering.greater, Ordering.equal);
-            assert.strictEqual(t7, false);
+            it("compares Greater and Equal as inequal", () => {
+                expect(eq(Ordering.greater, Ordering.equal)).to.be.false;
+            });
 
-            const t8 = eq(Ordering.greater, Ordering.greater);
-            assert.strictEqual(t8, true);
+            it("compares Greater and Greater as equal", () => {
+                expect(eq(Ordering.greater, Ordering.greater)).to.be.true;
+            });
         });
 
-        specify("#[Ord.cmp]", () => {
-            const t0 = cmp(Ordering.less, Ordering.less);
-            assert.strictEqual(t0, Ordering.equal);
+        describe("#[Ord.cmp]", () => {
+            it("compares Less as equal to Less", () => {
+                expect(cmp(Ordering.less, Ordering.less)).to.equal(
+                    Ordering.equal,
+                );
+            });
 
-            const t1 = cmp(Ordering.less, Ordering.equal);
-            assert.strictEqual(t1, Ordering.less);
+            it("compares Less as less than Equal", () => {
+                expect(cmp(Ordering.less, Ordering.equal)).to.equal(
+                    Ordering.less,
+                );
+            });
 
-            const t2 = cmp(Ordering.less, Ordering.greater);
-            assert.strictEqual(t2, Ordering.less);
+            it("compares Less as less than Greater", () => {
+                expect(cmp(Ordering.less, Ordering.greater)).to.equal(
+                    Ordering.less,
+                );
+            });
 
-            const t3 = cmp(Ordering.equal, Ordering.less);
-            assert.strictEqual(t3, Ordering.greater);
+            it("compares Equal as greater than Less", () => {
+                expect(cmp(Ordering.equal, Ordering.less)).to.equal(
+                    Ordering.greater,
+                );
+            });
 
-            const t4 = cmp(Ordering.equal, Ordering.equal);
-            assert.strictEqual(t4, Ordering.equal);
+            it("compares Equal as equal to Equal", () => {
+                expect(cmp(Ordering.equal, Ordering.equal)).to.equal(
+                    Ordering.equal,
+                );
+            });
 
-            const t5 = cmp(Ordering.equal, Ordering.greater);
-            assert.strictEqual(t5, Ordering.less);
+            it("compares Equal as less than Greater", () => {
+                expect(cmp(Ordering.equal, Ordering.greater)).to.equal(
+                    Ordering.less,
+                );
+            });
 
-            const t6 = cmp(Ordering.greater, Ordering.less);
-            assert.strictEqual(t6, Ordering.greater);
+            it("compares Greater as greater than Less", () => {
+                expect(cmp(Ordering.greater, Ordering.less)).to.equal(
+                    Ordering.greater,
+                );
+            });
 
-            const t7 = cmp(Ordering.greater, Ordering.equal);
-            assert.strictEqual(t7, Ordering.greater);
+            it("compares Greater as greater than Equal", () => {
+                expect(cmp(Ordering.greater, Ordering.equal)).to.equal(
+                    Ordering.greater,
+                );
+            });
 
-            const t8 = cmp(Ordering.greater, Ordering.greater);
-            assert.strictEqual(t8, Ordering.equal);
+            it("compares Greater as equal to Greater", () => {
+                expect(cmp(Ordering.greater, Ordering.greater)).to.equal(
+                    Ordering.equal,
+                );
+            });
         });
 
-        specify("#[Semigroup.cmb]", () => {
-            const t0 = cmb(Ordering.less, Ordering.less);
-            assert.strictEqual(t0, Ordering.less);
+        describe("#[Semigroup.cmb]", () => {
+            it("combines Less and Less into Less", () => {
+                expect(cmb(Ordering.less, Ordering.less)).to.equal(
+                    Ordering.less,
+                );
+            });
 
-            const t1 = cmb(Ordering.less, Ordering.equal);
-            assert.strictEqual(t1, Ordering.less);
+            it("combines Less and Equal into Less", () => {
+                expect(cmb(Ordering.less, Ordering.equal)).to.equal(
+                    Ordering.less,
+                );
+            });
 
-            const t2 = cmb(Ordering.less, Ordering.greater);
-            assert.strictEqual(t2, Ordering.less);
+            it("combines Less and Greater into Less", () => {
+                expect(cmb(Ordering.less, Ordering.greater)).to.equal(
+                    Ordering.less,
+                );
+            });
 
-            const t3 = cmb(Ordering.equal, Ordering.less);
-            assert.strictEqual(t3, Ordering.less);
+            it("combines Equal and Less into Less", () => {
+                expect(cmb(Ordering.equal, Ordering.less)).to.equal(
+                    Ordering.less,
+                );
+            });
 
-            const t4 = cmb(Ordering.equal, Ordering.equal);
-            assert.strictEqual(t4, Ordering.equal);
+            it("combines Equal and Equal into Equal", () => {
+                expect(cmb(Ordering.equal, Ordering.equal)).to.equal(
+                    Ordering.equal,
+                );
+            });
 
-            const t5 = cmb(Ordering.equal, Ordering.greater);
-            assert.strictEqual(t5, Ordering.greater);
+            it("combines Equal and Greater into Greater", () => {
+                expect(cmb(Ordering.equal, Ordering.greater)).to.equal(
+                    Ordering.greater,
+                );
+            });
 
-            const t6 = cmb(Ordering.greater, Ordering.less);
-            assert.strictEqual(t6, Ordering.greater);
+            it("combines Greater and Less into Greater", () => {
+                expect(cmb(Ordering.greater, Ordering.less)).to.equal(
+                    Ordering.greater,
+                );
+            });
 
-            const t7 = cmb(Ordering.greater, Ordering.equal);
-            assert.strictEqual(t7, Ordering.greater);
+            it("combines Greater and Equal into Greater", () => {
+                expect(cmb(Ordering.greater, Ordering.equal)).to.equal(
+                    Ordering.greater,
+                );
+            });
 
-            const t8 = cmb(Ordering.greater, Ordering.greater);
-            assert.strictEqual(t8, Ordering.greater);
+            it("combines Greater and Greater into Greater", () => {
+                expect(cmb(Ordering.greater, Ordering.greater)).to.equal(
+                    Ordering.greater,
+                );
+            });
         });
 
-        specify("#isEq", () => {
-            const t0 = Ordering.less.isEq();
-            assert.strictEqual(t0, false);
+        describe("#isEq", () => {
+            it("returns false if the variant is Less", () => {
+                expect(Ordering.less.isEq()).to.be.false;
+            });
 
-            const t1 = Ordering.equal.isEq();
-            assert.strictEqual(t1, true);
+            it("returns true if the variant is Equal", () => {
+                expect(Ordering.equal.isEq()).to.be.true;
+            });
 
-            const t2 = Ordering.greater.isEq();
-            assert.strictEqual(t2, false);
+            it("returns false if the variant is Greater", () => {
+                expect(Ordering.greater.isEq()).to.be.false;
+            });
         });
 
-        specify("#isNe", () => {
-            const t0 = Ordering.less.isNe();
-            assert.strictEqual(t0, true);
+        describe("#isNe", () => {
+            it("returns true if the variant is Less", () => {
+                expect(Ordering.less.isNe()).to.be.true;
+            });
 
-            const t1 = Ordering.equal.isNe();
-            assert.strictEqual(t1, false);
+            it("returns false if the variant is Equal", () => {
+                expect(Ordering.equal.isNe()).to.be.false;
+            });
 
-            const t2 = Ordering.greater.isNe();
-            assert.strictEqual(t2, true);
+            it("returns true if the variant is Greater", () => {
+                expect(Ordering.greater.isNe()).to.be.true;
+            });
         });
 
-        specify("#isLt", () => {
-            const t0 = Ordering.less.isLt();
-            assert.strictEqual(t0, true);
+        describe("#isLt", () => {
+            it("returns true if the variant is Less", () => {
+                expect(Ordering.less.isLt()).to.be.true;
+            });
 
-            const t1 = Ordering.equal.isLt();
-            assert.strictEqual(t1, false);
+            it("returns false if the variant is Equal", () => {
+                expect(Ordering.equal.isLt()).to.be.false;
+            });
 
-            const t2 = Ordering.greater.isLt();
-            assert.strictEqual(t2, false);
+            it("returns false if the variant is Greater", () => {
+                expect(Ordering.greater.isLt()).to.be.false;
+            });
         });
 
-        specify("#isGt", () => {
-            const t0 = Ordering.less.isGt();
-            assert.strictEqual(t0, false);
+        describe("#isGt", () => {
+            it("returns false if the variant is Less", () => {
+                expect(Ordering.less.isGt()).to.be.false;
+            });
 
-            const t1 = Ordering.equal.isGt();
-            assert.strictEqual(t1, false);
+            it("returns false if the variant is Equal", () => {
+                expect(Ordering.equal.isGt()).to.be.false;
+            });
 
-            const t2 = Ordering.greater.isGt();
-            assert.strictEqual(t2, true);
+            it("returns true if the variant is Greater", () => {
+                expect(Ordering.greater.isGt()).to.be.true;
+            });
         });
 
-        specify("#isLe", () => {
-            const t0 = Ordering.less.isLe();
-            assert.strictEqual(t0, true);
+        describe("#isLe", () => {
+            it("returns true if the variant is Less", () => {
+                expect(Ordering.less.isLe()).to.be.true;
+            });
 
-            const t1 = Ordering.equal.isLe();
-            assert.strictEqual(t1, true);
+            it("returns true if the variant is Equal", () => {
+                expect(Ordering.equal.isLe()).to.be.true;
+            });
 
-            const t2 = Ordering.greater.isLe();
-            assert.strictEqual(t2, false);
+            it("returns false if the variant is Greater", () => {
+                expect(Ordering.greater.isLe()).to.be.false;
+            });
         });
 
-        specify("#isGe", () => {
-            const t0 = Ordering.less.isGe();
-            assert.strictEqual(t0, false);
+        describe("#isGe", () => {
+            it("returns false if the variant is Less", () => {
+                expect(Ordering.less.isGe()).to.be.false;
+            });
 
-            const t1 = Ordering.equal.isGe();
-            assert.strictEqual(t1, true);
+            it("returns true if the variant is Equal", () => {
+                expect(Ordering.equal.isGe()).to.be.true;
+            });
 
-            const t2 = Ordering.greater.isGe();
-            assert.strictEqual(t2, true);
+            it("returns true if the variant is Greater", () => {
+                expect(Ordering.greater.isGe()).to.be.true;
+            });
         });
 
-        specify("#reverse", () => {
-            const t0 = Ordering.less.reverse();
-            assert.strictEqual(t0, Ordering.greater);
+        describe("#reverse", () => {
+            it("returns Greater if the variant is Less", () => {
+                expect(Ordering.less.reverse()).to.equal(Ordering.greater);
+            });
 
-            const t1 = Ordering.equal.reverse();
-            assert.strictEqual(t1, Ordering.equal);
+            it("returns Equal as is", () => {
+                expect(Ordering.equal.reverse()).to.equal(Ordering.equal);
+            });
 
-            const t2 = Ordering.greater.reverse();
-            assert.strictEqual(t2, Ordering.less);
+            it("returns Less if the variant is Greater", () => {
+                expect(Ordering.greater.reverse()).to.equal(Ordering.less);
+            });
         });
 
-        specify("#toNumber", () => {
-            const t0 = Ordering.less.toNumber();
-            assert.strictEqual(t0, -1);
+        describe("#toNumber", () => {
+            it("returns -1 if the variant is Less", () => {
+                expect(Ordering.less.toNumber()).to.equal(-1);
+            });
 
-            const t1 = Ordering.equal.toNumber();
-            assert.strictEqual(t1, 0);
+            it("returns 0 if the variant is Equal", () => {
+                expect(Ordering.equal.toNumber()).to.equal(0);
+            });
 
-            const t2 = Ordering.greater.toNumber();
-            assert.strictEqual(t2, 1);
+            it("returns 1 if the variant is Greater", () => {
+                expect(Ordering.greater.toNumber()).to.equal(1);
+            });
         });
     });
 
     describe("Reverse", () => {
         function arbRevNum(): fc.Arbitrary<Reverse<Num>> {
-            return arb.num().map((x) => new Reverse(x));
+            return arbNum().map((x) => new Reverse(x));
         }
 
         specify("#[Eq.eq]", () => {
             fc.assert(
-                fc.property(arbRevNum(), arbRevNum(), (x, y) =>
-                    assert.strictEqual(eq(x, y), eq(x.val, y.val)),
-                ),
+                fc.property(arbRevNum(), arbRevNum(), (x, y) => {
+                    expect(eq(x, y)).to.equal(eq(x.val, y.val));
+                }),
             );
         });
 
         specify("#[Ord.cmp]", () => {
             fc.assert(
-                fc.property(arbRevNum(), arbRevNum(), (x, y) =>
-                    assert.strictEqual(cmp(x, y), cmp(x.val, y.val).reverse()),
-                ),
+                fc.property(arbRevNum(), arbRevNum(), (x, y) => {
+                    expect(cmp(x, y)).to.equal(cmp(x.val, y.val).reverse());
+                }),
             );
         });
     });
