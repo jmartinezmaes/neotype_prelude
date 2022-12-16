@@ -166,8 +166,8 @@
  *
  * ## Recovering from `Nothing`
  *
- * The `orElse` method returns a fallback `Maybe` if absent, and does nothing if
- * present.
+ * The `recover` method evaluates a function to return a fallback `Maybe` if
+ * absent, and does nothing if present.
  *
  * ## Collecting into `Maybe`
  *
@@ -746,11 +746,11 @@ export namespace Maybe {
         }
 
         /**
-         * If this `Maybe` is absent, return a fallback `Maybe`; otherwise,
-         * return this `Maybe` as is.
+         * If this `Maybe` is absent, evaluate a function to return a fallback
+         * `Maybe`; otherwise, return this `Maybe` as is.
          */
-        orElse<A, B>(this: Maybe<A>, that: Maybe<B>): Maybe<A | B> {
-            return this.isNothing() ? that : this;
+        recover<A, B>(this: Maybe<A>, f: () => Maybe<B>): Maybe<A | B> {
+            return this.isNothing() ? f() : this;
         }
 
         /**

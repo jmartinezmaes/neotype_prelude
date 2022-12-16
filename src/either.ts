@@ -719,17 +719,6 @@ export namespace Either {
         }
 
         /**
-         * If this `Either` fails, return a fallback `Either`; otherwise, return
-         * this `Either` as is.
-         */
-        orElse<A, E1, B>(
-            this: Either<any, A>,
-            that: Either<E1, B>,
-        ): Either<E1, A | B> {
-            return this.recover(() => that);
-        }
-
-        /**
          * If this `Either` succeeds, apply a function to its success to return
          * another `Either`; otherwise, return this `Either` as is.
          */
