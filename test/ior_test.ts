@@ -4,6 +4,7 @@ import { cmb } from "../src/cmb.js";
 import { cmp, eq, Ordering } from "../src/cmp.js";
 import { Either } from "../src/either.js";
 import { Ior } from "../src/ior.js";
+import { Validation } from "../src/validation.js";
 import { arbNum, arbStr, Str, tuple } from "./common.js";
 
 describe("ior.js", () => {
@@ -16,6 +17,18 @@ describe("ior.js", () => {
 
             it("returns a Right if the input is a Right", () => {
                 const result = Ior.fromEither(Either.right<2, 1>(2));
+                expect(result).to.deep.equal(Ior.right(2));
+            });
+        });
+
+        describe("fromValidation", () => {
+            it("returns a Left if the input is an Err", () => {
+                const result = Ior.fromValidation(Validation.err<1, 2>(1));
+                expect(result).to.deep.equal(Ior.left(1));
+            });
+
+            it("returns a Right if the input is an Ok", () => {
+                const result = Ior.fromValidation(Validation.ok<2, 1>(2));
                 expect(result).to.deep.equal(Ior.right(2));
             });
         });
