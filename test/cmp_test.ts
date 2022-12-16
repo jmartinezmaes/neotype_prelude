@@ -255,9 +255,7 @@ describe("cmp.js", () => {
     specify("min", () => {
         fc.assert(
             fc.property(arbNum(), arbNum(), (x, y) => {
-                expect(min(x, y)).to.deep.equal(
-                    new Num(Math.min(x.val, y.val)),
-                );
+                expect(min(x, y)).to.equal(le(x, y) ? x : y);
             }),
         );
     });
@@ -265,9 +263,7 @@ describe("cmp.js", () => {
     specify("max", () => {
         fc.assert(
             fc.property(arbNum(), arbNum(), (x, y) => {
-                expect(max(x, y)).to.deep.equal(
-                    new Num(Math.max(x.val, y.val)),
-                );
+                expect(max(x, y)).to.equal(ge(x, y) ? x : y);
             }),
         );
     });
@@ -275,7 +271,7 @@ describe("cmp.js", () => {
     specify("clamp", () => {
         fc.assert(
             fc.property(arbNum(), arbNum(), arbNum(), (x, y, z) => {
-                expect(clamp(x, y, z)).to.deep.equal(min(max(x, y), z));
+                expect(clamp(x, y, z)).to.equal(min(max(x, y), z));
             }),
         );
     });
