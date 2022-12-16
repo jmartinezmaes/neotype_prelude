@@ -261,11 +261,6 @@ describe("either.js", () => {
             });
         });
 
-        specify("#orElse", () => {
-            const result = Either.left<1, 2>(1).orElse(Either.right<4, 3>(4));
-            expect(result).to.deep.equal(Either.right(4));
-        });
-
         describe("#flatMap", () => {
             it("does not apply the continuation if the variant is Left", () => {
                 const result = Either.left<1, 2>(1).flatMap(

@@ -305,14 +305,14 @@ describe("maybe.js", () => {
             });
         });
 
-        describe("#orElse", () => {
-            it("returns the other Maybe if the variant is Nothing", () => {
-                const result = nothing<1>().orElse(Maybe.just<2>(2));
+        describe("#recover", () => {
+            it("evaluates the function if the variant is Nothing", () => {
+                const result = nothing<1>().recover(() => Maybe.just<2>(2));
                 expect(result).to.deep.equal(Maybe.just(2));
             });
 
             it("returns a Just as is", () => {
-                const result = Maybe.just<1>(1).orElse(Maybe.just<2>(2));
+                const result = Maybe.just<1>(1).recover(() => Maybe.just<2>(2));
                 expect(result).to.deep.equal(Maybe.just(1));
             });
         });
