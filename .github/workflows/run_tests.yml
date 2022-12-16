@@ -13,7 +13,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - uses: volta-cli/action@v3
+      - uses: volta-cli/action@v4
       - run: npm ci
       - run: npm run lint && npm run prettier:check
 
@@ -27,7 +27,7 @@ jobs:
           - 18
     steps:
       - uses: actions/checkout@v3
-      - uses: volta-cli/action@v3
+      - uses: volta-cli/action@v4
         with:
           node-version: ${{ matrix.node-version }}
       - run: npm ci
@@ -46,7 +46,7 @@ jobs:
           - next
     steps:
       - uses: actions/checkout@v3
-      - uses: volta-cli/action@v3
+      - uses: volta-cli/action@v4
       - run: npm ci
       - run: npm i -D typescript@${{ matrix.ts-version }}
       - run: npx mocha --reporter dot
