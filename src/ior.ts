@@ -75,6 +75,7 @@
  * -   `right` constructs a `Right` variant.
  * -   `both` constructs a `Both` variant.
  * -   `fromEither` constructs an `Ior` from an `Either`.
+ * -   `fromValidation` constructs an `Ior` from a `Validation`
  *
  * ## Querying and narrowing the variant
  *
@@ -454,6 +455,7 @@ import { cmb, Semigroup } from "./cmb.js";
 import { cmp, Eq, eq, Ord, Ordering } from "./cmp.js";
 import { type Either } from "./either.js";
 import { id } from "./fn.js";
+import { type Validation } from "./validation.js";
 
 /**
  * A type that represents one or both of two values (`Left`, `Right`, or
@@ -500,11 +502,23 @@ export namespace Ior {
      *
      * @remarks
      *
-     * `Right` and `Left` variants of `Either` become `Right` and `Left`
+     * `Left` and `Right` variants of `Either` become `Left` and `Right`
      * variants of `Ior`, respectively.
      */
     export function fromEither<A, B>(either: Either<A, B>): Ior<A, B> {
         return either.unwrap(left, right);
+    }
+
+    /**
+     * Construct an `Ior` from a `Validation`.
+     *
+     * @remarks
+     *
+     * `Err` and `Ok` variants of `Validation` become `Left` and `Right`
+     * variants of `Ior`, respectively.
+     */
+    export function fromValidation<E, A>(vdn: Validation<E, A>): Ior<E, A> {
+        return vdn.unwrap(left, right);
     }
 
     /**
