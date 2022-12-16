@@ -31,11 +31,12 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
       - run: npm ci
-      - run: npx mocha
+      - run: npx mocha --reporter dot
 
   test_ts:
     name: TypeScript v${{ matrix.ts-version }}
     runs-on: ubuntu-latest
+    continue-on-error: false
     strategy:
       matrix:
         ts-version:
@@ -47,4 +48,4 @@ jobs:
       - uses: volta-cli/action@v3
       - run: npm ci
       - run: npm i -D typescript@~${{ matrix.ts-version }}
-      - run: npx mocha
+      - run: npx mocha --reporter dot
