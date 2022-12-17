@@ -293,6 +293,18 @@ describe("maybe.js", () => {
             });
         });
 
+        describe("getOrElse", () => {
+            it("evaluates the function if the variant is Nothing", () => {
+                const result = nothing<1>().getOrElse((): 2 => 2);
+                expect(result).to.equal(2);
+            });
+
+            it("extracts the value if the variant is Just", () => {
+                const result = Maybe.just<1>(1).getOrElse((): 2 => 2);
+                expect(result).to.equal(1);
+            });
+        });
+
         describe("#getOr", () => {
             it("returns the fallback value if the variant is Nothing", () => {
                 const result = nothing<1>().getOr(2 as const);
