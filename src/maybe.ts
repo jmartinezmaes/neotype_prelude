@@ -95,8 +95,10 @@
  * The `unwrap` method unwraps a `Maybe` by either evaluating a function if
  * absent, or applying a function to its value if present.
  *
- * The `getOr` method extracts the value from a `Maybe` if present, or returns a
- * fallback value if absent.
+ * These methods extract the value from a `Maybe` if present; otherwise:
+ *
+ * - `getOrElse` evaluates a function to return a fallback result.
+ * - `getOr` returns a fallback value.
  *
  * ## Comparing `Maybe`
  *
@@ -735,6 +737,14 @@ export namespace Maybe {
             onJust: (x: A) => C,
         ): B | C {
             return this.isNothing() ? onNothing() : onJust(this.val);
+        }
+
+        /**
+         * If this `Maybe` is present, extract its value; otherwise, evaluate a
+         * function to return a fallback result.
+         */
+        getOrElse<A, B>(this: Maybe<A>, f: () => B): A | B {
+            return this.unwrap(f, id);
         }
 
         /**
