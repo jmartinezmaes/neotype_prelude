@@ -48,7 +48,7 @@
     },
     "scripts": {
         "clean": "npx rimraf ./dist",
-        "lint": "npx eslint --ext .ts .",
+        "lint": "npx eslint --ext .ts --max-warnings 0 .",
         "prettier:check": "npx prettier --check --ignore-path ./.gitignore .",
         "prettier:write": "npx prettier --write --ignore-path ./.gitignore .",
         "pretest": "npm run lint && npm run prettier:check",
@@ -107,11 +107,11 @@
                 "off"
             ],
             "quotes": [
-                "warn",
+                "error",
                 "double"
             ],
             "semi": [
-                "warn",
+                "error",
                 "always"
             ]
         }
