@@ -37,7 +37,7 @@ project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
     [@jm4rtinez](https://github.com/jm4rtinez) in
     [#46](https://github.com/jm4rtinez/neotype_prelude/pull/46)
 
-#### 🚀 New Features
+#### 🚀 Enhancements
 
 -   Introduce the `lift` combinators and `wrapCtor` function by
     [@jm4rtinez](https://github.com/jm4rtinez) in
@@ -87,7 +87,7 @@ https://github.com/jm4rtinez/neotype_prelude/compare/v0.4.0...v0.5.0
     [@jm4rtinez](https://github.com/jm4rtinez) in
     [#6](https://github.com/jm4rtinez/neotype_prelude/pull/6)
 
-#### 🚀 New Features
+#### 🚀 Enhancements
 
 -   Introduce the `gather` combinators for `Ior` and `Validated` by
     [@jm4rtinez](https://github.com/jm4rtinez) in

@@ -3,9 +3,9 @@ changelog:
     - title: 💥 Breaking Changes
       labels:
         - Breaking
-    - title: 🚀 New Features
+    - title: 🚀 Enhancements
       labels:
-        - Feature
+        - Enhancement
     - title: 🐛 Bug Fixes
       labels:
         - Bugfix
