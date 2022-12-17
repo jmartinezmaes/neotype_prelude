@@ -1,4 +1,4 @@
-name: Deploy documentation site to Pages
+name: Deploy Documentation to GitHub Pages
 
 on:
   release:
@@ -22,19 +22,17 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v3
+      - uses: actions/checkout@v3
+      - uses: volta-cli/action@v4
+      - run: npm ci
 
-      - name: Install dev dependencies
-        run: npm install -D
-
-      - name: Build site
+      - name: Build the documentation
         run: npm run docs
 
-      - name: Setup Pages
+      - name: Configure GitHub Pages
         uses: actions/configure-pages@v2
 
-      - name: Upload artifact
+      - name: Upload the artifact
         uses: actions/upload-pages-artifact@v1
         with:
           path: docsite
