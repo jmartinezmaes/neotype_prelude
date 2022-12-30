@@ -24,20 +24,24 @@ import {
 import { arbNum, Num } from "./common.js";
 
 describe("cmp.js", () => {
-    specify("eq", () => {
-        fc.assert(
-            fc.property(arbNum(), arbNum(), (x, y) => {
-                expect(eq(x, y)).to.equal(x[Eq.eq](y));
-            }),
-        );
+    describe("eq", () => {
+        it("tests whether two Eq values are equal", () => {
+            fc.assert(
+                fc.property(arbNum(), arbNum(), (x, y) => {
+                    expect(eq(x, y)).to.equal(x[Eq.eq](y));
+                }),
+            );
+        });
     });
 
-    specify("ne", () => {
-        fc.assert(
-            fc.property(arbNum(), arbNum(), (x, y) => {
-                expect(ne(x, y)).to.equal(!x[Eq.eq](y));
-            }),
-        );
+    describe("ne", () => {
+        it("tests whether two Eq values are inequal", () => {
+            fc.assert(
+                fc.property(arbNum(), arbNum(), (x, y) => {
+                    expect(ne(x, y)).to.equal(!x[Eq.eq](y));
+                }),
+            );
+        });
     });
 
     describe("ieqBy", () => {
@@ -108,26 +112,32 @@ describe("cmp.js", () => {
         });
     });
 
-    specify("ieq", () => {
-        fc.assert(
-            fc.property(
-                arbNum(),
-                arbNum(),
-                arbNum(),
-                arbNum(),
-                (a, x, b, y) => {
-                    expect(ieq([a, x], [b, y])).to.equal(eq(a, b) && eq(x, y));
-                },
-            ),
-        );
+    describe("ieq", () => {
+        it("compares two iterables of Eq elements lexicographically", () => {
+            fc.assert(
+                fc.property(
+                    arbNum(),
+                    arbNum(),
+                    arbNum(),
+                    arbNum(),
+                    (a, x, b, y) => {
+                        expect(ieq([a, x], [b, y])).to.equal(
+                            eq(a, b) && eq(x, y),
+                        );
+                    },
+                ),
+            );
+        });
     });
 
-    specify("cmp", () => {
-        fc.assert(
-            fc.property(arbNum(), arbNum(), (x, y) => {
-                expect(cmp(x, y)).to.equal(x[Ord.cmp](y));
-            }),
-        );
+    describe("cmp", () => {
+        it("returns an Ordering that represents how the first Ord value compares to the second", () => {
+            fc.assert(
+                fc.property(arbNum(), arbNum(), (x, y) => {
+                    expect(cmp(x, y)).to.equal(x[Ord.cmp](y));
+                }),
+            );
+        });
     });
 
     describe("icmpBy", () => {
@@ -204,81 +214,97 @@ describe("cmp.js", () => {
         });
     });
 
-    specify("icmp", () => {
-        fc.assert(
-            fc.property(
-                arbNum(),
-                arbNum(),
-                arbNum(),
-                arbNum(),
-                (a, x, b, y) => {
-                    expect(icmp([a, x], [b, y])).to.equal(
-                        cmb(cmp(a, b), cmp(x, y)),
-                    );
-                },
-            ),
-        );
+    describe("icmp", () => {
+        it("compares two iterables of Ord elements lexicographically", () => {
+            fc.assert(
+                fc.property(
+                    arbNum(),
+                    arbNum(),
+                    arbNum(),
+                    arbNum(),
+                    (a, x, b, y) => {
+                        expect(icmp([a, x], [b, y])).to.equal(
+                            cmb(cmp(a, b), cmp(x, y)),
+                        );
+                    },
+                ),
+            );
+        });
     });
 
-    specify("lt", () => {
-        fc.assert(
-            fc.property(arbNum(), arbNum(), (x, y) => {
-                expect(lt(x, y)).to.equal(cmp(x, y).isLt());
-            }),
-        );
+    describe("lt", () => {
+        it("tests whether the first Ord value is less than the second", () => {
+            fc.assert(
+                fc.property(arbNum(), arbNum(), (x, y) => {
+                    expect(lt(x, y)).to.equal(cmp(x, y).isLt());
+                }),
+            );
+        });
     });
 
-    specify("gt", () => {
-        fc.assert(
-            fc.property(arbNum(), arbNum(), (x, y) => {
-                expect(gt(x, y)).to.equal(cmp(x, y).isGt());
-            }),
-        );
+    describe("gt", () => {
+        it("tests whether the first Ord value is greater than the second", () => {
+            fc.assert(
+                fc.property(arbNum(), arbNum(), (x, y) => {
+                    expect(gt(x, y)).to.equal(cmp(x, y).isGt());
+                }),
+            );
+        });
     });
 
-    specify("le", () => {
-        fc.assert(
-            fc.property(arbNum(), arbNum(), (x, y) => {
-                expect(le(x, y)).to.equal(cmp(x, y).isLe());
-            }),
-        );
+    describe("le", () => {
+        it("tests whether the first Ord value is less than or equal to the second", () => {
+            fc.assert(
+                fc.property(arbNum(), arbNum(), (x, y) => {
+                    expect(le(x, y)).to.equal(cmp(x, y).isLe());
+                }),
+            );
+        });
     });
 
-    specify("ge", () => {
-        fc.assert(
-            fc.property(arbNum(), arbNum(), (x, y) => {
-                expect(ge(x, y)).to.equal(cmp(x, y).isGe());
-            }),
-        );
+    describe("ge", () => {
+        it("tests whether the first Ord value is greater than or equal to the second", () => {
+            fc.assert(
+                fc.property(arbNum(), arbNum(), (x, y) => {
+                    expect(ge(x, y)).to.equal(cmp(x, y).isGe());
+                }),
+            );
+        });
     });
 
-    specify("min", () => {
-        fc.assert(
-            fc.property(arbNum(), arbNum(), (x, y) => {
-                expect(min(x, y)).to.equal(le(x, y) ? x : y);
-            }),
-        );
+    describe("min", () => {
+        it("returns the minimum of two Ord values", () => {
+            fc.assert(
+                fc.property(arbNum(), arbNum(), (x, y) => {
+                    expect(min(x, y)).to.equal(le(x, y) ? x : y);
+                }),
+            );
+        });
     });
 
-    specify("max", () => {
-        fc.assert(
-            fc.property(arbNum(), arbNum(), (x, y) => {
-                expect(max(x, y)).to.equal(ge(x, y) ? x : y);
-            }),
-        );
+    describe("max", () => {
+        it("returns the maximum of two Ord values", () => {
+            fc.assert(
+                fc.property(arbNum(), arbNum(), (x, y) => {
+                    expect(max(x, y)).to.equal(ge(x, y) ? x : y);
+                }),
+            );
+        });
     });
 
-    specify("clamp", () => {
-        fc.assert(
-            fc.property(arbNum(), arbNum(), arbNum(), (x, y, z) => {
-                expect(clamp(x, y, z)).to.equal(min(max(x, y), z));
-            }),
-        );
+    describe("clamp", () => {
+        it("restricts an Ord value to an inclusive bounds", () => {
+            fc.assert(
+                fc.property(arbNum(), arbNum(), arbNum(), (x, y, z) => {
+                    expect(clamp(x, y, z)).to.equal(min(max(x, y), z));
+                }),
+            );
+        });
     });
 
     describe("Ordering", () => {
         describe("fromNumber", () => {
-            it("returns Less if the input is less than 0", () => {
+            it("returns Less if the argument is less than 0", () => {
                 fc.assert(
                     fc.property(
                         fc.float({ min: -Infinity, max: -1, noNaN: true }),
@@ -291,7 +317,7 @@ describe("cmp.js", () => {
                 );
             });
 
-            it("returns Greater if the input is greater than 0", () => {
+            it("returns Greater if the argument is greater than 0", () => {
                 fc.assert(
                     fc.property(
                         fc.float({ min: 1, max: Infinity, noNaN: true }),
@@ -304,7 +330,7 @@ describe("cmp.js", () => {
                 );
             });
 
-            it("returns Equal if the input is 0", () => {
+            it("returns Equal if the argument is 0", () => {
                 expect(Ordering.fromNumber(0)).to.equal(Ordering.equal);
             });
         });
@@ -577,20 +603,24 @@ describe("cmp.js", () => {
             return arbNum().map((x) => new Reverse(x));
         }
 
-        specify("#[Eq.eq]", () => {
-            fc.assert(
-                fc.property(arbRevNum(), arbRevNum(), (x, y) => {
-                    expect(eq(x, y)).to.equal(eq(x.val, y.val));
-                }),
-            );
+        describe("#[Eq.eq]", () => {
+            it("tests whether two Reverse values are equal", () => {
+                fc.assert(
+                    fc.property(arbRevNum(), arbRevNum(), (x, y) => {
+                        expect(eq(x, y)).to.equal(eq(x.val, y.val));
+                    }),
+                );
+            });
         });
 
-        specify("#[Ord.cmp]", () => {
-            fc.assert(
-                fc.property(arbRevNum(), arbRevNum(), (x, y) => {
-                    expect(cmp(x, y)).to.equal(cmp(x.val, y.val).reverse());
-                }),
-            );
+        describe("#[Ord.cmp]", () => {
+            it("returns an Ordering that represents how the first Reverse compares to the second", () => {
+                fc.assert(
+                    fc.property(arbRevNum(), arbRevNum(), (x, y) => {
+                        expect(cmp(x, y)).to.equal(cmp(x.val, y.val).reverse());
+                    }),
+                );
+            });
         });
     });
 });
