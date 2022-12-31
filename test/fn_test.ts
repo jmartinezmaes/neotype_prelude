@@ -4,7 +4,7 @@ import { id, negatePred, wrapCtor } from "../src/fn.js";
 
 describe("fn.js", () => {
     describe("id", () => {
-        it("returns any value as is", () => {
+        it("returns its argument", () => {
             fc.assert(
                 fc.property(fc.anything(), (x) => {
                     expect(id(x)).to.deep.equal(x);
@@ -14,7 +14,7 @@ describe("fn.js", () => {
     });
 
     describe("negatePred", () => {
-        it("adapts a predicate into an identical predicate that negates its result", () => {
+        it("adapts the predicate into an identical predicate that negates its result", () => {
             function isOne(x: 1 | 2): boolean {
                 return x === 1;
             }
@@ -28,7 +28,7 @@ describe("fn.js", () => {
     });
 
     describe("wrapCtor", () => {
-        it("adapts a constructor into a callable function", () => {
+        it("adapts the constructor into a callable function", () => {
             class Box<A> {
                 constructor(readonly val: A) {}
             }
