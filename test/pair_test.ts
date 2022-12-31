@@ -3,7 +3,7 @@ import * as fc from "fast-check";
 import { cmb } from "../src/cmb.js";
 import { cmp, eq } from "../src/cmp.js";
 import { Pair } from "../src/pair.js";
-import { arbNum, arbStr, tuple } from "./common.js";
+import { arbNum, arbStr, tuple } from "./util.js";
 
 describe("pair.js", () => {
     describe("Pair", () => {

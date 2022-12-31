@@ -3,7 +3,7 @@ import * as fc from "fast-check";
 import { cmb } from "../src/cmb.js";
 import { cmp, eq, Ordering } from "../src/cmp.js";
 import { Maybe } from "../src/maybe.js";
-import { arbNum, arbStr, Num, Str, tuple } from "./common.js";
+import { arbNum, arbStr, Num, Str, tuple } from "./util.js";
 
 function nothing<A>(): Maybe<A> {
     return Maybe.nothing;

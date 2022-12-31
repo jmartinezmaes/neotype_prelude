@@ -2,7 +2,7 @@ import { expect } from "chai";
 import * as fc from "fast-check";
 import { cmb } from "../src/cmb.js";
 import { Eval } from "../src/eval.js";
-import { arbStr, tuple } from "./common.js";
+import { arbStr, tuple } from "./util.js";
 
 describe("eval.js", () => {
     describe("Eval", () => {

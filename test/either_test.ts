@@ -4,7 +4,7 @@ import { cmb } from "../src/cmb.js";
 import { cmp, eq, Ordering } from "../src/cmp.js";
 import { Either } from "../src/either.js";
 import { Validation } from "../src/validation.js";
-import { arbNum, arbStr, tuple } from "./common.js";
+import { arbNum, arbStr, tuple } from "./util.js";
 
 describe("either.js", () => {
     describe("Either", () => {
