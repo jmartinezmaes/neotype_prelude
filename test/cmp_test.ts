@@ -21,7 +21,7 @@ import {
     Ordering,
     Reverse,
 } from "../src/cmp.js";
-import { arbNum, Num } from "./common.js";
+import { arbNum, Num } from "./util.js";
 
 describe("cmp.js", () => {
     describe("eq", () => {

@@ -5,7 +5,7 @@ import { cmp, eq, Ordering } from "../src/cmp.js";
 import { Either } from "../src/either.js";
 import { Ior } from "../src/ior.js";
 import { Validation } from "../src/validation.js";
-import { arbNum, arbStr, Str, tuple } from "./common.js";
+import { arbNum, arbStr, Str, tuple } from "./util.js";
 
 describe("ior.js", () => {
     describe("Ior", () => {
