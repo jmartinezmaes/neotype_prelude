@@ -341,7 +341,7 @@ describe("ior.js", () => {
         });
 
         describe("#[Eq.eq]", () => {
-            it("compares a Left and a Left by their values", () => {
+            it("compares the values if both variants are Left", () => {
                 fc.assert(
                     fc.property(arbNum(), arbNum(), (a, b) => {
                         expect(eq(Ior.left(a), Ior.left(b))).to.equal(eq(a, b));
@@ -373,7 +373,7 @@ describe("ior.js", () => {
                 );
             });
 
-            it("compares a Right and a Right by their values", () => {
+            it("compares the values if both variants are Right", () => {
                 fc.assert(
                     fc.property(arbNum(), arbNum(), (x, y) => {
                         expect(eq(Ior.right(x), Ior.right(y))).to.equal(
@@ -407,7 +407,7 @@ describe("ior.js", () => {
                 );
             });
 
-            it("compares a Both and a Both by their values", () => {
+            it("compares the left-hand values and the right-hand values lexicographically if both variants are Both", () => {
                 fc.assert(
                     fc.property(
                         arbNum(),
@@ -425,7 +425,7 @@ describe("ior.js", () => {
         });
 
         describe("#[Ord.cmp]", () => {
-            it("compares a Left and a Left by their values", () => {
+            it("compares the values if both variants are Left", () => {
                 fc.assert(
                     fc.property(arbNum(), arbNum(), (a, b) => {
                         expect(cmp(Ior.left(a), Ior.left(b))).to.equal(
@@ -465,7 +465,7 @@ describe("ior.js", () => {
                 );
             });
 
-            it("compares a Right and a Right by their values", () => {
+            it("compares the values if both variants are Right", () => {
                 fc.assert(
                     fc.property(arbNum(), arbNum(), (x, y) => {
                         expect(cmp(Ior.right(x), Ior.right(y))).to.equal(
@@ -505,7 +505,7 @@ describe("ior.js", () => {
                 );
             });
 
-            it("compares a Both and a Both by their values lexicographically", () => {
+            it("compares the left-hand values and the right-hand values lexicographically if both variants are Both", () => {
                 fc.assert(
                     fc.property(
                         arbNum(),
@@ -523,7 +523,7 @@ describe("ior.js", () => {
         });
 
         describe("#[Semigroup.cmb]", () => {
-            it("combines a Left and a Left into a Left", () => {
+            it("combines the values if both variants are Left", () => {
                 fc.assert(
                     fc.property(arbStr(), arbStr(), (a, b) => {
                         expect(cmb(Ior.left(a), Ior.left(b))).to.deep.equal(
@@ -563,7 +563,7 @@ describe("ior.js", () => {
                 );
             });
 
-            it("combines a Right and a Right into a Right", () => {
+            it("combines the values if both variants are Right", () => {
                 fc.assert(
                     fc.property(arbStr(), arbStr(), (x, y) => {
                         expect(cmb(Ior.right(x), Ior.right(y))).to.deep.equal(
@@ -603,7 +603,7 @@ describe("ior.js", () => {
                 );
             });
 
-            it("combines a Both and a Both into a Both", () => {
+            it("combines the left-hand values and the right-hand values pairwise if both variants are Both", () => {
                 fc.assert(
                     fc.property(
                         arbStr(),
@@ -621,7 +621,7 @@ describe("ior.js", () => {
         });
 
         describe("#unwrap", () => {
-            it("applies the first function if the variant is Left", () => {
+            it("applies the first function to the value if the variant is Left", () => {
                 const ior = Ior.left<1, 2>(1).unwrap(
                     (x): [1, 3] => [x, 3],
                     (x): [2, 4] => [x, 4],
@@ -630,7 +630,7 @@ describe("ior.js", () => {
                 expect(ior).to.deep.equal([1, 3]);
             });
 
-            it("applies the second function if the variant is Right", () => {
+            it("applies the second function to the value if the variant is Right", () => {
                 const ior = Ior.right<2, 1>(2).unwrap(
                     (x): [1, 3] => [x, 3],
                     (x): [2, 4] => [x, 4],
@@ -639,7 +639,7 @@ describe("ior.js", () => {
                 expect(ior).to.deep.equal([2, 4]);
             });
 
-            it("applies the third function if the variant is Both", () => {
+            it("applies the third function to the left-hand value and the right-hand value if the variant is Both", () => {
                 const ior = Ior.both<1, 2>(1, 2).unwrap(
                     (x): [1, 3] => [x, 3],
                     (x): [2, 4] => [x, 4],
@@ -712,7 +712,7 @@ describe("ior.js", () => {
                 );
             });
 
-            it("applies the continuation if the variant is Right", () => {
+            it("applies the continuation to the value if the variant is Right", () => {
                 const ior = Ior.right<2, Str>(2).flatMap(
                     (x): Ior<Str, [2, 4]> => Ior.right([x, 4]),
                 );

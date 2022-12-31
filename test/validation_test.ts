@@ -72,7 +72,7 @@ describe("validation.js", () => {
         });
 
         describe("#[Eq.eq]", () => {
-            it("compares an Err and an Err by their failures", () => {
+            it("compares the failures if both variants are Err", () => {
                 fc.assert(
                     fc.property(arbNum(), arbNum(), (x, y) => {
                         expect(
@@ -100,7 +100,7 @@ describe("validation.js", () => {
                 );
             });
 
-            it("compares an Ok and an Ok by their successes", () => {
+            it("compares the successes if both variants are Ok", () => {
                 fc.assert(
                     fc.property(arbNum(), arbNum(), (x, y) => {
                         expect(eq(Validation.ok(x), Validation.ok(y))).to.equal(
@@ -112,7 +112,7 @@ describe("validation.js", () => {
         });
 
         describe("#[Ord.cmp]", () => {
-            it("compares an Err and an Err by their failures", () => {
+            it("compares the failures if both variants are Err", () => {
                 fc.assert(
                     fc.property(arbNum(), arbNum(), (x, y) => {
                         expect(
@@ -142,7 +142,7 @@ describe("validation.js", () => {
                 );
             });
 
-            it("compares an Ok and an Ok by their successes", () => {
+            it("compares the successes if both variants are Ok", () => {
                 fc.assert(
                     fc.property(arbNum(), arbNum(), (x, y) => {
                         expect(
@@ -186,7 +186,7 @@ describe("validation.js", () => {
         });
 
         describe("#unwrap", () => {
-            it("applies the first function if the variant is Err", () => {
+            it("applies the first function to the failure if the variant is Err", () => {
                 const vdn = Validation.err<1, 2>(1).unwrap(
                     (x): [1, 3] => [x, 3],
                     (x): [2, 4] => [x, 4],
@@ -194,7 +194,7 @@ describe("validation.js", () => {
                 expect(vdn).to.deep.equal([1, 3]);
             });
 
-            it("applies the second function if the variant is Ok", () => {
+            it("applies the second function to the success if the variant is Ok", () => {
                 const vdn = Validation.ok<2, 1>(2).unwrap(
                     (x): [1, 3] => [x, 3],
                     (x): [2, 4] => [x, 4],
@@ -204,7 +204,7 @@ describe("validation.js", () => {
         });
 
         describe("#zipWith", () => {
-            it("combines the failures in a new Err if both values are Err", () => {
+            it("combines the failures if both variants are Err", () => {
                 fc.assert(
                     fc.property(arbStr(), arbStr(), (x, y) => {
                         const vdn = Validation.err<Str, 2>(x).zipWith(
@@ -216,7 +216,7 @@ describe("validation.js", () => {
                 );
             });
 
-            it("returns the first Err if the second value is an Ok", () => {
+            it("returns the first Err if the second variant is Ok", () => {
                 fc.assert(
                     fc.property(arbStr(), (x) => {
                         const vdn = Validation.err<Str, 2>(x).zipWith(
@@ -228,7 +228,7 @@ describe("validation.js", () => {
                 );
             });
 
-            it("returns the second Err if the first value is an Ok", () => {
+            it("returns the second Err if the first variant is Ok", () => {
                 fc.assert(
                     fc.property(arbStr(), (y) => {
                         const vdn = Validation.ok<2, Str>(2).zipWith(
@@ -240,7 +240,7 @@ describe("validation.js", () => {
                 );
             });
 
-            it("applies the function to the successes if both values are Ok", () => {
+            it("applies the function to the successes if both variants are Ok", () => {
                 const vdn = Validation.ok<2, Str>(2).zipWith(
                     Validation.ok<4, Str>(4),
                     tuple,
@@ -250,7 +250,7 @@ describe("validation.js", () => {
         });
 
         describe("#zipFst", () => {
-            it("keeps only the first value if both variants are Ok", () => {
+            it("keeps only the first success if both variants are Ok", () => {
                 const vdn = Validation.ok<2, Str>(2).zipFst(
                     Validation.ok<4, Str>(4),
                 );
@@ -259,7 +259,7 @@ describe("validation.js", () => {
         });
 
         describe("#zipSnd", () => {
-            it("keeps only the second value if both variants are Ok", () => {
+            it("keeps only the second success if both variants are Ok", () => {
                 const vdn = Validation.ok<2, Str>(2).zipSnd(
                     Validation.ok<4, Str>(4),
                 );
@@ -268,7 +268,7 @@ describe("validation.js", () => {
         });
 
         describe("#lmap", () => {
-            it("applies the function if the variant is Err", () => {
+            it("applies the function to the failure if the variant is Err", () => {
                 const vdn = Validation.err<1, 2>(1).lmap((x): [1, 3] => [x, 3]);
                 expect(vdn).to.deep.equal(Validation.err([1, 3]));
             });
@@ -285,7 +285,7 @@ describe("validation.js", () => {
                 expect(vdn).to.deep.equal(Validation.err(1));
             });
 
-            it("applies the function if the variant is Ok", () => {
+            it("applies the function to the success if the variant is Ok", () => {
                 const vdn = Validation.ok<2, 1>(2).map((x): [2, 4] => [x, 4]);
                 expect(vdn).to.deep.equal(Validation.ok([2, 4]));
             });

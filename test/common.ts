@@ -11,13 +11,7 @@ export class Num implements Ord<Num> {
     }
 
     [Ord.cmp](that: Num): Ordering {
-        if (this.val < that.val) {
-            return Ordering.less;
-        }
-        if (this.val > that.val) {
-            return Ordering.greater;
-        }
-        return Ordering.equal;
+        return Ordering.fromNumber(this.val - that.val);
     }
 }
 
@@ -44,7 +38,7 @@ export function tuple<T extends unknown[]>(...xs: T): T {
 describe("common.js", () => {
     describe("Num", () => {
         describe("#[Eq.eq]", () => {
-            it("tests whether two Num values are equal", () => {
+            it("compares the values using strict equality", () => {
                 fc.assert(
                     fc.property(arbNum(), arbNum(), (x, y) => {
                         expect(eq(x, y)).to.equal(x.val === y.val);
@@ -54,15 +48,11 @@ describe("common.js", () => {
         });
 
         describe("#[Ord.cmp]", () => {
-            it("returns an Ordering that represents how the first Num compares to the second", () => {
+            it("compares the values as ordered from least to greatest", () => {
                 fc.assert(
                     fc.property(arbNum(), arbNum(), (x, y) => {
                         expect(cmp(x, y)).to.equal(
-                            x.val < y.val
-                                ? Ordering.less
-                                : x.val > y.val
-                                ? Ordering.greater
-                                : Ordering.equal,
+                            Ordering.fromNumber(x.val - y.val),
                         );
                     }),
                 );
@@ -72,7 +62,7 @@ describe("common.js", () => {
 
     describe("Str", () => {
         describe("#[Semigroup.cmb]", () => {
-            it("combines two Str values into another Str using concatenation", () => {
+            it("combines the values using concatenation", () => {
                 fc.assert(
                     fc.property(arbStr(), arbStr(), (x, y) => {
                         expect(cmb(x, y)).to.deep.equal(new Str(x.val + y.val));

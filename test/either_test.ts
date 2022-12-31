@@ -144,7 +144,7 @@ describe("either.js", () => {
         });
 
         describe("#[Eq.eq]", () => {
-            it("compares a Left and a Left by their values", () => {
+            it("compares the values if both variants are Left", () => {
                 fc.assert(
                     fc.property(arbNum(), arbNum(), (x, y) => {
                         expect(eq(Either.left(x), Either.left(y))).to.equal(
@@ -170,7 +170,7 @@ describe("either.js", () => {
                 );
             });
 
-            it("compares a Right and a Right by their values", () => {
+            it("compares the values if both variants are Right", () => {
                 fc.assert(
                     fc.property(arbNum(), arbNum(), (x, y) => {
                         expect(eq(Either.right(x), Either.right(y))).to.equal(
@@ -182,7 +182,7 @@ describe("either.js", () => {
         });
 
         describe("#[Ord.cmp]", () => {
-            it("compares a Left and a Left by their values", () => {
+            it("compares the values if both variants are Left", () => {
                 fc.assert(
                     fc.property(arbNum(), arbNum(), (x, y) => {
                         expect(cmp(Either.left(x), Either.left(y))).to.equal(
@@ -212,7 +212,7 @@ describe("either.js", () => {
                 );
             });
 
-            it("compares a Right and a Right by thier values", () => {
+            it("compares the values if both variants are Right", () => {
                 fc.assert(
                     fc.property(arbNum(), arbNum(), (x, y) => {
                         expect(cmp(Either.right(x), Either.right(y))).to.equal(
@@ -256,7 +256,7 @@ describe("either.js", () => {
         });
 
         describe("#unwrap", () => {
-            it("applies the first function if the variant is Left", () => {
+            it("applies the first function to the value if the variant is Left", () => {
                 const either = Either.left<1, 2>(1).unwrap(
                     (x): [1, 3] => [x, 3],
                     (x): [2, 4] => [x, 4],
@@ -264,7 +264,7 @@ describe("either.js", () => {
                 expect(either).to.deep.equal([1, 3]);
             });
 
-            it("applies the second function if the variant is Right", () => {
+            it("applies the second function to the value if the variant is Right", () => {
                 const either = Either.right<2, 1>(2).unwrap(
                     (x): [1, 3] => [x, 3],
                     (x): [2, 4] => [x, 4],
@@ -274,7 +274,7 @@ describe("either.js", () => {
         });
 
         describe("#recover", () => {
-            it("applies the continuation if the variant is Left", () => {
+            it("applies the continuation to the failure if the variant is Left", () => {
                 const either = Either.left<1, 2>(1).recover(
                     (x): Either<[1, 3], 4> => Either.left([x, 3]),
                 );
@@ -297,7 +297,7 @@ describe("either.js", () => {
                 expect(either).to.deep.equal(Either.left(1));
             });
 
-            it("applies the continuation if the variant is Right", () => {
+            it("applies the continuation to the success if the variant is Right", () => {
                 const either = Either.right<2, 1>(2).flatMap(
                     (x): Either<3, [2, 4]> => Either.right([x, 4]),
                 );
@@ -306,7 +306,7 @@ describe("either.js", () => {
         });
 
         describe("#zipWith", () => {
-            it("applies the function to the values if both variants are Right", () => {
+            it("applies the function to the successes if both variants are Right", () => {
                 const either = Either.right<2, 1>(2).zipWith(
                     Either.right<4, 3>(4),
                     tuple,
@@ -316,7 +316,7 @@ describe("either.js", () => {
         });
 
         describe("#zipFst", () => {
-            it("keeps only the first value if both variants are Right", () => {
+            it("keeps only the first success if both variants are Right", () => {
                 const either = Either.right<2, 1>(2).zipFst(
                     Either.right<4, 3>(4),
                 );
@@ -325,7 +325,7 @@ describe("either.js", () => {
         });
 
         describe("#zipSnd", () => {
-            it("keeps only the second value if both variants are Right", () => {
+            it("keeps only the second success if both variants are Right", () => {
                 const either = Either.right<2, 1>(2).zipSnd(
                     Either.right<4, 3>(4),
                 );

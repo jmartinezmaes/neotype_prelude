@@ -25,7 +25,7 @@ describe("pair.js", () => {
         });
 
         describe("#[Eq.eq]", () => {
-            it("tests whether two Pair values are equal", () => {
+            it("compares the first values and the second values lexicographically", () => {
                 fc.assert(
                     fc.property(
                         arbNum(),
@@ -43,7 +43,7 @@ describe("pair.js", () => {
         });
 
         describe("#[Ord.cmp]", () => {
-            it("compares two Pair values lexicographically", () => {
+            it("compares the first values and the second values lexicographically", () => {
                 fc.assert(
                     fc.property(
                         arbNum(),
@@ -61,7 +61,7 @@ describe("pair.js", () => {
         });
 
         describe("#[Semigroup.cmb]", () => {
-            it("combines two Pair values by combining values pairwise", () => {
+            it("combines the first values and the second values pairwise", () => {
                 fc.assert(
                     fc.property(
                         arbStr(),
@@ -79,7 +79,7 @@ describe("pair.js", () => {
         });
 
         describe("#unwrap", () => {
-            it("applies the function to the first and second values", () => {
+            it("applies the function to the first value and the second value", () => {
                 const pair = new Pair<1, 2>(1, 2).unwrap(tuple);
                 expect(pair).to.deep.equal([1, 2]);
             });

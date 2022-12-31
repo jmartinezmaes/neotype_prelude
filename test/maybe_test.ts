@@ -196,7 +196,7 @@ describe("maybe.js", () => {
                 );
             });
 
-            it("compares a Just and a Just by their values", () => {
+            it("compares the values if both variants are Just", () => {
                 fc.assert(
                     fc.property(arbNum(), arbNum(), (x, y) => {
                         expect(eq(Maybe.just(x), Maybe.just(y))).to.equal(
@@ -234,7 +234,7 @@ describe("maybe.js", () => {
                 );
             });
 
-            it("compares a Just and a Just by their values", () => {
+            it("compares the values if both variants are Just", () => {
                 fc.assert(
                     fc.property(arbNum(), arbNum(), (x, y) => {
                         expect(cmp(Maybe.just(x), Maybe.just(y))).to.equal(
@@ -262,7 +262,7 @@ describe("maybe.js", () => {
                 );
             });
 
-            it("keeps the first Just if the second variants is Nothing", () => {
+            it("keeps the first Just if the second variant is Nothing", () => {
                 fc.assert(
                     fc.property(arbStr(), (x) => {
                         expect(cmb(Maybe.just(x), Maybe.nothing)).to.deep.equal(
@@ -272,7 +272,7 @@ describe("maybe.js", () => {
                 );
             });
 
-            it("combines the values in a Just if both variants are Just", () => {
+            it("combines the values if both variants are Just", () => {
                 fc.assert(
                     fc.property(arbStr(), arbStr(), (x, y) => {
                         expect(cmb(Maybe.just(x), Maybe.just(y))).to.deep.equal(
@@ -312,7 +312,7 @@ describe("maybe.js", () => {
                 expect(maybe).to.equal(2);
             });
 
-            it("applies the second function if the variant is Just", () => {
+            it("applies the second function to the value if the variant is Just", () => {
                 const maybe = Maybe.just<1>(1).unwrap(
                     (): 2 => 2,
                     (x): [1, 3] => [x, 3],
@@ -365,7 +365,7 @@ describe("maybe.js", () => {
                 expect(maybe).to.equal(Maybe.nothing);
             });
 
-            it("applies the continuation if the variant is Just", () => {
+            it("applies the continuation to the value if the variant is Just", () => {
                 const maybe = Maybe.just<1>(1).flatMap(
                     (x): Maybe<[1, 2]> => Maybe.just([x, 2]),
                 );

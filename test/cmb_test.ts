@@ -5,7 +5,7 @@ import { arbStr } from "./common.js";
 
 describe("cmb.js", () => {
     describe("cmb", () => {
-        it("combines two Semigroup values from left to right", () => {
+        it("combines two Semigroup values", () => {
             fc.assert(
                 fc.property(arbStr(), arbStr(), (x, y) => {
                     expect(cmb(x, y)).to.deep.equal(x[Semigroup.cmb](y));
