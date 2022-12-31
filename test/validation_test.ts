@@ -205,39 +205,27 @@ describe("validation.js", () => {
 
         describe("#zipWith", () => {
             it("combines the failures if both variants are Err", () => {
-                fc.assert(
-                    fc.property(arbStr(), arbStr(), (x, y) => {
-                        const vdn = Validation.err<Str, 2>(x).zipWith(
-                            Validation.err<Str, 4>(y),
-                            tuple,
-                        );
-                        expect(vdn).to.deep.equal(Validation.err(cmb(x, y)));
-                    }),
+                const vdn = Validation.err<Str, 2>(new Str("a")).zipWith(
+                    Validation.err<Str, 4>(new Str("b")),
+                    tuple,
                 );
+                expect(vdn).to.deep.equal(Validation.err(new Str("ab")));
             });
 
             it("returns the first Err if the second variant is Ok", () => {
-                fc.assert(
-                    fc.property(arbStr(), (x) => {
-                        const vdn = Validation.err<Str, 2>(x).zipWith(
-                            Validation.ok<4, Str>(4),
-                            tuple,
-                        );
-                        expect(vdn).to.deep.equal(Validation.err(x));
-                    }),
+                const vdn = Validation.err<Str, 2>(new Str("a")).zipWith(
+                    Validation.ok<4, Str>(4),
+                    tuple,
                 );
+                expect(vdn).to.deep.equal(Validation.err(new Str("a")));
             });
 
             it("returns the second Err if the first variant is Ok", () => {
-                fc.assert(
-                    fc.property(arbStr(), (y) => {
-                        const vdn = Validation.ok<2, Str>(2).zipWith(
-                            Validation.err<Str, 4>(y),
-                            tuple,
-                        );
-                        expect(vdn).to.deep.equal(Validation.err(y));
-                    }),
+                const vdn = Validation.ok<2, Str>(2).zipWith(
+                    Validation.err<Str, 4>(new Str("b")),
+                    tuple,
                 );
+                expect(vdn).to.deep.equal(Validation.err(new Str("b")));
             });
 
             it("applies the function to the successes if both variants are Ok", () => {
