@@ -59,7 +59,7 @@ describe("either.js", () => {
         });
 
         describe("reduce", () => {
-            it("reduces a finite iterable from left to right in the context of Either", () => {
+            it("reduces the finite iterable from left to right in the context of Either", () => {
                 const either = Either.reduce(
                     ["x", "y"],
                     (xs, x) => Either.right<string, 1>(xs + x),
@@ -70,7 +70,7 @@ describe("either.js", () => {
         });
 
         describe("collect", () => {
-            it("turns an array or a tuple literal of Either elements inside out", () => {
+            it("turns the array or the tuple literal of Either elements inside out", () => {
                 const inputs: [Either<1, 2>, Either<3, 4>] = [
                     Either.right(2),
                     Either.right(4),
@@ -81,7 +81,7 @@ describe("either.js", () => {
         });
 
         describe("gather", () => {
-            it("turns a record or an object literal of Either elements inside out", () => {
+            it("turns the record or the object literal of Either elements inside out", () => {
                 const either = Either.gather({
                     x: Either.right<2, 1>(2),
                     y: Either.right<4, 3>(4),
@@ -91,7 +91,7 @@ describe("either.js", () => {
         });
 
         describe("lift", () => {
-            it("lifts a function into the context of Either", () => {
+            it("lifts the function into the context of Either", () => {
                 const either = Either.lift(tuple<[2, 4]>)(
                     Either.right<2, 1>(2),
                     Either.right<4, 3>(4),
@@ -154,7 +154,7 @@ describe("either.js", () => {
                 );
             });
 
-            it("compares a Left and a Right as inequal", () => {
+            it("compares any Left and any Right as inequal", () => {
                 fc.assert(
                     fc.property(arbNum(), arbNum(), (x, y) => {
                         expect(eq(Either.left(x), Either.right(y))).to.be.false;
@@ -162,7 +162,7 @@ describe("either.js", () => {
                 );
             });
 
-            it("compares a Right and a Left as inequal", () => {
+            it("compares any Right and any Left as inequal", () => {
                 fc.assert(
                     fc.property(arbNum(), arbNum(), (x, y) => {
                         expect(eq(Either.right(x), Either.left(y))).to.be.false;
@@ -192,7 +192,7 @@ describe("either.js", () => {
                 );
             });
 
-            it("compares a Left as less than a Right", () => {
+            it("compares any Left as less than any Right", () => {
                 fc.assert(
                     fc.property(arbNum(), arbNum(), (x, y) => {
                         expect(cmp(Either.left(x), Either.right(y))).to.equal(
@@ -202,7 +202,7 @@ describe("either.js", () => {
                 );
             });
 
-            it("compares a Right as greater than a Left", () => {
+            it("compares any Right as greater than any Left", () => {
                 fc.assert(
                     fc.property(arbNum(), arbNum(), (x, y) => {
                         expect(cmp(Either.right(x), Either.left(y))).to.equal(

@@ -127,7 +127,7 @@ describe("ior.js", () => {
         });
 
         describe("reduce", () => {
-            it("reduces a finite iterable from left to right in the context of Ior", () => {
+            it("reduces the finite iterable from left to right in the context of Ior", () => {
                 const ior = Ior.reduce(
                     ["x", "y"],
                     (xs, x) => Ior.both(new Str("a"), xs + x),
@@ -138,7 +138,7 @@ describe("ior.js", () => {
         });
 
         describe("collect", () => {
-            it("turns an array or a tuple literal of Ior elements inside out", () => {
+            it("turns the array or the tuple literal of Ior elements inside out", () => {
                 const inputs: [Ior<Str, 2>, Ior<Str, 4>] = [
                     Ior.both(new Str("a"), 2),
                     Ior.both(new Str("b"), 4),
@@ -149,7 +149,7 @@ describe("ior.js", () => {
         });
 
         describe("gather", () => {
-            it("turns a record or an object literal of Ior elements inside out", () => {
+            it("turns the record or the object literal of Ior elements inside out", () => {
                 const ior = Ior.gather({
                     x: Ior.both<Str, 2>(new Str("a"), 2),
                     y: Ior.both<Str, 4>(new Str("b"), 4),
@@ -161,7 +161,7 @@ describe("ior.js", () => {
         });
 
         describe("lift", () => {
-            it("lifts a function into the context of Ior", () => {
+            it("lifts the function into the context of Ior", () => {
                 const ior = Ior.lift(tuple<[2, 4]>)(
                     Ior.both(new Str("a"), 2),
                     Ior.both(new Str("b"), 4),
@@ -280,7 +280,7 @@ describe("ior.js", () => {
                 );
             });
 
-            it("compares a Left and a Right as inequal", () => {
+            it("compares any Left and any Right as inequal", () => {
                 fc.assert(
                     fc.property(arbNum(), arbNum(), (a, y) => {
                         expect(eq(Ior.left(a), Ior.right(y))).to.be.false;
@@ -288,7 +288,7 @@ describe("ior.js", () => {
                 );
             });
 
-            it("compares a Left and a Both as inequal", () => {
+            it("compares any Left and any Both as inequal", () => {
                 fc.assert(
                     fc.property(arbNum(), arbNum(), arbNum(), (a, b, y) => {
                         expect(eq(Ior.left(a), Ior.both(b, y))).to.be.false;
@@ -296,7 +296,7 @@ describe("ior.js", () => {
                 );
             });
 
-            it("compares a Right and a Left as inequal", () => {
+            it("compares any Right and any Left as inequal", () => {
                 fc.assert(
                     fc.property(arbNum(), arbNum(), (x, b) => {
                         expect(eq(Ior.right(x), Ior.left(b))).to.be.false;
@@ -314,7 +314,7 @@ describe("ior.js", () => {
                 );
             });
 
-            it("compares a Right and a Both as inequal", () => {
+            it("compares any Right and any Both as inequal", () => {
                 fc.assert(
                     fc.property(arbNum(), arbNum(), arbNum(), (x, b, y) => {
                         expect(eq(Ior.right(x), Ior.both(b, y))).to.be.false;
@@ -322,7 +322,7 @@ describe("ior.js", () => {
                 );
             });
 
-            it("compares a Both and a Left as inequal", () => {
+            it("compares any Both and any Left as inequal", () => {
                 fc.assert(
                     fc.property(arbNum(), arbNum(), arbNum(), (a, x, b) => {
                         expect(eq(Ior.both(a, x), Ior.left(b))).to.be.false;
@@ -330,7 +330,7 @@ describe("ior.js", () => {
                 );
             });
 
-            it("compares a Both and a Right as inequal", () => {
+            it("compares any Both and any Right as inequal", () => {
                 fc.assert(
                     fc.property(arbNum(), arbNum(), arbNum(), (a, x, y) => {
                         expect(eq(Ior.both(a, x), Ior.right(y))).to.be.false;
@@ -366,7 +366,7 @@ describe("ior.js", () => {
                 );
             });
 
-            it("compares a Left as less than a Right", () => {
+            it("compares any Left as less than any Right", () => {
                 fc.assert(
                     fc.property(arbNum(), arbNum(), (a, y) => {
                         expect(cmp(Ior.left(a), Ior.right(y))).to.equal(
@@ -376,7 +376,7 @@ describe("ior.js", () => {
                 );
             });
 
-            it("compares a Left as less than a Both", () => {
+            it("compares any Left as less than any Both", () => {
                 fc.assert(
                     fc.property(arbNum(), arbNum(), arbNum(), (a, b, y) => {
                         expect(cmp(Ior.left(a), Ior.both(b, y))).to.equal(
@@ -386,7 +386,7 @@ describe("ior.js", () => {
                 );
             });
 
-            it("compares a Right as greater than a Left", () => {
+            it("compares any Right as greater than any Left", () => {
                 fc.assert(
                     fc.property(arbNum(), arbNum(), (x, b) => {
                         expect(cmp(Ior.right(x), Ior.left(b))).to.equal(
@@ -406,7 +406,7 @@ describe("ior.js", () => {
                 );
             });
 
-            it("compares a Right as less than a Both", () => {
+            it("compares any Right as less than any Both", () => {
                 fc.assert(
                     fc.property(arbNum(), arbNum(), arbNum(), (x, b, y) => {
                         expect(cmp(Ior.right(x), Ior.both(b, y))).to.equal(
@@ -416,7 +416,7 @@ describe("ior.js", () => {
                 );
             });
 
-            it("compares a Both as greater than a Left", () => {
+            it("compares any Both as greater than any Left", () => {
                 fc.assert(
                     fc.property(arbNum(), arbNum(), arbNum(), (a, x, b) => {
                         expect(cmp(Ior.both(a, x), Ior.left(b))).to.equal(
@@ -426,7 +426,7 @@ describe("ior.js", () => {
                 );
             });
 
-            it("compares a Both as greater than a Right", () => {
+            it("compares any Both as greater than any Right", () => {
                 fc.assert(
                     fc.property(arbNum(), arbNum(), arbNum(), (a, x, y) => {
                         expect(cmp(Ior.both(a, x), Ior.right(y))).to.equal(
@@ -464,7 +464,7 @@ describe("ior.js", () => {
                 );
             });
 
-            it("combines a Left and a Right into a Both", () => {
+            it("merges the values into a Both if the variants are Left and Right", () => {
                 fc.assert(
                     fc.property(arbStr(), arbStr(), (a, y) => {
                         expect(cmb(Ior.left(a), Ior.right(y))).to.deep.equal(
@@ -474,7 +474,7 @@ describe("ior.js", () => {
                 );
             });
 
-            it("combines a Left and a Both into a Both", () => {
+            it("combines the left-hand values and retains the right-hand value if the variants are Left and Both", () => {
                 fc.assert(
                     fc.property(arbStr(), arbStr(), arbStr(), (a, b, y) => {
                         expect(cmb(Ior.left(a), Ior.both(b, y))).to.deep.equal(
@@ -484,7 +484,7 @@ describe("ior.js", () => {
                 );
             });
 
-            it("combines a Right and a Left into a Both", () => {
+            it("merges the values into a Both if the variants are Right and Left", () => {
                 fc.assert(
                     fc.property(arbStr(), arbStr(), (x, b) => {
                         expect(cmb(Ior.right(x), Ior.left(b))).to.deep.equal(
@@ -504,7 +504,7 @@ describe("ior.js", () => {
                 );
             });
 
-            it("combines a Right and a Both into a Both", () => {
+            it("retains the left-hand value and combines the right-hand values if the variants are Right and Both", () => {
                 fc.assert(
                     fc.property(arbStr(), arbStr(), arbStr(), (x, b, y) => {
                         expect(cmb(Ior.right(x), Ior.both(b, y))).to.deep.equal(
@@ -514,7 +514,7 @@ describe("ior.js", () => {
                 );
             });
 
-            it("combines a Both and a Left into a Both", () => {
+            it("combines the left-hand values and retains the right-hand value if the variants are Both and Left", () => {
                 fc.assert(
                     fc.property(arbStr(), arbStr(), arbStr(), (a, x, b) => {
                         expect(cmb(Ior.both(a, x), Ior.left(b))).to.deep.equal(
@@ -524,7 +524,7 @@ describe("ior.js", () => {
                 );
             });
 
-            it("combines a Both and a Right into a Both", () => {
+            it("retains the left-hand value and combines the right-hand values if the variants are Both and Right", () => {
                 fc.assert(
                     fc.property(arbStr(), arbStr(), arbStr(), (a, x, y) => {
                         expect(cmb(Ior.both(a, x), Ior.right(y))).to.deep.equal(

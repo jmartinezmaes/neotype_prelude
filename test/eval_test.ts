@@ -7,7 +7,7 @@ import { arbStr, tuple } from "./util.js";
 describe("eval.js", () => {
     describe("Eval", () => {
         describe("now", () => {
-            it("constructs an Eval from an eager value", () => {
+            it("constructs an Eval eagerly from the the value", () => {
                 const ev = Eval.now<1>(1);
                 const outcome = ev.run();
                 expect(outcome).to.equal(1);
@@ -46,8 +46,16 @@ describe("eval.js", () => {
             });
         });
 
+        describe("defer", () => {
+            it("constructs an Eval lazily from the function", () => {
+                const ev = Eval.defer(() => Eval.now<1>(1));
+                const outcome = ev.run();
+                expect(outcome).to.equal(1);
+            });
+        });
+
         describe("go", () => {
-            it("constructs an Eval using a generator comprehension", () => {
+            it("constructs an Eval using the generator comprehension", () => {
                 const ev = Eval.go(function* () {
                     const x = yield* Eval.now<1>(1);
                     const [y, z] = yield* Eval.now(tuple<[1, 2]>(x, 2));
@@ -59,7 +67,7 @@ describe("eval.js", () => {
         });
 
         describe("reduce", () => {
-            it("reduces a finite iterable from left to right in the context of Eval", () => {
+            it("reduces the finite iterable from left to right in the context of Eval", () => {
                 const ev = Eval.reduce(
                     ["x", "y"],
                     (xs, x) => Eval.now(xs + x),
@@ -71,7 +79,7 @@ describe("eval.js", () => {
         });
 
         describe("collect", () => {
-            it("turns an array or a tuple literal of Eval elements inside out", () => {
+            it("turns the array or the tuple literal of Eval elements inside out", () => {
                 const inputs: [Eval<1>, Eval<2>] = [Eval.now(1), Eval.now(2)];
                 const ev = Eval.collect(inputs);
                 const outcome = ev.run();
@@ -80,7 +88,7 @@ describe("eval.js", () => {
         });
 
         describe("gather", () => {
-            it("turns a record or an object literal of Eval elements inside out", () => {
+            it("turns the record or the object literal of Eval elements inside out", () => {
                 const ev = Eval.gather({
                     x: Eval.now<1>(1),
                     y: Eval.now<2>(2),
@@ -91,7 +99,7 @@ describe("eval.js", () => {
         });
 
         describe("lift", () => {
-            it("lifts a function into the context of Eval", () => {
+            it("lifts the function into the context of Eval", () => {
                 const ev = Eval.lift(tuple)(Eval.now<1>(1), Eval.now<2>(2));
                 const outcome = ev.run();
                 expect(outcome).to.deep.equal([1, 2]);
@@ -121,7 +129,7 @@ describe("eval.js", () => {
         });
 
         describe("#zipWith", () => {
-            it("appies the function to the outcomes", () => {
+            it("applies the function to the outcomes", () => {
                 const ev = Eval.now<1>(1).zipWith(Eval.now<2>(2), tuple);
                 const outcome = ev.run();
                 expect(outcome).to.deep.equal([1, 2]);

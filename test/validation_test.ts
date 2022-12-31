@@ -41,7 +41,7 @@ describe("validation.js", () => {
         });
 
         describe("collect", () => {
-            it("turns an array or a tuple literal of Validation elements inside out", () => {
+            it("turns the array or the tuple literal of Validation elements inside out", () => {
                 const inputs: [Validation<Str, 2>, Validation<Str, 4>] = [
                     Validation.ok(2),
                     Validation.ok(4),
@@ -52,7 +52,7 @@ describe("validation.js", () => {
         });
 
         describe("gather", () => {
-            it("turns a record or an object literal of Validation elements inside out", () => {
+            it("turns the record or the object literal of Validation elements inside out", () => {
                 const vdn = Validation.gather({
                     x: Validation.ok<2, Str>(2),
                     y: Validation.ok<4, Str>(4),
@@ -62,7 +62,7 @@ describe("validation.js", () => {
         });
 
         describe("lift", () => {
-            it("lifts a function into the context of Validation", () => {
+            it("lifts the function into the context of Validation", () => {
                 const vdn = Validation.lift(tuple<[2, 4]>)(
                     Validation.ok(2),
                     Validation.ok(4),
@@ -82,7 +82,7 @@ describe("validation.js", () => {
                 );
             });
 
-            it("compares an Err and an Ok as inequal", () => {
+            it("compares any Err and any Ok as inequal", () => {
                 fc.assert(
                     fc.property(arbNum(), arbNum(), (x, y) => {
                         expect(eq(Validation.err(x), Validation.ok(y))).to.be
@@ -91,7 +91,7 @@ describe("validation.js", () => {
                 );
             });
 
-            it("compares an Ok and an Err as inequal", () => {
+            it("compares any Ok and any Err as inequal", () => {
                 fc.assert(
                     fc.property(arbNum(), arbNum(), (x, y) => {
                         expect(eq(Validation.ok(x), Validation.err(y))).to.be
@@ -122,7 +122,7 @@ describe("validation.js", () => {
                 );
             });
 
-            it("compares an Err as less than an Ok", () => {
+            it("compares any Err as less than any Ok", () => {
                 fc.assert(
                     fc.property(arbNum(), arbNum(), (x, y) => {
                         expect(
@@ -132,7 +132,7 @@ describe("validation.js", () => {
                 );
             });
 
-            it("compares an Ok as greater than an Err", () => {
+            it("compares any Ok as greater than any Err", () => {
                 fc.assert(
                     fc.property(arbNum(), arbNum(), (x, y) => {
                         expect(

@@ -43,19 +43,19 @@ describe("maybe.js", () => {
         });
 
         describe("wrapFn", () => {
-            it("adapts a function to return Nothing if it returns undefined", () => {
+            it("adapts the function to return Nothing if it returns undefined", () => {
                 const f = Maybe.wrapFn((): 1 | undefined => undefined);
                 const maybe = f();
                 expect(maybe).to.equal(Maybe.nothing);
             });
 
-            it("adapts a function to return Nothing if it returns null", () => {
+            it("adapts the function to return Nothing if it returns null", () => {
                 const f = Maybe.wrapFn((): 1 | null => null);
                 const maybe = f();
                 expect(maybe).to.equal(Maybe.nothing);
             });
 
-            it("adapts a function to wrap a non-undefined, non-null result in a Just", () => {
+            it("adapts the function to wrap a non-undefined, non-null result in a Just", () => {
                 const f = Maybe.wrapFn((): 1 => 1);
                 const maybe = f();
                 expect(maybe).to.deep.equal(Maybe.just(1));
@@ -63,13 +63,13 @@ describe("maybe.js", () => {
         });
 
         describe("wrapPred", () => {
-            it("adapts a predicate to return Nothing if not satisfied", () => {
+            it("adapts the predicate to return Nothing if not satisfied", () => {
                 const f = Maybe.wrapPred((x: number) => x === 1);
                 const maybe = f(2);
                 expect(maybe).to.equal(Maybe.nothing);
             });
 
-            it("adapts a predicate to return a result in a Just if satisfied", () => {
+            it("adapts the predicate to return its argument in a Just if satisfied", () => {
                 const f = Maybe.wrapPred((x: number) => x === 1);
                 const maybe = f(1);
                 expect(maybe).to.deep.equal(Maybe.just(1));
@@ -97,7 +97,7 @@ describe("maybe.js", () => {
         });
 
         describe("reduce", () => {
-            it("reduces a finite iterable from left to right in the context of Maybe", () => {
+            it("reduces the finite iterable from left to right in the context of Maybe", () => {
                 const maybe = Maybe.reduce(
                     ["x", "y"],
                     (xs, x) => Maybe.just(xs + x),
@@ -108,7 +108,7 @@ describe("maybe.js", () => {
         });
 
         describe("collect", () => {
-            it("turns an array or a tuple literal of Maybe elements inside out", () => {
+            it("turns the array or the tuple literal of Maybe elements inside out", () => {
                 const inputs: [Maybe<1>, Maybe<2>] = [
                     Maybe.just(1),
                     Maybe.just(2),
@@ -119,7 +119,7 @@ describe("maybe.js", () => {
         });
 
         describe("gather", () => {
-            it("turns a record or an object literal of Maybe elements inside out", () => {
+            it("turns the record or the object literal of Maybe elements inside out", () => {
                 const maybe = Maybe.gather({
                     x: Maybe.just<1>(1),
                     y: Maybe.just<2>(2),
@@ -129,7 +129,7 @@ describe("maybe.js", () => {
         });
 
         describe("lift", () => {
-            it("lifts a function into the context of Maybe", () => {
+            it("lifts the function into the context of Maybe", () => {
                 const maybe = Maybe.lift(tuple<[1, 2]>)(
                     Maybe.just(1),
                     Maybe.just(2),
@@ -180,7 +180,7 @@ describe("maybe.js", () => {
                 expect(eq<Maybe<Num>>(Maybe.nothing, Maybe.nothing)).to.be.true;
             });
 
-            it("compares Nothing and a Just as inequal", () => {
+            it("compares Nothing and any Just as inequal", () => {
                 fc.assert(
                     fc.property(arbNum(), (y) => {
                         expect(eq(Maybe.nothing, Maybe.just(y))).to.be.false;
@@ -188,7 +188,7 @@ describe("maybe.js", () => {
                 );
             });
 
-            it("compares a Just and Nothing as inequal", () => {
+            it("compares any Just and Nothing as inequal", () => {
                 fc.assert(
                     fc.property(arbNum(), (x) => {
                         expect(eq(Maybe.just(x), Maybe.nothing)).to.be.false;
@@ -214,7 +214,7 @@ describe("maybe.js", () => {
                 );
             });
 
-            it("compares Nothing as less than a Just", () => {
+            it("compares Nothing as less than any Just", () => {
                 fc.assert(
                     fc.property(arbNum(), (y) => {
                         expect(cmp(Maybe.nothing, Maybe.just(y))).to.equal(
@@ -224,7 +224,7 @@ describe("maybe.js", () => {
                 );
             });
 
-            it("compares a Just as greater than Nothing", () => {
+            it("compares any Just as greater than Nothing", () => {
                 fc.assert(
                     fc.property(arbNum(), (x) => {
                         expect(cmp(Maybe.just(x), Maybe.nothing)).to.equal(

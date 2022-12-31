@@ -25,7 +25,7 @@ import { arbNum, Num } from "./util.js";
 
 describe("cmp.js", () => {
     describe("eq", () => {
-        it("tests whether two Eq values are equal", () => {
+        it("tests whether the two Eq values are equal", () => {
             fc.assert(
                 fc.property(arbNum(), arbNum(), (x, y) => {
                     expect(eq(x, y)).to.equal(x[Eq.eq](y));
@@ -35,7 +35,7 @@ describe("cmp.js", () => {
     });
 
     describe("ne", () => {
-        it("tests whether two Eq values are inequal", () => {
+        it("tests whether the two Eq values are inequal", () => {
             fc.assert(
                 fc.property(arbNum(), arbNum(), (x, y) => {
                     expect(ne(x, y)).to.equal(!x[Eq.eq](y));
@@ -49,11 +49,11 @@ describe("cmp.js", () => {
             return x === y;
         }
 
-        it("compares two empty iterables as equal", () => {
+        it("compares any two empty iterables as equal", () => {
             expect(ieqBy([], [], comparer)).to.be.true;
         });
 
-        it("compares a non-empty iterable and an empty iterable as inequal", () => {
+        it("compares any non-empty iterable and any empty iterable as inequal", () => {
             fc.assert(
                 fc.property(fc.float({ noNaN: true }), (a) => {
                     expect(ieqBy([a], [], comparer)).to.be.false;
@@ -61,7 +61,7 @@ describe("cmp.js", () => {
             );
         });
 
-        it("compares an empty iterable and a non-empty iterable as inequal", () => {
+        it("compares any empty iterable and any non-empty iterable as inequal", () => {
             fc.assert(
                 fc.property(fc.float({ noNaN: true }), (b) => {
                     expect(ieqBy([], [b], comparer)).to.be.false;
@@ -69,7 +69,7 @@ describe("cmp.js", () => {
             );
         });
 
-        it("compares a longer iterable and a shorter iterable as inequal", () => {
+        it("compares any longer iterable any the shorter iterable as inequal", () => {
             fc.assert(
                 fc.property(
                     fc.float({ noNaN: true }),
@@ -82,7 +82,7 @@ describe("cmp.js", () => {
             );
         });
 
-        it("compares a shorter iterable and a longer iterable as inequal", () => {
+        it("compares any shorter iterable and any longer iterable as inequal", () => {
             fc.assert(
                 fc.property(
                     fc.float({ noNaN: true }),
@@ -95,7 +95,7 @@ describe("cmp.js", () => {
             );
         });
 
-        it("compares two same-length iterables by element", () => {
+        it("compares any two same-length iterables lexicographically", () => {
             fc.assert(
                 fc.property(
                     fc.float({ noNaN: true }),
@@ -113,7 +113,7 @@ describe("cmp.js", () => {
     });
 
     describe("ieq", () => {
-        it("compares two iterables of Eq elements lexicographically", () => {
+        it("compares any two iterables of Eq elements lexicographically", () => {
             fc.assert(
                 fc.property(
                     arbNum(),
@@ -145,11 +145,11 @@ describe("cmp.js", () => {
             return Ordering.fromNumber(x - y);
         }
 
-        it("compares two empty iterables as equal", () => {
+        it("compares any two empty iterables as equal", () => {
             expect(icmpBy([], [], comparer)).to.equal(Ordering.equal);
         });
 
-        it("compares a non-empty iterable as greater than an empty iterable", () => {
+        it("compares any non-empty iterable as greater than any empty iterable", () => {
             fc.assert(
                 fc.property(fc.float({ noNaN: true }), (a) => {
                     expect(icmpBy([a], [], comparer)).to.equal(
@@ -159,7 +159,7 @@ describe("cmp.js", () => {
             );
         });
 
-        it("compares an empty iterable as less than a non-empty iterable", () => {
+        it("compares any empty iterable as less than any non-empty iterable", () => {
             fc.assert(
                 fc.property(fc.float({ noNaN: true }), (b) => {
                     expect(icmpBy([], [b], comparer)).to.equal(Ordering.less);
@@ -167,7 +167,7 @@ describe("cmp.js", () => {
             );
         });
 
-        it("compares a longer iterable and a shorter iterable lexicographically", () => {
+        it("compares any longer iterable to any shorter iterable lexicographically", () => {
             fc.assert(
                 fc.property(
                     fc.float({ noNaN: true }),
@@ -182,7 +182,7 @@ describe("cmp.js", () => {
             );
         });
 
-        it("compares a shorter iterable and a longer iterable lexicographically", () => {
+        it("compares any shorter iterable to any longer iterable lexicographically", () => {
             fc.assert(
                 fc.property(
                     fc.float({ noNaN: true }),
@@ -197,7 +197,7 @@ describe("cmp.js", () => {
             );
         });
 
-        it("compares two same-length iterables lexicographically", () => {
+        it("compares any two same-length iterables lexicographically", () => {
             fc.assert(
                 fc.property(
                     fc.float({ noNaN: true }),
@@ -215,7 +215,7 @@ describe("cmp.js", () => {
     });
 
     describe("icmp", () => {
-        it("compares two iterables of Ord elements lexicographically", () => {
+        it("compares any two iterables of Ord elements lexicographically", () => {
             fc.assert(
                 fc.property(
                     arbNum(),
@@ -273,7 +273,7 @@ describe("cmp.js", () => {
     });
 
     describe("min", () => {
-        it("returns the minimum of two Ord values", () => {
+        it("returns the lesser of the two Ord values", () => {
             fc.assert(
                 fc.property(arbNum(), arbNum(), (x, y) => {
                     expect(min(x, y)).to.equal(le(x, y) ? x : y);
@@ -283,7 +283,7 @@ describe("cmp.js", () => {
     });
 
     describe("max", () => {
-        it("returns the maximum of two Ord values", () => {
+        it("returns the greater of the two Ord values", () => {
             fc.assert(
                 fc.property(arbNum(), arbNum(), (x, y) => {
                     expect(max(x, y)).to.equal(ge(x, y) ? x : y);
@@ -293,7 +293,7 @@ describe("cmp.js", () => {
     });
 
     describe("clamp", () => {
-        it("restricts an Ord value to an inclusive bounds", () => {
+        it("restricts the Ord value to an inclusive bounds", () => {
             fc.assert(
                 fc.property(arbNum(), arbNum(), arbNum(), (x, y, z) => {
                     expect(clamp(x, y, z)).to.equal(min(max(x, y), z));
@@ -574,7 +574,7 @@ describe("cmp.js", () => {
                 expect(Ordering.less.reverse()).to.equal(Ordering.greater);
             });
 
-            it("returns Equal as is", () => {
+            it("returns Equal if the variant is Equal", () => {
                 expect(Ordering.equal.reverse()).to.equal(Ordering.equal);
             });
 
