@@ -6,6 +6,9 @@ docsite
 node_modules
 jspm_packages
 
+# c8 test coverage
+coverage
+
 # Logs
 logs
 *.log
