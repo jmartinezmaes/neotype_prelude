@@ -2,7 +2,14 @@ import { expect } from "chai";
 import * as fc from "fast-check";
 import { cmb } from "../src/cmb.js";
 import { cmp, eq, Ordering } from "../src/cmp.js";
-import { arbNum, arbStr, Str } from "./util.js";
+import {
+    arbNum,
+    arbStr,
+    expectLawfulEq,
+    expectLawfulOrd,
+    expectLawfulSemigroup,
+    Str,
+} from "./util.js";
 
 describe("util.js", () => {
     describe("Num", () => {
@@ -13,6 +20,10 @@ describe("util.js", () => {
                         expect(eq(x, y)).to.equal(x.val === y.val);
                     }),
                 );
+            });
+
+            it("implements a lawful equivalence relation", () => {
+                expectLawfulEq(arbNum());
             });
         });
 
@@ -26,6 +37,10 @@ describe("util.js", () => {
                     }),
                 );
             });
+
+            it("implements a lawful total order", () => {
+                expectLawfulOrd(arbNum());
+            });
         });
     });
 
@@ -37,6 +52,10 @@ describe("util.js", () => {
                         expect(cmb(x, y)).to.deep.equal(new Str(x.val + y.val));
                     }),
                 );
+            });
+
+            it("implements a lawful semigroup", () => {
+                expectLawfulSemigroup(arbStr());
             });
         });
     });

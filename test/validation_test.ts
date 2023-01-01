@@ -4,10 +4,28 @@ import { cmb } from "../src/cmb.js";
 import { cmp, eq, Ordering } from "../src/cmp.js";
 import { Either } from "../src/either.js";
 import { Validation } from "../src/validation.js";
-import { arbNum, arbStr, Str, tuple } from "./util.js";
+import {
+    arbNum,
+    arbStr,
+    expectLawfulEq,
+    expectLawfulOrd,
+    expectLawfulSemigroup,
+    Str,
+    tuple,
+} from "./util.js";
 
 describe("validation.js", () => {
     describe("Validation", () => {
+        function arbValidation<E, A>(
+            arbErr: fc.Arbitrary<E>,
+            arbOk: fc.Arbitrary<A>,
+        ): fc.Arbitrary<Validation<E, A>> {
+            return fc.oneof(
+                arbErr.map(Validation.err),
+                arbOk.map(Validation.ok),
+            );
+        }
+
         describe("err", () => {
             it("constructs an Err variant", () => {
                 const vdn = Validation.err<1, 2>(1);
@@ -109,6 +127,10 @@ describe("validation.js", () => {
                     }),
                 );
             });
+
+            it("implements a lawful equivalence relation", () => {
+                expectLawfulEq(arbValidation(arbNum(), arbNum()));
+            });
         });
 
         describe("#[Ord.cmp]", () => {
@@ -151,6 +173,10 @@ describe("validation.js", () => {
                     }),
                 );
             });
+
+            it("implements a lawful total order", () => {
+                expectLawfulOrd(arbValidation(arbNum(), arbNum()));
+            });
         });
 
         describe("#[Semigroup.cmb]", () => {
@@ -162,6 +188,10 @@ describe("validation.js", () => {
                         ).to.deep.equal(Validation.ok(cmb(x, y)));
                     }),
                 );
+            });
+
+            it("implements a lawful semigroup", () => {
+                expectLawfulSemigroup(arbValidation(arbStr(), arbStr()));
             });
         });
 

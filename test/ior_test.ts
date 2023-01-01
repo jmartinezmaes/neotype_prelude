@@ -5,10 +5,29 @@ import { cmp, eq, Ordering } from "../src/cmp.js";
 import { Either } from "../src/either.js";
 import { Ior } from "../src/ior.js";
 import { Validation } from "../src/validation.js";
-import { arbNum, arbStr, Str, tuple } from "./util.js";
+import {
+    arbNum,
+    arbStr,
+    expectLawfulEq,
+    expectLawfulOrd,
+    expectLawfulSemigroup,
+    Str,
+    tuple,
+} from "./util.js";
 
 describe("ior.js", () => {
     describe("Ior", () => {
+        function arbIor<A, B>(
+            arbLeft: fc.Arbitrary<A>,
+            arbRight: fc.Arbitrary<B>,
+        ): fc.Arbitrary<Ior<A, B>> {
+            return fc.oneof(
+                arbLeft.map(Ior.left),
+                arbRight.map(Ior.right),
+                arbLeft.chain((x) => arbRight.map((y) => Ior.both(x, y))),
+            );
+        }
+
         describe("left", () => {
             it("constucts a Left variant", () => {
                 const ior = Ior.left<1, 2>(1);
@@ -353,6 +372,10 @@ describe("ior.js", () => {
                     ),
                 );
             });
+
+            it("implements a lawful equivalence relation", () => {
+                expectLawfulEq(arbIor(arbNum(), arbNum()));
+            });
         });
 
         describe("#[Ord.cmp]", () => {
@@ -451,6 +474,10 @@ describe("ior.js", () => {
                     ),
                 );
             });
+
+            it("implements a lawful total order", () => {
+                expectLawfulOrd(arbIor(arbNum(), arbNum()));
+            });
         });
 
         describe("#[Semigroup.cmb]", () => {
@@ -548,6 +575,10 @@ describe("ior.js", () => {
                         },
                     ),
                 );
+            });
+
+            it("implements a lawful semigroup", () => {
+                expectLawfulSemigroup(arbIor(arbStr(), arbStr()));
             });
         });
 
