@@ -3,10 +3,24 @@ import * as fc from "fast-check";
 import { cmb } from "../src/cmb.js";
 import { cmp, eq } from "../src/cmp.js";
 import { Pair } from "../src/pair.js";
-import { arbNum, arbStr, tuple } from "./util.js";
+import {
+    arbNum,
+    arbStr,
+    expectLawfulEq,
+    expectLawfulOrd,
+    expectLawfulSemigroup,
+    tuple,
+} from "./util.js";
 
 describe("pair.js", () => {
     describe("Pair", () => {
+        function arbPair<A, B>(
+            arbFst: fc.Arbitrary<A>,
+            arbSnd: fc.Arbitrary<B>,
+        ): fc.Arbitrary<Pair<A, B>> {
+            return arbFst.chain((x) => arbSnd.map((y) => new Pair(x, y)));
+        }
+
         describe("constructor", () => {
             it("constructs a new Pair", () => {
                 const pair = new Pair<1, 2>(1, 2);
@@ -40,6 +54,10 @@ describe("pair.js", () => {
                     ),
                 );
             });
+
+            it("implements a lawful equivalence relation", () => {
+                expectLawfulEq(arbPair(arbNum(), arbNum()));
+            });
         });
 
         describe("#[Ord.cmp]", () => {
@@ -58,6 +76,10 @@ describe("pair.js", () => {
                     ),
                 );
             });
+
+            it("implements a lawful total order", () => {
+                expectLawfulOrd(arbPair(arbNum(), arbNum()));
+            });
         });
 
         describe("#[Semigroup.cmb]", () => {
@@ -75,6 +97,10 @@ describe("pair.js", () => {
                         },
                     ),
                 );
+            });
+
+            it("implements a lawful semigroup", () => {
+                expectLawfulSemigroup(arbPair(arbStr(), arbStr()));
             });
         });
 

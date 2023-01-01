@@ -21,7 +21,13 @@ import {
     Ordering,
     Reverse,
 } from "../src/cmp.js";
-import { arbNum, Num } from "./util.js";
+import {
+    arbNum,
+    expectLawfulEq,
+    expectLawfulOrd,
+    expectLawfulSemigroup,
+    Num,
+} from "./util.js";
 
 describe("cmp.js", () => {
     describe("eq", () => {
@@ -303,6 +309,14 @@ describe("cmp.js", () => {
     });
 
     describe("Ordering", () => {
+        function arbOrdering(): fc.Arbitrary<Ordering> {
+            return fc.oneof(
+                fc.constant(Ordering.less),
+                fc.constant(Ordering.equal),
+                fc.constant(Ordering.greater),
+            );
+        }
+
         describe("fromNumber", () => {
             it("returns Less if the argument is less than 0", () => {
                 fc.assert(
@@ -371,6 +385,10 @@ describe("cmp.js", () => {
             it("compares Greater and Greater as equal", () => {
                 expect(eq(Ordering.greater, Ordering.greater)).to.be.true;
             });
+
+            it("implements a lawful equivalence relation", () => {
+                expectLawfulEq(arbOrdering());
+            });
         });
 
         describe("#[Ord.cmp]", () => {
@@ -427,6 +445,10 @@ describe("cmp.js", () => {
                     Ordering.equal,
                 );
             });
+
+            it("implements a lawful total order", () => {
+                expectLawfulOrd(arbOrdering());
+            });
         });
 
         describe("#[Semigroup.cmb]", () => {
@@ -482,6 +504,10 @@ describe("cmp.js", () => {
                 expect(cmb(Ordering.greater, Ordering.greater)).to.equal(
                     Ordering.greater,
                 );
+            });
+
+            it("implements a lawful semigroup", () => {
+                expectLawfulSemigroup(arbOrdering());
             });
         });
 

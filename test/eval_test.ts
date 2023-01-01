@@ -2,7 +2,7 @@ import { expect } from "chai";
 import * as fc from "fast-check";
 import { cmb } from "../src/cmb.js";
 import { Eval } from "../src/eval.js";
-import { arbStr, tuple } from "./util.js";
+import { arbStr, expectLawfulSemigroup, tuple } from "./util.js";
 
 describe("eval.js", () => {
     describe("Eval", () => {
@@ -107,6 +107,16 @@ describe("eval.js", () => {
         });
 
         describe("#[Semigroup.cmb]", () => {
+            function arbEval<A>(arb: fc.Arbitrary<A>): fc.Arbitrary<Eval<A>> {
+                return arb.chain((x) =>
+                    fc.oneof(
+                        fc.constant(Eval.now(x)),
+                        fc.constant(Eval.once(() => x)),
+                        fc.constant(Eval.always(() => x)),
+                    ),
+                );
+            }
+
             it("combines the outcomes", () => {
                 fc.assert(
                     fc.property(arbStr(), arbStr(), (x, y) => {
@@ -115,6 +125,10 @@ describe("eval.js", () => {
                         ).to.deep.equal(cmb(x, y));
                     }),
                 );
+            });
+
+            it("implements a lawful semigroup", () => {
+                expectLawfulSemigroup(arbEval(arbStr()));
             });
         });
 

@@ -3,7 +3,16 @@ import * as fc from "fast-check";
 import { cmb } from "../src/cmb.js";
 import { cmp, eq, Ordering } from "../src/cmp.js";
 import { Maybe } from "../src/maybe.js";
-import { arbNum, arbStr, Num, Str, tuple } from "./util.js";
+import {
+    arbNum,
+    arbStr,
+    expectLawfulEq,
+    expectLawfulOrd,
+    expectLawfulSemigroup,
+    Num,
+    Str,
+    tuple,
+} from "./util.js";
 
 function nothing<A>(): Maybe<A> {
     return Maybe.nothing;
@@ -11,6 +20,10 @@ function nothing<A>(): Maybe<A> {
 
 describe("maybe.js", () => {
     describe("Maybe", () => {
+        function arbMaybe<A>(arbVal: fc.Arbitrary<A>): fc.Arbitrary<Maybe<A>> {
+            return fc.oneof(fc.constant(Maybe.nothing), arbVal.map(Maybe.just));
+        }
+
         describe("nothing", () => {
             it("represents the Nothing variant", () => {
                 const maybe: Maybe<1> = Maybe.nothing;
@@ -205,6 +218,10 @@ describe("maybe.js", () => {
                     }),
                 );
             });
+
+            it("implements a lawful equivalence relation", () => {
+                expectLawfulEq(arbMaybe(arbNum()));
+            });
         });
 
         describe("#[Ord.cmp]", () => {
@@ -243,6 +260,10 @@ describe("maybe.js", () => {
                     }),
                 );
             });
+
+            it("implements a lawful total order", () => {
+                expectLawfulOrd(arbMaybe(arbNum()));
+            });
         });
 
         describe("#[Semigroup.cmb]", () => {
@@ -280,6 +301,10 @@ describe("maybe.js", () => {
                         );
                     }),
                 );
+            });
+
+            it("implements a lawful semigroup", () => {
+                expectLawfulSemigroup(arbMaybe(arbStr()));
             });
         });
 

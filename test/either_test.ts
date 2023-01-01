@@ -4,10 +4,27 @@ import { cmb } from "../src/cmb.js";
 import { cmp, eq, Ordering } from "../src/cmp.js";
 import { Either } from "../src/either.js";
 import { Validation } from "../src/validation.js";
-import { arbNum, arbStr, tuple } from "./util.js";
+import {
+    arbNum,
+    arbStr,
+    expectLawfulEq,
+    expectLawfulOrd,
+    expectLawfulSemigroup,
+    tuple,
+} from "./util.js";
 
 describe("either.js", () => {
     describe("Either", () => {
+        function arbEither<A, B>(
+            arbLeft: fc.Arbitrary<A>,
+            arbRight: fc.Arbitrary<B>,
+        ): fc.Arbitrary<Either<A, B>> {
+            return fc.oneof(
+                arbLeft.map(Either.left),
+                arbRight.map(Either.right),
+            );
+        }
+
         describe("left", () => {
             it("constructs a Left variant", () => {
                 const either = Either.left<1, 2>(1);
@@ -179,6 +196,10 @@ describe("either.js", () => {
                     }),
                 );
             });
+
+            it("implements a lawful equivalence relation", () => {
+                expectLawfulEq(arbEither(arbNum(), arbNum()));
+            });
         });
 
         describe("#[Ord.cmp]", () => {
@@ -221,6 +242,10 @@ describe("either.js", () => {
                     }),
                 );
             });
+
+            it("implements a lawful total order", () => {
+                expectLawfulOrd(arbEither(arbNum(), arbNum()));
+            });
         });
 
         describe("#[Semigroup.cmb]", () => {
@@ -232,6 +257,10 @@ describe("either.js", () => {
                         ).to.deep.equal(Either.right(cmb(x, y)));
                     }),
                 );
+            });
+
+            it("implements a lawful semigroup", () => {
+                expectLawfulSemigroup(arbEither(fc.string(), arbStr()));
             });
         });
 
