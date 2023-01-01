@@ -15,7 +15,7 @@ jobs:
       - uses: actions/checkout@v3
       - uses: volta-cli/action@v4
       - run: npm ci
-      - run: npm run lint && npm run prettier:check
+      - run: npm run style
 
   test_node:
     name: Node.js @${{ matrix.node-version }}
@@ -31,7 +31,7 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
       - run: npm ci
-      - run: npx mocha --reporter dot
+      - run: npm test -- --reporter dot
 
   test_ts:
     name: TypeScript @${{ matrix.ts-version }}
@@ -49,4 +49,4 @@ jobs:
       - uses: volta-cli/action@v4
       - run: npm ci
       - run: npm i -D typescript@${{ matrix.ts-version }}
-      - run: npx mocha --reporter dot
+      - run: npm test -- --reporter dot

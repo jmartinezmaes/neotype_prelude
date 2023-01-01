@@ -1,6 +1,6 @@
 import { expect } from "chai";
 import * as fc from "fast-check";
-import { id, negatePred, wrapCtor } from "../src/fn.js";
+import { constant, id, negatePred, wrapCtor } from "../src/fn.js";
 
 describe("fn.js", () => {
     describe("id", () => {
@@ -9,6 +9,21 @@ describe("fn.js", () => {
                 fc.property(fc.anything(), (x) => {
                     expect(id(x)).to.deep.equal(x);
                 }),
+            );
+        });
+    });
+
+    describe("constant", () => {
+        it("returns a function that returns the original argument regardless of the provided arguments", () => {
+            fc.assert(
+                fc.property(
+                    fc.anything(),
+                    fc.array(fc.anything()),
+                    (x, args) => {
+                        const f = constant(x);
+                        expect(f(...args)).to.deep.equal(x);
+                    },
+                ),
             );
         });
     });
