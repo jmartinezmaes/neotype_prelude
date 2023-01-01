@@ -503,7 +503,7 @@ export function ieq<A extends Eq<A>>(
  * -   reflexive: `le(x, x)`;
  * -   antisymmetric: `le(x, y)` and `le(y, x)` implies `eq(x, y)`;
  * -   transitive: `le(x, y)` and `le(y, z)` implies `le(x, z)`; and
- * -   comparable: either `le(x, y)` or `le(y, x)`
+ * -   comparable: `le(x, y)` or `le(y, x)`
  *
  * for all values `x`, `y`, and `z`.
  *

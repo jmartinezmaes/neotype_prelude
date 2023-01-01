@@ -674,7 +674,7 @@ export namespace Ior {
     }
 
     /**
-     * Turn a record or an object literal of elements "inside out".
+     * Turn a record or an object literal of `Ior` elements "inside out".
      *
      * @remarks
      *
