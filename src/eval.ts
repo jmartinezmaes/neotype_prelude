@@ -421,7 +421,7 @@ export class Eval<out A> {
             for (const [idx, ev] of evals.entries()) {
                 results[idx] = yield* ev;
             }
-            return results as unknown as { [K in keyof T]: Eval.ResultT<T[K]> };
+            return results as any;
         });
     }
 
@@ -447,7 +447,7 @@ export class Eval<out A> {
             for (const [key, ev] of Object.entries(evals)) {
                 results[key] = yield* ev;
             }
-            return results as unknown as { [K in keyof T]: Eval.ResultT<T[K]> };
+            return results as any;
         });
     }
 

@@ -587,7 +587,7 @@ export namespace Maybe {
             for (const [idx, maybe] of maybes.entries()) {
                 results[idx] = yield* maybe;
             }
-            return results as unknown as { [K in keyof T]: JustT<T[K]> };
+            return results as any;
         });
     }
 
@@ -614,7 +614,7 @@ export namespace Maybe {
             for (const [key, maybe] of Object.entries(maybes)) {
                 results[key] = yield* maybe;
             }
-            return results as unknown as { [K in keyof T]: JustT<T[K]> };
+            return results as any;
         });
     }
 
