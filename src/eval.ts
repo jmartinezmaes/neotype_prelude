@@ -67,7 +67,7 @@
  * These methods combine the outcomes of two `Eval` values and return the result
  * in an `Eval`:
  *
- * -   `zipWith` applies a function to the outcomes.
+ * -   `zipWith` applies a function to their outcomes.
  * -   `zipFst` keeps only the first outcome, and discards the second.
  * -   `zipSnd` keeps only the second outcome, and discards the first.
  *

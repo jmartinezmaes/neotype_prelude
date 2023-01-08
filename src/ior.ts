@@ -89,13 +89,13 @@
  * ## Extracting values
  *
  * The value(s) within an `Ior` can be accessed via the `val` property. If an
- * `Ior` is a `Left` or a `Right`, the `val` property accesses the left-hand or
- * right-hand value, respectively. If an `Ior` is a `Both`, the `val` property
- * is a 2-tuple of the left-hand and right-hand values. The type of the property
- * can be narrowed by first querying the variant.
+ * `Ior` is a `Left` or a `Right`, the `val` property accesses the left-hand
+ * value or right-hand value, respectively. If an `Ior` is a `Both`, the `val`
+ * property accesses a 2-tuple of the left-hand value and right-hand value. The
+ * type of the property can be narrowed by first querying the variant.
  *
- * The left-hand and right-hand values of `Both` variants can also be accessed
- * individually via the `fst` and `snd` properties, respectively.
+ * The left-hand value and right-hand value of a `Both` variant can be accessed
+ * individually via the `fst` property and `snd` property, respectively.
  *
  * The `unwrap` method unwraps an `Ior` by applying one of three functions to
  * its left-hand and/or right-hand value(s).
@@ -114,8 +114,8 @@
  * -   When ordered, a `Left` always compares as less than any `Right`, and a
  *     `Right` always compares as less than any `Both`. If the variants are the
  *     same, their left-hand and/or right-hand values are compared to determine
- *     the ordering. `Both` variants compare their left-hand and right-hand
- *     values lexicographically.
+ *     the ordering. `Both` variants compare their left-hand values and
+ *     right-hand values lexicographically.
  *
  * ## `Ior` as a semigroup
  *
@@ -123,16 +123,16 @@
  *
  * -   An `Ior<A, B>` implements `Semigroup` when both `A` and `B` implement
  *     `Semigroup`.
- * -   When combined, left-hand and right-hand values are combined pairwise.
- *     Combination is lossless and merges values into `Both` variants when there
- *     is no existing value to combine with.
+ * -   When combined, left-hand values and right-hand values are combined
+ *     pairwise. Combination is lossless and merges values into `Both` variants
+ *     when there is no existing value to combine with.
  *
  * ## Transforming values
  *
  * These methods transform the value(s) within an `Ior`:
  *
  * -   `lmap` applies a function to the left-hand value.
- * -   `map` applies a function to the left-hand value.
+ * -   `map` applies a function to the right-hand value.
  *
  * These methods combine the right-hand values of two `Right` and/or `Both`
  * variants, or short-circuit on the first `Left`:
@@ -502,8 +502,8 @@ export namespace Ior {
      *
      * @remarks
      *
-     * `Left` and `Right` variants of `Either` become `Left` and `Right`
-     * variants of `Ior`, respectively.
+     * If the `Either` is a `Left`, return its value in a `Left` variant of
+     * `Ior`; otherwise return its value in a `Right` variant of `Ior`.
      */
     export function fromEither<A, B>(either: Either<A, B>): Ior<A, B> {
         return either.unwrap(left, right);
@@ -514,8 +514,8 @@ export namespace Ior {
      *
      * @remarks
      *
-     * `Err` and `Ok` variants of `Validation` become `Left` and `Right`
-     * variants of `Ior`, respectively.
+     * If the `Validation` is an `Err`, return its failure in a `Left`;
+     * otherwise, return its success in a `Right`.
      */
     export function fromValidation<E, A>(vdn: Validation<E, A>): Ior<E, A> {
         return vdn.unwrap(left, right);
@@ -877,9 +877,9 @@ export namespace Ior {
         }
 
         /**
-         * Apply one of three functions to the left-hand and/or right-hand
-         * values(s) of this `Ior` depending on the variant, and return the
-         * result.
+         * Apply one of three functions to the left-hand value and/or the
+         * right-hand value of this `Ior` depending on the variant, and return
+         * the result.
          */
         unwrap<A, B, C, D, E>(
             this: Ior<A, B>,
