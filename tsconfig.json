@@ -25,12 +25,12 @@
     },
     "include": ["./scripts", "./src", "./test"],
     "typedocOptions": {
+        "customCss": "./assets/custom.css",
         "entryPoints": "./src/*.ts",
         "excludePrivate": true,
         "json": "./docsite/docs.json",
         "name": "Neotype Prelude",
         "out": "./docsite",
-        "theme": "custom",
         "treatWarningsAsErrors": true
     }
 }
