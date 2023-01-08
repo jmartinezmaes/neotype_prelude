@@ -83,8 +83,8 @@
  *
  * -   Two iterables are compared element by element.
  * -   Two empty iterables are lexicographically equal.
- * -   If two iterables have equivalent elements and are of the same length,
- *     the iterables are lexicographically equal.
+ * -   If two iterables have equivalent elements and are the same size, the
+ *     iterables are lexicographically equal.
  * -   An empty iterable is lexicographically less than any non-empty iterable.
  * -   If one iterable is a prefix of another, the shorter iterable is
  *     lexicographically less than the other.

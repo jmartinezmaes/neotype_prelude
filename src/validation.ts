@@ -126,7 +126,7 @@
  * These methods combine the successes of two successful `Validation` values, or
  * begin accumulating failures on any failed `Validation`:
  *
- * -   `zipWith` applies a function to the successes.
+ * -   `zipWith` applies a function to their successes.
  * -   `zipFst` keeps only the first success, and discards the second.
  * -   `zipSnd` keeps only the second success, and discards the first.
  *
@@ -415,8 +415,8 @@ export namespace Validation {
      *
      * @remarks
      *
-     * `Left` and `Right` variants of `Either` become `Err` and `Ok` variants of
-     * `Validation`, respectively.
+     * If the `Either` is a `Left`, return its value in an `Err`; otherwise,
+     * return its value in an `Ok`.
      */
     export function fromEither<E, A>(either: Either<E, A>): Validation<E, A> {
         return either.unwrap(err, ok);

@@ -280,8 +280,7 @@
  */
 export interface Semigroup<in out A> {
     /**
-     * Combine this and that `Semigroup` value using an associative binary
-     * operation.
+     * Combine this and that `Semigroup` value using an associative operation.
      */
     [Semigroup.cmb](that: A): A;
 }

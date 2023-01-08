@@ -30,6 +30,7 @@
         "json": "./docsite/docs.json",
         "name": "Neotype Prelude",
         "out": "./docsite",
-        "theme": "custom"
+        "theme": "custom",
+        "treatWarningsAsErrors": true
     }
 }

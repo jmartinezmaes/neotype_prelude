@@ -173,7 +173,7 @@
  * -   `collect` turns an array or a tuple literal of `Either` elements inside
  *     out. For example:
  *     -   `Either<E, A>[]` becomes `Either<E, A[]>`
- *     -   `[Either<E, A>, Either<E, B>] becomes `Either<E, [A, B]>`
+ *     -   `[Either<E, A>, Either<E, B>]` becomes `Either<E, [A, B]>`
  * -   `gather` turns a record or an object literal of `Either` elements inside
  *     out. For example:
  *     -   `Record<string, Either<E, A>>` becomes `Either<E, Record<string, A>>`
@@ -425,8 +425,8 @@ export namespace Either {
      *
      * @remarks
      *
-     * `Err` and `Ok` variants of `Validation` become `Left` and `Right`
-     * variants of `Either`, respectively.
+     * If the `Validation` is an `Err`, return its failure in a `Left`;
+     * otherwise, return its success in a `Right`.
      */
     export function fromValidation<E, A>(vdn: Validation<E, A>): Either<E, A> {
         return vdn.unwrap(left, right);
