@@ -53,7 +53,7 @@
         "prettier:write": "npx prettier --write --ignore-path ./.gitignore .",
         "style": "npm run lint && npm run prettier:check",
         "test": "npx c8 mocha",
-        "docs": "npx ts-node-esm ./scripts/gen_docsite.tsx",
+        "docs": "npx typedoc",
         "prebuild": "npm run clean",
         "build": "npx tsc --project ./tsconfig.build.json",
         "prepublishOnly": "npm run build",
