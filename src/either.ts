@@ -173,7 +173,7 @@
  * -   `collect` turns an array or a tuple literal of `Either` elements inside
  *     out. For example:
  *     -   `Either<E, A>[]` becomes `Either<E, A[]>`
- *     -   `[Either<E, A>, Either<E, B>] becomes `Either<E, [A, B]>`
+ *     -   `[Either<E, A>, Either<E, B>]` becomes `Either<E, [A, B]>`
  * -   `gather` turns a record or an object literal of `Either` elements inside
  *     out. For example:
  *     -   `Record<string, Either<E, A>>` becomes `Either<E, Record<string, A>>`
