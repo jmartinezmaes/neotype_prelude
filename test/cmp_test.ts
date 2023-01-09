@@ -26,7 +26,6 @@ import {
     expectLawfulEq,
     expectLawfulOrd,
     expectLawfulSemigroup,
-    Num,
 } from "./util.js";
 
 describe("cmp.js", () => {
@@ -625,27 +624,47 @@ describe("cmp.js", () => {
     });
 
     describe("Reverse", () => {
-        function arbRevNum(): fc.Arbitrary<Reverse<Num>> {
-            return arbNum().map((x) => new Reverse(x));
+        function arbReverse<A>(
+            arbVal: fc.Arbitrary<A>,
+        ): fc.Arbitrary<Reverse<A>> {
+            return arbVal.map((x) => new Reverse(x));
         }
 
         describe("#[Eq.eq]", () => {
             it("compares the underlying values", () => {
                 fc.assert(
-                    fc.property(arbRevNum(), arbRevNum(), (x, y) => {
-                        expect(eq(x, y)).to.equal(eq(x.val, y.val));
-                    }),
+                    fc.property(
+                        arbReverse(arbNum()),
+                        arbReverse(arbNum()),
+                        (x, y) => {
+                            expect(eq(x, y)).to.equal(eq(x.val, y.val));
+                        },
+                    ),
                 );
+            });
+
+            it("implements a lawful equivalence relation", () => {
+                expectLawfulEq(arbReverse(arbNum()));
             });
         });
 
         describe("#[Ord.cmp]", () => {
             it("reverses the Ordering of the underlying values", () => {
                 fc.assert(
-                    fc.property(arbRevNum(), arbRevNum(), (x, y) => {
-                        expect(cmp(x, y)).to.equal(cmp(x.val, y.val).reverse());
-                    }),
+                    fc.property(
+                        arbReverse(arbNum()),
+                        arbReverse(arbNum()),
+                        (x, y) => {
+                            expect(cmp(x, y)).to.equal(
+                                cmp(x.val, y.val).reverse(),
+                            );
+                        },
+                    ),
                 );
+            });
+
+            it("implements a lawful total order", () => {
+                expectLawfulOrd(arbReverse(arbNum()));
             });
         });
     });

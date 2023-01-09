@@ -75,7 +75,8 @@ export function expectLawfulOrd<A extends Ord<A>>(arb: fc.Arbitrary<A>): void {
             const [x1, y1, z1] = [x, y, z].sort((a, b) =>
                 cmp(a, b).toNumber(),
             ) as [A, A, A];
-            expect(le(x1, y1) && le(y1, z1) && le(x1, z1)).to.be.true;
+            expect(le(x1, y1) && le(y1, z1) && le(x1, z1), "transitivity").to.be
+                .true;
         }),
     );
 
