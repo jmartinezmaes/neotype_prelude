@@ -18,6 +18,10 @@ export class Num implements Ord<Num> {
 export class Str implements Semigroup<Str> {
     constructor(readonly val: string) {}
 
+    [Eq.eq](that: Str): boolean {
+        return this.val === that.val;
+    }
+
     [Semigroup.cmb](that: Str): Str {
         return new Str(this.val + that.val);
     }
@@ -87,14 +91,13 @@ export function expectLawfulOrd<A extends Ord<A>>(arb: fc.Arbitrary<A>): void {
     );
 }
 
-export function expectLawfulSemigroup<A extends Semigroup<A>>(
+export function expectLawfulSemigroup<A extends Semigroup<A> & Eq<A>>(
     arb: fc.Arbitrary<A>,
 ): void {
     fc.assert(
         fc.property(arb, arb, arb, (x, y, z) => {
-            expect(cmb(x, cmb(y, z)), "associativity").to.deep.equal(
-                cmb(cmb(x, y), z),
-            );
+            expect(eq(cmb(x, cmb(y, z)), cmb(cmb(x, y), z)), "associativity").to
+                .be.true;
         }),
     );
 }
