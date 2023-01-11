@@ -1,6 +1,7 @@
 import { expect } from "chai";
 import * as fc from "fast-check";
-import { cmb } from "../src/cmb.js";
+import { cmb, Semigroup } from "../src/cmb.js";
+import { Eq, eq } from "../src/cmp.js";
 import { Eval } from "../src/eval.js";
 import { arbStr, expectLawfulSemigroup, tuple } from "./util.js";
 
@@ -107,16 +108,6 @@ describe("eval.js", () => {
         });
 
         describe("#[Semigroup.cmb]", () => {
-            function arbEval<A>(arb: fc.Arbitrary<A>): fc.Arbitrary<Eval<A>> {
-                return arb.chain((x) =>
-                    fc.oneof(
-                        fc.constant(Eval.now(x)),
-                        fc.constant(Eval.once(() => x)),
-                        fc.constant(Eval.always(() => x)),
-                    ),
-                );
-            }
-
             it("combines the outcomes", () => {
                 fc.assert(
                     fc.property(arbStr(), arbStr(), (x, y) => {
@@ -128,7 +119,39 @@ describe("eval.js", () => {
             });
 
             it("implements a lawful semigroup", () => {
-                expectLawfulSemigroup(arbEval(arbStr()));
+                class RunEval<out A> {
+                    constructor(readonly val: Eval<A>) {}
+
+                    [Eq.eq]<A extends Eq<A>>(
+                        this: RunEval<A>,
+                        that: RunEval<A>,
+                    ): boolean {
+                        return eq(this.val.run(), that.val.run());
+                    }
+
+                    [Semigroup.cmb]<A extends Semigroup<A>>(
+                        this: RunEval<A>,
+                        that: RunEval<A>,
+                    ): RunEval<A> {
+                        return new RunEval(cmb(this.val, that.val));
+                    }
+                }
+
+                function arbRunEval<A>(
+                    arb: fc.Arbitrary<A>,
+                ): fc.Arbitrary<RunEval<A>> {
+                    return arb.chain((x) =>
+                        fc
+                            .oneof(
+                                fc.constant(Eval.now(x)),
+                                fc.constant(Eval.once(() => x)),
+                                fc.constant(Eval.always(() => x)),
+                            )
+                            .map((ev) => new RunEval(ev)),
+                    );
+                }
+
+                expectLawfulSemigroup(arbRunEval(arbStr()));
             });
         });
 

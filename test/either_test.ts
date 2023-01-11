@@ -260,7 +260,7 @@ describe("either.js", () => {
             });
 
             it("implements a lawful semigroup", () => {
-                expectLawfulSemigroup(arbEither(fc.string(), arbStr()));
+                expectLawfulSemigroup(arbEither(arbStr(), arbStr()));
             });
         });
 

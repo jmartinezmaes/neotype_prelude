@@ -14,7 +14,7 @@ import {
 describe("util.js", () => {
     describe("Num", () => {
         describe("#[Eq.eq]", () => {
-            it("compares the values using strict equality", () => {
+            it("compares the values strictly", () => {
                 fc.assert(
                     fc.property(arbNum(), arbNum(), (x, y) => {
                         expect(eq(x, y)).to.equal(x.val === y.val);
@@ -45,8 +45,22 @@ describe("util.js", () => {
     });
 
     describe("Str", () => {
+        describe("#[Eq.eq]", () => {
+            it("compares the values strictly", () => {
+                fc.assert(
+                    fc.property(arbStr(), arbStr(), (x, y) => {
+                        expect(eq(x, y)).to.equal(x.val === y.val);
+                    }),
+                );
+            });
+
+            it("implements a lawful equivalence relation", () => {
+                expectLawfulEq(arbStr());
+            });
+        });
+
         describe("#[Semigroup.cmb]", () => {
-            it("combines the values using concatenation", () => {
+            it("concatenates the values", () => {
                 fc.assert(
                     fc.property(arbStr(), arbStr(), (x, y) => {
                         expect(cmb(x, y)).to.deep.equal(new Str(x.val + y.val));
