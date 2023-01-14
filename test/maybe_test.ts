@@ -28,7 +28,7 @@ describe("maybe.js", () => {
             it("represents the Nothing variant", () => {
                 const maybe: Maybe<1> = Maybe.nothing;
                 expect(maybe).to.be.an.instanceOf(Maybe.Nothing);
-                expect(maybe.typ).to.equal(Maybe.Typ.Nothing);
+                expect(maybe.typ).to.equal(Maybe.Typ.NOTHING);
             });
         });
 
@@ -36,7 +36,7 @@ describe("maybe.js", () => {
             it("constructs a Just variant", () => {
                 const maybe = Maybe.just<1>(1);
                 expect(maybe).to.be.an.instanceOf(Maybe.Just);
-                expect(maybe.typ).to.equal(Maybe.Typ.Just);
+                expect(maybe.typ).to.equal(Maybe.Typ.JUST);
                 expect((maybe as Maybe.Just<1>).val).to.equal(1);
             });
         });

@@ -543,7 +543,7 @@ export class Eval<out A> {
 
         for (;;) {
             switch (c.#i.t) {
-                case Instr.Tag.Now: {
+                case Instr.Tag.NOW: {
                     const k = ks.pop();
                     if (!k) {
                         return c.#i.x;
@@ -552,12 +552,12 @@ export class Eval<out A> {
                     break;
                 }
 
-                case Instr.Tag.FlatMap:
+                case Instr.Tag.FLAT_MAP:
                     ks.push(c.#i.f);
                     c = c.#i.ev;
                     break;
 
-                case Instr.Tag.Once:
+                case Instr.Tag.ONCE:
                     if (!c.#i.d) {
                         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
                         c.#i.x = c.#i.f!();
@@ -567,7 +567,7 @@ export class Eval<out A> {
                     c = Eval.now(c.#i.x);
                     break;
 
-                case Instr.Tag.Always:
+                case Instr.Tag.ALWAYS:
                     c = Eval.now(c.#i.f());
             }
         }
@@ -590,48 +590,48 @@ type Instr = Instr.Now | Instr.FlatMap | Instr.Once | Instr.Always;
 
 namespace Instr {
     export const enum Tag {
-        Now,
-        FlatMap,
-        Once,
-        Always,
+        NOW,
+        FLAT_MAP,
+        ONCE,
+        ALWAYS,
     }
 
     export interface Now {
-        readonly t: Tag.Now;
+        readonly t: Tag.NOW;
         readonly x: any;
     }
 
     export interface FlatMap {
-        readonly t: Tag.FlatMap;
+        readonly t: Tag.FLAT_MAP;
         readonly ev: Eval<any>;
         readonly f: (x: any) => Eval<any>;
     }
 
     export interface Once {
-        readonly t: Tag.Once;
+        readonly t: Tag.ONCE;
         d: boolean;
         f?: () => any;
         x?: any;
     }
 
     export interface Always {
-        readonly t: Tag.Always;
+        readonly t: Tag.ALWAYS;
         readonly f: () => any;
     }
 
     export function now<A>(x: A): Now {
-        return { t: Tag.Now, x };
+        return { t: Tag.NOW, x };
     }
 
     export function flatMap<A, B>(ev: Eval<A>, f: (x: A) => Eval<B>): FlatMap {
-        return { t: Tag.FlatMap, ev, f };
+        return { t: Tag.FLAT_MAP, ev, f };
     }
 
     export function once<A>(f: () => A): Once {
-        return { t: Tag.Once, f, d: false };
+        return { t: Tag.ONCE, f, d: false };
     }
 
     export function always<A>(f: () => A): Always {
-        return { t: Tag.Always, f };
+        return { t: Tag.ALWAYS, f };
     }
 }

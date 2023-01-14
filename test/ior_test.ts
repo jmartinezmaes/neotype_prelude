@@ -32,7 +32,7 @@ describe("ior.js", () => {
             it("constucts a Left variant", () => {
                 const ior = Ior.left<1, 2>(1);
                 expect(ior).to.be.an.instanceOf(Ior.Left);
-                expect(ior.typ).to.equal(Ior.Typ.Left);
+                expect(ior.typ).to.equal(Ior.Typ.LEFT);
                 expect(ior.val).to.equal(1);
             });
         });
@@ -41,7 +41,7 @@ describe("ior.js", () => {
             it("constructs a Right variant", () => {
                 const ior = Ior.right<2, 1>(2);
                 expect(ior).to.be.an.instanceOf(Ior.Right);
-                expect(ior.typ).to.equal(Ior.Typ.Right);
+                expect(ior.typ).to.equal(Ior.Typ.RIGHT);
                 expect(ior.val).to.equal(2);
             });
         });
@@ -50,7 +50,7 @@ describe("ior.js", () => {
             it("constructs a Both variant", () => {
                 const ior = Ior.both<1, 2>(1, 2);
                 expect(ior).to.be.an.instanceOf(Ior.Both);
-                expect(ior.typ).to.equal(Ior.Typ.Both);
+                expect(ior.typ).to.equal(Ior.Typ.BOTH);
                 expect((ior as Ior.Both<1, 2>).fst).to.equal(1);
                 expect((ior as Ior.Both<1, 2>).snd).to.equal(2);
                 expect(ior.val).to.deep.equal([1, 2]);

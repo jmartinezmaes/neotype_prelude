@@ -209,10 +209,10 @@
  *
  * // Querying and narrowing using the `typ` property
  * switch (strOrNum.typ) {
- *     case Either.Typ.Left:
+ *     case Either.Typ.LEFT:
  *         console.log(`Matched Left: ${strOrNum.val}`);
  *         break;
- *     case Either.Typ.Right:
+ *     case Either.Typ.RIGHT:
  *         console.log(`Matched Right: ${strOrNum.val}`);
  * }
  *
@@ -402,8 +402,8 @@ export namespace Either {
      * An enumeration that discriminates `Either`.
      */
     export enum Typ {
-        Left,
-        Right,
+        LEFT,
+        RIGHT,
     }
 
     /**
@@ -685,14 +685,14 @@ export namespace Either {
          * Test whether this `Either` is left-sided.
          */
         isLeft<A>(this: Either<A, any>): this is Left<A> {
-            return this.typ === Typ.Left;
+            return this.typ === Typ.LEFT;
         }
 
         /**
          * Test whether this `Either` is right-sided.
          */
         isRight<B>(this: Either<any, B>): this is Right<B> {
-            return this.typ === Typ.Right;
+            return this.typ === Typ.RIGHT;
         }
 
         /**
@@ -791,7 +791,7 @@ export namespace Either {
         /**
          * The property that discriminates `Either`.
          */
-        readonly typ = Typ.Left;
+        readonly typ = Typ.LEFT;
 
         readonly val: A;
 
@@ -819,7 +819,7 @@ export namespace Either {
         /**
          * The property that discriminates `Either`.
          */
-        readonly typ = Typ.Right;
+        readonly typ = Typ.RIGHT;
 
         readonly val: B;
 
