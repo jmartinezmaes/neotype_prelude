@@ -392,8 +392,8 @@ export namespace Validation {
      * An enumeration that discriminates `Validation`.
      */
     export enum Typ {
-        Err,
-        Ok,
+        ERR,
+        OK,
     }
 
     /**
@@ -539,14 +539,14 @@ export namespace Validation {
          * Test whether this `Validation` has failed.
          */
         isErr<E>(this: Validation<E, any>): this is Err<E> {
-            return this.typ === Typ.Err;
+            return this.typ === Typ.ERR;
         }
 
         /**
          * Test whether this `Validation` has succeeded.
          */
         isOk<A>(this: Validation<any, A>): this is Ok<A> {
-            return this.typ === Typ.Ok;
+            return this.typ === Typ.OK;
         }
 
         /**
@@ -627,7 +627,7 @@ export namespace Validation {
         /**
          * The property that discriminates `Validation`.
          */
-        readonly typ = Typ.Err;
+        readonly typ = Typ.ERR;
 
         readonly val: E;
 
@@ -644,7 +644,7 @@ export namespace Validation {
         /**
          * The property that discriminates `Validation`.
          */
-        readonly typ = Typ.Ok;
+        readonly typ = Typ.OK;
 
         readonly val: A;
 

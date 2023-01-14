@@ -258,7 +258,7 @@ import { Semigroup } from "./cmb.js";
  * ```ts
  * import { Eq } from "@neotype/prelude/cmp.js";
  *
- * enum BookFormat { Hardback, Paperback, Digital }
+ * enum BookFormat { HARD_BACK, PAPER_BACK, DIGITAL }
  *
  * class Book {
  *     constructor(readonly isbn: number, readonly fmt: BookFormat) {}
@@ -275,7 +275,7 @@ import { Semigroup } from "./cmb.js";
  * ```ts
  * import { Eq } from "@neotype/prelude/cmp.js";
  *
- * enum BookFormat { Hardback, Paperback, Digital }
+ * enum BookFormat { HARD_BACK, PAPER_BACK, DIGITAL }
  *
  * class Book {
  *     constructor(readonly isbn: number, readonly fmt: BookFormat) {}
@@ -576,7 +576,7 @@ export function ieq<A extends Eq<A>>(
  * ```ts
  * import { Eq, Ord, Ordering } from "@neotype/prelude/cmp.js";
  *
- * enum BookFormat { Hardback, Paperback, Digital }
+ * enum BookFormat { HARD_BACK, PAPER_BACK, DIGITAL }
  *
  * class Book {
  *     constructor(readonly isbn: number, readonly fmt: BookFormat) {}
@@ -597,7 +597,7 @@ export function ieq<A extends Eq<A>>(
  * ```ts
  * import { Eq, Ord, Ordering } from "@neotype/prelude/cmp.js";
  *
- * enum BookFormat { Hardback, Paperback, Digital }
+ * enum BookFormat { HARD_BACK, PAPER_BACK, DIGITAL }
  *
  * class Book {
  *     constructor(readonly isbn: number, readonly fmt: BookFormat) {}
@@ -922,9 +922,9 @@ export namespace Ordering {
      * An enumeration that discriminates `Ordering`.
      */
     export enum Typ {
-        Less,
-        Equal,
-        Greater,
+        LESS,
+        EQUAL,
+        GREATER,
     }
 
     /**
@@ -969,7 +969,7 @@ export namespace Ordering {
          * Test whether this `Ordering` is `Equal`.
          */
         isEq(this: Ordering): this is Equal {
-            return this.typ === Typ.Equal;
+            return this.typ === Typ.EQUAL;
         }
 
         /**
@@ -983,14 +983,14 @@ export namespace Ordering {
          * Test whether this `Ordering` is `Less`.
          */
         isLt(this: Ordering): this is Less {
-            return this.typ === Typ.Less;
+            return this.typ === Typ.LESS;
         }
 
         /**
          * Test whether this `Ordering` is `Greater`.
          */
         isGt(this: Ordering): this is Greater {
-            return this.typ === Typ.Greater;
+            return this.typ === Typ.GREATER;
         }
 
         /**
@@ -1055,7 +1055,7 @@ export namespace Ordering {
         /**
          * The property that discriminates `Ordering`.
          */
-        readonly typ = Typ.Less;
+        readonly typ = Typ.LESS;
 
         private constructor() {
             super();
@@ -1071,7 +1071,7 @@ export namespace Ordering {
         /**
          * The property that discriminates `Ordering`.
          */
-        readonly typ = Typ.Equal;
+        readonly typ = Typ.EQUAL;
 
         private constructor() {
             super();
@@ -1087,7 +1087,7 @@ export namespace Ordering {
         /**
          * The property that discriminates `Ordering`.
          */
-        readonly typ = Typ.Greater;
+        readonly typ = Typ.GREATER;
 
         private constructor() {
             super();

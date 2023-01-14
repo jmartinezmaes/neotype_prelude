@@ -413,8 +413,8 @@ export namespace Maybe {
      * An enumeration that discriminates `Maybe`.
      */
     export enum Typ {
-        Nothing,
-        Just,
+        NOTHING,
+        JUST,
     }
 
     /**
@@ -716,14 +716,14 @@ export namespace Maybe {
          * Test whether this `Maybe` is absent.
          */
         isNothing(this: Maybe<any>): this is Nothing {
-            return this.typ === Typ.Nothing;
+            return this.typ === Typ.NOTHING;
         }
 
         /**
          * Test whether this `Maybe` is present.
          */
         isJust<A>(this: Maybe<A>): this is Just<A> {
-            return this.typ === Typ.Just;
+            return this.typ === Typ.JUST;
         }
 
         /**
@@ -819,7 +819,7 @@ export namespace Maybe {
         /**
          * The property that discriminates Maybe.
          */
-        readonly typ = Typ.Nothing;
+        readonly typ = Typ.NOTHING;
 
         private constructor() {
             super();
@@ -844,7 +844,7 @@ export namespace Maybe {
         /**
          * The property that discriminates `Maybe`.
          */
-        readonly typ = Typ.Just;
+        readonly typ = Typ.JUST;
 
         readonly val: A;
 

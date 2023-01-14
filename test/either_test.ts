@@ -29,7 +29,7 @@ describe("either.js", () => {
             it("constructs a Left variant", () => {
                 const either = Either.left<1, 2>(1);
                 expect(either).to.be.an.instanceOf(Either.Left);
-                expect(either.typ).to.equal(Either.Typ.Left);
+                expect(either.typ).to.equal(Either.Typ.LEFT);
                 expect(either.val).to.equal(1);
             });
         });
@@ -38,7 +38,7 @@ describe("either.js", () => {
             it("constructs a Right variant", () => {
                 const either = Either.right<2, 1>(2);
                 expect(either).to.be.an.instanceOf(Either.Right);
-                expect(either.typ).to.equal(Either.Typ.Right);
+                expect(either.typ).to.equal(Either.Typ.RIGHT);
                 expect(either.val).to.equal(2);
             });
         });

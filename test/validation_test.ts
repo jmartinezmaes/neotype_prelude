@@ -30,7 +30,7 @@ describe("validation.js", () => {
             it("constructs an Err variant", () => {
                 const vdn = Validation.err<1, 2>(1);
                 expect(vdn).to.be.an.instanceOf(Validation.Err);
-                expect(vdn.typ).to.equal(Validation.Typ.Err);
+                expect(vdn.typ).to.equal(Validation.Typ.ERR);
                 expect(vdn.val).to.equal(1);
             });
         });
@@ -39,7 +39,7 @@ describe("validation.js", () => {
             it("constructs an Ok variant", () => {
                 const vdn = Validation.ok<2, 1>(2);
                 expect(vdn).to.be.an.instanceOf(Validation.Ok);
-                expect(vdn.typ).to.equal(Validation.Typ.Ok);
+                expect(vdn.typ).to.equal(Validation.Typ.OK);
                 expect(vdn.val).to.equal(2);
             });
         });

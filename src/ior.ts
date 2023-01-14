@@ -471,9 +471,9 @@ export namespace Ior {
      * An enumeration that discriminates `Ior`.
      */
     export enum Typ {
-        Left,
-        Right,
-        Both,
+        LEFT,
+        RIGHT,
+        BOTH,
     }
 
     /**
@@ -859,21 +859,21 @@ export namespace Ior {
          * Test whether this `Ior` is the `Left` variant.
          */
         isLeft<A>(this: Ior<A, any>): this is Left<A> {
-            return this.typ === Typ.Left;
+            return this.typ === Typ.LEFT;
         }
 
         /**
          * Test whether this `Ior` is the `Right` variant.
          */
         isRight<B>(this: Ior<any, B>): this is Right<B> {
-            return this.typ === Typ.Right;
+            return this.typ === Typ.RIGHT;
         }
 
         /**
          * Test whether this `Ior` is the `Both` variant.
          */
         isBoth<A, B>(this: Ior<A, B>): this is Both<A, B> {
-            return this.typ === Typ.Both;
+            return this.typ === Typ.BOTH;
         }
 
         /**
@@ -1004,7 +1004,7 @@ export namespace Ior {
         /**
          * The property that discriminates `Ior`.
          */
-        readonly typ = Typ.Left;
+        readonly typ = Typ.LEFT;
 
         readonly val: A;
 
@@ -1032,7 +1032,7 @@ export namespace Ior {
         /**
          * The property that discriminates `Ior`.
          */
-        readonly typ = Typ.Right;
+        readonly typ = Typ.RIGHT;
 
         readonly val: B;
 
@@ -1060,7 +1060,7 @@ export namespace Ior {
         /**
          * The property that discriminates `Ior`.
          */
-        readonly typ = Typ.Both;
+        readonly typ = Typ.BOTH;
 
         readonly fst: A;
 
