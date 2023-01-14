@@ -216,10 +216,10 @@
  *
  * // Querying and narrowing using the `typ` property
  * switch (maybeNum.typ) {
- *     case Maybe.Typ.Nothing:
+ *     case Maybe.Typ.NOTHING:
  *         console.log("Matched Nothing");
  *         break;
- *     case Maybe.Typ.Just:
+ *     case Maybe.Typ.JUST:
  *         console.log(`Matched Just: ${maybeNum.val}`);
  * }
  *

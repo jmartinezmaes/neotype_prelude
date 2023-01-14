@@ -209,10 +209,10 @@
  *
  * // Querying and narrowing using the `typ` property
  * switch (strOrNum.typ) {
- *     case Either.Typ.Left:
+ *     case Either.Typ.LEFT:
  *         console.log(`Matched Left: ${strOrNum.val}`);
  *         break;
- *     case Either.Typ.Right:
+ *     case Either.Typ.RIGHT:
  *         console.log(`Matched Right: ${strOrNum.val}`);
  * }
  *

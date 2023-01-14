@@ -227,13 +227,13 @@
  *
  * // Querying and narrowing using the `typ` property
  * switch (strIorNum.typ) {
- *     case Ior.Typ.Left:
+ *     case Ior.Typ.LEFT:
  *         console.log(`Matched Left: ${strIorNum.val}`);
  *         break;
- *     case Ior.Typ.Right:
+ *     case Ior.Typ.RIGHT:
  *         console.log(`Matched Right: ${strIorNum.val}`);
  *         break;
- *     case Ior.Typ.Both:
+ *     case Ior.Typ.BOTH:
  *         console.log(`Matched Both: ${strIorNum.fst} and ${strIorNum.snd}`);
  * }
  *
