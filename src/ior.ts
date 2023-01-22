@@ -75,7 +75,7 @@
  * -   `right` constructs a `Right` variant.
  * -   `both` constructs a `Both` variant.
  * -   `fromEither` constructs an `Ior` from an `Either`.
- * -   `fromValidation` constructs an `Ior` from a `Validation`
+ * -   `fromValidation` constructs an `Ior` from a `Validation`.
  *
  * ## Querying and narrowing the variant
  *
