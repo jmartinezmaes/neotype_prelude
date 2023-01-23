@@ -3,6 +3,19 @@
 All notable changes to this project will be documented in this file. This
 project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## Version 0.7.0 - 2023-01-22
+
+### What's Changed
+
+#### 💥 Breaking Changes
+
+-   Name enum members using SCREAMING_SNAKE_CASE conventions by
+    [@jm4rtinez](https://github.com/jm4rtinez) in
+    [#66](https://github.com/jm4rtinez/neotype_prelude/pull/66)
+
+**Full Changelog**:
+https://github.com/jm4rtinez/neotype_prelude/compare/v0.6.0...v0.7.0
+
 ## Version 0.6.0 - 2022-12-16
 
 ### What's Changed
