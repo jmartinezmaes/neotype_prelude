@@ -292,7 +292,7 @@ export class Eval<out A> {
      * Construct an `Eval` eagerly from a value.
      */
     static now<A>(x: A): Eval<A> {
-        return new Eval(Instr.now(x));
+        return new Eval(Ixn.now(x));
     }
 
     /**
@@ -300,7 +300,7 @@ export class Eval<out A> {
      * first evaluation.
      */
     static once<A>(f: () => A): Eval<A> {
-        return new Eval(Instr.once(f));
+        return new Eval(Ixn.once(f));
     }
 
     /**
@@ -308,7 +308,7 @@ export class Eval<out A> {
      * every evaluation.
      */
     static always<A>(f: () => A): Eval<A> {
-        return new Eval(Instr.always(f));
+        return new Eval(Ixn.always(f));
     }
 
     /**
@@ -470,10 +470,10 @@ export class Eval<out A> {
     /**
      * An instruction that builds an evaluation tree for `Eval`.
      */
-    readonly #i: Instr;
+    readonly #ixn: Ixn;
 
-    private constructor(i: Instr) {
-        this.#i = i;
+    private constructor(ixn: Ixn) {
+        this.#ixn = ixn;
     }
 
     /**
@@ -498,7 +498,7 @@ export class Eval<out A> {
      * Apply a function to the outcome of this `Eval` to return another `Eval`.
      */
     flatMap<B>(f: (x: A) => Eval<B>): Eval<B> {
-        return new Eval(Instr.flatMap(this, f));
+        return new Eval(Ixn.flatMap(this, f));
     }
 
     /**
@@ -537,38 +537,38 @@ export class Eval<out A> {
      * Evaluate this `Eval` to return its outcome.
      */
     run(): A {
-        const ks = new MutStack<(x: any) => Eval<any>>();
+        const conts = new MutStack<(x: any) => Eval<any>>();
         // eslint-disable-next-line @typescript-eslint/no-this-alias
-        let c: Eval<any> = this;
+        let currentEval: Eval<any> = this;
 
         for (;;) {
-            switch (c.#i.t) {
-                case Instr.Tag.NOW: {
-                    const k = ks.pop();
+            switch (currentEval.#ixn.kind) {
+                case Ixn.Kind.NOW: {
+                    const k = conts.pop();
                     if (!k) {
-                        return c.#i.x;
+                        return currentEval.#ixn.val;
                     }
-                    c = k(c.#i.x);
+                    currentEval = k(currentEval.#ixn.val);
                     break;
                 }
 
-                case Instr.Tag.FLAT_MAP:
-                    ks.push(c.#i.f);
-                    c = c.#i.ev;
+                case Ixn.Kind.FLAT_MAP:
+                    conts.push(currentEval.#ixn.cont);
+                    currentEval = currentEval.#ixn.ev;
                     break;
 
-                case Instr.Tag.ONCE:
-                    if (!c.#i.d) {
+                case Ixn.Kind.ONCE:
+                    if (!currentEval.#ixn.isMemoized) {
                         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-                        c.#i.x = c.#i.f!();
-                        delete c.#i.f;
-                        c.#i.d = true;
+                        currentEval.#ixn.val = currentEval.#ixn.f!();
+                        delete currentEval.#ixn.f;
+                        currentEval.#ixn.isMemoized = true;
                     }
-                    c = Eval.now(c.#i.x);
+                    currentEval = Eval.now(currentEval.#ixn.val);
                     break;
 
-                case Instr.Tag.ALWAYS:
-                    c = Eval.now(c.#i.f());
+                case Ixn.Kind.ALWAYS:
+                    currentEval = Eval.now(currentEval.#ixn.f());
             }
         }
     }
@@ -586,10 +586,10 @@ export namespace Eval {
         T extends Eval<infer A> ? A : never;
 }
 
-type Instr = Instr.Now | Instr.FlatMap | Instr.Once | Instr.Always;
+type Ixn = Ixn.Now | Ixn.FlatMap | Ixn.Once | Ixn.Always;
 
-namespace Instr {
-    export const enum Tag {
+namespace Ixn {
+    export const enum Kind {
         NOW,
         FLAT_MAP,
         ONCE,
@@ -597,41 +597,44 @@ namespace Instr {
     }
 
     export interface Now {
-        readonly t: Tag.NOW;
-        readonly x: any;
+        readonly kind: Kind.NOW;
+        readonly val: any;
     }
 
     export interface FlatMap {
-        readonly t: Tag.FLAT_MAP;
+        readonly kind: Kind.FLAT_MAP;
         readonly ev: Eval<any>;
-        readonly f: (x: any) => Eval<any>;
+        readonly cont: (x: any) => Eval<any>;
     }
 
     export interface Once {
-        readonly t: Tag.ONCE;
-        d: boolean;
+        readonly kind: Kind.ONCE;
+        isMemoized: boolean;
         f?: () => any;
-        x?: any;
+        val?: any;
     }
 
     export interface Always {
-        readonly t: Tag.ALWAYS;
+        readonly kind: Kind.ALWAYS;
         readonly f: () => any;
     }
 
-    export function now<A>(x: A): Now {
-        return { t: Tag.NOW, x };
+    export function now<A>(val: A): Now {
+        return { kind: Kind.NOW, val };
     }
 
-    export function flatMap<A, B>(ev: Eval<A>, f: (x: A) => Eval<B>): FlatMap {
-        return { t: Tag.FLAT_MAP, ev, f };
+    export function flatMap<A, B>(
+        ev: Eval<A>,
+        cont: (x: A) => Eval<B>,
+    ): FlatMap {
+        return { kind: Kind.FLAT_MAP, ev, cont };
     }
 
     export function once<A>(f: () => A): Once {
-        return { t: Tag.ONCE, f, d: false };
+        return { kind: Kind.ONCE, f, isMemoized: false };
     }
 
     export function always<A>(f: () => A): Always {
-        return { t: Tag.ALWAYS, f };
+        return { kind: Kind.ALWAYS, f };
     }
 }
