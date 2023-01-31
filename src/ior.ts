@@ -51,7 +51,7 @@
  *
  * -   The `Left`, `Right`, and `Both` variant classes
  * -   The abstract `Syntax` class that provides the fluent API for `Ior`
- * -   The `Typ` enumeration that discriminates `Ior`
+ * -   The `Kind` enumeration that discriminates `Ior`
  * -   Functions for constructing, chaining, collecting into, and lifting into
  *     `Ior`
  *
@@ -83,8 +83,8 @@
  * a `Left`, a `Right`, or a `Both`, respectively. These methods also narrow the
  * type of an `Ior` to the queried variant.
  *
- * The variant can also be queried and narrowed via the `typ` property, which
- * returns a member of the `Typ` enumeration.
+ * The variant can also be queried and narrowed via the `kind` property, which
+ * returns a member of the `Kind` enumeration.
  *
  * ## Extracting values
  *
@@ -225,15 +225,15 @@
  *     console.log(`Queried Both: ${strIorNum.fst} and ${strIorNum.snd}`);
  * }
  *
- * // Querying and narrowing using the `typ` property
- * switch (strIorNum.typ) {
- *     case Ior.Typ.LEFT:
+ * // Querying and narrowing using the `kind` property
+ * switch (strIorNum.kind) {
+ *     case Ior.Kind.LEFT:
  *         console.log(`Matched Left: ${strIorNum.val}`);
  *         break;
- *     case Ior.Typ.RIGHT:
+ *     case Ior.Kind.RIGHT:
  *         console.log(`Matched Right: ${strIorNum.val}`);
  *         break;
- *     case Ior.Typ.BOTH:
+ *     case Ior.Kind.BOTH:
  *         console.log(`Matched Both: ${strIorNum.fst} and ${strIorNum.snd}`);
  * }
  *
@@ -467,15 +467,6 @@ export type Ior<A, B> = Ior.Left<A> | Ior.Right<B> | Ior.Both<A, B>;
  * The companion namespace for the `Ior` type.
  */
 export namespace Ior {
-    /**
-     * An enumeration that discriminates `Ior`.
-     */
-    export enum Typ {
-        LEFT,
-        RIGHT,
-        BOTH,
-    }
-
     /**
      * Construct a `Left` variant of `Ior` from a value.
      */
@@ -859,21 +850,21 @@ export namespace Ior {
          * Test whether this `Ior` is the `Left` variant.
          */
         isLeft<A>(this: Ior<A, any>): this is Left<A> {
-            return this.typ === Typ.LEFT;
+            return this.kind === Kind.LEFT;
         }
 
         /**
          * Test whether this `Ior` is the `Right` variant.
          */
         isRight<B>(this: Ior<any, B>): this is Right<B> {
-            return this.typ === Typ.RIGHT;
+            return this.kind === Kind.RIGHT;
         }
 
         /**
          * Test whether this `Ior` is the `Both` variant.
          */
         isBoth<A, B>(this: Ior<A, B>): this is Both<A, B> {
-            return this.typ === Typ.BOTH;
+            return this.kind === Kind.BOTH;
         }
 
         /**
@@ -998,13 +989,22 @@ export namespace Ior {
     }
 
     /**
+     * An enumeration that discriminates `Ior`.
+     */
+    export enum Kind {
+        LEFT,
+        RIGHT,
+        BOTH,
+    }
+
+    /**
      * An `Ior` with a left-hand value.
      */
     export class Left<out A> extends Syntax {
         /**
          * The property that discriminates `Ior`.
          */
-        readonly typ = Typ.LEFT;
+        readonly kind = Kind.LEFT;
 
         readonly val: A;
 
@@ -1032,7 +1032,7 @@ export namespace Ior {
         /**
          * The property that discriminates `Ior`.
          */
-        readonly typ = Typ.RIGHT;
+        readonly kind = Kind.RIGHT;
 
         readonly val: B;
 
@@ -1060,7 +1060,7 @@ export namespace Ior {
         /**
          * The property that discriminates `Ior`.
          */
-        readonly typ = Typ.BOTH;
+        readonly kind = Kind.BOTH;
 
         readonly fst: A;
 

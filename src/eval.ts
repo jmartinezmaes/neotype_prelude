@@ -132,39 +132,39 @@
  * `Tree` data structure:
  *
  * ```ts
- * type Tree<A> = Tip | Bin<A>;
+ * type Tree<A> = Emtpty | Branch<A>;
  *
- * interface Tip {
- *     typ: "Tip";
+ * interface Empty {
+ *     readonly kind: "EMPTY";
  * }
  *
- * interface Bin<out A> {
- *     typ: "Bin";
- *     val: A;       // value
- *     lst: Tree<A>; // left subtree
- *     rst: Tree<A>; // right subtree
+ * interface Branch<out A> {
+ *     readonly kind: "BRANCH";
+ *     readonly val: A;       // value
+ *     readonly lst: Tree<A>; // left subtree
+ *     readonly rst: Tree<A>; // right subtree
  * }
  *
- * const tip: Tree<never> = { typ: "Tip" };
+ * const empty: Tree<never> = { kind: "EMPTY" };
  *
- * function bin<A>(val: A, lst: Tree<A>, rst: Tree<A>): Tree<A> {
- *     return { typ: "Bin", val, lst, rst };
+ * function branch<A>(val: A, lst: Tree<A>, rst: Tree<A>): Tree<A> {
+ *     return { kind: "BRANCH", val, lst, rst };
  * }
  *
  * function foldTree<A, B>(
  *     xs: Tree<A>,
- *     onTip: B,
- *     foldBin: (val: A, l: B, r: B) => B
+ *     onEmpty: B,
+ *     foldBranch: (val: A, l: B, r: B) => B
  * ): Eval<B> {
- *     if (xs.typ === "Tip") {
- *         return Eval.now(onTip);
+ *     if (xs.kind === "EMPTY") {
+ *         return Eval.now(onEmpty);
  *     }
  *     // Challenge for the reader: why is `defer` needed here?
  *     // Hint: it pertains to stack safety and eager evaluation.
  *     return Eval.defer(() =>
- *         foldTree(xs.lst, onTip, foldBin).flatMap((l) =>
- *             foldTree(xs.rst, onTip, foldBin).map((r) =>
- *                 foldBin(xs.val, l, r),
+ *         foldTree(xs.lst, onEmpty, foldBranch).flatMap((l) =>
+ *             foldTree(xs.rst, onEmpty, foldBranch).map((r) =>
+ *                 foldBranch(xs.val, l, r),
  *             ),
  *         ),
  *     );
@@ -174,10 +174,10 @@
  *     return foldTree(xs, [] as A[], (x, lxs, rxs) => [...lxs, x, ...rxs]);
  * }
  *
- * const oneToSeven: Tree<number> = bin(
+ * const oneToSeven: Tree<number> = branch(
  *     4,
- *     bin(2, bin(1, tip, tip), bin(3, tip, tip)),
- *     bin(6, bin(5, tip, tip), bin(7, tip, tip)),
+ *     branch(2, branch(1, empty, empty), branch(3, empty, empty)),
+ *     branch(6, branch(5, empty, empty), branch(7, empty, empty)),
  * );
  *
  * console.log(JSON.stringify(inOrder(oneToSeven).run()));
@@ -191,18 +191,18 @@
  * ```ts
  * function foldTree<A, B>(
  *     xs: Tree<A>,
- *     onTip: B,
- *     foldBin: (val: A, l: B, r: B) => B
+ *     onEmpty: B,
+ *     foldBranch: (val: A, l: B, r: B) => B
  * ): Eval<B> {
  *     return Eval.go(function* () {
- *         if (xs.typ === "Tip") {
- *             return onTip;
+ *         if (xs.kind === "EMPTY") {
+ *             return onEmpty;
  *         }
  *         // Challenge for the reader: why is `defer` not needed here?
  *         // Hint: it pertains to the behavior of `go`.
- *         const l = yield* foldTree(xs.lst, onTip, foldBin);
- *         const r = yield* foldTree(xs.rst, onTip, foldBin);
- *         return foldBin(xs.val, l, r);
+ *         const l = yield* foldTree(xs.lst, onEmpty, foldBranch);
+ *         const r = yield* foldTree(xs.rst, onEmpty, foldBranch);
+ *         return foldBranch(xs.val, l, r);
  *     });
  * }
  * ```

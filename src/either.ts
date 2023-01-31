@@ -53,7 +53,7 @@
  *
  * -   The `Left` and `Right` variant classes
  * -   The abstract `Syntax` class that provides the fluent API for `Either`
- * -   The `Typ` enumeration that discriminates `Either`
+ * -   The `Kind` enumeration that discriminates `Either`
  * -   Functions for constructing, chaining, collecting into, and lifting into
  *     `Either`
  *
@@ -83,8 +83,8 @@
  * or right-sided, respectively. These methods also narrow the type of an
  * `Either` to the queried variant.
  *
- * The variant can also be queried and narrowed via the `typ` property, which
- * returns a member of the `Typ` enumeration.
+ * The variant can also be queried and narrowed via the `kind` property, which
+ * returns a member of the `Kind` enumeration.
  *
  * ## Extracting values
  *
@@ -207,12 +207,12 @@
  *     console.log(`Queried Right: ${strOrNum.val}`);
  * }
  *
- * // Querying and narrowing using the `typ` property
- * switch (strOrNum.typ) {
- *     case Either.Typ.LEFT:
+ * // Querying and narrowing using the `kind` property
+ * switch (strOrNum.kind) {
+ *     case Either.Kind.LEFT:
  *         console.log(`Matched Left: ${strOrNum.val}`);
  *         break;
- *     case Either.Typ.RIGHT:
+ *     case Either.Kind.RIGHT:
  *         console.log(`Matched Right: ${strOrNum.val}`);
  * }
  *
@@ -398,14 +398,6 @@ export type Either<A, B> = Either.Left<A> | Either.Right<B>;
  * The companion namespace for the `Either` type.
  */
 export namespace Either {
-    /**
-     * An enumeration that discriminates `Either`.
-     */
-    export enum Typ {
-        LEFT,
-        RIGHT,
-    }
-
     /**
      * Construct a left-sided `Either` from a value.
      */
@@ -685,14 +677,14 @@ export namespace Either {
          * Test whether this `Either` is left-sided.
          */
         isLeft<A>(this: Either<A, any>): this is Left<A> {
-            return this.typ === Typ.LEFT;
+            return this.kind === Kind.LEFT;
         }
 
         /**
          * Test whether this `Either` is right-sided.
          */
         isRight<B>(this: Either<any, B>): this is Right<B> {
-            return this.typ === Typ.RIGHT;
+            return this.kind === Kind.RIGHT;
         }
 
         /**
@@ -785,13 +777,21 @@ export namespace Either {
     }
 
     /**
+     * An enumeration that discriminates `Either`.
+     */
+    export enum Kind {
+        LEFT,
+        RIGHT,
+    }
+
+    /**
      * A left-sided Either.
      */
     export class Left<out A> extends Syntax {
         /**
          * The property that discriminates `Either`.
          */
-        readonly typ = Typ.LEFT;
+        readonly kind = Kind.LEFT;
 
         readonly val: A;
 
@@ -819,7 +819,7 @@ export namespace Either {
         /**
          * The property that discriminates `Either`.
          */
-        readonly typ = Typ.RIGHT;
+        readonly kind = Kind.RIGHT;
 
         readonly val: B;
 

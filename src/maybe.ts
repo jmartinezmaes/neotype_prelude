@@ -45,7 +45,7 @@
  *
  * -   The `Nothing` and `Just` variant classes
  * -   The abstract `Syntax` class that provides the fluent API for `Maybe`
- * -   The `Typ` enumeration that discriminates `Maybe`
+ * -   The `Kind` enumeration that discriminates `Maybe`
  * -   The `nothing` constant
  * -   Functions for constructing, chaining, collecting into, and lifting into
  *     `Maybe`
@@ -83,8 +83,8 @@
  * present, respectively. These methods also narrow the type of a `Maybe` to the
  * queried variant.
  *
- * The variant can also be queried and narrowed via the `typ` property, which
- * returns a member of the `Typ` enumeration.
+ * The variant can also be queried and narrowed via the `kind` property, which
+ * returns a member of the `Kind` enumeration.
  *
  * ## Extracting values
  *
@@ -214,12 +214,12 @@
  *     console.log(`Queried Just: ${maybeNum.val}`);
  * }
  *
- * // Querying and narrowing using the `typ` property
- * switch (maybeNum.typ) {
- *     case Maybe.Typ.NOTHING:
+ * // Querying and narrowing using the `kind` property
+ * switch (maybeNum.kind) {
+ *     case Maybe.Kind.NOTHING:
  *         console.log("Matched Nothing");
  *         break;
- *     case Maybe.Typ.JUST:
+ *     case Maybe.Kind.JUST:
  *         console.log(`Matched Just: ${maybeNum.val}`);
  * }
  *
@@ -409,14 +409,6 @@ export type Maybe<A> = Maybe.Nothing | Maybe.Just<A>;
  * The companion namespace for the `Maybe` type.
  */
 export namespace Maybe {
-    /**
-     * An enumeration that discriminates `Maybe`.
-     */
-    export enum Typ {
-        NOTHING,
-        JUST,
-    }
-
     /**
      * Construct a present `Maybe` from a value.
      */
@@ -716,14 +708,14 @@ export namespace Maybe {
          * Test whether this `Maybe` is absent.
          */
         isNothing(this: Maybe<any>): this is Nothing {
-            return this.typ === Typ.NOTHING;
+            return this.kind === Kind.NOTHING;
         }
 
         /**
          * Test whether this `Maybe` is present.
          */
         isJust<A>(this: Maybe<A>): this is Just<A> {
-            return this.typ === Typ.JUST;
+            return this.kind === Kind.JUST;
         }
 
         /**
@@ -811,6 +803,14 @@ export namespace Maybe {
     }
 
     /**
+     * An enumeration that discriminates `Maybe`.
+     */
+    export enum Kind {
+        NOTHING,
+        JUST,
+    }
+
+    /**
      * An absent `Maybe`.
      */
     export class Nothing extends Syntax {
@@ -819,7 +819,7 @@ export namespace Maybe {
         /**
          * The property that discriminates Maybe.
          */
-        readonly typ = Typ.NOTHING;
+        readonly kind = Kind.NOTHING;
 
         private constructor() {
             super();
@@ -844,7 +844,7 @@ export namespace Maybe {
         /**
          * The property that discriminates `Maybe`.
          */
-        readonly typ = Typ.JUST;
+        readonly kind = Kind.JUST;
 
         readonly val: A;
 
