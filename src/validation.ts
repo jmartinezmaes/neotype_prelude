@@ -44,7 +44,7 @@
  *
  * -   The `Err` and `Ok` variant classes
  * -   The abstract `Syntax` class that provides the fluent API for `Validation`
- * -   The `Typ` enumeration that discriminates `Validation`
+ * -   The `Kind` enumeration that discriminates `Validation`
  * -   Functions for constructing, collecting into, and lifting into
  *     `Validation`
  *
@@ -77,8 +77,8 @@
  * succeeds, respectively. These methods also narrow the type of a `Validation`
  * to the queried variant.
  *
- * The variant can also be queried and narrowed via the `typ` property, which
- * returns a member of the `Typ` enumeration.
+ * The variant can also be queried and narrowed via the `kind` property, which
+ * returns a member of the `Kind` enumeration.
  *
  * ## Extracting values
  *
@@ -389,14 +389,6 @@ export type Validation<E, A> = Validation.Err<E> | Validation.Ok<A>;
  */
 export namespace Validation {
     /**
-     * An enumeration that discriminates `Validation`.
-     */
-    export enum Typ {
-        ERR,
-        OK,
-    }
-
-    /**
      * Construct a failed `Validation` from a value.
      */
     export function err<E, A = never>(x: E): Validation<E, A> {
@@ -539,14 +531,14 @@ export namespace Validation {
          * Test whether this `Validation` has failed.
          */
         isErr<E>(this: Validation<E, any>): this is Err<E> {
-            return this.typ === Typ.ERR;
+            return this.kind === Kind.ERR;
         }
 
         /**
          * Test whether this `Validation` has succeeded.
          */
         isOk<A>(this: Validation<any, A>): this is Ok<A> {
-            return this.typ === Typ.OK;
+            return this.kind === Kind.OK;
         }
 
         /**
@@ -621,13 +613,21 @@ export namespace Validation {
     }
 
     /**
+     * An enumeration that discriminates `Validation`.
+     */
+    export enum Kind {
+        ERR,
+        OK,
+    }
+
+    /**
      * A failed `Validation`.
      */
     export class Err<out E> extends Syntax {
         /**
          * The property that discriminates `Validation`.
          */
-        readonly typ = Typ.ERR;
+        readonly kind = Kind.ERR;
 
         readonly val: E;
 
@@ -644,7 +644,7 @@ export namespace Validation {
         /**
          * The property that discriminates `Validation`.
          */
-        readonly typ = Typ.OK;
+        readonly kind = Kind.OK;
 
         readonly val: A;
 

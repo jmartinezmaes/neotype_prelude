@@ -105,7 +105,7 @@
  *
  * -   The `Less`, `Equal`, and `Greater` variant classes
  * -   The abstract `Syntax` class that provides the fluent API for `Ordering`
- * -   The `Typ` enumeration that discriminates `Ordering`
+ * -   The `Kind` enumeration that discriminates `Ordering`
  * -   The `less`, `equal`, and `greater` constants, which each represent their
  *     equivalent variant
  * -   The `fromNumber` function that constructs an `Ordering` from a `number`
@@ -919,15 +919,6 @@ export type Ordering = Ordering.Less | Ordering.Equal | Ordering.Greater;
  */
 export namespace Ordering {
     /**
-     * An enumeration that discriminates `Ordering`.
-     */
-    export enum Typ {
-        LESS,
-        EQUAL,
-        GREATER,
-    }
-
-    /**
      * Construct an `Ordering` from a `number` or a `bigint`.
      *
      * @remarks
@@ -954,11 +945,11 @@ export namespace Ordering {
      */
     export abstract class Syntax {
         [Eq.eq](this: Ordering, that: Ordering): boolean {
-            return this.typ === that.typ;
+            return this.kind === that.kind;
         }
 
         [Ord.cmp](this: Ordering, that: Ordering): Ordering {
-            return fromNumber(this.typ - that.typ);
+            return fromNumber(this.kind - that.kind);
         }
 
         [Semigroup.cmb](this: Ordering, that: Ordering): Ordering {
@@ -969,7 +960,7 @@ export namespace Ordering {
          * Test whether this `Ordering` is `Equal`.
          */
         isEq(this: Ordering): this is Equal {
-            return this.typ === Typ.EQUAL;
+            return this.kind === Kind.EQUAL;
         }
 
         /**
@@ -983,14 +974,14 @@ export namespace Ordering {
          * Test whether this `Ordering` is `Less`.
          */
         isLt(this: Ordering): this is Less {
-            return this.typ === Typ.LESS;
+            return this.kind === Kind.LESS;
         }
 
         /**
          * Test whether this `Ordering` is `Greater`.
          */
         isGt(this: Ordering): this is Greater {
-            return this.typ === Typ.GREATER;
+            return this.kind === Kind.GREATER;
         }
 
         /**
@@ -1047,6 +1038,15 @@ export namespace Ordering {
     }
 
     /**
+     * An enumeration that discriminates `Ordering`.
+     */
+    export enum Kind {
+        LESS,
+        EQUAL,
+        GREATER,
+    }
+
+    /**
      * An `Ordering` that indicates a "less than" comparison result.
      */
     export class Less extends Syntax {
@@ -1055,7 +1055,7 @@ export namespace Ordering {
         /**
          * The property that discriminates `Ordering`.
          */
-        readonly typ = Typ.LESS;
+        readonly kind = Kind.LESS;
 
         private constructor() {
             super();
@@ -1071,7 +1071,7 @@ export namespace Ordering {
         /**
          * The property that discriminates `Ordering`.
          */
-        readonly typ = Typ.EQUAL;
+        readonly kind = Kind.EQUAL;
 
         private constructor() {
             super();
@@ -1087,7 +1087,7 @@ export namespace Ordering {
         /**
          * The property that discriminates `Ordering`.
          */
-        readonly typ = Typ.GREATER;
+        readonly kind = Kind.GREATER;
 
         private constructor() {
             super();
