@@ -462,6 +462,19 @@ export namespace Maybe {
         return (x) => (f(x) ? just(x) : nothing);
     }
 
+    function step<A>(gen: Generator<Maybe<any>, A, unknown>): Maybe<A> {
+        let nxt = gen.next();
+        while (!nxt.done) {
+            const maybe = nxt.value;
+            if (maybe.isJust()) {
+                nxt = gen.next(maybe.val);
+            } else {
+                return maybe;
+            }
+        }
+        return just(nxt.value);
+    }
+
     /**
      * Construct a `Maybe` using a generator comprehension.
      *
@@ -518,17 +531,21 @@ export namespace Maybe {
     export function go<A>(
         f: () => Generator<Maybe<any>, A, unknown>,
     ): Maybe<A> {
-        const gen = f();
-        let nxt = gen.next();
-        while (!nxt.done) {
-            const maybe = nxt.value;
-            if (maybe.isJust()) {
-                nxt = gen.next(maybe.val);
-            } else {
-                return maybe;
-            }
-        }
-        return just(nxt.value);
+        return step(f());
+    }
+
+    /**
+     * Construct a function that returns a `Maybe` using a generator
+     * comprehension.
+     *
+     * @remarks
+     *
+     * This is the higher-order function variant of `go`.
+     */
+    export function goFn<T extends unknown[], A>(
+        f: (...args: T) => Generator<Maybe<any>, A, unknown>,
+    ): (...args: T) => Maybe<A> {
+        return (...args) => step(f(...args));
     }
 
     /**
@@ -627,6 +644,21 @@ export namespace Maybe {
         return (...maybes) => collect(maybes).map((args) => f(...args));
     }
 
+    async function stepAsync<A>(
+        gen: AsyncGenerator<Maybe<any>, A, unknown>,
+    ): Promise<Maybe<A>> {
+        let nxt = await gen.next();
+        while (!nxt.done) {
+            const maybe = nxt.value;
+            if (maybe.isJust()) {
+                nxt = await gen.next(maybe.val);
+            } else {
+                return maybe;
+            }
+        }
+        return just(nxt.value);
+    }
+
     /**
      * Construct a `Promise` that fulfills with a `Maybe` using an async
      * generator comprehension.
@@ -658,20 +690,24 @@ export namespace Maybe {
      *     keyword, statements, loops, declarations, etc.) is permitted within
      *     async generator comprehensions.
      */
-    export async function goAsync<A>(
+    export function goAsync<A>(
         f: () => AsyncGenerator<Maybe<any>, A, unknown>,
     ): Promise<Maybe<A>> {
-        const gen = f();
-        let nxt = await gen.next();
-        while (!nxt.done) {
-            const maybe = nxt.value;
-            if (maybe.isJust()) {
-                nxt = await gen.next(maybe.val);
-            } else {
-                return maybe;
-            }
-        }
-        return just(nxt.value);
+        return stepAsync(f());
+    }
+
+    /**
+     * Construct a function that returns a `Promise` that fulfills with a
+     * `Maybe` using an async generator comprehension.
+     *
+     * @remarks
+     *
+     * This is the higher-order function variant of `goAsync`.
+     */
+    export function goAsyncFn<T extends unknown[], A>(
+        f: (...args: T) => AsyncGenerator<Maybe<any>, A, unknown>,
+    ): (...args: T) => Promise<Maybe<A>> {
+        return (...args) => stepAsync(f(...args));
     }
 
     /**

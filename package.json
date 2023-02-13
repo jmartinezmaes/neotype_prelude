@@ -107,6 +107,9 @@
             "@typescript-eslint/no-namespace": [
                 "off"
             ],
+            "no-inner-declarations": [
+                "off"
+            ],
             "quotes": [
                 "error",
                 "double"

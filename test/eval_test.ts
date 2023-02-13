@@ -67,6 +67,19 @@ describe("eval.js", () => {
             });
         });
 
+        describe("goFn", () => {
+            it("accesses the parameters of the generator function", () => {
+                const f = Eval.goFn(function* <A>(w: A) {
+                    const x = yield* Eval.now<1>(1);
+                    const [y, z] = yield* Eval.now(tuple<[1, 2]>(x, 2));
+                    return tuple(w, x, y, z);
+                });
+                const ev = f<0>(0);
+                const outcome = ev.run();
+                expect(outcome).to.deep.equal([0, 1, 1, 2]);
+            });
+        });
+
         describe("reduce", () => {
             it("reduces the finite iterable from left to right in the context of Eval", () => {
                 const ev = Eval.reduce(

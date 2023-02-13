@@ -512,6 +512,26 @@ export namespace Ior {
         return vdn.unwrap(left, right);
     }
 
+    function step<A extends Semigroup<A>, B>(
+        gen: Generator<Ior<A, any>, B, unknown>,
+    ): Ior<A, B> {
+        let nxt = gen.next();
+        let acc: A | undefined;
+
+        while (!nxt.done) {
+            const ior = nxt.value;
+            if (ior.isRight()) {
+                nxt = gen.next(ior.val);
+            } else if (ior.isBoth()) {
+                acc = acc !== undefined ? cmb(acc, ior.fst) : ior.fst;
+                nxt = gen.next(ior.snd);
+            } else {
+                return acc !== undefined ? left(cmb(acc, ior.val)) : ior;
+            }
+        }
+        return acc !== undefined ? both(acc, nxt.value) : right(nxt.value);
+    }
+
     /**
      * Construct an `Ior` using a generator comprehension.
      *
@@ -587,22 +607,21 @@ export namespace Ior {
     export function go<A extends Semigroup<A>, B>(
         f: () => Generator<Ior<A, any>, B, unknown>,
     ): Ior<A, B> {
-        const gen = f();
-        let nxt = gen.next();
-        let acc: A | undefined;
+        return step(f());
+    }
 
-        while (!nxt.done) {
-            const ior = nxt.value;
-            if (ior.isRight()) {
-                nxt = gen.next(ior.val);
-            } else if (ior.isBoth()) {
-                acc = acc !== undefined ? cmb(acc, ior.fst) : ior.fst;
-                nxt = gen.next(ior.snd);
-            } else {
-                return acc !== undefined ? left(cmb(acc, ior.val)) : ior;
-            }
-        }
-        return acc !== undefined ? both(acc, nxt.value) : right(nxt.value);
+    /**
+     * Construct a function that returns an `Ior` using a generator
+     * comprehension.
+     *
+     * @remarks
+     *
+     * This is the higher-order function variant of `go`.
+     */
+    export function goFn<T extends unknown[], A extends Semigroup<A>, B>(
+        f: (...args: T) => Generator<Ior<A, any>, B, unknown>,
+    ): (...args: T) => Ior<A, B> {
+        return (...args) => step(f(...args));
     }
 
     /**
@@ -717,6 +736,26 @@ export namespace Ior {
             collect(iors).map((args) => f(...(args as T))) as Ior<any, B>;
     }
 
+    async function stepAsync<A extends Semigroup<A>, B>(
+        gen: AsyncGenerator<Ior<A, any>, B, unknown>,
+    ): Promise<Ior<A, B>> {
+        let nxt = await gen.next();
+        let acc: A | undefined;
+
+        while (!nxt.done) {
+            const ior = nxt.value;
+            if (ior.isRight()) {
+                nxt = await gen.next(ior.val);
+            } else if (ior.isBoth()) {
+                acc = acc !== undefined ? cmb(acc, ior.fst) : ior.fst;
+                nxt = await gen.next(ior.snd);
+            } else {
+                return acc !== undefined ? left(cmb(acc, ior.val)) : ior;
+            }
+        }
+        return acc !== undefined ? both(acc, nxt.value) : right(nxt.value);
+    }
+
     /**
      * Construct a `Promise` that fulfills with an `Ior` using an async
      * generator comprehension.
@@ -752,25 +791,24 @@ export namespace Ior {
      *     keyword, statements, loops, declarations, etc.) is permitted within
      *     async generator comprehensions.
      */
-    export async function goAsync<A extends Semigroup<A>, B>(
+    export function goAsync<A extends Semigroup<A>, B>(
         f: () => AsyncGenerator<Ior<A, any>, B, unknown>,
     ): Promise<Ior<A, B>> {
-        const gen = f();
-        let nxt = await gen.next();
-        let acc: A | undefined;
+        return stepAsync(f());
+    }
 
-        while (!nxt.done) {
-            const ior = nxt.value;
-            if (ior.isRight()) {
-                nxt = await gen.next(ior.val);
-            } else if (ior.isBoth()) {
-                acc = acc !== undefined ? cmb(acc, ior.fst) : ior.fst;
-                nxt = await gen.next(ior.snd);
-            } else {
-                return acc !== undefined ? left(cmb(acc, ior.val)) : ior;
-            }
-        }
-        return acc !== undefined ? both(acc, nxt.value) : right(nxt.value);
+    /**
+     * Construct a function that returns a `Promise` that fulfills with an `Ior`
+     * using an async generator comprehension.
+     *
+     * @remarks
+     *
+     * This is the higher-order function variant of `goAsync`.
+     */
+    export function goAsyncFn<T extends unknown[], A extends Semigroup<A>, B>(
+        f: (...args: T) => AsyncGenerator<Ior<A, any>, B, unknown>,
+    ): (...args: T) => Promise<Ior<A, B>> {
+        return (...args) => stepAsync(f(...args));
     }
 
     /**
