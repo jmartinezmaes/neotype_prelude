@@ -109,6 +109,18 @@ describe("maybe.js", () => {
             });
         });
 
+        describe("goFn", () => {
+            it("accesses the parameters of the generator function", () => {
+                const f = Maybe.goFn(function* <A>(w: A) {
+                    const x = yield* Maybe.just<1>(1);
+                    const [y, z] = yield* Maybe.just<[1, 2]>([x, 2]);
+                    return tuple(w, x, y, z);
+                });
+                const maybe = f<0>(0);
+                expect(maybe).to.deep.equal(Maybe.just([0, 1, 1, 2]));
+            });
+        });
+
         describe("reduce", () => {
             it("reduces the finite iterable from left to right in the context of Maybe", () => {
                 const maybe = Maybe.reduce(
@@ -185,6 +197,20 @@ describe("maybe.js", () => {
                     return Promise.resolve(tuple(x, y, z));
                 });
                 expect(maybe).to.deep.equal(Maybe.just([1, 1, 2]));
+            });
+        });
+
+        describe("goAsyncFn", () => {
+            it("accesses the parameters of the async generator function", async () => {
+                const f = Maybe.goAsyncFn(async function* <A>(w: A) {
+                    const x = yield* await Promise.resolve(Maybe.just<1>(1));
+                    const [y, z] = yield* await Promise.resolve(
+                        Maybe.just<[1, 2]>([x, 2]),
+                    );
+                    return tuple(w, x, y, z);
+                });
+                const maybe = await f<0>(0);
+                expect(maybe).to.deep.equal(Maybe.just([0, 1, 1, 2]));
             });
         });
 

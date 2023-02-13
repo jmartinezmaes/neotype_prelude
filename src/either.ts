@@ -424,6 +424,21 @@ export namespace Either {
         return vdn.unwrap(left, right);
     }
 
+    function step<T extends Either<any, any>, A>(
+        gen: Generator<T, A, unknown>,
+    ): Either<LeftT<T>, A> {
+        let nxt = gen.next();
+        while (!nxt.done) {
+            const either = nxt.value;
+            if (either.isRight()) {
+                nxt = gen.next(either.val);
+            } else {
+                return either;
+            }
+        }
+        return right(nxt.value);
+    }
+
     /**
      * Construct an `Either` using a generator comprehension.
      *
@@ -481,17 +496,21 @@ export namespace Either {
     export function go<T extends Either<any, any>, A>(
         f: () => Generator<T, A, unknown>,
     ): Either<LeftT<T>, A> {
-        const gen = f();
-        let nxt = gen.next();
-        while (!nxt.done) {
-            const either = nxt.value;
-            if (either.isRight()) {
-                nxt = gen.next(either.val);
-            } else {
-                return either;
-            }
-        }
-        return right(nxt.value);
+        return step(f());
+    }
+
+    /**
+     * Construct a function that returns an `Either` using a generator
+     * comprehension.
+     *
+     * @remarks
+     *
+     * This is the higher-order function variant of `go`.
+     */
+    export function goFn<T extends unknown[], T1 extends Either<any, any>, A>(
+        f: (...args: T) => Generator<T1, A, unknown>,
+    ): (...args: T) => Either<LeftT<T1>, A> {
+        return (...args) => step(f(...args));
     }
 
     /**
@@ -595,6 +614,21 @@ export namespace Either {
             collect(eithers).map((args) => f(...(args as T)));
     }
 
+    async function stepAsync<T extends Either<any, any>, A>(
+        gen: AsyncGenerator<T, A, unknown>,
+    ): Promise<Either<LeftT<T>, A>> {
+        let nxt = await gen.next();
+        while (!nxt.done) {
+            const either = nxt.value;
+            if (either.isRight()) {
+                nxt = await gen.next(either.val);
+            } else {
+                return either;
+            }
+        }
+        return right(nxt.value);
+    }
+
     /**
      * Construct a `Promise` that fulfills with an `Either` using an async
      * generator comprehension.
@@ -626,20 +660,28 @@ export namespace Either {
      *     keyword, statements, loops, declarations, etc.) is permitted within
      *     async generator comprehensions.
      */
-    export async function goAsync<T extends Either<any, any>, A>(
+    export function goAsync<T extends Either<any, any>, A>(
         f: () => AsyncGenerator<T, A, unknown>,
     ): Promise<Either<LeftT<T>, A>> {
-        const gen = f();
-        let nxt = await gen.next();
-        while (!nxt.done) {
-            const either = nxt.value;
-            if (either.isRight()) {
-                nxt = await gen.next(either.val);
-            } else {
-                return either;
-            }
-        }
-        return right(nxt.value);
+        return stepAsync(f());
+    }
+
+    /**
+     * Construct a function that returns a `Promise` that fulfills with an
+     * `Either` using an async generator comprehension.
+     *
+     * @remarks
+     *
+     * This is the higher-order function variant of `goAsync`.
+     */
+    export function goAsyncFn<
+        T extends unknown[],
+        T1 extends Either<any, any>,
+        A,
+    >(
+        f: (...args: T) => AsyncGenerator<T1, A, unknown>,
+    ): (...args: T) => Promise<Either<LeftT<T1>, A>> {
+        return (...args) => stepAsync(f(...args));
     }
 
     /**

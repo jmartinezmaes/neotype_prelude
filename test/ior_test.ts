@@ -145,6 +145,23 @@ describe("ior.js", () => {
             });
         });
 
+        describe("goFn", () => {
+            it("accesses the parameters of the generator function", () => {
+                const f = Ior.goFn(function* <A>(w: A) {
+                    const x = yield* Ior.both<Str, 2>(new Str("a"), 2);
+                    const [y, z] = yield* Ior.both(
+                        new Str("b"),
+                        tuple<[2, 4]>(x, 4),
+                    );
+                    return tuple(w, x, y, z);
+                });
+                const ior = f<0>(0);
+                expect(ior).to.deep.equal(
+                    Ior.both(new Str("ab"), [0, 2, 2, 4]),
+                );
+            });
+        });
+
         describe("reduce", () => {
             it("reduces the finite iterable from left to right in the context of Ior", () => {
                 const ior = Ior.reduce(
@@ -287,6 +304,24 @@ describe("ior.js", () => {
                     return Promise.resolve(tuple(x, y, z));
                 });
                 expect(ior).to.deep.equal(Ior.both(new Str("ab"), [2, 2, 4]));
+            });
+        });
+
+        describe("goAsyncFn", () => {
+            it("accesses the parameters of the async generator function", async () => {
+                const f = Ior.goAsyncFn(async function* <A>(w: A) {
+                    const x = yield* await Promise.resolve(
+                        Ior.both<Str, 2>(new Str("a"), 2),
+                    );
+                    const [y, z] = yield* await Promise.resolve(
+                        Ior.both(new Str("b"), tuple<[2, 4]>(x, 4)),
+                    );
+                    return tuple(w, x, y, z);
+                });
+                const ior = await f<0>(0);
+                expect(ior).to.deep.equal(
+                    Ior.both(new Str("ab"), [0, 2, 2, 4]),
+                );
             });
         });
 
