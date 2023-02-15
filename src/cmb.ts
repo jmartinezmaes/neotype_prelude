@@ -52,14 +52,14 @@
  * ```ts
  * import { cmb, Semigroup } from "@neotype/prelude/cmp.js";
  *
- * function cmbTimes<A extends Semigroup<A>>(x: A, n: number): A {
- *     if (n < 2 || n === Infinity) {
- *         return x;
+ * function cmbTimes<A extends Semigroup<A>>(val: A, times: number): A {
+ *     if (times < 2 || times === Infinity) {
+ *         return val;
  *     }
  *
- *     let acc = x;
- *     for (let i = 0; i < n; i++) {
- *         acc = cmb(acc, x);
+ *     let acc = val;
+ *     for (let i = 0; i < times; i++) {
+ *         acc = cmb(acc, val);
  *     }
  *     return acc;
  * }
@@ -190,7 +190,7 @@
  *         that: Async<A>,
  *     ): Async<A> {
  *         return new Async(
- *             this.val.then((x) => that.val.then((y) => cmb(x, y))),
+ *             this.val.then((lhs) => that.val.then((rhs) => cmb(lhs, rhs))),
  *         );
  *     }
  * }
@@ -300,8 +300,8 @@ export namespace Semigroup {
  *
  * @remarks
  *
- * `cmb(x, y)` is equivalent to `x[Semigroup.cmb](y)`.
+ * `cmb(lhs, rhs)` is equivalent to `lhs[Semigroup.cmb](rhs)`.
  */
-export function cmb<A extends Semigroup<A>>(x: A, y: A): A {
-    return x[Semigroup.cmb](y);
+export function cmb<A extends Semigroup<A>>(lhs: A, rhs: A): A {
+    return lhs[Semigroup.cmb](rhs);
 }

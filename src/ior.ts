@@ -470,22 +470,22 @@ export namespace Ior {
     /**
      * Construct a `Left` variant of `Ior` from a value.
      */
-    export function left<A, B = never>(x: A): Ior<A, B> {
-        return new Left(x);
+    export function left<A, B = never>(val: A): Ior<A, B> {
+        return new Left(val);
     }
 
     /**
      * Construct a `Right` variant of `Ior` from a value.
      */
-    export function right<B, A = never>(x: B): Ior<A, B> {
-        return new Right(x);
+    export function right<B, A = never>(val: B): Ior<A, B> {
+        return new Right(val);
     }
 
     /**
      * Construct a `Both` variant of `Ior` from two values.
      */
-    export function both<A, B>(x: A, y: B): Ior<A, B> {
-        return new Both(x, y);
+    export function both<A, B>(fst: A, snd: B): Ior<A, B> {
+        return new Both(fst, snd);
     }
 
     /**
@@ -581,27 +581,27 @@ export namespace Ior {
      *     }
      * }
      *
-     * const arg0: Ior<Str, number> = Ior.both(new Str("a"), 1);
-     * const arg1: Ior<Str, number> = Ior.right(2);
-     * const arg2: Ior<Str, number> = Ior.both(new Str("b"), 2);
+     * const strIorOne: Ior<Str, number> = Ior.both(new Str("a"), 1);
+     * const strIorTwo: Ior<Str, number> = Ior.right(2);
+     * const strIorThree: Ior<Str, number> = Ior.both(new Str("b"), 3);
      *
      * const summed: Ior<Str, number> = Ior.go(function* () {
-     *     const x = yield* arg0;
-     *     const y = yield* arg1;
-     *     const z = yield* arg2;
+     *     const one = yield* strIorOne;
+     *     const two = yield* strIorTwo;
+     *     const three = yield* strIorThree;
      *
-     *     return x + y + z;
+     *     return one + two + three;
      * });
      *
-     * console.log(JSON.stringify(summed.val)); // ["ab",3]
+     * console.log(JSON.stringify(summed.val)); // ["ab",6]
      * ```
      *
      * Now, observe the change in behavior if one of the yielded arguments was
-     * a `Left` variant of `Ior` instead. Replace the declaration of `arg1` with
-     * the following and re-run the program.
+     * a `Left` variant of `Ior` instead. Replace the declaration of `strIorTwo`
+     * with the following and re-run the program.
      *
      * ```ts
-     * const arg1: Ior<Str, number> = Ior.left(new Str("c"));
+     * const strIorTwo: Ior<Str, number> = Ior.left(new Str("c"));
      * ```
      */
     export function go<A extends Semigroup<A>, B>(
@@ -640,14 +640,14 @@ export namespace Ior {
      * result in a `Left`.
      */
     export function reduce<B, C, A extends Semigroup<A>>(
-        xs: Iterable<B>,
-        f: (acc: C, x: B) => Ior<A, C>,
+        vals: Iterable<B>,
+        accum: (acc: C, val: B) => Ior<A, C>,
         initial: C,
     ): Ior<A, C> {
         return go(function* () {
             let acc = initial;
-            for (const x of xs) {
-                acc = yield* f(acc, x);
+            for (const val of vals) {
+                acc = yield* accum(acc, val);
             }
             return acc;
         });
@@ -912,17 +912,17 @@ export namespace Ior {
          */
         unwrap<A, B, C, D, E>(
             this: Ior<A, B>,
-            onLeft: (x: A) => C,
-            onRight: (x: B) => D,
-            onBoth: (x: A, y: B) => E,
+            unwrapLeft: (val: A) => C,
+            unwrapRight: (val: B) => D,
+            unwrapBoth: (fst: A, snd: B) => E,
         ): C | D | E {
             if (this.isLeft()) {
-                return onLeft(this.val);
+                return unwrapLeft(this.val);
             }
             if (this.isRight()) {
-                return onRight(this.val);
+                return unwrapRight(this.val);
             }
-            return onBoth(this.fst, this.snd);
+            return unwrapBoth(this.fst, this.snd);
         }
 
         /**
@@ -934,7 +934,7 @@ export namespace Ior {
          */
         flatMap<A extends Semigroup<A>, B, C>(
             this: Ior<A, B>,
-            f: (x: B) => Ior<A, C>,
+            f: (val: B) => Ior<A, C>,
         ): Ior<A, C> {
             if (this.isLeft()) {
                 return this;
@@ -962,9 +962,9 @@ export namespace Ior {
         zipWith<A extends Semigroup<A>, B, C, D>(
             this: Ior<A, B>,
             that: Ior<A, C>,
-            f: (x: B, y: C) => D,
+            f: (lhs: B, rhs: C) => D,
         ): Ior<A, D> {
-            return this.flatMap((x) => that.map((y) => f(x, y)));
+            return this.flatMap((lhs) => that.map((rhs) => f(lhs, rhs)));
         }
 
         /**
@@ -1000,7 +1000,7 @@ export namespace Ior {
          * and return the result as a left-hand value; otherwise, return this
          * `Ior` as is.
          */
-        lmap<A, B, C>(this: Ior<A, B>, f: (x: A) => C): Ior<C, B> {
+        lmap<A, B, C>(this: Ior<A, B>, f: (val: A) => C): Ior<C, B> {
             if (this.isLeft()) {
                 return left(f(this.val));
             }
@@ -1015,7 +1015,7 @@ export namespace Ior {
          * and return the result as a right-hand value; otherwise, return this
          * `Ior` as is.
          */
-        map<A, B, D>(this: Ior<A, B>, f: (x: B) => D): Ior<A, D> {
+        map<A, B, D>(this: Ior<A, B>, f: (val: B) => D): Ior<A, D> {
             if (this.isLeft()) {
                 return this;
             }

@@ -401,15 +401,15 @@ export namespace Either {
     /**
      * Construct a left-sided `Either` from a value.
      */
-    export function left<A, B = never>(x: A): Either<A, B> {
-        return new Left(x);
+    export function left<A, B = never>(val: A): Either<A, B> {
+        return new Left(val);
     }
 
     /**
      * Construct a right-sided `Either` from a value.
      */
-    export function right<B, A = never>(x: B): Either<A, B> {
-        return new Right(x);
+    export function right<B, A = never>(val: B): Either<A, B> {
+        return new Right(val);
     }
 
     /**
@@ -470,27 +470,27 @@ export namespace Either {
      * ```ts
      * import { Either } from "@neotype/prelude/either.js";
      *
-     * const arg0: Either<string, number> = Either.right(1);
-     * const arg1: Either<string, number> = Either.right(2);
-     * const arg2: Either<string, number> = Either.right(3);
+     * const errOrOne: Either<string, number> = Either.right(1);
+     * const errOrTwo: Either<string, number> = Either.right(2);
+     * const errOrThree: Either<string, number> = Either.right(3);
      *
      * const summed: Either<string, number> = Either.go(function* () {
-     *     const x = yield* arg0;
-     *     const y = yield* arg1;
-     *     const z = yield* arg2;
+     *     const one = yield* errOrOne;
+     *     const two = yield* errOrTwo;
+     *     const three = yield* errOrThree;
      *
-     *     return x + y + z;
+     *     return one + two + three;
      * });
      *
      * console.log(summed.val); // 6
      * ```
      *
      * Now, observe the change in behavior if one of the yielded arguments was
-     * a failed `Either` instead. Replace the declaration of `arg1` with the
+     * a failed `Either` instead. Replace the declaration of `errOrTwo` with the
      * following and re-run the program.
      *
      * ```ts
-     * const arg1: Either<string, number> = Either.left("oops");
+     * const errOrTwo: Either<string, number> = Either.left("oops");
      * ```
      */
     export function go<T extends Either<any, any>, A>(
@@ -526,14 +526,14 @@ export namespace Either {
      * `Either`.
      */
     export function reduce<A, B, E>(
-        xs: Iterable<A>,
-        f: (acc: B, x: A) => Either<E, B>,
+        vals: Iterable<A>,
+        accum: (acc: B, val: A) => Either<E, B>,
         initial: B,
     ): Either<E, B> {
         return go(function* () {
             let acc = initial;
-            for (const x of xs) {
-                acc = yield* f(acc, x);
+            for (const val of vals) {
+                acc = yield* accum(acc, val);
             }
             return acc;
         });
@@ -735,10 +735,10 @@ export namespace Either {
          */
         unwrap<A, B, C, D>(
             this: Either<A, B>,
-            onLeft: (x: A) => C,
-            onRight: (x: B) => D,
+            unwrapLeft: (val: A) => C,
+            unwrapRight: (val: B) => D,
         ): C | D {
-            return this.isLeft() ? onLeft(this.val) : onRight(this.val);
+            return this.isLeft() ? unwrapLeft(this.val) : unwrapRight(this.val);
         }
 
         /**
@@ -747,7 +747,7 @@ export namespace Either {
          */
         recover<E, A, E1, B>(
             this: Either<E, A>,
-            f: (x: E) => Either<E1, B>,
+            f: (val: E) => Either<E1, B>,
         ): Either<E1, A | B> {
             return this.isLeft() ? f(this.val) : this;
         }
@@ -758,7 +758,7 @@ export namespace Either {
          */
         flatMap<E, A, E1, B>(
             this: Either<E, A>,
-            f: (x: A) => Either<E1, B>,
+            f: (val: A) => Either<E1, B>,
         ): Either<E | E1, B> {
             return this.isLeft() ? this : f(this.val);
         }
@@ -771,9 +771,9 @@ export namespace Either {
         zipWith<E, A, E1, B, C>(
             this: Either<E, A>,
             that: Either<E1, B>,
-            f: (x: A, y: B) => C,
+            f: (lhs: A, rhs: B) => C,
         ): Either<E | E1, C> {
-            return this.flatMap((x) => that.map((y) => f(x, y)));
+            return this.flatMap((lhs) => that.map((rhs) => f(lhs, rhs)));
         }
 
         /**
@@ -804,8 +804,8 @@ export namespace Either {
          * If this `Either` is left-sided, apply a function to its value and
          * return the result in a `Left`; otherwise, return this `Either` as is.
          */
-        lmap<A, B, C>(this: Either<A, B>, f: (x: A) => C): Either<C, B> {
-            return this.recover((x) => left(f(x)));
+        lmap<A, B, C>(this: Either<A, B>, f: (val: A) => C): Either<C, B> {
+            return this.recover((val) => left(f(val)));
         }
 
         /**
@@ -813,8 +813,8 @@ export namespace Either {
          * return the result in a `Right`; otherwise, return this `Either` as
          * is.
          */
-        map<A, B, D>(this: Either<A, B>, f: (x: B) => D): Either<A, D> {
-            return this.flatMap((x) => right(f(x)));
+        map<A, B, D>(this: Either<A, B>, f: (val: B) => D): Either<A, D> {
+            return this.flatMap((val) => right(f(val)));
         }
     }
 

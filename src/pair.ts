@@ -136,7 +136,7 @@ export class Pair<out A, out B> {
      * Apply a function to the first value and second value of this `Pair` and
      * return the result.
      */
-    unwrap<C>(f: (x: A, y: B) => C): C {
+    unwrap<C>(f: (fst: A, snd: B) => C): C {
         return f(this.fst, this.snd);
     }
 
@@ -144,7 +144,7 @@ export class Pair<out A, out B> {
      * Apply a function to the first value of this `Pair`, and return a new
      * `Pair` of the result and the existing second value.
      */
-    lmap<C>(f: (x: A) => C): Pair<C, B> {
+    lmap<C>(f: (val: A) => C): Pair<C, B> {
         return new Pair(f(this.fst), this.snd);
     }
 
@@ -152,7 +152,7 @@ export class Pair<out A, out B> {
      * Apply a function to the second value of this `Pair`, and return a new
      * `Pair` of the existing first value and the result.
      */
-    map<D>(f: (x: B) => D): Pair<A, D> {
+    map<D>(f: (val: B) => D): Pair<A, D> {
         return new Pair(this.fst, f(this.snd));
     }
 }

@@ -152,9 +152,9 @@
  * ```ts
  * import { Eq, eq } from "@neotype/prelude/cmp.js";
  *
- * function singles<A extends Eq<A>>(xs: A[]): A[] {
- *     return xs.filter((x0, ix0) =>
- *         !xs.some((x1, ix1) => eq(x0, x1) && ix0 !== ix1),
+ * function singles<A extends Eq<A>>(vals: A[]): A[] {
+ *     return vals.filter((val0, idx0) =>
+ *         !vals.some((val1, idx1) => eq(val0, val1) && idx0 !== idx1),
  *     );
  * }
  * ```
@@ -167,8 +167,8 @@
  * ```ts
  * import { lt, Ord } from "@neotype/prelude/cmp.js";
  *
- * function filterLt<A extends Ord<A>>(xs: A[], y: A): A[] {
- *     return xs.filter((x) => lt(x, y));
+ * function filterLt<A extends Ord<A>>(vals: A[], input: A): A[] {
+ *     return vals.filter((val) => lt(val, input));
  * }
  * ```
  *
@@ -422,10 +422,10 @@ export namespace Eq {
  *
  * @remarks
  *
- * `eq(x, y)` is equivalent to `x[Eq.eq](y)`.
+ * `eq(lhs, rhs)` is equivalent to `lhs[Eq.eq](rhs)`.
  */
-export function eq<A extends Eq<A>>(x: A, y: A): boolean {
-    return x[Eq.eq](y);
+export function eq<A extends Eq<A>>(lhs: A, rhs: A): boolean {
+    return lhs[Eq.eq](rhs);
 }
 
 /**
@@ -433,10 +433,10 @@ export function eq<A extends Eq<A>>(x: A, y: A): boolean {
  *
  * @remarks
  *
- * `ne(x, y)` is equivalent to `!x[Eq.eq](y)`.
+ * `ne(lhs, rhs)` is equivalent to `!lhs[Eq.eq](rhs)`.
  */
-export function ne<A extends Eq<A>>(x: A, y: A): boolean {
-    return !x[Eq.eq](y);
+export function ne<A extends Eq<A>>(lhs: A, rhs: A): boolean {
+    return !lhs[Eq.eq](rhs);
 }
 
 /**
@@ -449,28 +449,28 @@ export function ne<A extends Eq<A>>(x: A, y: A): boolean {
  * lexicographically equal.
  */
 export function ieqBy<A>(
-    xs: Iterable<A>,
-    ys: Iterable<A>,
-    f: (x: A, y: A) => boolean,
+    lhs: Iterable<A>,
+    rhs: Iterable<A>,
+    eqBy: (lhs: A, rhs: A) => boolean,
 ): boolean {
-    const nxs = xs[Symbol.iterator]();
-    const nys = ys[Symbol.iterator]();
+    const lhsIter = lhs[Symbol.iterator]();
+    const rhsIter = rhs[Symbol.iterator]();
 
     for (
-        let nx = nxs.next(), ny = nys.next();
+        let lnxt = lhsIter.next(), rnxt = rhsIter.next();
         ;
-        nx = nxs.next(), ny = nys.next()
+        lnxt = lhsIter.next(), rnxt = rhsIter.next()
     ) {
-        if (!nx.done) {
-            if (!ny.done) {
-                if (!f(nx.value, ny.value)) {
+        if (!lnxt.done) {
+            if (!rnxt.done) {
+                if (!eqBy(lnxt.value, rnxt.value)) {
                     return false;
                 }
             } else {
                 return false;
             }
         } else {
-            return !!ny.done;
+            return !!rnxt.done;
         }
     }
 }
@@ -484,10 +484,10 @@ export function ieqBy<A>(
  * then the iterables are lexicographically equal.
  */
 export function ieq<A extends Eq<A>>(
-    xs: Iterable<A>,
-    ys: Iterable<A>,
+    lhs: Iterable<A>,
+    rhs: Iterable<A>,
 ): boolean {
-    return ieqBy(xs, ys, eq);
+    return ieqBy(lhs, rhs, eq);
 }
 
 /**
@@ -783,10 +783,10 @@ export namespace Ord {
  *
  * @remarks
  *
- * `cmp(x, y)` is equivalent to `x[Ord.cmp](y)`
+ * `cmp(lhs, rhs)` is equivalent to `lhs[Ord.cmp](rhs)`.
  */
-export function cmp<A extends Ord<A>>(x: A, y: A): Ordering {
-    return x[Ord.cmp](y);
+export function cmp<A extends Ord<A>>(lhs: A, rhs: A): Ordering {
+    return lhs[Ord.cmp](rhs);
 }
 
 /**
@@ -794,21 +794,21 @@ export function cmp<A extends Ord<A>>(x: A, y: A): Ordering {
  * ordering.
  */
 export function icmpBy<A>(
-    xs: Iterable<A>,
-    ys: Iterable<A>,
-    f: (x: A, y: A) => Ordering,
+    lhs: Iterable<A>,
+    rhs: Iterable<A>,
+    cmpBy: (lhs: A, rhs: A) => Ordering,
 ): Ordering {
-    const nxs = xs[Symbol.iterator]();
-    const nys = ys[Symbol.iterator]();
+    const lhsIter = lhs[Symbol.iterator]();
+    const rhsIter = rhs[Symbol.iterator]();
 
     for (
-        let nx = nxs.next(), ny = nys.next();
+        let lnxt = lhsIter.next(), rnxt = rhsIter.next();
         ;
-        nx = nxs.next(), ny = nys.next()
+        lnxt = lhsIter.next(), rnxt = rhsIter.next()
     ) {
-        if (!nx.done) {
-            if (!ny.done) {
-                const ordering = f(nx.value, ny.value);
+        if (!lnxt.done) {
+            if (!rnxt.done) {
+                const ordering = cmpBy(lnxt.value, rnxt.value);
                 if (ordering.isNe()) {
                     return ordering;
                 }
@@ -816,7 +816,7 @@ export function icmpBy<A>(
                 return Ordering.greater;
             }
         } else {
-            return ny.done ? Ordering.equal : Ordering.less;
+            return rnxt.done ? Ordering.equal : Ordering.less;
         }
     }
 }
@@ -826,10 +826,10 @@ export function icmpBy<A>(
  * ordering.
  */
 export function icmp<A extends Ord<A>>(
-    xs: Iterable<A>,
-    ys: Iterable<A>,
+    lhs: Iterable<A>,
+    rhs: Iterable<A>,
 ): Ordering {
-    return icmpBy(xs, ys, cmp);
+    return icmpBy(lhs, rhs, cmp);
 }
 
 /**
@@ -837,10 +837,10 @@ export function icmp<A extends Ord<A>>(
  *
  * @remarks
  *
- * Return `true` if `x` is less than `y`.
+ * Return `true` if `lhs` is less than `rhs`.
  */
-export function lt<A extends Ord<A>>(x: A, y: A): boolean {
-    return cmp(x, y).isLt();
+export function lt<A extends Ord<A>>(lhs: A, rhs: A): boolean {
+    return cmp(lhs, rhs).isLt();
 }
 
 /**
@@ -848,10 +848,10 @@ export function lt<A extends Ord<A>>(x: A, y: A): boolean {
  *
  * @remarks
  *
- * Return `true` if `x` is greater than `y`.
+ * Return `true` if `lhs` is greater than `rhs`.
  */
-export function gt<A extends Ord<A>>(x: A, y: A): boolean {
-    return cmp(x, y).isGt();
+export function gt<A extends Ord<A>>(lhs: A, rhs: A): boolean {
+    return cmp(lhs, rhs).isGt();
 }
 
 /**
@@ -859,10 +859,10 @@ export function gt<A extends Ord<A>>(x: A, y: A): boolean {
  *
  * @remarks
  *
- * Return `true` if `x` is less than or equal to `y`.
+ * Return `true` if `lhs` is less than or equal to `rhs`.
  */
-export function le<A extends Ord<A>>(x: A, y: A): boolean {
-    return cmp(x, y).isLe();
+export function le<A extends Ord<A>>(lhs: A, rhs: A): boolean {
+    return cmp(lhs, rhs).isLe();
 }
 
 /**
@@ -870,10 +870,10 @@ export function le<A extends Ord<A>>(x: A, y: A): boolean {
  *
  * @remarks
  *
- * Return `true` if `x` is greater than or equal to `y`.
+ * Return `true` if `lhs` is greater than or equal to `rhs`.
  */
-export function ge<A extends Ord<A>>(x: A, y: A): boolean {
-    return cmp(x, y).isGe();
+export function ge<A extends Ord<A>>(lhs: A, rhs: A): boolean {
+    return cmp(lhs, rhs).isGe();
 }
 
 /**
@@ -883,8 +883,8 @@ export function ge<A extends Ord<A>>(x: A, y: A): boolean {
  *
  * If the values are equal, return the first value.
  */
-export function min<A extends Ord<A>>(x: A, y: A): A {
-    return le(x, y) ? x : y;
+export function min<A extends Ord<A>>(lhs: A, rhs: A): A {
+    return le(lhs, rhs) ? lhs : rhs;
 }
 
 /**
@@ -894,8 +894,8 @@ export function min<A extends Ord<A>>(x: A, y: A): A {
  *
  * If the values are equal, return the first value.
  */
-export function max<A extends Ord<A>>(x: A, y: A): A {
-    return ge(x, y) ? x : y;
+export function max<A extends Ord<A>>(lhs: A, rhs: A): A {
+    return ge(lhs, rhs) ? lhs : rhs;
 }
 
 /**
@@ -903,10 +903,10 @@ export function max<A extends Ord<A>>(x: A, y: A): A {
  *
  * @remarks
  *
- * `clamp(x, lo, hi)` is equivalent to `min(max(x, lo), hi)`.
+ * `clamp(val, lo, hi)` is equivalent to `min(max(val, lo), hi)`.
  */
-export function clamp<A extends Ord<A>>(x: A, lo: A, hi: A) {
-    return min(max(x, lo), hi);
+export function clamp<A extends Ord<A>>(val: A, lo: A, hi: A) {
+    return min(max(val, lo), hi);
 }
 
 /**
@@ -930,11 +930,11 @@ export namespace Ordering {
      * An argument must never be `NaN`. This is the caller's responsibility to
      * enforce!
      */
-    export function fromNumber(n: number | bigint): Ordering {
-        if (n < 0) {
+    export function fromNumber(num: number | bigint): Ordering {
+        if (num < 0) {
             return less;
         }
-        if (n > 0) {
+        if (num > 0) {
             return greater;
         }
         return equal;

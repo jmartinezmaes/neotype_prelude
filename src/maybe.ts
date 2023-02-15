@@ -412,8 +412,8 @@ export namespace Maybe {
     /**
      * Construct a present `Maybe` from a value.
      */
-    export function just<A>(x: A): Maybe<A> {
-        return new Just(x);
+    export function just<A>(val: A): Maybe<A> {
+        return new Just(val);
     }
 
     /**
@@ -425,8 +425,8 @@ export namespace Maybe {
      * If the value is `null` or `undefined`, return `Nothing`; otherwise,
      * return the value in a `Just`.
      */
-    export function fromMissing<A>(x: A | null | undefined): Maybe<A> {
-        return x === null || x === undefined ? nothing : just(x);
+    export function fromMissing<A>(val: A | null | undefined): Maybe<A> {
+        return val === null || val === undefined ? nothing : just(val);
     }
 
     /**
@@ -453,13 +453,13 @@ export namespace Maybe {
      * otherwise, return `Nothing`.
      */
     export function wrapPred<A, A1 extends A>(
-        f: (x: A) => x is A1,
-    ): (x: A) => Maybe<A1>;
+        f: (val: A) => val is A1,
+    ): (val: A) => Maybe<A1>;
 
-    export function wrapPred<A>(f: (x: A) => boolean): (x: A) => Maybe<A>;
+    export function wrapPred<A>(f: (val: A) => boolean): (val: A) => Maybe<A>;
 
-    export function wrapPred<A>(f: (x: A) => boolean): (x: A) => Maybe<A> {
-        return (x) => (f(x) ? just(x) : nothing);
+    export function wrapPred<A>(f: (val: A) => boolean): (val: A) => Maybe<A> {
+        return (val) => (f(val) ? just(val) : nothing);
     }
 
     function step<A>(gen: Generator<Maybe<any>, A, unknown>): Maybe<A> {
@@ -505,27 +505,27 @@ export namespace Maybe {
      * ```ts
      * import { Maybe } from "@neotype/prelude/maybe.js";
      *
-     * const arg0: Maybe<number> = Maybe.just(1);
-     * const arg1: Maybe<number> = Maybe.just(2);
-     * const arg2: Maybe<number> = Maybe.just(3);
+     * const maybeOne: Maybe<number> = Maybe.just(1);
+     * const maybeTwo: Maybe<number> = Maybe.just(2);
+     * const maybeThree: Maybe<number> = Maybe.just(3);
      *
      * const summed: Maybe<number> = Maybe.go(function* () {
-     *     const x = yield* arg0;
-     *     const y = yield* arg1;
-     *     const z = yield* arg2;
+     *     const one = yield* maybeOne;
+     *     const two = yield* maybeTwo;
+     *     const three = yield* maybeThree;
      *
-     *     return x + y + z;
+     *     return one + two + three;
      * });
      *
      * console.log(summed.getOr("Nothing")); // 6
      * ```
      *
      * Now, observe the change in behavior if one of the yielded arguments was
-     * an absent `Maybe` instead. Replace the declaration of `arg1` with the
+     * an absent `Maybe` instead. Replace the declaration of `maybeTwo` with the
      * following and re-run the program.
      *
      * ```ts
-     * const arg1: Maybe<number> = Maybe.nothing;
+     * const maybeTwo: Maybe<number> = Maybe.nothing;
      * ```
      */
     export function go<A>(
@@ -560,14 +560,14 @@ export namespace Maybe {
      * the final accumulator in a `Just`; otherwise, return `Nothing`.
      */
     export function reduce<A, B>(
-        xs: Iterable<A>,
-        f: (acc: B, x: A) => Maybe<B>,
+        vals: Iterable<A>,
+        accum: (acc: B, val: A) => Maybe<B>,
         initial: B,
     ): Maybe<B> {
         return go(function* () {
             let acc = initial;
-            for (const x of xs) {
-                acc = yield* f(acc, x);
+            for (const val of vals) {
+                acc = yield* accum(acc, val);
             }
             return acc;
         });
@@ -762,7 +762,7 @@ export namespace Maybe {
         unwrap<A, B, C>(
             this: Maybe<A>,
             onNothing: () => B,
-            onJust: (x: A) => C,
+            onJust: (val: A) => C,
         ): B | C {
             return this.isNothing() ? onNothing() : onJust(this.val);
         }
@@ -795,7 +795,7 @@ export namespace Maybe {
          * If this `Maybe` is present, apply a function to its value to return
          * another `Maybe`; otherwise, return `Nothing`.
          */
-        flatMap<A, B>(this: Maybe<A>, f: (x: A) => Maybe<B>): Maybe<B> {
+        flatMap<A, B>(this: Maybe<A>, f: (val: A) => Maybe<B>): Maybe<B> {
             return this.isNothing() ? this : f(this.val);
         }
 
@@ -807,9 +807,9 @@ export namespace Maybe {
         zipWith<A, B, C>(
             this: Maybe<A>,
             that: Maybe<B>,
-            f: (x: A, y: B) => C,
+            f: (lhs: A, rhs: B) => C,
         ): Maybe<C> {
-            return this.flatMap((x) => that.map((y) => f(x, y)));
+            return this.flatMap((lhs) => that.map((rhs) => f(lhs, rhs)));
         }
 
         /**
@@ -833,8 +833,8 @@ export namespace Maybe {
          * If this `Maybe` is present, apply a function to its value and return
          * the result in a `Just`; otherwise, return `Nothing`.
          */
-        map<A, B>(this: Maybe<A>, f: (x: A) => B): Maybe<B> {
-            return this.flatMap((x) => just(f(x)));
+        map<A, B>(this: Maybe<A>, f: (val: A) => B): Maybe<B> {
+            return this.flatMap((val) => just(f(val)));
         }
     }
 

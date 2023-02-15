@@ -17,17 +17,17 @@
 type Node<A> = undefined | readonly [A, Node<A>];
 
 export class MutStack<out A> {
-    #hd: Node<A> = undefined;
+    #head: Node<A>;
 
-    push(x: A): void {
-        this.#hd = [x, this.#hd];
+    push(val: A): void {
+        this.#head = [val, this.#head];
     }
 
     pop(): A | undefined {
-        if (this.#hd) {
-            const [x, xs] = this.#hd;
-            this.#hd = xs;
-            return x;
+        if (this.#head) {
+            const [val, rest] = this.#head;
+            this.#head = rest;
+            return val;
         }
         return;
     }
