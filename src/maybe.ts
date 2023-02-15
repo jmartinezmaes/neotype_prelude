@@ -19,13 +19,13 @@
  *
  * @remarks
  *
- * `Maybe<A>` is a type that represents an optional value. It is represented by
- * two variants: `Nothing` and `Just<A>`.
+ * `Maybe<T>` is a type that represents an optional value. It is represented by
+ * two variants: `Nothing` and `Just<T>`.
  *
  * -   The `Nothing` variant represents an *absent* `Maybe`, and contains no
  *     value.
- * -   The `Just<A>` variant represents a *present* `Maybe`, and contains a
- *     value of type `A`.
+ * -   The `Just<T>` variant represents a *present* `Maybe`, and contains a
+ *     value of type `T`.
  *
  * Common uses for `Maybe` include:
  *
@@ -104,13 +104,13 @@
  *
  * `Maybe` has the following behavior as an equivalence relation:
  *
- * -   A `Maybe<A>` implements `Eq` when `A` implements `Eq`.
+ * -   A `Maybe<T>` implements `Eq` when `T` implements `Eq`.
  * -   Two `Maybe` values are equal if they are both absent, or they are both
  *     present and and their values are equal.
  *
  * `Maybe` has the following behavior as a total order:
  *
- * -   A `Maybe<A>` implements `Ord` when `A` implements `Ord`.
+ * -   A `Maybe<T>` implements `Ord` when `T` implements `Ord`.
  * -   When ordered, an absent `Maybe` always compares as less than than any
  *     present `Maybe`. If they are both present, their values are compared to
  *     determine the ordering.
@@ -119,7 +119,7 @@
  *
  * `Maybe` has the following behavior as a semigroup:
  *
- * -   A `Maybe<A>` implements `Semigroup` when `A` implements `Semigroup`.
+ * -   A `Maybe<T>` implements `Semigroup` when `T` implements `Semigroup`.
  * -   When combined, present `Maybe` values have precedence over absent `Maybe`
  *     values. If they are both present, thier values are combined and returned
  *     in a `Just`.
@@ -180,12 +180,12 @@
  *
  * -   `collect` turns an array or a tuple literal of `Maybe` elements inside
  *     out. For example:
- *     -   `Maybe<A>[]` becomes `Maybe<A[]>`
- *     -   `[Maybe<A>, Maybe<B>]` becomes `Maybe<[A, B]>`
+ *     -   `Maybe<T>[]` becomes `Maybe<T[]>`
+ *     -   `[Maybe<T1>, Maybe<T2>]` becomes `Maybe<[T1, T2]>`
  * -   `gather` turns a record or an object literal of `Maybe` elements inside
  *     out. For example:
- *     -   `Record<string, Maybe<A>>` becomes `Maybe<Record<string, A>>`
- *     -   `{ x: Maybe<A>, y: Maybe<B> }` becomes `Maybe<{ x: A, y: B }>`
+ *     -   `Record<string, Maybe<T>>` becomes `Maybe<Record<string, T>>`
+ *     -   `{ x: Maybe<T1>, y: Maybe<T2> }` becomes `Maybe<{ x: T1, y: T2 }>`
  *
  * The `reduce` function reduces a finite iterable from left to right in the
  * context of `Maybe`. This is useful for mapping, filtering, and accumulating
@@ -403,7 +403,7 @@ import { id } from "./fn.js";
  * A type that represents either an absent value (`Nothing`) or a present value
  * (`Just`).
  */
-export type Maybe<A> = Maybe.Nothing | Maybe.Just<A>;
+export type Maybe<T> = Maybe.Nothing | Maybe.Just<T>;
 
 /**
  * The companion namespace for the `Maybe` type.
@@ -412,7 +412,7 @@ export namespace Maybe {
     /**
      * Construct a present `Maybe` from a value.
      */
-    export function just<A>(val: A): Maybe<A> {
+    export function just<T>(val: T): Maybe<T> {
         return new Just(val);
     }
 
@@ -425,7 +425,7 @@ export namespace Maybe {
      * If the value is `null` or `undefined`, return `Nothing`; otherwise,
      * return the value in a `Just`.
      */
-    export function fromMissing<A>(val: A | null | undefined): Maybe<A> {
+    export function fromMissing<T>(val: T | null | undefined): Maybe<T> {
         return val === null || val === undefined ? nothing : just(val);
     }
 
@@ -438,9 +438,9 @@ export namespace Maybe {
      * If the function returns `null` or `undefined`, return `Nothing`;
      * otherwise, return the result in a `Just`.
      */
-    export function wrapFn<T extends unknown[], A>(
-        f: (...args: T) => A | null | undefined,
-    ): (...args: T) => Maybe<A> {
+    export function wrapFn<TArgs extends unknown[], T>(
+        f: (...args: TArgs) => T | null | undefined,
+    ): (...args: TArgs) => Maybe<T> {
         return (...args) => fromMissing(f(...args));
     }
 
@@ -452,17 +452,19 @@ export namespace Maybe {
      * If the predicate returns `true`, return the argument in a `Just`;
      * otherwise, return `Nothing`.
      */
-    export function wrapPred<A, A1 extends A>(
-        f: (val: A) => val is A1,
-    ): (val: A) => Maybe<A1>;
+    export function wrapPred<T, T1 extends T>(
+        f: (val: T) => val is T1,
+    ): (val: T) => Maybe<T1>;
 
-    export function wrapPred<A>(f: (val: A) => boolean): (val: A) => Maybe<A>;
+    export function wrapPred<T>(f: (val: T) => boolean): (val: T) => Maybe<T>;
 
-    export function wrapPred<A>(f: (val: A) => boolean): (val: A) => Maybe<A> {
+    export function wrapPred<T>(f: (val: T) => boolean): (val: T) => Maybe<T> {
         return (val) => (f(val) ? just(val) : nothing);
     }
 
-    function step<A>(gen: Generator<Maybe<any>, A, unknown>): Maybe<A> {
+    function step<TReturn>(
+        gen: Generator<Maybe<any>, TReturn, unknown>,
+    ): Maybe<TReturn> {
         let nxt = gen.next();
         while (!nxt.done) {
             const maybe = nxt.value;
@@ -528,9 +530,9 @@ export namespace Maybe {
      * const maybeTwo: Maybe<number> = Maybe.nothing;
      * ```
      */
-    export function go<A>(
-        f: () => Generator<Maybe<any>, A, unknown>,
-    ): Maybe<A> {
+    export function go<TReturn>(
+        f: () => Generator<Maybe<any>, TReturn, unknown>,
+    ): Maybe<TReturn> {
         return step(f());
     }
 
@@ -542,9 +544,9 @@ export namespace Maybe {
      *
      * This is the higher-order function variant of `go`.
      */
-    export function goFn<T extends unknown[], A>(
-        f: (...args: T) => Generator<Maybe<any>, A, unknown>,
-    ): (...args: T) => Maybe<A> {
+    export function goFn<TArgs extends unknown[], TReturn>(
+        f: (...args: TArgs) => Generator<Maybe<any>, TReturn, unknown>,
+    ): (...args: TArgs) => Maybe<TReturn> {
         return (...args) => step(f(...args));
     }
 
@@ -559,11 +561,11 @@ export namespace Maybe {
      * new accumulator until there are no elements remaining, and then return
      * the final accumulator in a `Just`; otherwise, return `Nothing`.
      */
-    export function reduce<A, B>(
-        vals: Iterable<A>,
-        accum: (acc: B, val: A) => Maybe<B>,
-        initial: B,
-    ): Maybe<B> {
+    export function reduce<T, TAcc>(
+        vals: Iterable<T>,
+        accum: (acc: TAcc, val: T) => Maybe<TAcc>,
+        initial: TAcc,
+    ): Maybe<TAcc> {
         return go(function* () {
             let acc = initial;
             for (const val of vals) {
@@ -585,12 +587,12 @@ export namespace Maybe {
      *
      * For example:
      *
-     * -   `Maybe<A>[]` becomes `Maybe<A[]>`
-     * -   `[Maybe<A>, Maybe<B>]` becomes `Maybe<[A, B]>`
+     * -   `Maybe<T>[]` becomes `Maybe<T[]>`
+     * -   `[Maybe<T1>, Maybe<T2>]` becomes `Maybe<[T1, T2]>`
      */
-    export function collect<T extends readonly Maybe<any>[]>(
-        maybes: T,
-    ): Maybe<{ [K in keyof T]: JustT<T[K]> }> {
+    export function collect<TMaybes extends readonly Maybe<any>[]>(
+        maybes: TMaybes,
+    ): Maybe<{ [K in keyof TMaybes]: JustT<TMaybes[K]> }> {
         return go(function* () {
             const results: unknown[] = new Array(maybes.length);
             for (const [idx, maybe] of maybes.entries()) {
@@ -612,12 +614,12 @@ export namespace Maybe {
      *
      * For example:
      *
-     * -   `Record<string, Maybe<A>>` becomes `Maybe<Record<string, A>>`
-     * -   `{ x: Maybe<A>, y: Maybe<B> }` becomes `Maybe<{ x: A, y: B }>`
+     * -   `Record<string, Maybe<T>>` becomes `Maybe<Record<string, T>>`
+     * -   `{ x: Maybe<T1>, y: Maybe<T2> }` becomes `Maybe<{ x: T1, y: T2 }>`
      */
-    export function gather<T extends Record<any, Maybe<any>>>(
-        maybes: T,
-    ): Maybe<{ [K in keyof T]: JustT<T[K]> }> {
+    export function gather<TMaybes extends Record<any, Maybe<any>>>(
+        maybes: TMaybes,
+    ): Maybe<{ [K in keyof TMaybes]: JustT<TMaybes[K]> }> {
         return go(function* () {
             const results: Record<any, unknown> = {};
             for (const [key, maybe] of Object.entries(maybes)) {
@@ -638,15 +640,15 @@ export namespace Maybe {
      * original function to their values and return the result in a `Just`;
      * otherwise, return `Nothing`.
      */
-    export function lift<T extends unknown[], A>(
-        f: (...args: T) => A,
-    ): (...maybes: { [K in keyof T]: Maybe<T[K]> }) => Maybe<A> {
+    export function lift<TArgs extends unknown[], T>(
+        f: (...args: TArgs) => T,
+    ): (...maybes: { [K in keyof TArgs]: Maybe<TArgs[K]> }) => Maybe<T> {
         return (...maybes) => collect(maybes).map((args) => f(...args));
     }
 
-    async function stepAsync<A>(
-        gen: AsyncGenerator<Maybe<any>, A, unknown>,
-    ): Promise<Maybe<A>> {
+    async function stepAsync<TReturn>(
+        gen: AsyncGenerator<Maybe<any>, TReturn, unknown>,
+    ): Promise<Maybe<TReturn>> {
         let nxt = await gen.next();
         while (!nxt.done) {
             const maybe = nxt.value;
@@ -690,9 +692,9 @@ export namespace Maybe {
      *     keyword, statements, loops, declarations, etc.) is permitted within
      *     async generator comprehensions.
      */
-    export function goAsync<A>(
-        f: () => AsyncGenerator<Maybe<any>, A, unknown>,
-    ): Promise<Maybe<A>> {
+    export function goAsync<TReturn>(
+        f: () => AsyncGenerator<Maybe<any>, TReturn, unknown>,
+    ): Promise<Maybe<TReturn>> {
         return stepAsync(f());
     }
 
@@ -704,9 +706,9 @@ export namespace Maybe {
      *
      * This is the higher-order function variant of `goAsync`.
      */
-    export function goAsyncFn<T extends unknown[], A>(
-        f: (...args: T) => AsyncGenerator<Maybe<any>, A, unknown>,
-    ): (...args: T) => Promise<Maybe<A>> {
+    export function goAsyncFn<TArgs extends unknown[], TReturn>(
+        f: (...args: TArgs) => AsyncGenerator<Maybe<any>, TReturn, unknown>,
+    ): (...args: TArgs) => Promise<Maybe<TReturn>> {
         return (...args) => stepAsync(f(...args));
     }
 
@@ -714,14 +716,14 @@ export namespace Maybe {
      * The fluent syntax for `Maybe`.
      */
     export abstract class Syntax {
-        [Eq.eq]<A extends Eq<A>>(this: Maybe<A>, that: Maybe<A>): boolean {
+        [Eq.eq]<T extends Eq<T>>(this: Maybe<T>, that: Maybe<T>): boolean {
             if (this.isNothing()) {
                 return that.isNothing();
             }
             return that.isJust() && eq(this.val, that.val);
         }
 
-        [Ord.cmp]<A extends Ord<A>>(this: Maybe<A>, that: Maybe<A>): Ordering {
+        [Ord.cmp]<T extends Ord<T>>(this: Maybe<T>, that: Maybe<T>): Ordering {
             if (this.isNothing()) {
                 return that.isNothing() ? Ordering.equal : Ordering.less;
             }
@@ -730,10 +732,10 @@ export namespace Maybe {
                 : cmp(this.val, that.val);
         }
 
-        [Semigroup.cmb]<A extends Semigroup<A>>(
-            this: Maybe<A>,
-            that: Maybe<A>,
-        ): Maybe<A> {
+        [Semigroup.cmb]<T extends Semigroup<T>>(
+            this: Maybe<T>,
+            that: Maybe<T>,
+        ): Maybe<T> {
             if (this.isJust()) {
                 return that.isJust() ? just(cmb(this.val, that.val)) : this;
             }
@@ -750,7 +752,7 @@ export namespace Maybe {
         /**
          * Test whether this `Maybe` is present.
          */
-        isJust<A>(this: Maybe<A>): this is Just<A> {
+        isJust<T>(this: Maybe<T>): this is Just<T> {
             return this.kind === Kind.JUST;
         }
 
@@ -759,11 +761,11 @@ export namespace Maybe {
          * the result; otherwise, evaluate a fallback function and return the
          * result.
          */
-        unwrap<A, B, C>(
-            this: Maybe<A>,
-            ifNothing: () => B,
-            unwrapJust: (val: A) => C,
-        ): B | C {
+        unwrap<T, T1, T2>(
+            this: Maybe<T>,
+            ifNothing: () => T1,
+            unwrapJust: (val: T) => T2,
+        ): T1 | T2 {
             return this.isNothing() ? ifNothing() : unwrapJust(this.val);
         }
 
@@ -771,7 +773,7 @@ export namespace Maybe {
          * If this `Maybe` is present, extract its value; otherwise, evaluate a
          * function to return a fallback result.
          */
-        getOrElse<A, B>(this: Maybe<A>, f: () => B): A | B {
+        getOrElse<T, T1>(this: Maybe<T>, f: () => T1): T | T1 {
             return this.unwrap(f, id);
         }
 
@@ -779,7 +781,7 @@ export namespace Maybe {
          * If this `Maybe` is present, extract its value; otherwise, return a
          * fallback value.
          */
-        getOr<A, B>(this: Maybe<A>, fallback: B): A | B {
+        getOr<T, T1>(this: Maybe<T>, fallback: T1): T | T1 {
             return this.unwrap(() => fallback, id);
         }
 
@@ -787,7 +789,7 @@ export namespace Maybe {
          * If this `Maybe` is absent, evaluate a function to return a fallback
          * `Maybe`; otherwise, return this `Maybe` as is.
          */
-        recover<A, B>(this: Maybe<A>, f: () => Maybe<B>): Maybe<A | B> {
+        recover<T, T1>(this: Maybe<T>, f: () => Maybe<T1>): Maybe<T | T1> {
             return this.isNothing() ? f() : this;
         }
 
@@ -795,7 +797,7 @@ export namespace Maybe {
          * If this `Maybe` is present, apply a function to its value to return
          * another `Maybe`; otherwise, return `Nothing`.
          */
-        flatMap<A, B>(this: Maybe<A>, f: (val: A) => Maybe<B>): Maybe<B> {
+        flatMap<T, T1>(this: Maybe<T>, f: (val: T) => Maybe<T1>): Maybe<T1> {
             return this.isNothing() ? this : f(this.val);
         }
 
@@ -804,11 +806,11 @@ export namespace Maybe {
          * values and return the result in a `Just`; otherwise, return
          * `Nothing`.
          */
-        zipWith<A, B, C>(
-            this: Maybe<A>,
-            that: Maybe<B>,
-            f: (lhs: A, rhs: B) => C,
-        ): Maybe<C> {
+        zipWith<T, T1, T2>(
+            this: Maybe<T>,
+            that: Maybe<T1>,
+            f: (lhs: T, rhs: T1) => T2,
+        ): Maybe<T2> {
             return this.flatMap((lhs) => that.map((rhs) => f(lhs, rhs)));
         }
 
@@ -817,7 +819,7 @@ export namespace Maybe {
          * value in a `Just` and discard the second; otherwise, return
          * `Nothing`.
          */
-        zipFst<A>(this: Maybe<A>, that: Maybe<any>): Maybe<A> {
+        zipFst<T>(this: Maybe<T>, that: Maybe<any>): Maybe<T> {
             return this.zipWith(that, id);
         }
 
@@ -825,7 +827,7 @@ export namespace Maybe {
          * If this and that `Maybe` are both present, return only the second
          * value in a `Just` and discard the first; otherwise, return `Nothing`.
          */
-        zipSnd<B>(this: Maybe<any>, that: Maybe<B>): Maybe<B> {
+        zipSnd<T1>(this: Maybe<any>, that: Maybe<T1>): Maybe<T1> {
             return this.flatMap(() => that);
         }
 
@@ -833,7 +835,7 @@ export namespace Maybe {
          * If this `Maybe` is present, apply a function to its value and return
          * the result in a `Just`; otherwise, return `Nothing`.
          */
-        map<A, B>(this: Maybe<A>, f: (val: A) => B): Maybe<B> {
+        map<T, T1>(this: Maybe<T>, f: (val: T) => T1): Maybe<T1> {
             return this.flatMap((val) => just(f(val)));
         }
     }
@@ -876,15 +878,15 @@ export namespace Maybe {
     /**
      * A present `Maybe`.
      */
-    export class Just<out A> extends Syntax {
+    export class Just<out T> extends Syntax {
         /**
          * The property that discriminates `Maybe`.
          */
         readonly kind = Kind.JUST;
 
-        readonly val: A;
+        readonly val: T;
 
-        constructor(val: A) {
+        constructor(val: T) {
             super();
             this.val = val;
         }
@@ -896,8 +898,8 @@ export namespace Maybe {
          *
          * @hidden
          */
-        *[Symbol.iterator](): Iterator<Maybe<A>, A, unknown> {
-            return (yield this) as A;
+        *[Symbol.iterator](): Iterator<Maybe<T>, T, unknown> {
+            return (yield this) as T;
         }
     }
 
@@ -907,9 +909,9 @@ export namespace Maybe {
     export const nothing = Maybe.Nothing.singleton as Maybe<never>;
 
     /**
-     * Extract the present value type `A` from the type `Maybe<A>`.
+     * Extract the present value type `T` from the type `Maybe<T>`.
      */
     // prettier-ignore
-    export type JustT<T extends Maybe<any>> =
-        T extends Maybe<infer A> ? A : never;
+    export type JustT<TMaybe extends Maybe<any>> =
+        TMaybe extends Maybe<infer T> ? T : never;
 }

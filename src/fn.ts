@@ -23,7 +23,7 @@
 /**
  * The identity function.
  */
-export function id<A>(val: A): A {
+export function id<T>(val: T): T {
     return val;
 }
 
@@ -35,32 +35,32 @@ export function id<A>(val: A): A {
  * This function is useful for eagerly memoizing a value that would otherwise be
  * suspended behind a function.
  */
-export function constant<A>(val: A): (...args: any[]) => A {
+export function constant<T>(val: T): (...args: any[]) => T {
     return () => val;
 }
 
 /**
  * Adapt a predicate into an identical predicate that negates its result.
  */
-export function negatePred<A, A1 extends A>(
-    f: (val: A) => val is A1,
-): (val: A) => val is Exclude<A, A1>;
+export function negatePred<T, T1 extends T>(
+    f: (val: T) => val is T1,
+): (val: T) => val is Exclude<T, T1>;
 
-export function negatePred<T extends unknown[]>(
-    f: (...args: T) => boolean,
-): (...args: T) => boolean;
+export function negatePred<TArgs extends unknown[]>(
+    f: (...args: TArgs) => boolean,
+): (...args: TArgs) => boolean;
 
-export function negatePred<T extends unknown[]>(
-    f: (...args: T) => boolean,
-): (...args: T) => boolean {
+export function negatePred<TArgs extends unknown[]>(
+    f: (...args: TArgs) => boolean,
+): (...args: TArgs) => boolean {
     return (...args) => !f(...args);
 }
 
 /**
  * Adapt a constructor into a callable function.
  */
-export function wrapCtor<T extends unknown[], A>(
-    ctor: new (...args: T) => A,
-): (...args: T) => A {
+export function wrapCtor<TArgs extends unknown[], T>(
+    ctor: new (...args: TArgs) => T,
+): (...args: TArgs) => T {
     return (...args) => new ctor(...args);
 }

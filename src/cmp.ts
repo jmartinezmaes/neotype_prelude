@@ -141,8 +141,8 @@
  * ## Working with generic equivalence relations and total orders
  *
  * Sometimes it is necessary to work with arbitrary equivalence relations and
- * total orders. To require that a generic type `A` implements `Eq` or `Ord`, we
- * write `A extends Eq<A>` or `A extends Ord<A>`, respectively.
+ * total orders. To require that a generic type `T` implements `Eq` or `Ord`, we
+ * write `T extends Eq<T>` or `T extends Ord<T>`, respectively.
  *
  * @example Working with generic equivalence relations
  *
@@ -152,7 +152,7 @@
  * ```ts
  * import { Eq, eq } from "@neotype/prelude/cmp.js";
  *
- * function singles<A extends Eq<A>>(vals: A[]): A[] {
+ * function singles<T extends Eq<T>>(vals: T[]): T[] {
  *     return vals.filter((val0, idx0) =>
  *         !vals.some((val1, idx1) => eq(val0, val1) && idx0 !== idx1),
  *     );
@@ -167,7 +167,7 @@
  * ```ts
  * import { lt, Ord } from "@neotype/prelude/cmp.js";
  *
- * function filterLt<A extends Ord<A>>(vals: A[], input: A): A[] {
+ * function filterLt<T extends Ord<T>>(vals: T[], input: T): T[] {
  *     return vals.filter((val) => lt(val, input));
  * }
  * ```
@@ -293,10 +293,10 @@ import { Semigroup } from "./cmb.js";
  * ```ts
  * import { Eq } from "@neotype/prelude/cmp.js";
  *
- * class Len<out A> {
- *     constructor(readonly val: A[]) {}
+ * class Len<out T> {
+ *     constructor(readonly val: T[]) {}
  *
- *     [Eq.eq](that: Len<A>): boolean {
+ *     [Eq.eq](that: Len<T>): boolean {
  *         return this.val.length === that.val.length;
  *     }
  * }
@@ -313,20 +313,20 @@ import { Semigroup } from "./cmb.js";
  * ```ts
  * import { Eq, ieq } from "@neotype/prelude/cmp.js";
  *
- * class Arr<out A> {
- *     constructor(readonly val: A[]) {}
+ * class Arr<out T> {
+ *     constructor(readonly val: T[]) {}
  *
- *     [Eq.eq]<A extends Eq<A>>(this: Arr<A>, that: Arr<A>): boolean {
+ *     [Eq.eq]<T extends Eq<T>>(this: Arr<T>, that: Arr<T>): boolean {
  *         return ieq(this.val, that.val);
  *     }
  * }
  * ```
  *
  * Notice the extra syntax when implementing `[Eq.eq]`. We introduce a
- * *method-scoped* generic parameter `A` and require that it has an `Eq`
- * implementation by writing `A extends Eq<A>` (the name `A` is arbitrary).
+ * *method-scoped* generic parameter `T` and require that it has an `Eq`
+ * implementation by writing `T extends Eq<T>` (the name `T` is arbitrary).
  *
- * Then, we require that `this` and `that` are `Arr<A>` where `A extends Eq<A>`.
+ * Then, we require that `this` and `that` are `Arr<T>` where `T extends Eq<T>`.
  * This allows us to use `ieq` to implement our desired behavior.
  *
  * @example Generic implementation with multiple `Eq` requirements
@@ -400,11 +400,11 @@ import { Semigroup } from "./cmb.js";
  * [augmentation]:
  *     https://www.typescriptlang.org/docs/handbook/declaration-merging.html#module-augmentation
  */
-export interface Eq<in A> {
+export interface Eq<in T> {
     /**
      * Test whether this and that `Eq` value are equal.
      */
-    [Eq.eq](that: A): boolean;
+    [Eq.eq](that: T): boolean;
 }
 
 /**
@@ -424,7 +424,7 @@ export namespace Eq {
  *
  * `eq(lhs, rhs)` is equivalent to `lhs[Eq.eq](rhs)`.
  */
-export function eq<A extends Eq<A>>(lhs: A, rhs: A): boolean {
+export function eq<T extends Eq<T>>(lhs: T, rhs: T): boolean {
     return lhs[Eq.eq](rhs);
 }
 
@@ -435,7 +435,7 @@ export function eq<A extends Eq<A>>(lhs: A, rhs: A): boolean {
  *
  * `ne(lhs, rhs)` is equivalent to `!lhs[Eq.eq](rhs)`.
  */
-export function ne<A extends Eq<A>>(lhs: A, rhs: A): boolean {
+export function ne<T extends Eq<T>>(lhs: T, rhs: T): boolean {
     return !lhs[Eq.eq](rhs);
 }
 
@@ -448,10 +448,10 @@ export function ne<A extends Eq<A>>(lhs: A, rhs: A): boolean {
  * determined to be equal by a provided function, the iterables are
  * lexicographically equal.
  */
-export function ieqBy<A>(
-    lhs: Iterable<A>,
-    rhs: Iterable<A>,
-    eqBy: (lhs: A, rhs: A) => boolean,
+export function ieqBy<T>(
+    lhs: Iterable<T>,
+    rhs: Iterable<T>,
+    eqBy: (lhs: T, rhs: T) => boolean,
 ): boolean {
     const lhsIter = lhs[Symbol.iterator]();
     const rhsIter = rhs[Symbol.iterator]();
@@ -483,9 +483,9 @@ export function ieqBy<A>(
  * If the iterables are the same length and their respective elements are equal,
  * then the iterables are lexicographically equal.
  */
-export function ieq<A extends Eq<A>>(
-    lhs: Iterable<A>,
-    rhs: Iterable<A>,
+export function ieq<T extends Eq<T>>(
+    lhs: Iterable<T>,
+    rhs: Iterable<T>,
 ): boolean {
     return ieqBy(lhs, rhs, eq);
 }
@@ -626,14 +626,14 @@ export function ieq<A extends Eq<A>>(
  * ```ts
  * import { Eq, Ord, Ordering } from "@neotype/prelude/cmp.js";
  *
- * class Len<out A> {
- *     constructor(readonly val: A[]) {}
+ * class Len<out T> {
+ *     constructor(readonly val: T[]) {}
  *
- *     [Eq.eq](that: Len<A>): boolean {
+ *     [Eq.eq](that: Len<T>): boolean {
  *         // An exercise for the reader...
  *     }
  *
- *     [Ord.cmp](that: Len<A>): Ordering {
+ *     [Ord.cmp](that: Len<T>): Ordering {
  *         return Ordering.fromNumber(this.val.length - that.val.length);
  *     }
  * }
@@ -650,25 +650,25 @@ export function ieq<A extends Eq<A>>(
  * ```ts
  * import { Eq, icmp, Ord, Ordering } from "@neotype/prelude/cmp.js";
  *
- * class Arr<out A> {
- *     constructor(readonly val: A[]) {}
+ * class Arr<out T> {
+ *     constructor(readonly val: T[]) {}
  *
- *     [Eq.eq]<A extends Eq<A>>(this: Arr<A>, that: Arr<A>): boolean {
+ *     [Eq.eq]<T extends Eq<T>>(this: Arr<T>, that: Arr<T>): boolean {
  *         // An exercise for the reader...
  *     }
  *
- *     [Ord.cmp]<A extends Ord<A>>(this: Arr<A>): Ordering {
+ *     [Ord.cmp]<T extends Ord<T>>(this: Arr<T>, that, Arr<T>): Ordering {
  *         return icmp(this.val, that.val);
  *     }
  * }
  * ```
  *
  * Notice the extra syntax when implementing `[Ord.cmp]`. We introduce a
- * *method-scoped* generic parameter `A` and require that it has an `Ord`
- * implementation by writing `A extends Ord<A>` (the name `A` is arbitrary).
+ * *method-scoped* generic parameter `T` and require that it has an `Ord`
+ * implementation by writing `T extends Ord<T>` (the name `T` is arbitrary).
  *
- * Then, we require that `this` and `that` are `Arr<A>` where `A extends
- * Ord<A>`. This allows us to use `icmp` to implement our desired behavior.
+ * Then, we require that `this` and `that` are `Arr<T>` where `T extends
+ * Ord<T>`. This allows us to use `icmp` to implement our desired behavior.
  *
  * @example Generic implementation with multiple `Ord` requirements
  *
@@ -761,11 +761,11 @@ export function ieq<A extends Eq<A>>(
  * [augmentation]:
  *     https://www.typescriptlang.org/docs/handbook/declaration-merging.html#module-augmentation
  */
-export interface Ord<in A> extends Eq<A> {
+export interface Ord<in T> extends Eq<T> {
     /**
      * Compare this and that `Ord` value to determine their ordering.
      */
-    [Ord.cmp](that: A): Ordering;
+    [Ord.cmp](that: T): Ordering;
 }
 
 /**
@@ -785,7 +785,7 @@ export namespace Ord {
  *
  * `cmp(lhs, rhs)` is equivalent to `lhs[Ord.cmp](rhs)`.
  */
-export function cmp<A extends Ord<A>>(lhs: A, rhs: A): Ordering {
+export function cmp<T extends Ord<T>>(lhs: T, rhs: T): Ordering {
     return lhs[Ord.cmp](rhs);
 }
 
@@ -793,10 +793,10 @@ export function cmp<A extends Ord<A>>(lhs: A, rhs: A): Ordering {
  * Compare two iterables of arbitrary values to determine their lexicographical
  * ordering.
  */
-export function icmpBy<A>(
-    lhs: Iterable<A>,
-    rhs: Iterable<A>,
-    cmpBy: (lhs: A, rhs: A) => Ordering,
+export function icmpBy<T>(
+    lhs: Iterable<T>,
+    rhs: Iterable<T>,
+    cmpBy: (lhs: T, rhs: T) => Ordering,
 ): Ordering {
     const lhsIter = lhs[Symbol.iterator]();
     const rhsIter = rhs[Symbol.iterator]();
@@ -825,9 +825,9 @@ export function icmpBy<A>(
  * Compare two iterables of `Ord` values to determine their lexicographical
  * ordering.
  */
-export function icmp<A extends Ord<A>>(
-    lhs: Iterable<A>,
-    rhs: Iterable<A>,
+export function icmp<T extends Ord<T>>(
+    lhs: Iterable<T>,
+    rhs: Iterable<T>,
 ): Ordering {
     return icmpBy(lhs, rhs, cmp);
 }
@@ -839,7 +839,7 @@ export function icmp<A extends Ord<A>>(
  *
  * Return `true` if `lhs` is less than `rhs`.
  */
-export function lt<A extends Ord<A>>(lhs: A, rhs: A): boolean {
+export function lt<T extends Ord<T>>(lhs: T, rhs: T): boolean {
     return cmp(lhs, rhs).isLt();
 }
 
@@ -850,7 +850,7 @@ export function lt<A extends Ord<A>>(lhs: A, rhs: A): boolean {
  *
  * Return `true` if `lhs` is greater than `rhs`.
  */
-export function gt<A extends Ord<A>>(lhs: A, rhs: A): boolean {
+export function gt<T extends Ord<T>>(lhs: T, rhs: T): boolean {
     return cmp(lhs, rhs).isGt();
 }
 
@@ -861,7 +861,7 @@ export function gt<A extends Ord<A>>(lhs: A, rhs: A): boolean {
  *
  * Return `true` if `lhs` is less than or equal to `rhs`.
  */
-export function le<A extends Ord<A>>(lhs: A, rhs: A): boolean {
+export function le<T extends Ord<T>>(lhs: T, rhs: T): boolean {
     return cmp(lhs, rhs).isLe();
 }
 
@@ -872,7 +872,7 @@ export function le<A extends Ord<A>>(lhs: A, rhs: A): boolean {
  *
  * Return `true` if `lhs` is greater than or equal to `rhs`.
  */
-export function ge<A extends Ord<A>>(lhs: A, rhs: A): boolean {
+export function ge<T extends Ord<T>>(lhs: T, rhs: T): boolean {
     return cmp(lhs, rhs).isGe();
 }
 
@@ -883,7 +883,7 @@ export function ge<A extends Ord<A>>(lhs: A, rhs: A): boolean {
  *
  * If the values are equal, return the first value.
  */
-export function min<A extends Ord<A>>(lhs: A, rhs: A): A {
+export function min<T extends Ord<T>>(lhs: T, rhs: T): T {
     return le(lhs, rhs) ? lhs : rhs;
 }
 
@@ -894,7 +894,7 @@ export function min<A extends Ord<A>>(lhs: A, rhs: A): A {
  *
  * If the values are equal, return the first value.
  */
-export function max<A extends Ord<A>>(lhs: A, rhs: A): A {
+export function max<T extends Ord<T>>(lhs: T, rhs: T): T {
     return ge(lhs, rhs) ? lhs : rhs;
 }
 
@@ -905,7 +905,7 @@ export function max<A extends Ord<A>>(lhs: A, rhs: A): A {
  *
  * `clamp(val, lo, hi)` is equivalent to `min(max(val, lo), hi)`.
  */
-export function clamp<A extends Ord<A>>(val: A, lo: A, hi: A) {
+export function clamp<T extends Ord<T>>(val: T, lo: T, hi: T) {
     return min(max(val, lo), hi);
 }
 
@@ -1113,18 +1113,18 @@ export namespace Ordering {
 /**
  * A helper type for reversing order.
  */
-export class Reverse<out A> {
-    readonly val: A;
+export class Reverse<out T> {
+    readonly val: T;
 
-    constructor(val: A) {
+    constructor(val: T) {
         this.val = val;
     }
 
-    [Eq.eq]<A extends Eq<A>>(this: Reverse<A>, that: Reverse<A>): boolean {
+    [Eq.eq]<T extends Eq<T>>(this: Reverse<T>, that: Reverse<T>): boolean {
         return eq(this.val, that.val);
     }
 
-    [Ord.cmp]<A extends Ord<A>>(this: Reverse<A>, that: Reverse<A>): Ordering {
+    [Ord.cmp]<T extends Ord<T>>(this: Reverse<T>, that: Reverse<T>): Ordering {
         return cmp(this.val, that.val).reverse();
     }
 }

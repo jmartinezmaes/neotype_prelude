@@ -28,18 +28,18 @@ export class Str implements Semigroup<Str> {
 }
 
 export function arbNum(): fc.Arbitrary<Num> {
-    return fc.float({ noNaN: true }).map((x) => new Num(x));
+    return fc.float({ noNaN: true }).map((val) => new Num(val));
 }
 
 export function arbStr(): fc.Arbitrary<Str> {
-    return fc.string().map((x) => new Str(x));
+    return fc.string().map((val) => new Str(val));
 }
 
-export function tuple<T extends unknown[]>(...xs: T): T {
-    return xs;
+export function tuple<TArgs extends unknown[]>(...args: TArgs): TArgs {
+    return args;
 }
 
-export function expectLawfulEq<A extends Eq<A>>(arb: fc.Arbitrary<A>): void {
+export function expectLawfulEq<T extends Eq<T>>(arb: fc.Arbitrary<T>): void {
     fc.assert(
         fc.property(arb, (x) => {
             expect(eq(x, x), "reflexivity").to.be.true;
@@ -61,7 +61,7 @@ export function expectLawfulEq<A extends Eq<A>>(arb: fc.Arbitrary<A>): void {
     );
 }
 
-export function expectLawfulOrd<A extends Ord<A>>(arb: fc.Arbitrary<A>): void {
+export function expectLawfulOrd<T extends Ord<T>>(arb: fc.Arbitrary<T>): void {
     fc.assert(
         fc.property(arb, (x) => {
             expect(le(x, x), "reflexivity").to.be.true;
@@ -78,7 +78,7 @@ export function expectLawfulOrd<A extends Ord<A>>(arb: fc.Arbitrary<A>): void {
         fc.property(arb, arb, arb, (x, y, z) => {
             const [x1, y1, z1] = [x, y, z].sort((a, b) =>
                 cmp(a, b).toNumber(),
-            ) as [A, A, A];
+            ) as [T, T, T];
             expect(le(x1, y1) && le(y1, z1) && le(x1, z1), "transitivity").to.be
                 .true;
         }),
@@ -91,8 +91,8 @@ export function expectLawfulOrd<A extends Ord<A>>(arb: fc.Arbitrary<A>): void {
     );
 }
 
-export function expectLawfulSemigroup<A extends Semigroup<A> & Eq<A>>(
-    arb: fc.Arbitrary<A>,
+export function expectLawfulSemigroup<T extends Semigroup<T> & Eq<T>>(
+    arb: fc.Arbitrary<T>,
 ): void {
     fc.assert(
         fc.property(arb, arb, arb, (x, y, z) => {

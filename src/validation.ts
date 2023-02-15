@@ -19,13 +19,13 @@
  *
  * @remarks
  *
- * `Validation<E, A>` is a type that represents a state of accumulated failure
- * or success. It is represented by two variants: `Err<E>` and `Ok<A>`.
+ * `Validation<E, T>` is a type that represents a state of accumulated failure
+ * or success. It is represented by two variants: `Err<E>` and `Ok<T>`.
  *
  * -   The `Err<E>` variant represents a *failed* `Validation` and contains a
  *     *failure* of type `E`.
- * -   The `Ok<A>` variant represents a *successful* `Validation` and contains a
- *     *success* of type `A`.
+ * -   The `Ok<T>` variant represents a *successful* `Validation` and contains a
+ *     *success* of type `T`.
  *
  * `Validation` is useful for collecting information about **all** failures in a
  * program, rather than halting evaluation on the first failure. This behavior
@@ -93,14 +93,14 @@
  *
  * `Validation` has the following behavior as an equivalence relation:
  *
- * -   A `Validation<E, A>` implements `Eq` when both `E` and `A` implement
+ * -   A `Validation<E, T>` implements `Eq` when both `E` and `T` implement
  *     `Eq`.
  * -   Two `Validation` values are equal if they are the same variant and their
  *     failures or successes are equal.
  *
  * `Validation` has the following behavior as a total order:
  *
- * -   A `Validation<E, A>` implements `Ord` when both `E` and `A` implement
+ * -   A `Validation<E, T>` implements `Ord` when both `E` and `T` implement
  *     `Ord`.
  * -   When ordered, a failed `Validation` always compares as less than any
  *     successful `Validation`. If the variants are the same, their failures or
@@ -110,7 +110,7 @@
  *
  * `Validation` has the following behavior as a semigroup:
  *
- * -   A `Validation<E, A>` implements `Semigroup` when both `E` and `A`
+ * -   A `Validation<E, T>` implements `Semigroup` when both `E` and `T`
  *     implement `Semigroup`.
  * -   When combined, a failed `Validation` ignores the combination and begins
  *     accumulating failures instead. If both succeed, their successes are
@@ -139,15 +139,15 @@
  *
  * -   `collect` turns an array or a tuple literal of `Validation` elements
  *     inside out. For example:
- *     -   `Validation<E, A>[]` becomes `Validation<E, A[]>`
- *     -   `[Validation<E, A>, Validation<E, B>]` becomes `Validation<E, [A,
- *         B]>`
+ *     -   `Validation<E, T>[]` becomes `Validation<E, T[]>`
+ *     -   `[Validation<E, T1>, Validation<E, T2>]` becomes `Validation<E, [T1,
+ *         T2]>`
  * -   `gather` turns a record or an object literal of `Validation` elements
  *     inside out. For example:
- *     -   `Record<string, Validation<E, A>>` becomes `Validation<E,
- *         Record<string, A>>`
- *     -   `{ x: Validation<E, A>, y: Validation<E, B> }` becomes `Validation<E,
- *         { x: A, y: B }>`
+ *     -   `Record<string, Validation<E, T>>` becomes `Validation<E,
+ *         Record<string, T>>`
+ *     -   `{ x: Validation<E, T1>, y: Validation<E, T2> }` becomes
+ *         `Validation<E, { x: T1, y: T2 }>`
  *
  * ## Lifting functions to work with `Validation`
  *
@@ -171,18 +171,18 @@
  *
  * ```ts
  * // A semigroup that wraps arrays
- * class List<out A> {
- *     readonly val: A[]
+ * class List<out T> {
+ *     readonly val: T[]
  *
- *     constructor(...vals: A[]) {
+ *     constructor(...vals: T[]) {
  *         this.val = vals;
  *     }
  *
- *     [Semigroup.cmb](that: List<A>): List<A> {
+ *     [Semigroup.cmb](that: List<T>): List<T> {
  *         return new List(...this.val, ...that.val);
  *     }
  *
- *     toJSON(): A[] {
+ *     toJSON(): T[] {
  *         return this.val;
  *     }
  * }
@@ -242,18 +242,18 @@
  *
  * ```ts
  * // A semigroup that wraps arrays
- * class List<out A> {
- *     readonly val: A[]
+ * class List<out T> {
+ *     readonly val: T[]
  *
- *     constructor(...vals: A[]) {
+ *     constructor(...vals: T[]) {
  *         this.val = vals;
  *     }
  *
- *     [Semigroup.cmb](that: List<A>): List<A> {
+ *     [Semigroup.cmb](that: List<T>): List<T> {
  *         return new List(...this.val, ...that.val);
  *     }
  *
- *     toJSON(): A[] {
+ *     toJSON(): T[] {
  *         return this.val;
  *     }
  * }
@@ -320,18 +320,18 @@
  *
  * ```ts
  * // A semigroup that wraps arrays
- * class List<out A> {
- *     readonly val: A[]
+ * class List<out T> {
+ *     readonly val: T[]
  *
- *     constructor(...vals: A[]) {
+ *     constructor(...vals: T[]) {
  *         this.val = vals;
  *     }
  *
- *     [Semigroup.cmb](that: List<A>): List<A> {
+ *     [Semigroup.cmb](that: List<T>): List<T> {
  *         return new List(...this.val, ...that.val);
  *     }
  *
- *     toJSON(): A[] {
+ *     toJSON(): T[] {
  *         return this.val;
  *     }
  * }
@@ -382,7 +382,7 @@ import { id } from "./fn.js";
 /**
  * A type that represents either accumulating failure (`Err`) or success (`Ok`).
  */
-export type Validation<E, A> = Validation.Err<E> | Validation.Ok<A>;
+export type Validation<E, T> = Validation.Err<E> | Validation.Ok<T>;
 
 /**
  * The companion namespace for the `Validation` type.
@@ -391,14 +391,14 @@ export namespace Validation {
     /**
      * Construct a failed `Validation` from a value.
      */
-    export function err<E, A = never>(val: E): Validation<E, A> {
+    export function err<E, T = never>(val: E): Validation<E, T> {
         return new Err(val);
     }
 
     /**
      * Construct a successful `Validation` from a value.
      */
-    export function ok<A, E = never>(val: A): Validation<E, A> {
+    export function ok<T, E = never>(val: T): Validation<E, T> {
         return new Ok(val);
     }
 
@@ -410,7 +410,7 @@ export namespace Validation {
      * If the `Either` is a `Left`, return its value in an `Err`; otherwise,
      * return its value in an `Ok`.
      */
-    export function fromEither<E, A>(either: Either<E, A>): Validation<E, A> {
+    export function fromEither<A, B>(either: Either<A, B>): Validation<A, B> {
         return either.unwrap(err, ok);
     }
 
@@ -426,13 +426,15 @@ export namespace Validation {
      *
      * For example:
      *
-     * -   `Validation<E, A>[]` becomes `Validation<E, A[]>`
-     * -   `[Validation<E, A>, Validation<E, B>]` becomes `Validation<E, [A,
-     *     B]>`
+     * -   `Validation<E, T>[]` becomes `Validation<E, T[]>`
+     * -   `[Validation<E, T1>, Validation<E, T2>]` becomes `Validation<E, [T1,
+     *     T2]>`
      */
     export function collect<
-        T extends readonly Validation<Semigroup<any>, any>[],
-    >(vdns: T): Validation<ErrT<T[number]>, { [K in keyof T]: OkT<T[K]> }> {
+        TVdns extends readonly Validation<Semigroup<any>, any>[],
+    >(
+        vdns: TVdns,
+    ): Validation<ErrT<TVdns[number]>, { [K in keyof TVdns]: OkT<TVdns[K]> }> {
         let acc = ok<any, any>(new Array(vdns.length));
         for (const [idx, vdn] of vdns.entries()) {
             acc = acc.zipWith(vdn, (results, val) => {
@@ -455,14 +457,19 @@ export namespace Validation {
      *
      * For example:
      *
-     * -   `Record<string, Validation<E, A>>` becomes `Validation<E,
-     *     Record<string, A>`
-     * -   `{ x: Validation<E, A>, y: Validation<E, B> }` becomes `Validation<E,
-     *     { x: A, y: B }>`
+     * -   `Record<string, Validation<E, T>>` becomes `Validation<E,
+     *     Record<string, T>>`
+     * -   `{ x: Validation<E, T1>, y: Validation<E, T2> }` becomes
+     *     `Validation<E, { x: T1, y: T2 }>`
      */
     export function gather<
-        T extends Record<string, Validation<Semigroup<any>, any>>,
-    >(vdns: T): Validation<ErrT<T[keyof T]>, { [K in keyof T]: OkT<T[K]> }> {
+        TVdns extends Record<string, Validation<Semigroup<any>, any>>,
+    >(
+        vdns: TVdns,
+    ): Validation<
+        ErrT<TVdns[keyof TVdns]>,
+        { [K in keyof TVdns]: OkT<TVdns[K]> }
+    > {
         let acc = ok<any, any>({});
         for (const [key, vdn] of Object.entries(vdns)) {
             acc = acc.zipWith(vdn, (results, val) => {
@@ -484,25 +491,25 @@ export namespace Validation {
      * original function to their successes and succeed with the result;
      * otherwise, begin accumulating failures on the first failed `Validation`.
      */
-    export function lift<T extends unknown[], A>(
-        f: (...args: T) => A,
+    export function lift<TArgs extends unknown[], T>(
+        f: (...args: TArgs) => T,
     ): <E extends Semigroup<E>>(
-        ...vdns: { [K in keyof T]: Validation<E, T[K]> }
-    ) => Validation<E, A> {
+        ...vdns: { [K in keyof TArgs]: Validation<E, TArgs[K]> }
+    ) => Validation<E, T> {
         // prettier-ignore
         return (...vdns) =>
             collect(vdns).map(
-                (args) => f(...(args as T))
-            ) as Validation<any, A>;
+                (args) => f(...(args as TArgs))
+            ) as Validation<any, T>;
     }
 
     /**
      * The fluent syntax for `Validation`.
      */
     export abstract class Syntax {
-        [Eq.eq]<E extends Eq<E>, A extends Eq<A>>(
-            this: Validation<E, A>,
-            that: Validation<E, A>,
+        [Eq.eq]<E extends Eq<E>, T extends Eq<T>>(
+            this: Validation<E, T>,
+            that: Validation<E, T>,
         ): boolean {
             if (this.isErr()) {
                 return that.isErr() && eq(this.val, that.val);
@@ -510,9 +517,9 @@ export namespace Validation {
             return that.isOk() && eq(this.val, that.val);
         }
 
-        [Ord.cmp]<E extends Ord<E>, A extends Ord<A>>(
-            this: Validation<E, A>,
-            that: Validation<E, A>,
+        [Ord.cmp]<E extends Ord<E>, T extends Ord<T>>(
+            this: Validation<E, T>,
+            that: Validation<E, T>,
         ): Ordering {
             if (this.isErr()) {
                 return that.isErr() ? cmp(this.val, that.val) : Ordering.less;
@@ -520,10 +527,10 @@ export namespace Validation {
             return that.isOk() ? cmp(this.val, that.val) : Ordering.greater;
         }
 
-        [Semigroup.cmb]<E extends Semigroup<E>, A extends Semigroup<A>>(
-            this: Validation<E, A>,
-            that: Validation<E, A>,
-        ): Validation<E, A> {
+        [Semigroup.cmb]<E extends Semigroup<E>, T extends Semigroup<T>>(
+            this: Validation<E, T>,
+            that: Validation<E, T>,
+        ): Validation<E, T> {
             return this.zipWith(that, cmb);
         }
 
@@ -537,18 +544,18 @@ export namespace Validation {
         /**
          * Test whether this `Validation` has succeeded.
          */
-        isOk<A>(this: Validation<any, A>): this is Ok<A> {
+        isOk<T>(this: Validation<any, T>): this is Ok<T> {
             return this.kind === Kind.OK;
         }
 
         /**
          * Case analysis for `Validation`.
          */
-        unwrap<E, A, B, B1>(
-            this: Validation<E, A>,
-            unwrapErr: (val: E) => B,
-            unwrapOk: (val: A) => B1,
-        ): B | B1 {
+        unwrap<E, T, T1, T2>(
+            this: Validation<E, T>,
+            unwrapErr: (val: E) => T1,
+            unwrapOk: (val: T) => T2,
+        ): T1 | T2 {
             return this.isErr() ? unwrapErr(this.val) : unwrapOk(this.val);
         }
 
@@ -557,11 +564,11 @@ export namespace Validation {
          * successes and succeed with the result; otherwise, begin accumulating
          * failures on the first failed `Validation`.
          */
-        zipWith<E extends Semigroup<E>, A, B, C>(
-            this: Validation<E, A>,
-            that: Validation<E, B>,
-            f: (lhs: A, rhs: B) => C,
-        ): Validation<E, C> {
+        zipWith<E extends Semigroup<E>, T, T1, T2>(
+            this: Validation<E, T>,
+            that: Validation<E, T1>,
+            f: (lhs: T, rhs: T1) => T2,
+        ): Validation<E, T2> {
             if (this.isErr()) {
                 return that.isErr() ? err(cmb(this.val, that.val)) : this;
             }
@@ -573,10 +580,10 @@ export namespace Validation {
          * first success and discard the second; otherwise, begin accumulating
          * failures on the first failed `Validation`.
          */
-        zipFst<E extends Semigroup<E>, A>(
-            this: Validation<E, A>,
+        zipFst<E extends Semigroup<E>, T>(
+            this: Validation<E, T>,
             that: Validation<E, any>,
-        ): Validation<E, A> {
+        ): Validation<E, T> {
             return this.zipWith(that, id);
         }
 
@@ -585,10 +592,10 @@ export namespace Validation {
          * second success and discard the first; otherwise, begin accumulating
          * failures on the first failed `Validation`.
          */
-        zipSnd<E extends Semigroup<E>, B>(
+        zipSnd<E extends Semigroup<E>, T1>(
             this: Validation<E, any>,
-            that: Validation<E, B>,
-        ): Validation<E, B> {
+            that: Validation<E, T1>,
+        ): Validation<E, T1> {
             return this.zipWith(that, (_, rhs) => rhs);
         }
 
@@ -596,10 +603,10 @@ export namespace Validation {
          * If this `Validation` fails, apply a function to its failure and fail
          * with the result; otherwise, return this `Validation` as is.
          */
-        lmap<E, A, E1>(
-            this: Validation<E, A>,
+        lmap<E, T, E1>(
+            this: Validation<E, T>,
             f: (val: E) => E1,
-        ): Validation<E1, A> {
+        ): Validation<E1, T> {
             return this.isErr() ? err(f(this.val)) : this;
         }
 
@@ -607,10 +614,10 @@ export namespace Validation {
          * If this `Validation` succeeds, apply a function to its success and
          * succeed with the result; otherwise, return this `Validation` as is.
          */
-        map<E, A, B>(
-            this: Validation<E, A>,
-            f: (val: A) => B,
-        ): Validation<E, B> {
+        map<E, T, T1>(
+            this: Validation<E, T>,
+            f: (val: T) => T1,
+        ): Validation<E, T1> {
             return this.isErr() ? this : ok(f(this.val));
         }
     }
@@ -643,31 +650,31 @@ export namespace Validation {
     /**
      * A successful `Validation`.
      */
-    export class Ok<out A> extends Syntax {
+    export class Ok<out T> extends Syntax {
         /**
          * The property that discriminates `Validation`.
          */
         readonly kind = Kind.OK;
 
-        readonly val: A;
+        readonly val: T;
 
-        constructor(val: A) {
+        constructor(val: T) {
             super();
             this.val = val;
         }
     }
 
     /**
-     * Extract the failure type `E` from the type `Validation<E, A>`.
+     * Extract the failure type `E` from the type `Validation<E, T>`.
      */
     // prettier-ignore
-    export type ErrT<T extends Validation<any, any>> =
-        [T] extends [Validation<infer E, any>] ? E : never;
+    export type ErrT<TVdn extends Validation<any, any>> =
+        [TVdn] extends [Validation<infer E, any>] ? E : never;
 
     /**
-     * Extract the success type `A` from the type `Validation<E, A>`.
+     * Extract the success type `T` from the type `Validation<E, T>`.
      */
     // prettier-ignore
-    export type OkT<T extends Validation<any, any>> =
-        [T] extends [Validation<any, infer A>] ? A : never;
+    export type OkT<TVdn extends Validation<any, any>> =
+        [TVdn] extends [Validation<any, infer T>] ? T : never;
 }

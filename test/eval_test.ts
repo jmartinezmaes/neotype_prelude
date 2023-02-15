@@ -69,7 +69,7 @@ describe("eval.js", () => {
 
         describe("goFn", () => {
             it("accesses the parameters of the generator function", () => {
-                const f = Eval.goFn(function* <A>(w: A) {
+                const f = Eval.goFn(function* <T>(w: T) {
                     const x = yield* Eval.now<1>(1);
                     const [y, z] = yield* Eval.now(tuple<[1, 2]>(x, 2));
                     return tuple(w, x, y, z);
@@ -132,27 +132,27 @@ describe("eval.js", () => {
             });
 
             it("implements a lawful semigroup", () => {
-                class RunEval<out A> {
-                    constructor(readonly val: Eval<A>) {}
+                class RunEval<out T> {
+                    constructor(readonly val: Eval<T>) {}
 
-                    [Eq.eq]<A extends Eq<A>>(
-                        this: RunEval<A>,
-                        that: RunEval<A>,
+                    [Eq.eq]<T extends Eq<T>>(
+                        this: RunEval<T>,
+                        that: RunEval<T>,
                     ): boolean {
                         return eq(this.val.run(), that.val.run());
                     }
 
-                    [Semigroup.cmb]<A extends Semigroup<A>>(
-                        this: RunEval<A>,
-                        that: RunEval<A>,
-                    ): RunEval<A> {
+                    [Semigroup.cmb]<T extends Semigroup<T>>(
+                        this: RunEval<T>,
+                        that: RunEval<T>,
+                    ): RunEval<T> {
                         return new RunEval(cmb(this.val, that.val));
                     }
                 }
 
-                function arbRunEval<A>(
-                    arb: fc.Arbitrary<A>,
-                ): fc.Arbitrary<RunEval<A>> {
+                function arbRunEval<T>(
+                    arb: fc.Arbitrary<T>,
+                ): fc.Arbitrary<RunEval<T>> {
                     return arb.chain((x) =>
                         fc
                             .oneof(

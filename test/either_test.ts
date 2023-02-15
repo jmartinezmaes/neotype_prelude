@@ -77,7 +77,7 @@ describe("either.js", () => {
 
         describe("goFn", () => {
             it("accesses the parameters of the generator function", () => {
-                const f = Either.goFn(function* <A>(w: A) {
+                const f = Either.goFn(function* <T>(w: T) {
                     const x = yield* Either.right<2, 1>(2);
                     const [y, z] = yield* Either.right<[2, 4], 3>([x, 4]);
                     return tuple(w, x, y, z);
@@ -174,7 +174,7 @@ describe("either.js", () => {
 
         describe("goAsyncFn", () => {
             it("accesses the parameters of the async generator function", async () => {
-                const f = Either.goAsyncFn(async function* <A>(w: A) {
+                const f = Either.goAsyncFn(async function* <T>(w: T) {
                     const x = yield* await Promise.resolve(
                         Either.right<2, 1>(2),
                     );

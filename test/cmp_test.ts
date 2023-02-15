@@ -624,10 +624,10 @@ describe("cmp.js", () => {
     });
 
     describe("Reverse", () => {
-        function arbReverse<A>(
-            arbVal: fc.Arbitrary<A>,
-        ): fc.Arbitrary<Reverse<A>> {
-            return arbVal.map((x) => new Reverse(x));
+        function arbReverse<T>(
+            arbVal: fc.Arbitrary<T>,
+        ): fc.Arbitrary<Reverse<T>> {
+            return arbVal.map((val) => new Reverse(val));
         }
 
         describe("#[Eq.eq]", () => {

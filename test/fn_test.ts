@@ -44,8 +44,8 @@ describe("fn.js", () => {
 
     describe("wrapCtor", () => {
         it("adapts the constructor into a callable function", () => {
-            class Box<A> {
-                constructor(readonly val: A) {}
+            class Box<T> {
+                constructor(readonly val: T) {}
             }
             const f = wrapCtor(Box);
             const box = f<1>(1);

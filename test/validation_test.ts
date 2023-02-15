@@ -16,10 +16,10 @@ import {
 
 describe("validation.js", () => {
     describe("Validation", () => {
-        function arbValidation<E, A>(
+        function arbValidation<E, T>(
             arbErr: fc.Arbitrary<E>,
-            arbOk: fc.Arbitrary<A>,
-        ): fc.Arbitrary<Validation<E, A>> {
+            arbOk: fc.Arbitrary<T>,
+        ): fc.Arbitrary<Validation<E, T>> {
             return fc.oneof(
                 arbErr.map(Validation.err),
                 arbOk.map(Validation.ok),
