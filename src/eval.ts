@@ -152,26 +152,30 @@
  * }
  *
  * function foldTree<A, B>(
- *     xs: Tree<A>,
- *     onEmpty: B,
- *     foldBranch: (val: A, l: B, r: B) => B
+ *     tree: Tree<A>,
+ *     ifEmpty: B,
+ *     foldBranch: (val: A, lhs: B, rhs: B) => B
  * ): Eval<B> {
- *     if (xs.kind === "EMPTY") {
- *         return Eval.now(onEmpty);
+ *     if (tree.kind === "EMPTY") {
+ *         return Eval.now(ifEmpty);
  *     }
  *     // Challenge for the reader: why is `defer` needed here?
  *     // Hint: it pertains to stack safety and eager evaluation.
  *     return Eval.defer(() =>
- *         foldTree(xs.lst, onEmpty, foldBranch).flatMap((l) =>
- *             foldTree(xs.rst, onEmpty, foldBranch).map((r) =>
- *                 foldBranch(xs.val, l, r),
+ *         foldTree(tree.lst, ifEmpty, foldBranch).flatMap((lhs) =>
+ *             foldTree(tree.rst, ifEmpty, foldBranch).map((rhs) =>
+ *                 foldBranch(tree.val, lhs, rhs),
  *             ),
  *         ),
  *     );
  * }
  *
- * function inOrder<A>(xs: Tree<A>): Eval<A[]> {
- *     return foldTree(xs, [] as A[], (x, lxs, rxs) => [...lxs, x, ...rxs]);
+ * function inOrder<A>(tree: Tree<A>): Eval<A[]> {
+ *     return foldTree(
+ *         tree,
+ *         [] as A[],
+ *         (val, lhs, rhs) => [...lhs, val, ...rhs],
+ *     );
  * }
  *
  * const oneToSeven: Tree<number> = branch(
@@ -190,19 +194,19 @@
  *
  * ```ts
  * function foldTree<A, B>(
- *     xs: Tree<A>,
- *     onEmpty: B,
- *     foldBranch: (val: A, l: B, r: B) => B
+ *     tree: Tree<A>,
+ *     ifEmpty: B,
+ *     foldBranch: (val: A, lhs: B, rhs: B) => B
  * ): Eval<B> {
  *     return Eval.go(function* () {
- *         if (xs.kind === "EMPTY") {
- *             return onEmpty;
+ *         if (tree.kind === "EMPTY") {
+ *             return ifEmpty;
  *         }
  *         // Challenge for the reader: why is `defer` not needed here?
  *         // Hint: it pertains to the behavior of `go`.
- *         const l = yield* foldTree(xs.lst, onEmpty, foldBranch);
- *         const r = yield* foldTree(xs.rst, onEmpty, foldBranch);
- *         return foldBranch(xs.val, l, r);
+ *         const lhs = yield* foldTree(tree.lst, ifEmpty, foldBranch);
+ *         const rhs = yield* foldTree(tree.rst, ifEmpty, foldBranch);
+ *         return foldBranch(tree.val, lhs, rhs);
  *     });
  * }
  * ```
@@ -212,11 +216,19 @@
  *
  * ```ts
  * function preOrder<A>(tree: Tree<A>): Eval<A[]> {
- *     return foldTree(tree, [] as A[], (x, lxs, rxs) => [x, ...lxs, ...rxs]);
+ *     return foldTree(
+ *         tree,
+ *         [] as A[],
+ *         (val, lhs, rhs) => [val, ...lhs, ...rhs],
+ *     );
  * }
  *
  * function postOrder<A>(tree: Tree<A>): Eval<A[]> {
- *     return foldTree(tree, [] as A[], (x, lxs, rxs) => [...lxs, ...rxs, x]);
+ *     return foldTree(
+ *         tree,
+ *         [] as A[],
+ *         (val, lhs, rhs) => [...lhs, ...rhs, val],
+ *     );
  * }
  *
  * type Traversals<A> = readonly [in: A[], pre: A[], post: A[]];
@@ -291,8 +303,8 @@ export class Eval<out A> {
     /**
      * Construct an `Eval` eagerly from a value.
      */
-    static now<A>(x: A): Eval<A> {
-        return new Eval(Ixn.now(x));
+    static now<A>(val: A): Eval<A> {
+        return new Eval(Ixn.now(val));
     }
 
     /**
@@ -325,7 +337,7 @@ export class Eval<out A> {
         if (nxt.done) {
             return Eval.now(nxt.value);
         }
-        return nxt.value.flatMap((x) => Eval.#step(gen, gen.next(x)));
+        return nxt.value.flatMap((val) => Eval.#step(gen, gen.next(val)));
     }
 
     /**
@@ -353,19 +365,19 @@ export class Eval<out A> {
      * ```ts
      * import { Eval } from "@neotype/prelude/eval.js";
      *
-     * const arg0: Eval<number> = Eval.now(1);
-     * const arg1: Eval<number> = Eval.now(2);
-     * const arg2: Eval<number> = Eval.now(3);
+     * const evalOne: Eval<number> = Eval.now(1);
+     * const evalTimeMs: Eval<number> = Eval.always(() => Date.now());
+     * const evalRand: Eval<number> = Eval.always(() => Math.random());
      *
      * const summed: Eval<number> = Eval.go(function* () {
-     *     const x = yield* arg0;
-     *     const y = yield* arg1;
-     *     const z = yield* arg2;
+     *     const one = yield* evalOne;
+     *     const timeMs = yield* evalTimeMs;
+     *     const rand = yield* evalRand;
      *
-     *     return x + y + z;
+     *     return one + timeMs + rand;
      * });
      *
-     * console.log(summed.run()); // 6
+     * console.log(summed.run());
      * ```
      */
     static go<A>(f: () => Generator<Eval<any>, A, unknown>): Eval<A> {
@@ -404,14 +416,14 @@ export class Eval<out A> {
      * remaining, and then return the final accumulator in an `Eval`.
      */
     static reduce<A, B>(
-        xs: Iterable<A>,
-        f: (acc: B, x: A) => Eval<B>,
+        vals: Iterable<A>,
+        accum: (acc: B, val: A) => Eval<B>,
         initial: B,
     ): Eval<B> {
         return Eval.go(function* () {
             let acc = initial;
-            for (const x of xs) {
-                acc = yield* f(acc, x);
+            for (const val of vals) {
+                acc = yield* accum(acc, val);
             }
             return acc;
         });
@@ -515,7 +527,7 @@ export class Eval<out A> {
     /**
      * Apply a function to the outcome of this `Eval` to return another `Eval`.
      */
-    flatMap<B>(f: (x: A) => Eval<B>): Eval<B> {
+    flatMap<B>(f: (val: A) => Eval<B>): Eval<B> {
         return new Eval(Ixn.flatMap(this, f));
     }
 
@@ -523,8 +535,8 @@ export class Eval<out A> {
      * Apply a function to the outcomes of this and that `Eval` and return the
      * result in an `Eval`.
      */
-    zipWith<B, C>(that: Eval<B>, f: (x: A, y: B) => C): Eval<C> {
-        return this.flatMap((x) => that.map((y) => f(x, y)));
+    zipWith<B, C>(that: Eval<B>, f: (lhs: A, rhs: B) => C): Eval<C> {
+        return this.flatMap((lhs) => that.map((rhs) => f(lhs, rhs)));
     }
 
     /**
@@ -547,26 +559,26 @@ export class Eval<out A> {
      * Apply a function to the outcome of this `Eval` and return the result
      * in an `Eval`.
      */
-    map<B>(f: (a: A) => B): Eval<B> {
-        return this.flatMap((x) => Eval.now(f(x)));
+    map<B>(f: (val: A) => B): Eval<B> {
+        return this.flatMap((val) => Eval.now(f(val)));
     }
 
     /**
      * Evaluate this `Eval` to return its outcome.
      */
     run(): A {
-        const conts = new MutStack<(x: any) => Eval<any>>();
+        const conts = new MutStack<(val: any) => Eval<any>>();
         // eslint-disable-next-line @typescript-eslint/no-this-alias
         let currentEval: Eval<any> = this;
 
         for (;;) {
             switch (currentEval.#ixn.kind) {
                 case Ixn.Kind.NOW: {
-                    const k = conts.pop();
-                    if (!k) {
+                    const cont = conts.pop();
+                    if (!cont) {
                         return currentEval.#ixn.val;
                     }
-                    currentEval = k(currentEval.#ixn.val);
+                    currentEval = cont(currentEval.#ixn.val);
                     break;
                 }
 
@@ -622,7 +634,7 @@ namespace Ixn {
     export interface FlatMap {
         readonly kind: Kind.FLAT_MAP;
         readonly ev: Eval<any>;
-        readonly cont: (x: any) => Eval<any>;
+        readonly cont: (val: any) => Eval<any>;
     }
 
     export interface Once {
@@ -643,7 +655,7 @@ namespace Ixn {
 
     export function flatMap<A, B>(
         ev: Eval<A>,
-        cont: (x: A) => Eval<B>,
+        cont: (val: A) => Eval<B>,
     ): FlatMap {
         return { kind: Kind.FLAT_MAP, ev, cont };
     }

@@ -391,15 +391,15 @@ export namespace Validation {
     /**
      * Construct a failed `Validation` from a value.
      */
-    export function err<E, A = never>(x: E): Validation<E, A> {
-        return new Err(x);
+    export function err<E, A = never>(val: E): Validation<E, A> {
+        return new Err(val);
     }
 
     /**
      * Construct a successful `Validation` from a value.
      */
-    export function ok<A, E = never>(x: A): Validation<E, A> {
-        return new Ok(x);
+    export function ok<A, E = never>(val: A): Validation<E, A> {
+        return new Ok(val);
     }
 
     /**
@@ -435,8 +435,8 @@ export namespace Validation {
     >(vdns: T): Validation<ErrT<T[number]>, { [K in keyof T]: OkT<T[K]> }> {
         let acc = ok<any, any>(new Array(vdns.length));
         for (const [idx, vdn] of vdns.entries()) {
-            acc = acc.zipWith(vdn, (results, x) => {
-                results[idx] = x;
+            acc = acc.zipWith(vdn, (results, val) => {
+                results[idx] = val;
                 return results;
             });
         }
@@ -465,8 +465,8 @@ export namespace Validation {
     >(vdns: T): Validation<ErrT<T[keyof T]>, { [K in keyof T]: OkT<T[K]> }> {
         let acc = ok<any, any>({});
         for (const [key, vdn] of Object.entries(vdns)) {
-            acc = acc.zipWith(vdn, (results, x) => {
-                results[key] = x;
+            acc = acc.zipWith(vdn, (results, val) => {
+                results[key] = val;
                 return results;
             });
         }
@@ -489,11 +489,11 @@ export namespace Validation {
     ): <E extends Semigroup<E>>(
         ...vdns: { [K in keyof T]: Validation<E, T[K]> }
     ) => Validation<E, A> {
+        // prettier-ignore
         return (...vdns) =>
-            collect(vdns).map((args) => f(...(args as T))) as Validation<
-                any,
-                A
-            >;
+            collect(vdns).map(
+                (args) => f(...(args as T))
+            ) as Validation<any, A>;
     }
 
     /**
@@ -546,10 +546,10 @@ export namespace Validation {
          */
         unwrap<E, A, B, B1>(
             this: Validation<E, A>,
-            onErr: (x: E) => B,
-            onOk: (x: A) => B1,
+            unwrapErr: (val: E) => B,
+            unwrapOk: (val: A) => B1,
         ): B | B1 {
-            return this.isErr() ? onErr(this.val) : onOk(this.val);
+            return this.isErr() ? unwrapErr(this.val) : unwrapOk(this.val);
         }
 
         /**
@@ -560,7 +560,7 @@ export namespace Validation {
         zipWith<E extends Semigroup<E>, A, B, C>(
             this: Validation<E, A>,
             that: Validation<E, B>,
-            f: (x: A, y: B) => C,
+            f: (lhs: A, rhs: B) => C,
         ): Validation<E, C> {
             if (this.isErr()) {
                 return that.isErr() ? err(cmb(this.val, that.val)) : this;
@@ -589,7 +589,7 @@ export namespace Validation {
             this: Validation<E, any>,
             that: Validation<E, B>,
         ): Validation<E, B> {
-            return this.zipWith(that, (_, y) => y);
+            return this.zipWith(that, (_, rhs) => rhs);
         }
 
         /**
@@ -598,7 +598,7 @@ export namespace Validation {
          */
         lmap<E, A, E1>(
             this: Validation<E, A>,
-            f: (x: E) => E1,
+            f: (val: E) => E1,
         ): Validation<E1, A> {
             return this.isErr() ? err(f(this.val)) : this;
         }
@@ -607,7 +607,10 @@ export namespace Validation {
          * If this `Validation` succeeds, apply a function to its success and
          * succeed with the result; otherwise, return this `Validation` as is.
          */
-        map<E, A, B>(this: Validation<E, A>, f: (x: A) => B): Validation<E, B> {
+        map<E, A, B>(
+            this: Validation<E, A>,
+            f: (val: A) => B,
+        ): Validation<E, B> {
             return this.isErr() ? this : ok(f(this.val));
         }
     }

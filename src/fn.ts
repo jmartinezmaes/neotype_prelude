@@ -23,8 +23,8 @@
 /**
  * The identity function.
  */
-export function id<A>(x: A): A {
-    return x;
+export function id<A>(val: A): A {
+    return val;
 }
 
 /**
@@ -35,16 +35,16 @@ export function id<A>(x: A): A {
  * This function is useful for eagerly memoizing a value that would otherwise be
  * suspended behind a function.
  */
-export function constant<A>(x: A): (...args: any[]) => A {
-    return () => x;
+export function constant<A>(val: A): (...args: any[]) => A {
+    return () => val;
 }
 
 /**
  * Adapt a predicate into an identical predicate that negates its result.
  */
 export function negatePred<A, A1 extends A>(
-    f: (x: A) => x is A1,
-): (x: A) => x is Exclude<A, A1>;
+    f: (val: A) => val is A1,
+): (val: A) => val is Exclude<A, A1>;
 
 export function negatePred<T extends unknown[]>(
     f: (...args: T) => boolean,
