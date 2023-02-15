@@ -761,10 +761,10 @@ export namespace Maybe {
          */
         unwrap<A, B, C>(
             this: Maybe<A>,
-            onNothing: () => B,
-            onJust: (val: A) => C,
+            ifNothing: () => B,
+            unwrapJust: (val: A) => C,
         ): B | C {
-            return this.isNothing() ? onNothing() : onJust(this.val);
+            return this.isNothing() ? ifNothing() : unwrapJust(this.val);
         }
 
         /**
