@@ -30,13 +30,13 @@
  * ### Handling failure with `Either`
  *
  * `Either` is also used to represent a value which is either a success or a
- * failure. In this context, the type is written as `Either<E, A>` and its two
- * variants are `Left<E>` and `Right<A>`.
+ * failure. In this context, the type is written as `Either<E, T>` and its two
+ * variants are `Left<E>` and `Right<T>`.
  *
  * -   The `Left<E>` variant represents a *failed* `Either` and contains a
  *     *failure* of type `E`.
- * -   The `Right<A>` variant represents a *successful* `Either` and contains a
- *     *success* of type `A`.
+ * -   The `Right<T>` variant represents a *successful* `Either` and contains a
+ *     *success* of type `T`.
  *
  * Some combinators for `Either` are specialized for this failure-handling
  * use case, and provide a right-biased behavior that "short-circuits" a
@@ -113,8 +113,7 @@
  *
  * `Either` has the following behavior as a semigroup:
  *
- * -   An `Either<E, A>` implements `Semigroup` when both `E` and `A` implement
- *     `Semigroup`.
+ * -   An `Either<E, T>` implements `Semigroup` when `T` implements `Semigroup`.
  * -   When combined, any left-sided `Either` short-circuits the combination and
  *     is returned instead. If both are right-sided, their values are combined
  *     and returned in a `Right`.
@@ -172,13 +171,13 @@
  *
  * -   `collect` turns an array or a tuple literal of `Either` elements inside
  *     out. For example:
- *     -   `Either<E, A>[]` becomes `Either<E, A[]>`
- *     -   `[Either<E, A>, Either<E, B>]` becomes `Either<E, [A, B]>`
+ *     -   `Either<E, T>[]` becomes `Either<E, T[]>`
+ *     -   `[Either<E, T1>, Either<E, T2>]` becomes `Either<E, [T1, T2]>`
  * -   `gather` turns a record or an object literal of `Either` elements inside
  *     out. For example:
- *     -   `Record<string, Either<E, A>>` becomes `Either<E, Record<string, A>>`
- *     -   `{ x: Either<E, A>, y: Either<E, B> }` becomes `Either<E, { x: A, y:
- *         B }>`
+ *     -   `Record<string, Either<E, T>>` becomes `Either<E, Record<string, T>>`
+ *     -   `{ x: Either<E, T1>, y: Either<E, T2> }` becomes `Either<E, { x: T1,
+ *         y: T2 }>`
  *
  * The `reduce` function reduces a finite iterable from left to right in the
  * context of `Either`. This is useful for mapping, filtering, and accumulating
@@ -420,13 +419,13 @@ export namespace Either {
      * If the `Validation` is an `Err`, return its failure in a `Left`;
      * otherwise, return its success in a `Right`.
      */
-    export function fromValidation<E, A>(vdn: Validation<E, A>): Either<E, A> {
+    export function fromValidation<E, T>(vdn: Validation<E, T>): Either<E, T> {
         return vdn.unwrap(left, right);
     }
 
-    function step<T extends Either<any, any>, A>(
-        gen: Generator<T, A, unknown>,
-    ): Either<LeftT<T>, A> {
+    function step<TYield extends Either<any, any>, TReturn>(
+        gen: Generator<TYield, TReturn, unknown>,
+    ): Either<LeftT<TYield>, TReturn> {
         let nxt = gen.next();
         while (!nxt.done) {
             const either = nxt.value;
@@ -493,9 +492,9 @@ export namespace Either {
      * const errOrTwo: Either<string, number> = Either.left("oops");
      * ```
      */
-    export function go<T extends Either<any, any>, A>(
-        f: () => Generator<T, A, unknown>,
-    ): Either<LeftT<T>, A> {
+    export function go<TYield extends Either<any, any>, TReturn>(
+        f: () => Generator<TYield, TReturn, unknown>,
+    ): Either<LeftT<TYield>, TReturn> {
         return step(f());
     }
 
@@ -507,9 +506,13 @@ export namespace Either {
      *
      * This is the higher-order function variant of `go`.
      */
-    export function goFn<T extends unknown[], T1 extends Either<any, any>, A>(
-        f: (...args: T) => Generator<T1, A, unknown>,
-    ): (...args: T) => Either<LeftT<T1>, A> {
+    export function goFn<
+        TArgs extends unknown[],
+        TYield extends Either<any, any>,
+        TReturn,
+    >(
+        f: (...args: TArgs) => Generator<TYield, TReturn, unknown>,
+    ): (...args: TArgs) => Either<LeftT<TYield>, TReturn> {
         return (...args) => step(f(...args));
     }
 
@@ -525,11 +528,11 @@ export namespace Either {
      * succeed with the final accumulator; otherwise, return the first failed
      * `Either`.
      */
-    export function reduce<A, B, E>(
-        vals: Iterable<A>,
-        accum: (acc: B, val: A) => Either<E, B>,
-        initial: B,
-    ): Either<E, B> {
+    export function reduce<T, TAcc, E>(
+        vals: Iterable<T>,
+        accum: (acc: TAcc, val: T) => Either<E, TAcc>,
+        initial: TAcc,
+    ): Either<E, TAcc> {
         return go(function* () {
             let acc = initial;
             for (const val of vals) {
@@ -551,12 +554,15 @@ export namespace Either {
      *
      * For example:
      *
-     * -   `Either<E, A>[]` becomes `Either<E, A[]>`
-     * -   `[Either<E, A>, Either<E, B>]` becomes `Either<E, [A, B]>`
+     * -   `Either<E, T>[]` becomes `Either<E, T[]>`
+     * -   `[Either<E, T1>, Either<E, T2>]` becomes `Either<E, [T1, T2]>`
      */
-    export function collect<T extends readonly Either<any, any>[]>(
-        eithers: T,
-    ): Either<LeftT<T[number]>, { [K in keyof T]: RightT<T[K]> }> {
+    export function collect<TEithers extends readonly Either<any, any>[]>(
+        eithers: TEithers,
+    ): Either<
+        LeftT<TEithers[number]>,
+        { [K in keyof TEithers]: RightT<TEithers[K]> }
+    > {
         return go(function* () {
             const results: unknown[] = new Array(eithers.length);
             for (const [idx, either] of eithers.entries()) {
@@ -578,13 +584,16 @@ export namespace Either {
      *
      * For example:
      *
-     * -   `Record<string, Either<E, A>>` becomes `Either<E, Record<string, A>>`
-     * -   `{ x: Either<E, A>, y: Either<E, B> }` becomes `Either<E, { x: A, y:
-     *     B }`
+     * -   `Record<string, Either<E, T>>` becomes `Either<E, Record<string, T>>`
+     * -   `{ x: Either<E, T1>, y: Either<E, T2> }` becomes `Either<E, { x: T1,
+     *     y: T2 }>`
      */
-    export function gather<T extends Record<any, Either<any, any>>>(
-        eithers: T,
-    ): Either<LeftT<T[keyof T]>, { [K in keyof T]: RightT<T[K]> }> {
+    export function gather<TEithers extends Record<any, Either<any, any>>>(
+        eithers: TEithers,
+    ): Either<
+        LeftT<TEithers[keyof TEithers]>,
+        { [K in keyof TEithers]: RightT<TEithers[K]> }
+    > {
         return go(function* () {
             const results: Record<any, unknown> = {};
             for (const [key, either] of Object.entries(eithers)) {
@@ -605,18 +614,18 @@ export namespace Either {
      * original function to their successes and succeed with the result;
      * otherwise, return the first failed `Either`.
      */
-    export function lift<T extends unknown[], A>(
-        f: (...args: T) => A,
-    ): <T1 extends { [K in keyof T]: Either<any, T[K]> }>(
-        ...eithers: T1
-    ) => Either<LeftT<T1[number]>, A> {
+    export function lift<TArgs extends unknown[], T>(
+        f: (...args: TArgs) => T,
+    ): <TEithers extends { [K in keyof TArgs]: Either<any, TArgs[K]> }>(
+        ...eithers: TEithers
+    ) => Either<LeftT<TEithers[number]>, T> {
         return (...eithers) =>
-            collect(eithers).map((args) => f(...(args as T)));
+            collect(eithers).map((args) => f(...(args as TArgs)));
     }
 
-    async function stepAsync<T extends Either<any, any>, A>(
-        gen: AsyncGenerator<T, A, unknown>,
-    ): Promise<Either<LeftT<T>, A>> {
+    async function stepAsync<TYield extends Either<any, any>, TReturn>(
+        gen: AsyncGenerator<TYield, TReturn, unknown>,
+    ): Promise<Either<LeftT<TYield>, TReturn>> {
         let nxt = await gen.next();
         while (!nxt.done) {
             const either = nxt.value;
@@ -660,9 +669,9 @@ export namespace Either {
      *     keyword, statements, loops, declarations, etc.) is permitted within
      *     async generator comprehensions.
      */
-    export function goAsync<T extends Either<any, any>, A>(
-        f: () => AsyncGenerator<T, A, unknown>,
-    ): Promise<Either<LeftT<T>, A>> {
+    export function goAsync<TYield extends Either<any, any>, TReturn>(
+        f: () => AsyncGenerator<TYield, TReturn, unknown>,
+    ): Promise<Either<LeftT<TYield>, TReturn>> {
         return stepAsync(f());
     }
 
@@ -675,12 +684,12 @@ export namespace Either {
      * This is the higher-order function variant of `goAsync`.
      */
     export function goAsyncFn<
-        T extends unknown[],
-        T1 extends Either<any, any>,
-        A,
+        TArgs extends unknown[],
+        TYield extends Either<any, any>,
+        TReturn,
     >(
-        f: (...args: T) => AsyncGenerator<T1, A, unknown>,
-    ): (...args: T) => Promise<Either<LeftT<T1>, A>> {
+        f: (...args: TArgs) => AsyncGenerator<TYield, TReturn, unknown>,
+    ): (...args: TArgs) => Promise<Either<LeftT<TYield>, TReturn>> {
         return (...args) => stepAsync(f(...args));
     }
 
@@ -708,10 +717,10 @@ export namespace Either {
             return that.isRight() ? cmp(this.val, that.val) : Ordering.greater;
         }
 
-        [Semigroup.cmb]<E, A extends Semigroup<A>>(
-            this: Either<E, A>,
-            that: Either<E, A>,
-        ): Either<E, A> {
+        [Semigroup.cmb]<E, T extends Semigroup<T>>(
+            this: Either<E, T>,
+            that: Either<E, T>,
+        ): Either<E, T> {
             return this.zipWith(that, cmb);
         }
 
@@ -733,11 +742,11 @@ export namespace Either {
          * Apply one of two functions to the value of this `Either` depending
          * on its variant, and return the result.
          */
-        unwrap<A, B, C, D>(
+        unwrap<A, B, T1, T2>(
             this: Either<A, B>,
-            unwrapLeft: (val: A) => C,
-            unwrapRight: (val: B) => D,
-        ): C | D {
+            unwrapLeft: (val: A) => T1,
+            unwrapRight: (val: B) => T2,
+        ): T1 | T2 {
             return this.isLeft() ? unwrapLeft(this.val) : unwrapRight(this.val);
         }
 
@@ -745,10 +754,10 @@ export namespace Either {
          * If this `Either` fails, apply a function to its failure to return
          * another `Either`; otherwise, return this `Either` as is.
          */
-        recover<E, A, E1, B>(
-            this: Either<E, A>,
-            f: (val: E) => Either<E1, B>,
-        ): Either<E1, A | B> {
+        recover<E, T, E1, T1>(
+            this: Either<E, T>,
+            f: (val: E) => Either<E1, T1>,
+        ): Either<E1, T | T1> {
             return this.isLeft() ? f(this.val) : this;
         }
 
@@ -756,10 +765,10 @@ export namespace Either {
          * If this `Either` succeeds, apply a function to its success to return
          * another `Either`; otherwise, return this `Either` as is.
          */
-        flatMap<E, A, E1, B>(
-            this: Either<E, A>,
-            f: (val: A) => Either<E1, B>,
-        ): Either<E | E1, B> {
+        flatMap<E, T, E1, T1>(
+            this: Either<E, T>,
+            f: (val: T) => Either<E1, T1>,
+        ): Either<E | E1, T1> {
             return this.isLeft() ? this : f(this.val);
         }
 
@@ -768,11 +777,11 @@ export namespace Either {
          * successes and succeed with the result; otherwise, return the first
          * failed `Either`.
          */
-        zipWith<E, A, E1, B, C>(
-            this: Either<E, A>,
-            that: Either<E1, B>,
-            f: (lhs: A, rhs: B) => C,
-        ): Either<E | E1, C> {
+        zipWith<E, T, E1, T1, T2>(
+            this: Either<E, T>,
+            that: Either<E1, T1>,
+            f: (lhs: T, rhs: T1) => T2,
+        ): Either<E | E1, T2> {
             return this.flatMap((lhs) => that.map((rhs) => f(lhs, rhs)));
         }
 
@@ -781,10 +790,10 @@ export namespace Either {
          * success and discard the second; otherwise, return the first failed
          * `Either`.
          */
-        zipFst<E, A, E1>(
-            this: Either<E, A>,
+        zipFst<E, T, E1>(
+            this: Either<E, T>,
             that: Either<E1, any>,
-        ): Either<E | E1, A> {
+        ): Either<E | E1, T> {
             return this.zipWith(that, id);
         }
 
@@ -793,10 +802,10 @@ export namespace Either {
          * success and discard the first; otherwise, return the first failed
          * `Either`.
          */
-        zipSnd<E, E1, B>(
+        zipSnd<E, E1, T1>(
             this: Either<E, any>,
-            that: Either<E1, B>,
-        ): Either<E | E1, B> {
+            that: Either<E1, T1>,
+        ): Either<E | E1, T1> {
             return this.flatMap(() => that);
         }
 
@@ -804,7 +813,7 @@ export namespace Either {
          * If this `Either` is left-sided, apply a function to its value and
          * return the result in a `Left`; otherwise, return this `Either` as is.
          */
-        lmap<A, B, C>(this: Either<A, B>, f: (val: A) => C): Either<C, B> {
+        lmap<A, B, A1>(this: Either<A, B>, f: (val: A) => A1): Either<A1, B> {
             return this.recover((val) => left(f(val)));
         }
 
@@ -813,7 +822,7 @@ export namespace Either {
          * return the result in a `Right`; otherwise, return this `Either` as
          * is.
          */
-        map<A, B, D>(this: Either<A, B>, f: (val: B) => D): Either<A, D> {
+        map<A, B, B1>(this: Either<A, B>, f: (val: B) => B1): Either<A, B1> {
             return this.flatMap((val) => right(f(val)));
         }
     }
@@ -883,16 +892,16 @@ export namespace Either {
     }
 
     /**
-     * Extract the left-sided value type `A` from the type `Either<A, B>`.
+     * Extract the left-sided value type `T` from the type `Either<T, U>`.
      */
     // prettier-ignore
-    export type LeftT<T extends Either<any, any>> = 
-        [T] extends [Either<infer A, any>] ? A : never;
+    export type LeftT<TEither extends Either<any, any>> = 
+        [TEither] extends [Either<infer A, any>] ? A : never;
 
     /**
-     * Extract the right-sided value type `B` from the type `Either<A, B>`.
+     * Extract the right-sided value type `U` from the type `Either<T, U>`.
      */
     // prettier-ignore
-    export type RightT<T extends Either<any, any>> = 
-        [T] extends [Either<any, infer B>] ? B : never;
+    export type RightT<TEither extends Either<any, any>> = 
+        [TEither] extends [Either<any, infer B>] ? B : never;
 }

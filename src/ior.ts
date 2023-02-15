@@ -259,18 +259,18 @@
  *
  * ```ts
  * // A semigroup that wraps arrays.
- * class List<out A> {
- *     readonly val: A[];
+ * class List<out T> {
+ *     readonly val: T[];
  *
- *     constructor(...vals: A[]) {
+ *     constructor(...vals: T[]) {
  *         this.val = vals;
  *     }
  *
- *     [Semigroup.cmb](that: List<A>): List<A> {
+ *     [Semigroup.cmb](that: List<T>): List<T> {
  *         return new List(...this.val, ...that.val);
  *     }
  *
- *     toJSON(): A[] {
+ *     toJSON(): T[] {
  *         return this.val;
  *     }
  * }
@@ -508,13 +508,13 @@ export namespace Ior {
      * If the `Validation` is an `Err`, return its failure in a `Left`;
      * otherwise, return its success in a `Right`.
      */
-    export function fromValidation<E, A>(vdn: Validation<E, A>): Ior<E, A> {
+    export function fromValidation<E, T>(vdn: Validation<E, T>): Ior<E, T> {
         return vdn.unwrap(left, right);
     }
 
-    function step<A extends Semigroup<A>, B>(
-        gen: Generator<Ior<A, any>, B, unknown>,
-    ): Ior<A, B> {
+    function step<A extends Semigroup<A>, TReturn>(
+        gen: Generator<Ior<A, any>, TReturn, unknown>,
+    ): Ior<A, TReturn> {
         let nxt = gen.next();
         let acc: A | undefined;
 
@@ -604,9 +604,9 @@ export namespace Ior {
      * const strIorTwo: Ior<Str, number> = Ior.left(new Str("c"));
      * ```
      */
-    export function go<A extends Semigroup<A>, B>(
-        f: () => Generator<Ior<A, any>, B, unknown>,
-    ): Ior<A, B> {
+    export function go<A extends Semigroup<A>, TReturn>(
+        f: () => Generator<Ior<A, any>, TReturn, unknown>,
+    ): Ior<A, TReturn> {
         return step(f());
     }
 
@@ -618,9 +618,13 @@ export namespace Ior {
      *
      * This is the higher-order function variant of `go`.
      */
-    export function goFn<T extends unknown[], A extends Semigroup<A>, B>(
-        f: (...args: T) => Generator<Ior<A, any>, B, unknown>,
-    ): (...args: T) => Ior<A, B> {
+    export function goFn<
+        TArgs extends unknown[],
+        A extends Semigroup<A>,
+        TReturn,
+    >(
+        f: (...args: TArgs) => Generator<Ior<A, any>, TReturn, unknown>,
+    ): (...args: TArgs) => Ior<A, TReturn> {
         return (...args) => step(f(...args));
     }
 
@@ -639,11 +643,11 @@ export namespace Ior {
      * the left-hand value with any existing left-hand value, and return the
      * result in a `Left`.
      */
-    export function reduce<B, C, A extends Semigroup<A>>(
-        vals: Iterable<B>,
-        accum: (acc: C, val: B) => Ior<A, C>,
-        initial: C,
-    ): Ior<A, C> {
+    export function reduce<T, TAcc, A extends Semigroup<A>>(
+        vals: Iterable<T>,
+        accum: (acc: TAcc, val: T) => Ior<A, TAcc>,
+        initial: TAcc,
+    ): Ior<A, TAcc> {
         return go(function* () {
             let acc = initial;
             for (const val of vals) {
@@ -671,16 +675,19 @@ export namespace Ior {
      * -   `Ior<A, B>[]` becomes `Ior<A, B[]>`
      * -   `[Ior<A, B>, Ior<A, C>]` becomes `Ior<A, [B, C]>`
      */
-    export function collect<T extends readonly Ior<Semigroup<any>, any>[]>(
-        iors: T,
-    ): Ior<LeftT<T[number]>, { [K in keyof T]: RightT<T[K]> }> {
+    export function collect<TIors extends readonly Ior<Semigroup<any>, any>[]>(
+        iors: TIors,
+    ): Ior<LeftT<TIors[number]>, { [K in keyof TIors]: RightT<TIors[K]> }> {
         return go(function* () {
             const results: unknown[] = new Array(iors.length);
             for (const [idx, ior] of iors.entries()) {
                 results[idx] = yield* ior;
             }
             return results;
-        }) as Ior<LeftT<T[number]>, { [K in keyof T]: RightT<T[K]> }>;
+        }) as Ior<
+            LeftT<TIors[number]>,
+            { [K in keyof TIors]: RightT<TIors[K]> }
+        >;
     }
 
     /**
@@ -701,16 +708,22 @@ export namespace Ior {
      * -   `Record<string, Ior<A, B>>` becomes `Ior<A, Record<string, B>>`
      * -   `{ x: Ior<A, B>, y: Ior<A, C> }` becomes `Ior<A, { x: B, y: C }>`
      */
-    export function gather<T extends Record<any, Ior<Semigroup<any>, any>>>(
-        iors: T,
-    ): Ior<LeftT<T[keyof T]>, { [K in keyof T]: RightT<T[K]> }> {
+    export function gather<TIors extends Record<any, Ior<Semigroup<any>, any>>>(
+        iors: TIors,
+    ): Ior<
+        LeftT<TIors[keyof TIors]>,
+        { [K in keyof TIors]: RightT<TIors[K]> }
+    > {
         return Ior.go(function* () {
             const results: Record<any, unknown> = {};
             for (const [key, ior] of Object.entries(iors)) {
                 results[key] = yield* ior;
             }
             return results;
-        }) as Ior<LeftT<T[keyof T]>, { [K in keyof T]: RightT<T[K]> }>;
+        }) as Ior<
+            LeftT<TIors[keyof TIors]>,
+            { [K in keyof TIors]: RightT<TIors[K]> }
+        >;
     }
 
     /**
@@ -727,18 +740,18 @@ export namespace Ior {
      * the operation and combine the left-hand value with any existing left-hand
      * value, and return the result in a `Left`.
      */
-    export function lift<T extends unknown[], B>(
-        f: (...args: T) => B,
+    export function lift<TArgs extends unknown[], T>(
+        f: (...args: TArgs) => T,
     ): <A extends Semigroup<A>>(
-        ...iors: { [K in keyof T]: Ior<A, T[K]> }
-    ) => Ior<A, B> {
+        ...iors: { [K in keyof TArgs]: Ior<A, TArgs[K]> }
+    ) => Ior<A, T> {
         return (...iors) =>
-            collect(iors).map((args) => f(...(args as T))) as Ior<any, B>;
+            collect(iors).map((args) => f(...(args as TArgs))) as Ior<any, T>;
     }
 
-    async function stepAsync<A extends Semigroup<A>, B>(
-        gen: AsyncGenerator<Ior<A, any>, B, unknown>,
-    ): Promise<Ior<A, B>> {
+    async function stepAsync<A extends Semigroup<A>, TReturn>(
+        gen: AsyncGenerator<Ior<A, any>, TReturn, unknown>,
+    ): Promise<Ior<A, TReturn>> {
         let nxt = await gen.next();
         let acc: A | undefined;
 
@@ -791,9 +804,9 @@ export namespace Ior {
      *     keyword, statements, loops, declarations, etc.) is permitted within
      *     async generator comprehensions.
      */
-    export function goAsync<A extends Semigroup<A>, B>(
-        f: () => AsyncGenerator<Ior<A, any>, B, unknown>,
-    ): Promise<Ior<A, B>> {
+    export function goAsync<A extends Semigroup<A>, TReturn>(
+        f: () => AsyncGenerator<Ior<A, any>, TReturn, unknown>,
+    ): Promise<Ior<A, TReturn>> {
         return stepAsync(f());
     }
 
@@ -805,9 +818,13 @@ export namespace Ior {
      *
      * This is the higher-order function variant of `goAsync`.
      */
-    export function goAsyncFn<T extends unknown[], A extends Semigroup<A>, B>(
-        f: (...args: T) => AsyncGenerator<Ior<A, any>, B, unknown>,
-    ): (...args: T) => Promise<Ior<A, B>> {
+    export function goAsyncFn<
+        TArgs extends unknown[],
+        A extends Semigroup<A>,
+        TReturn,
+    >(
+        f: (...args: TArgs) => AsyncGenerator<Ior<A, any>, TReturn, unknown>,
+    ): (...args: TArgs) => Promise<Ior<A, TReturn>> {
         return (...args) => stepAsync(f(...args));
     }
 
@@ -910,12 +927,12 @@ export namespace Ior {
          * right-hand value of this `Ior` depending on the variant, and return
          * the result.
          */
-        unwrap<A, B, C, D, E>(
+        unwrap<A, B, T1, T2, T3>(
             this: Ior<A, B>,
-            unwrapLeft: (val: A) => C,
-            unwrapRight: (val: B) => D,
-            unwrapBoth: (fst: A, snd: B) => E,
-        ): C | D | E {
+            unwrapLeft: (val: A) => T1,
+            unwrapRight: (val: B) => T2,
+            unwrapBoth: (fst: A, snd: B) => T3,
+        ): T1 | T2 | T3 {
             if (this.isLeft()) {
                 return unwrapLeft(this.val);
             }
@@ -932,10 +949,10 @@ export namespace Ior {
          * `Left`, combine the left-hand value with any existing left-hand value
          * and return the result in a `Left`.
          */
-        flatMap<A extends Semigroup<A>, B, C>(
+        flatMap<A extends Semigroup<A>, B, B1>(
             this: Ior<A, B>,
-            f: (val: B) => Ior<A, C>,
-        ): Ior<A, C> {
+            f: (val: B) => Ior<A, B1>,
+        ): Ior<A, B1> {
             if (this.isLeft()) {
                 return this;
             }
@@ -959,11 +976,11 @@ export namespace Ior {
          * semigroup. If either `Ior` is a `Left`, combine the left-hand value
          * with any existing left-hand value and return the result in a `Left`.
          */
-        zipWith<A extends Semigroup<A>, B, C, D>(
+        zipWith<A extends Semigroup<A>, B, B1, B2>(
             this: Ior<A, B>,
-            that: Ior<A, C>,
-            f: (lhs: B, rhs: C) => D,
-        ): Ior<A, D> {
+            that: Ior<A, B1>,
+            f: (lhs: B, rhs: B1) => B2,
+        ): Ior<A, B2> {
             return this.flatMap((lhs) => that.map((rhs) => f(lhs, rhs)));
         }
 
@@ -988,10 +1005,10 @@ export namespace Ior {
          * semigroup. If either `Ior` is a `Left`, combine the left-hand value
          * with any existing left-hand value and return the result in a `Left`.
          */
-        zipSnd<A extends Semigroup<A>, C>(
+        zipSnd<A extends Semigroup<A>, B1>(
             this: Ior<A, any>,
-            that: Ior<A, C>,
-        ): Ior<A, C> {
+            that: Ior<A, B1>,
+        ): Ior<A, B1> {
             return this.flatMap(() => that);
         }
 
@@ -1000,7 +1017,7 @@ export namespace Ior {
          * and return the result as a left-hand value; otherwise, return this
          * `Ior` as is.
          */
-        lmap<A, B, C>(this: Ior<A, B>, f: (val: A) => C): Ior<C, B> {
+        lmap<A, B, A1>(this: Ior<A, B>, f: (val: A) => A1): Ior<A1, B> {
             if (this.isLeft()) {
                 return left(f(this.val));
             }
@@ -1015,7 +1032,7 @@ export namespace Ior {
          * and return the result as a right-hand value; otherwise, return this
          * `Ior` as is.
          */
-        map<A, B, D>(this: Ior<A, B>, f: (val: B) => D): Ior<A, D> {
+        map<A, B, B1>(this: Ior<A, B>, f: (val: B) => B1): Ior<A, B1> {
             if (this.isLeft()) {
                 return this;
             }
@@ -1130,13 +1147,13 @@ export namespace Ior {
      * Extract the left-hand value type `A` from the type `Ior<A, B>`.
      */
     // prettier-ignore
-    export type LeftT<T extends Ior<any, any>> =
-        [T] extends [Ior<infer A, any>] ? A : never;
+    export type LeftT<TIor extends Ior<any, any>> =
+        [TIor] extends [Ior<infer A, any>] ? A : never;
 
     /**
      * Extract the right-hand value type `B` from the type `Ior<A, B>`.
      */
     // prettier-ignore
-    export type RightT<T extends Ior<any, any>> =
-        [T] extends [Ior<any, infer B>] ? B : never;
+    export type RightT<TIor extends Ior<any, any>> =
+        [TIor] extends [Ior<any, infer B>] ? B : never;
 }

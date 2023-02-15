@@ -42,7 +42,7 @@
  * ## Working with generic semigroups
  *
  * Sometimes it is necessary to work with arbitrary semigroups. To require that
- * a generic type `A` implements `Semigroup`, we write `A extends Semigroup<A>`.
+ * a generic type `T` implements `Semigroup`, we write `T extends Semigroup<T>`.
  *
  * @example Working with generic semigroups
  *
@@ -52,7 +52,7 @@
  * ```ts
  * import { cmb, Semigroup } from "@neotype/prelude/cmp.js";
  *
- * function cmbTimes<A extends Semigroup<A>>(val: A, times: number): A {
+ * function cmbTimes<T extends Semigroup<T>>(val: T, times: number): T {
  *     if (times < 2 || times === Infinity) {
  *         return val;
  *     }
@@ -162,10 +162,10 @@
  * ```ts
  * import { Semigroup } from "@neotype/prelude/cmb.js";
  *
- * class Concat<out A> {
- *     constructor(readonly val: A[]) {}
+ * class Concat<out T> {
+ *     constructor(readonly val: T[]) {}
  *
- *     [Semigroup.cmb](that: Concat<A>): Concat<A> {
+ *     [Semigroup.cmb](that: Concat<T>): Concat<T> {
  *         return new Concat([...this.val, ...that.val]);
  *     }
  * }
@@ -182,13 +182,13 @@
  * ```ts
  * import { cmb, Semigroup } from "@neotype/prelude/cmb.js";
  *
- * class Async<out A> {
- *     constructor(readonly val: Promise<A>) {}
+ * class Async<out T> {
+ *     constructor(readonly val: Promise<T>) {}
  *
- *     [Semigroup.cmb]<A extends Semigroup<A>>(
- *         this: Async<A>,
- *         that: Async<A>,
- *     ): Async<A> {
+ *     [Semigroup.cmb]<T extends Semigroup<T>>(
+ *         this: Async<T>,
+ *         that: Async<T>,
+ *     ): Async<T> {
  *         return new Async(
  *             this.val.then((lhs) => that.val.then((rhs) => cmb(lhs, rhs))),
  *         );
@@ -197,12 +197,12 @@
  * ```
  *
  * Notice the extra syntax when implementing `[Semigroup.cmb]`. We introduce
- * a *method-scoped* generic parameter `A` and require that it has a `Semigroup`
- * implementation by writing `A extends Semigroup<A>` (the name `A` is
+ * a *method-scoped* generic parameter `T` and require that it has a `Semigroup`
+ * implementation by writing `T extends Semigroup<T>` (the name `T` is
  * arbitrary).
  *
- * Then, we require that `this` and `that` are `Async<A>` where `A extends
- * Semigroup<A>`. This allows us to use `cmb` to implement our desired behavior.
+ * Then, we require that `this` and `that` are `Async<T>` where `T extends
+ * Semigroup<T>`. This allows us to use `cmb` to implement our desired behavior.
  *
  * @example Generic implementation with multiple `Semigroup` requirements
  *
@@ -278,11 +278,11 @@
  * [augmentation]:
  *     https://www.typescriptlang.org/docs/handbook/declaration-merging.html#module-augmentation
  */
-export interface Semigroup<in out A> {
+export interface Semigroup<in out T> {
     /**
      * Combine this and that `Semigroup` value using an associative operation.
      */
-    [Semigroup.cmb](that: A): A;
+    [Semigroup.cmb](that: T): T;
 }
 
 /**
@@ -302,6 +302,6 @@ export namespace Semigroup {
  *
  * `cmb(lhs, rhs)` is equivalent to `lhs[Semigroup.cmb](rhs)`.
  */
-export function cmb<A extends Semigroup<A>>(lhs: A, rhs: A): A {
+export function cmb<T extends Semigroup<T>>(lhs: T, rhs: T): T {
     return lhs[Semigroup.cmb](rhs);
 }

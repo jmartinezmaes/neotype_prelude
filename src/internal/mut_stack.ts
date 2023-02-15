@@ -14,16 +14,16 @@
  * limitations under the License.
  */
 
-type Node<A> = undefined | readonly [A, Node<A>];
+type Node<T> = undefined | readonly [T, Node<T>];
 
-export class MutStack<out A> {
-    #head: Node<A>;
+export class MutStack<out T> {
+    #head: Node<T>;
 
-    push(val: A): void {
+    push(val: T): void {
         this.#head = [val, this.#head];
     }
 
-    pop(): A | undefined {
+    pop(): T | undefined {
         if (this.#head) {
             const [val, rest] = this.#head;
             this.#head = rest;

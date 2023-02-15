@@ -19,8 +19,8 @@
  *
  * @remarks
  *
- * `Eval<A>` is a type that controls the execution of a synchronous computation
- * that returns an *outcome* `A`. `Eval` can suspend and memoize evaluation for
+ * `Eval<T>` is a type that controls the execution of a synchronous computation
+ * that returns an *outcome* `T`. `Eval` can suspend and memoize evaluation for
  * a variety of use cases, and it provides stack-safe execution for recursive
  * programs.
  *
@@ -55,7 +55,7 @@
  *
  * `Eval` has the following behavior as a semigroup:
  *
- * -   An `Eval<A>` implements `Semigroup` when `A` implements `Semigroup`.
+ * -   An `Eval<T>` implements `Semigroup` when `T` implements `Semigroup`.
  * -   When combined, their outcomes are combined and the result is returned
  *     in an `Eval`.
  *
@@ -101,12 +101,12 @@
  *
  * -   `collect` turns an array or a tuple literal of `Eval` elements inside
  *     out. For example:
- *     -   `Eval<A>[]` becomes `Eval<A[]>`
- *     -   `[Eval<A>, Eval<B>]` becomes `Eval<[A, B]>`
+ *     -   `Eval<T>[]` becomes `Eval<T[]>`
+ *     -   `[Eval<T1>, Eval<T2>]` becomes `Eval<[T1, T2]>`
  * -   `gather` turns a record or an object literal of `Eval` elements inside
  *     out. For example:
- *     -   `Record<string, Eval<A>>` becomes `Eval<Record<string, A>>`
- *     -   `{ x: Eval<A>, y: Eval<B> }` becomes `Eval<{ x: A, y: B }>`
+ *     -   `Record<string, Eval<T>>` becomes `Eval<Record<string, T>>`
+ *     -   `{ x: Eval<T1>, y: Eval<T2> }` becomes `Eval<{ x: T1, y: T2 }>`
  *
  * The `reduce` static method reduces a finite iterable from left to right in
  * the context of `Eval`. This is useful for mapping, filtering, and
@@ -132,30 +132,30 @@
  * `Tree` data structure:
  *
  * ```ts
- * type Tree<A> = Emtpty | Branch<A>;
+ * type Tree<T> = Emtpty | Branch<T>;
  *
  * interface Empty {
  *     readonly kind: "EMPTY";
  * }
  *
- * interface Branch<out A> {
+ * interface Branch<out T> {
  *     readonly kind: "BRANCH";
- *     readonly val: A;       // value
- *     readonly lst: Tree<A>; // left subtree
- *     readonly rst: Tree<A>; // right subtree
+ *     readonly val: T;       // value
+ *     readonly lst: Tree<T>; // left subtree
+ *     readonly rst: Tree<T>; // right subtree
  * }
  *
  * const empty: Tree<never> = { kind: "EMPTY" };
  *
- * function branch<A>(val: A, lst: Tree<A>, rst: Tree<A>): Tree<A> {
+ * function branch<T>(val: T, lst: Tree<T>, rst: Tree<T>): Tree<T> {
  *     return { kind: "BRANCH", val, lst, rst };
  * }
  *
- * function foldTree<A, B>(
- *     tree: Tree<A>,
- *     ifEmpty: B,
- *     foldBranch: (val: A, lhs: B, rhs: B) => B
- * ): Eval<B> {
+ * function foldTree<T, T1>(
+ *     tree: Tree<T>,
+ *     ifEmpty: T1,
+ *     foldBranch: (val: T, lhs: T1, rhs: T1) => T1
+ * ): Eval<T1> {
  *     if (tree.kind === "EMPTY") {
  *         return Eval.now(ifEmpty);
  *     }
@@ -170,10 +170,10 @@
  *     );
  * }
  *
- * function inOrder<A>(tree: Tree<A>): Eval<A[]> {
+ * function inOrder<T>(tree: Tree<T>): Eval<T[]> {
  *     return foldTree(
  *         tree,
- *         [] as A[],
+ *         [] as T[],
  *         (val, lhs, rhs) => [...lhs, val, ...rhs],
  *     );
  * }
@@ -193,11 +193,11 @@
  * instead:
  *
  * ```ts
- * function foldTree<A, B>(
- *     tree: Tree<A>,
- *     ifEmpty: B,
- *     foldBranch: (val: A, lhs: B, rhs: B) => B
- * ): Eval<B> {
+ * function foldTree<T, T1>(
+ *     tree: Tree<T>,
+ *     ifEmpty: T1,
+ *     foldBranch: (val: T, lhs: T1, rhs: T1) => T1
+ * ): Eval<T1> {
  *     return Eval.go(function* () {
  *         if (tree.kind === "EMPTY") {
  *             return ifEmpty;
@@ -215,25 +215,25 @@
  * of each traversal. We may write the following:
  *
  * ```ts
- * function preOrder<A>(tree: Tree<A>): Eval<A[]> {
+ * function preOrder<T>(tree: Tree<T>): Eval<T[]> {
  *     return foldTree(
  *         tree,
- *         [] as A[],
+ *         [] as T[],
  *         (val, lhs, rhs) => [val, ...lhs, ...rhs],
  *     );
  * }
  *
- * function postOrder<A>(tree: Tree<A>): Eval<A[]> {
+ * function postOrder<T>(tree: Tree<T>): Eval<T[]> {
  *     return foldTree(
  *         tree,
- *         [] as A[],
+ *         [] as T[],
  *         (val, lhs, rhs) => [...lhs, ...rhs, val],
  *     );
  * }
  *
- * type Traversals<A> = readonly [in: A[], pre: A[], post: A[]];
+ * type Traversals<T> = readonly [in: T[], pre: T[], post: T[]];
  *
- * function traversals<A>(tree: Tree<A>): Eval<Traversals<A>> {
+ * function traversals<T>(tree: Tree<T>): Eval<Traversals<T>> {
  *     return Eval.collect([
  *         inOrder(tree),
  *         preOrder(tree),
@@ -250,13 +250,13 @@
  * of each traversal:
  *
  * ```ts
- * interface TraversalsObj<A> {
- *     readonly in: A[];
- *     readonly pre: A[];
- *     readonly post: A[];
+ * interface TraversalsObj<T> {
+ *     readonly in: T[];
+ *     readonly pre: T[];
+ *     readonly post: T[];
  * }
  *
- * function traversalsKeyed<A>(tree: Tree<A>): Eval<TraversalsObj<A>> {
+ * function traversalsKeyed<T>(tree: Tree<T>): Eval<TraversalsObj<T>> {
  *     return Eval.gather({
  *         in: inOrder(tree),
  *         pre: preOrder(tree),
@@ -272,9 +272,9 @@
  * Or, perhaps we want to return a `Map` instead:
  *
  * ```ts
- * function traversalsMap(tree: Tree<A>): Eval<Map<string, A[]>> {
+ * function traversalsMap(tree: Tree<T>): Eval<Map<string, T[]>> {
  *     return Eval.go(function* () {
- *         const results = new Map<string, A[]>();
+ *         const results = new Map<string, T[]>();
  *
  *         results.set("in", yield* inOrder(tree));
  *         results.set("pre", yield* preOrder(tree));
@@ -299,11 +299,11 @@ import { MutStack } from "./internal/mut_stack.js";
 /**
  * A type that models a synchronous computation.
  */
-export class Eval<out A> {
+export class Eval<out T> {
     /**
      * Construct an `Eval` eagerly from a value.
      */
-    static now<A>(val: A): Eval<A> {
+    static now<T>(val: T): Eval<T> {
         return new Eval(Ixn.now(val));
     }
 
@@ -311,7 +311,7 @@ export class Eval<out A> {
      * Construct an `Eval` lazily from a thunk, and memoize the value upon the
      * first evaluation.
      */
-    static once<A>(f: () => A): Eval<A> {
+    static once<T>(f: () => T): Eval<T> {
         return new Eval(Ixn.once(f));
     }
 
@@ -319,21 +319,21 @@ export class Eval<out A> {
      * Construct an `Eval` lazily from a thunk, and re-compute the value upon
      * every evaluation.
      */
-    static always<A>(f: () => A): Eval<A> {
+    static always<T>(f: () => T): Eval<T> {
         return new Eval(Ixn.always(f));
     }
 
     /**
      * Construct an `Eval` from a function that returns another `Eval`.
      */
-    static defer<A>(f: () => Eval<A>): Eval<A> {
+    static defer<T>(f: () => Eval<T>): Eval<T> {
         return Eval.now(undefined).flatMap(f);
     }
 
-    static #step<A>(
-        gen: Iterator<Eval<any>, A>,
-        nxt: IteratorResult<Eval<any>, A>,
-    ): Eval<A> {
+    static #step<TReturn>(
+        gen: Iterator<Eval<any>, TReturn>,
+        nxt: IteratorResult<Eval<any>, TReturn>,
+    ): Eval<TReturn> {
         if (nxt.done) {
             return Eval.now(nxt.value);
         }
@@ -380,7 +380,9 @@ export class Eval<out A> {
      * console.log(summed.run());
      * ```
      */
-    static go<A>(f: () => Generator<Eval<any>, A, unknown>): Eval<A> {
+    static go<TReturn>(
+        f: () => Generator<Eval<any>, TReturn, unknown>,
+    ): Eval<TReturn> {
         return Eval.defer(() => {
             const gen = f();
             return Eval.#step(gen, gen.next());
@@ -395,9 +397,9 @@ export class Eval<out A> {
      *
      * This is the higher-order function variant of `go`.
      */
-    static goFn<T extends unknown[], A>(
-        f: (...args: T) => Generator<Eval<any>, A, unknown>,
-    ): (...args: T) => Eval<A> {
+    static goFn<TArgs extends unknown[], TReturn>(
+        f: (...args: TArgs) => Generator<Eval<any>, TReturn, unknown>,
+    ): (...args: TArgs) => Eval<TReturn> {
         return (...args) =>
             Eval.defer(() => {
                 const gen = f(...args);
@@ -415,11 +417,11 @@ export class Eval<out A> {
      * returned `Eval` as the new accumulator until there are no elements
      * remaining, and then return the final accumulator in an `Eval`.
      */
-    static reduce<A, B>(
-        vals: Iterable<A>,
-        accum: (acc: B, val: A) => Eval<B>,
-        initial: B,
-    ): Eval<B> {
+    static reduce<T, TAcc>(
+        vals: Iterable<T>,
+        accum: (acc: TAcc, val: T) => Eval<TAcc>,
+        initial: TAcc,
+    ): Eval<TAcc> {
         return Eval.go(function* () {
             let acc = initial;
             for (const val of vals) {
@@ -440,12 +442,12 @@ export class Eval<out A> {
      *
      * For example:
      *
-     * -   `Eval<A>[]` becomes `Eval<A[]>`
-     * -   `[Eval<A>, Eval<B>]` becomes `Eval<[A, B]>`
+     * -   `Eval<T>[]` becomes `Eval<T[]>`
+     * -   `[Eval<T1>, Eval<T2>]` becomes `Eval<[T1, T2]>`
      */
-    static collect<T extends readonly Eval<any>[]>(
-        evals: T,
-    ): Eval<{ [K in keyof T]: Eval.ResultT<T[K]> }> {
+    static collect<TEvals extends readonly Eval<any>[]>(
+        evals: TEvals,
+    ): Eval<{ [K in keyof TEvals]: Eval.ResultT<TEvals[K]> }> {
         return Eval.go(function* () {
             const results: unknown[] = new Array(evals.length);
             for (const [idx, ev] of evals.entries()) {
@@ -466,12 +468,12 @@ export class Eval<out A> {
      *
      * For example:
      *
-     * -   `Record<string, Eval<A>>` becomes `Eval<Record<string, A>>`
-     * -   `{ x: Eval<A>, y: Eval<B> }` becomes `Eval<{ x: A, y: B }>`
+     * -   `Record<string, Eval<T>>` becomes `Eval<Record<string, T>>`
+     * -   `{ x: Eval<T1>, y: Eval<T2> }` becomes `Eval<{ x: T1, y: T2 }>`
      */
-    static gather<T extends Record<any, Eval<any>>>(
-        evals: T,
-    ): Eval<{ [K in keyof T]: Eval.ResultT<T[K]> }> {
+    static gather<TEvals extends Record<any, Eval<any>>>(
+        evals: TEvals,
+    ): Eval<{ [K in keyof TEvals]: Eval.ResultT<TEvals[K]> }> {
         return Eval.go(function* () {
             const results: Record<any, unknown> = {};
             for (const [key, ev] of Object.entries(evals)) {
@@ -491,9 +493,9 @@ export class Eval<out A> {
      * the arguments from left to right, and then apply the original function to
      * their outcomes and return the result in an `Eval`.
      */
-    static lift<T extends unknown[], A>(
-        f: (...args: T) => A,
-    ): (...evals: { [K in keyof T]: Eval<T[K]> }) => Eval<A> {
+    static lift<TArgs extends unknown[], T>(
+        f: (...args: TArgs) => T,
+    ): (...evals: { [K in keyof TArgs]: Eval<TArgs[K]> }) => Eval<T> {
         return (...evals) => Eval.collect(evals).map((args) => f(...args));
     }
 
@@ -513,21 +515,21 @@ export class Eval<out A> {
      *
      * @hidden
      */
-    *[Symbol.iterator](): Iterator<Eval<A>, A, unknown> {
-        return (yield this) as A;
+    *[Symbol.iterator](): Iterator<Eval<T>, T, unknown> {
+        return (yield this) as T;
     }
 
-    [Semigroup.cmb]<A extends Semigroup<A>>(
-        this: Eval<A>,
-        that: Eval<A>,
-    ): Eval<A> {
+    [Semigroup.cmb]<T extends Semigroup<T>>(
+        this: Eval<T>,
+        that: Eval<T>,
+    ): Eval<T> {
         return this.zipWith(that, cmb);
     }
 
     /**
      * Apply a function to the outcome of this `Eval` to return another `Eval`.
      */
-    flatMap<B>(f: (val: A) => Eval<B>): Eval<B> {
+    flatMap<T1>(f: (val: T) => Eval<T1>): Eval<T1> {
         return new Eval(Ixn.flatMap(this, f));
     }
 
@@ -535,7 +537,7 @@ export class Eval<out A> {
      * Apply a function to the outcomes of this and that `Eval` and return the
      * result in an `Eval`.
      */
-    zipWith<B, C>(that: Eval<B>, f: (lhs: A, rhs: B) => C): Eval<C> {
+    zipWith<T1, T2>(that: Eval<T1>, f: (lhs: T, rhs: T1) => T2): Eval<T2> {
         return this.flatMap((lhs) => that.map((rhs) => f(lhs, rhs)));
     }
 
@@ -543,7 +545,7 @@ export class Eval<out A> {
      * Keep only the first outcome of this and that `Eval`, and return it in an
      * `Eval`.
      */
-    zipFst(that: Eval<any>): Eval<A> {
+    zipFst(that: Eval<any>): Eval<T> {
         return this.zipWith(that, id);
     }
 
@@ -551,7 +553,7 @@ export class Eval<out A> {
      * Keep only the second outcome of this and that `Eval`, and return it in an
      * `Eval`.
      */
-    zipSnd<B>(that: Eval<B>): Eval<B> {
+    zipSnd<T1>(that: Eval<T1>): Eval<T1> {
         return this.flatMap(() => that);
     }
 
@@ -559,14 +561,14 @@ export class Eval<out A> {
      * Apply a function to the outcome of this `Eval` and return the result
      * in an `Eval`.
      */
-    map<B>(f: (val: A) => B): Eval<B> {
+    map<T1>(f: (val: T) => T1): Eval<T1> {
         return this.flatMap((val) => Eval.now(f(val)));
     }
 
     /**
      * Evaluate this `Eval` to return its outcome.
      */
-    run(): A {
+    run(): T {
         const conts = new MutStack<(val: any) => Eval<any>>();
         // eslint-disable-next-line @typescript-eslint/no-this-alias
         let currentEval: Eval<any> = this;
@@ -609,11 +611,11 @@ export class Eval<out A> {
  */
 export namespace Eval {
     /**
-     * Extract the outcome type `A` from the type `Eval<A>`.
+     * Extract the outcome type `T` from the type `Eval<T>`.
      */
     // prettier-ignore
-    export type ResultT<T extends Eval<any>> = 
-        T extends Eval<infer A> ? A : never;
+    export type ResultT<TEval extends Eval<any>> = 
+        TEval extends Eval<infer T> ? T : never;
 }
 
 type Ixn = Ixn.Now | Ixn.FlatMap | Ixn.Once | Ixn.Always;
@@ -649,22 +651,22 @@ namespace Ixn {
         readonly f: () => any;
     }
 
-    export function now<A>(val: A): Now {
+    export function now<T>(val: T): Now {
         return { kind: Kind.NOW, val };
     }
 
-    export function flatMap<A, B>(
-        ev: Eval<A>,
-        cont: (val: A) => Eval<B>,
+    export function flatMap<T, T1>(
+        ev: Eval<T>,
+        cont: (val: T) => Eval<T1>,
     ): FlatMap {
         return { kind: Kind.FLAT_MAP, ev, cont };
     }
 
-    export function once<A>(f: () => A): Once {
+    export function once<T>(f: () => T): Once {
         return { kind: Kind.ONCE, f, isMemoized: false };
     }
 
-    export function always<A>(f: () => A): Always {
+    export function always<T>(f: () => T): Always {
         return { kind: Kind.ALWAYS, f };
     }
 }

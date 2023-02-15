@@ -14,13 +14,13 @@ import {
     tuple,
 } from "./util.js";
 
-function nothing<A>(): Maybe<A> {
+function nothing<T>(): Maybe<T> {
     return Maybe.nothing;
 }
 
 describe("maybe.js", () => {
     describe("Maybe", () => {
-        function arbMaybe<A>(arbVal: fc.Arbitrary<A>): fc.Arbitrary<Maybe<A>> {
+        function arbMaybe<T>(arbVal: fc.Arbitrary<T>): fc.Arbitrary<Maybe<T>> {
             return fc.oneof(fc.constant(Maybe.nothing), arbVal.map(Maybe.just));
         }
 
@@ -111,7 +111,7 @@ describe("maybe.js", () => {
 
         describe("goFn", () => {
             it("accesses the parameters of the generator function", () => {
-                const f = Maybe.goFn(function* <A>(w: A) {
+                const f = Maybe.goFn(function* <T>(w: T) {
                     const x = yield* Maybe.just<1>(1);
                     const [y, z] = yield* Maybe.just<[1, 2]>([x, 2]);
                     return tuple(w, x, y, z);
@@ -202,7 +202,7 @@ describe("maybe.js", () => {
 
         describe("goAsyncFn", () => {
             it("accesses the parameters of the async generator function", async () => {
-                const f = Maybe.goAsyncFn(async function* <A>(w: A) {
+                const f = Maybe.goAsyncFn(async function* <T>(w: T) {
                     const x = yield* await Promise.resolve(Maybe.just<1>(1));
                     const [y, z] = yield* await Promise.resolve(
                         Maybe.just<[1, 2]>([x, 2]),

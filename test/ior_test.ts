@@ -147,7 +147,7 @@ describe("ior.js", () => {
 
         describe("goFn", () => {
             it("accesses the parameters of the generator function", () => {
-                const f = Ior.goFn(function* <A>(w: A) {
+                const f = Ior.goFn(function* <T>(w: T) {
                     const x = yield* Ior.both<Str, 2>(new Str("a"), 2);
                     const [y, z] = yield* Ior.both(
                         new Str("b"),
@@ -309,7 +309,7 @@ describe("ior.js", () => {
 
         describe("goAsyncFn", () => {
             it("accesses the parameters of the async generator function", async () => {
-                const f = Ior.goAsyncFn(async function* <A>(w: A) {
+                const f = Ior.goAsyncFn(async function* <T>(w: T) {
                     const x = yield* await Promise.resolve(
                         Ior.both<Str, 2>(new Str("a"), 2),
                     );
