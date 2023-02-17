@@ -151,11 +151,11 @@
  *     return { kind: "BRANCH", val, lst, rst };
  * }
  *
- * function foldTree<T, T1>(
+ * function foldTree<T, TAcc>(
  *     tree: Tree<T>,
- *     ifEmpty: T1,
- *     foldBranch: (val: T, lhs: T1, rhs: T1) => T1
- * ): Eval<T1> {
+ *     ifEmpty: TAcc,
+ *     foldBranch: (val: T, lhs: TAcc, rhs: TAcc) => TAcc
+ * ): Eval<TAcc> {
  *     if (tree.kind === "EMPTY") {
  *         return Eval.now(ifEmpty);
  *     }
@@ -193,11 +193,11 @@
  * instead:
  *
  * ```ts
- * function foldTree<T, T1>(
+ * function foldTree<T, TAcc>(
  *     tree: Tree<T>,
- *     ifEmpty: T1,
- *     foldBranch: (val: T, lhs: T1, rhs: T1) => T1
- * ): Eval<T1> {
+ *     ifEmpty: TAcc,
+ *     foldBranch: (val: T, lhs: TAcc, rhs: TAcc) => TAcc
+ * ): Eval<TAcc> {
  *     return Eval.go(function* () {
  *         if (tree.kind === "EMPTY") {
  *             return ifEmpty;
