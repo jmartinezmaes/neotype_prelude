@@ -44,6 +44,8 @@
  * Sometimes it is necessary to work with arbitrary semigroups. To require that
  * a generic type `T` implements `Semigroup`, we write `T extends Semigroup<T>`.
  *
+ * [semigroups]: https://mathworld.wolfram.com/Semigroup.html
+ *
  * @example Working with generic semigroups
  *
  * Consider a program that combines an arbitrary semigroup with itself a finite
@@ -65,13 +67,13 @@
  * }
  * ```
  *
- * [semigroups]: https://mathworld.wolfram.com/Semigroup.html
- *
  * @module
  */
 
 /**
  * An interface that provides evidence of a [semigroup].
+ *
+ * [semigroup]: https://mathworld.wolfram.com/Semigroup.html
  *
  * @remarks
  *
@@ -138,6 +140,12 @@
  * The concrete implementation logic is similar to writing a method body for a
  * class or object, and the same practices apply when requiring generic type
  * parameters to implement `Semigroup`.
+ *
+ * [associative property]: https://mathworld.wolfram.com/Associative.html
+ * [structural subtyping]:
+ *     https://www.typescriptlang.org/docs/handbook/type-compatibility.html#site-content
+ * [augmentation]:
+ *     https://www.typescriptlang.org/docs/handbook/declaration-merging.html#module-augmentation
  *
  * @example Non-generic implementation
  *
@@ -270,13 +278,6 @@
  *     return new Pair(cmb(this.fst, that.fst), cmb(this.snd, that.snd));
  * };
  * ```
- *
- * [semigroup]: https://mathworld.wolfram.com/Semigroup.html
- * [associative property]: https://mathworld.wolfram.com/Associative.html
- * [structural subtyping]:
- *     https://www.typescriptlang.org/docs/handbook/type-compatibility.html#site-content
- * [augmentation]:
- *     https://www.typescriptlang.org/docs/handbook/declaration-merging.html#module-augmentation
  */
 export interface Semigroup<in out T> {
     /**
