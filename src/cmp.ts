@@ -116,8 +116,9 @@
  * `Ordering` implements `Eq` and `Ord`.
  *
  * -   Two `Ordering` values are equal if they are the same variant.
- * -   When ordered, the `Less` variant is less than the `Equal` variant, and
- *     the `Equal` variant is less than the `Greater` variant.
+ * -   When ordered, the `Less` variant compares as less than the `Equal`
+ *     variant, and the `Equal` variant compares as less than the `Greater`
+ *     variant.
  *
  * ### `Ordering` as a semigroup
  *
@@ -944,14 +945,31 @@ export namespace Ordering {
      * The fluent syntax for `Ordering`.
      */
     export abstract class Syntax {
+        /**
+         * If this and that `Ordering` are the same variant, return `true`;
+         * otherwise, return `false`.
+         */
         [Eq.eq](this: Ordering, that: Ordering): boolean {
             return this.kind === that.kind;
         }
 
+        /**
+         * Compare this and that `Ordering` to determine their ordering.
+         *
+         * @remarks
+         *
+         * When ordered, the `Less` variant compares as less than the `Equal`
+         * variant, and the `Equal` variant compares as less than the `Greater`
+         * variant.
+         */
         [Ord.cmp](this: Ordering, that: Ordering): Ordering {
             return fromNumber(this.kind - that.kind);
         }
 
+        /**
+         * If this `Ordering` is `Less` or `Greater`, return this `Ordering`;
+         * otherwise, return that `Ordering`.
+         */
         [Semigroup.cmb](this: Ordering, that: Ordering): Ordering {
             return this.isEq() ? that : this;
         }

@@ -716,6 +716,10 @@ export namespace Maybe {
      * The fluent syntax for `Maybe`.
      */
     export abstract class Syntax {
+        /**
+         * If this and that `Maybe` are both absent, or they are both present
+         * and their values are equal, return `true`; otherwise, return `false`.
+         */
         [Eq.eq]<T extends Eq<T>>(this: Maybe<T>, that: Maybe<T>): boolean {
             if (this.isNothing()) {
                 return that.isNothing();
@@ -723,6 +727,15 @@ export namespace Maybe {
             return that.isJust() && eq(this.val, that.val);
         }
 
+        /**
+         * Compare this and that `Maybe` to determine their ordering.
+         *
+         * @remarks
+         *
+         * When ordered, an absent `Maybe` always compares as less than than any
+         * present `Maybe`. If they are both present, their values are compared
+         * to determine the ordering.
+         */
         [Ord.cmp]<T extends Ord<T>>(this: Maybe<T>, that: Maybe<T>): Ordering {
             if (this.isNothing()) {
                 return that.isNothing() ? Ordering.equal : Ordering.less;
@@ -732,6 +745,11 @@ export namespace Maybe {
                 : cmp(this.val, that.val);
         }
 
+        /**
+         * If this and that `Maybe` are both absent, return `Nothing`. If only
+         * one is absent, return the non-absent `Maybe`. If both are present,
+         * combine their values and return the result in a `Just`.
+         */
         [Semigroup.cmb]<T extends Semigroup<T>>(
             this: Maybe<T>,
             that: Maybe<T>,
@@ -884,6 +902,9 @@ export namespace Maybe {
          */
         readonly kind = Kind.JUST;
 
+        /**
+         * The value of this `Maybe`.
+         */
         readonly val: T;
 
         constructor(val: T) {

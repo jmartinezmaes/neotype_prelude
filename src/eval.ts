@@ -519,6 +519,10 @@ export class Eval<out T> {
         return (yield this) as T;
     }
 
+    /**
+     * Combine the outcomes of this and that `Eval` and return the result in an
+     * `Eval`.
+     */
     [Semigroup.cmb]<T extends Semigroup<T>>(
         this: Eval<T>,
         that: Eval<T>,

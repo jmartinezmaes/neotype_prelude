@@ -98,10 +98,19 @@ export class Pair<out A, out B> {
         return new Pair(tuple[0], tuple[1]);
     }
 
+    /**
+     * The first value of this `Pair`.
+     */
     readonly fst: A;
 
+    /**
+     * The second value of this `Pair`.
+     */
     readonly snd: B;
 
+    /**
+     * A 2-tuple of the first value and second value of this `Pair`.
+     */
     get val(): [A, B] {
         return [this.fst, this.snd];
     }
@@ -111,6 +120,10 @@ export class Pair<out A, out B> {
         this.snd = snd;
     }
 
+    /**
+     * If the first values and second values of this and that `Pair` are
+     * respectively equal, return `true`; otherwise, return `false`.
+     */
     [Eq.eq]<A extends Eq<A>, B extends Eq<B>>(
         this: Pair<A, B>,
         that: Pair<A, B>,
@@ -118,6 +131,10 @@ export class Pair<out A, out B> {
         return eq(this.fst, that.fst) && eq(this.snd, that.snd);
     }
 
+    /**
+     * Compare the first values and second values of this and that `Pair`
+     * lexicographically.
+     */
     [Ord.cmp]<A extends Ord<A>, B extends Ord<B>>(
         this: Pair<A, B>,
         that: Pair<A, B>,
@@ -125,6 +142,10 @@ export class Pair<out A, out B> {
         return cmb(cmp(this.fst, that.fst), cmp(this.snd, that.snd));
     }
 
+    /**
+     * Combine the first values and second values of this and that `Pair`
+     * pairwise into a new `Pair`.
+     */
     [Semigroup.cmb]<A extends Semigroup<A>, B extends Semigroup<B>>(
         this: Pair<A, B>,
         that: Pair<A, B>,

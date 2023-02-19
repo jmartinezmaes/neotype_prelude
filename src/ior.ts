@@ -832,6 +832,10 @@ export namespace Ior {
      * The fluent syntax for `Ior`.
      */
     export abstract class Syntax {
+        /**
+         * If this and that `Ior` are the same variant and their values are
+         * equal, return `true`; otherwise, return `false`.
+         */
         [Eq.eq]<A extends Eq<A>, B extends Eq<B>>(
             this: Ior<A, B>,
             that: Ior<A, B>,
@@ -849,6 +853,17 @@ export namespace Ior {
             );
         }
 
+        /**
+         * Compare this and that `Ior` to determine their ordering.
+         *
+         * @remarks
+         *
+         * When ordered, a `Left` always compares as less than any `Right`, and
+         * a `Right` always compares as less than any `Both`. If the variants
+         * are the same, their left-hand and/or right-hand values are compared
+         * to determine the ordering. `Both` variants compare their left-hand
+         * values and right-hand values lexicographically.
+         */
         [Ord.cmp]<A extends Ord<A>, B extends Ord<B>>(
             this: Ior<A, B>,
             that: Ior<A, B>,
@@ -868,6 +883,15 @@ export namespace Ior {
             return Ordering.greater;
         }
 
+        /**
+         * Combine the values of this and that `Ior` into a new `Ior`.
+         *
+         * @remarks
+         *
+         * When combined, left-hand values and right-hand values are combined
+         * pairwise. Combination is lossless and merges values into `Both`
+         * variants when there is no existing value to combine with.
+         */
         [Semigroup.cmb]<A extends Semigroup<A>, B extends Semigroup<B>>(
             this: Ior<A, B>,
             that: Ior<A, B>,
@@ -1061,6 +1085,9 @@ export namespace Ior {
          */
         readonly kind = Kind.LEFT;
 
+        /**
+         * The value of this `Ior`.
+         */
         readonly val: A;
 
         constructor(val: A) {
@@ -1089,6 +1116,9 @@ export namespace Ior {
          */
         readonly kind = Kind.RIGHT;
 
+        /**
+         * The value of this `Ior`.
+         */
         readonly val: B;
 
         constructor(val: B) {
@@ -1117,10 +1147,19 @@ export namespace Ior {
          */
         readonly kind = Kind.BOTH;
 
+        /**
+         * The first value of this `Ior`.
+         */
         readonly fst: A;
 
+        /**
+         * The second value of this `Ior`.
+         */
         readonly snd: B;
 
+        /**
+         * A 2-tuple of the first value and second value of this `Ior`.
+         */
         get val(): [A, B] {
             return [this.fst, this.snd];
         }
