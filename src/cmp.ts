@@ -145,6 +145,11 @@
  * total orders. To require that a generic type `T` implements `Eq` or `Ord`, we
  * write `T extends Eq<T>` or `T extends Ord<T>`, respectively.
  *
+ * [equivalence relations]:
+ *     https://mathworld.wolfram.com/EquivalenceRelation.html
+ * [total orders]: https://mathworld.wolfram.com/TotalOrder.html
+ * [lexicographically]: https://mathworld.wolfram.com/LexicographicOrder.html
+ *
  * @example Working with generic equivalence relations
  *
  * Consider a program that finds all `Eq` values in an array that occur only
@@ -173,11 +178,6 @@
  * }
  * ```
  *
- * [equivalence relations]:
- *     https://mathworld.wolfram.com/EquivalenceRelation.html
- * [total orders]: https://mathworld.wolfram.com/TotalOrder.html
- * [lexicographically]: https://mathworld.wolfram.com/LexicographicOrder.html
- *
  * @module
  */
 
@@ -185,6 +185,9 @@ import { Semigroup } from "./cmb.js";
 
 /**
  * An interface that provides evidence of an [equivalence relation].
+ *
+ * [equivalence relation]:
+ *     https://mathworld.wolfram.com/EquivalenceRelation.html
  *
  * @remarks
  *
@@ -251,6 +254,11 @@ import { Semigroup } from "./cmb.js";
  * The concrete implementation logic is similar to writing a method body for a
  * class or object, and the same practices apply for requiring generic
  * parameters to implement `Eq`.
+ *
+ * [structural subtyping]:
+ *     https://www.typescriptlang.org/docs/handbook/type-compatibility.html#site-content
+ * [augmentation]:
+ *     https://www.typescriptlang.org/docs/handbook/declaration-merging.html#module-augmentation
  *
  * @example Non-generic implementation
  *
@@ -393,13 +401,6 @@ import { Semigroup } from "./cmb.js";
  *     return ieq(this, that);
  * };
  * ```
- *
- * [equivalence relation]:
- *     https://mathworld.wolfram.com/EquivalenceRelation.html
- * [structural subtyping]:
- *     https://www.typescriptlang.org/docs/handbook/type-compatibility.html#site-content
- * [augmentation]:
- *     https://www.typescriptlang.org/docs/handbook/declaration-merging.html#module-augmentation
  */
 export interface Eq<in T> {
     /**
@@ -494,6 +495,8 @@ export function ieq<T extends Eq<T>>(
 /**
  * An interface that provides evidence of a [total order].
  *
+ * [total order]: https://mathworld.wolfram.com/TotalOrder.html
+ *
  * @remarks
  *
  * ## Properties
@@ -569,6 +572,11 @@ export function ieq<T extends Eq<T>>(
  * The concrete implementation logic is similar to writing a method body for a
  * class or object, and the same practices apply for requiring generic
  * parameters to implement `Ord`.
+ *
+ * [structural subtyping]:
+ *     https://www.typescriptlang.org/docs/handbook/type-compatibility.html#site-content
+ * [augmentation]:
+ *     https://www.typescriptlang.org/docs/handbook/declaration-merging.html#module-augmentation
  *
  * @example Non-generic implementation
  *
@@ -658,7 +666,7 @@ export function ieq<T extends Eq<T>>(
  *         // An exercise for the reader...
  *     }
  *
- *     [Ord.cmp]<T extends Ord<T>>(this: Arr<T>, that, Arr<T>): Ordering {
+ *     [Ord.cmp]<T extends Ord<T>>(this: Arr<T>, that: Arr<T>): Ordering {
  *         return icmp(this.val, that.val);
  *     }
  * }
@@ -755,12 +763,6 @@ export function ieq<T extends Eq<T>>(
  *     return icmp(this, that);
  * };
  * ```
- *
- * [total order]: https://mathworld.wolfram.com/TotalOrder.html
- * [structural subtyping]:
- *     https://www.typescriptlang.org/docs/handbook/type-compatibility.html#site-content
- * [augmentation]:
- *     https://www.typescriptlang.org/docs/handbook/declaration-merging.html#module-augmentation
  */
 export interface Ord<in T> extends Eq<T> {
     /**
