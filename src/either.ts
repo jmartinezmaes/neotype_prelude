@@ -697,6 +697,10 @@ export namespace Either {
      * The fluent syntax for `Either`.
      */
     export abstract class Syntax {
+        /**
+         * If this and that `Either` are the same variant and their values are
+         * equal, return `true`; otherwise, return `false`.
+         */
         [Eq.eq]<A extends Eq<A>, B extends Eq<B>>(
             this: Either<A, B>,
             that: Either<A, B>,
@@ -707,6 +711,15 @@ export namespace Either {
             return that.isRight() && eq(this.val, that.val);
         }
 
+        /**
+         * Compare this and that `Either` to determine their ordering.
+         *
+         * @remarks
+         *
+         * When ordered, a left-sided `Either` always compares as less than any
+         * right-sided `Either`. If the variants are the same, their values are
+         * compared to determine the ordering.
+         */
         [Ord.cmp]<A extends Ord<A>, B extends Ord<B>>(
             this: Either<A, B>,
             that: Either<A, B>,
@@ -717,6 +730,10 @@ export namespace Either {
             return that.isRight() ? cmp(this.val, that.val) : Ordering.greater;
         }
 
+        /**
+         * If this and that `Either` both succeed, combine their successes and
+         * succeed with the result; otherwise, return the first failed `Either`.
+         */
         [Semigroup.cmb]<E, T extends Semigroup<T>>(
             this: Either<E, T>,
             that: Either<E, T>,
@@ -844,6 +861,9 @@ export namespace Either {
          */
         readonly kind = Kind.LEFT;
 
+        /**
+         * The value of this `Either`.
+         */
         readonly val: A;
 
         constructor(val: A) {
@@ -872,6 +892,9 @@ export namespace Either {
          */
         readonly kind = Kind.RIGHT;
 
+        /**
+         * The value of this `Either`.
+         */
         readonly val: B;
 
         constructor(val: B) {

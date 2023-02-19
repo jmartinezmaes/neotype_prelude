@@ -507,6 +507,10 @@ export namespace Validation {
      * The fluent syntax for `Validation`.
      */
     export abstract class Syntax {
+        /**
+         * If this and that `Validation` are the same variant and their values
+         * are equal, return `true`; otherwise, return `false`.
+         */
         [Eq.eq]<E extends Eq<E>, T extends Eq<T>>(
             this: Validation<E, T>,
             that: Validation<E, T>,
@@ -517,6 +521,15 @@ export namespace Validation {
             return that.isOk() && eq(this.val, that.val);
         }
 
+        /**
+         * Compare this and that `Validation` to determine their ordering.
+         *
+         * @remarks
+         *
+         * When ordered, a failed `Validation` always compares as less than any
+         * successful `Validation`. If the variants are the same, their failures
+         * or successes are compared to determine the ordering.
+         */
         [Ord.cmp]<E extends Ord<E>, T extends Ord<T>>(
             this: Validation<E, T>,
             that: Validation<E, T>,
@@ -527,6 +540,11 @@ export namespace Validation {
             return that.isOk() ? cmp(this.val, that.val) : Ordering.greater;
         }
 
+        /**
+         * If this and that `Validation` both succeed, combine their successes
+         * and succeed with the result; otherwise, begin accumulating failures
+         * on the first failed `Validation`.
+         */
         [Semigroup.cmb]<E extends Semigroup<E>, T extends Semigroup<T>>(
             this: Validation<E, T>,
             that: Validation<E, T>,
@@ -639,6 +657,9 @@ export namespace Validation {
          */
         readonly kind = Kind.ERR;
 
+        /**
+         * The value of this `Validation`.
+         */
         readonly val: E;
 
         constructor(val: E) {
@@ -656,6 +677,9 @@ export namespace Validation {
          */
         readonly kind = Kind.OK;
 
+        /**
+         * The value of this `Validation`.
+         */
         readonly val: T;
 
         constructor(val: T) {
