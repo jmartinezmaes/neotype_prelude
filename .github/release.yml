@@ -9,3 +9,6 @@ changelog:
     - title: 🐛 Bug Fixes
       labels:
         - Bugfix
+    - title: 📖 Documentation
+      labels:
+        - Documentation
