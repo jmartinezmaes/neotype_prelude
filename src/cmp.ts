@@ -1165,8 +1165,8 @@ export class Reverse<out T> {
     }
 
     /**
-     * If the values of and that `Reverse` are equal, return `true`; otherwise,
-     * return `false`.
+     * If the values of this and that `Reverse` are equal, return `true`;
+     * otherwise, return `false`.
      */
     [Eq.eq]<T extends Eq<T>>(this: Reverse<T>, that: Reverse<T>): boolean {
         return eq(this.val, that.val);
