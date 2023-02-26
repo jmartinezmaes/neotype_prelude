@@ -125,17 +125,17 @@
  * -   `lmap` applies a function to the value in a left-sided `Either`.
  * -   `map` applies a function to the value in a right-sided `Either`.
  *
- * These methods combine the values of two successful `Eithers`, or
+ * These methods combine the successes of two successful `Eithers`, or
  * short-circuit on the first failed `Either`:
  *
- * -   `zipWith` applies a function to their values.
- * -   `zipFst` keeps only the first value, and discards the second.
- * -   `zipSnd` keeps only the second value, and discards the first.
+ * -   `zipWith` applies a function to their successes.
+ * -   `zipFst` keeps only the first success, and discards the second.
+ * -   `zipSnd` keeps only the second success, and discards the first.
  *
  * ## Chaining `Either`
  *
  * The `flatMap` method chains together computations that return `Either`. If an
- * `Either` succeeds, a function is applied to its value to return another
+ * `Either` succeeds, a function is applied to its success to return another
  * `Either`. If an `Either` fails, the computation halts and the failed `Either`
  * is returned instead.
  *
@@ -143,11 +143,11 @@
  *
  * Generator comprehensions provide an imperative syntax for chaining together
  * computations that return `Either`. Instead of `flatMap`, a generator is used
- * to unwrap successful `Either` values and apply functions to their values.
+ * to unwrap successful `Either` values and apply functions to their successes.
  *
  * The `go` function evaluates a generator to return an `Either`. Within the
  * generator, `Either` values are yielded using the `yield*` keyword. If a
- * yielded `Either` succeeds, its value may be bound to a specified variable.
+ * yielded `Either` succeeds, its success may be bound to a specified variable.
  * If any yielded `Either` fails, the generator halts and `go` returns the
  * failed `Either`; otherwise, when the computation is complete, the generator
  * may return a final result and `go` returns the result as a success.
@@ -161,6 +161,11 @@
  * The `goAsync` function evaluates an async generator to return a `Promise`
  * that fulfills with an `Either`. The semantics of `yield*` and `return` within
  * async comprehensions are identical to their synchronous counterparts.
+ *
+ * ## Recovering from `Left` variants
+ *
+ * If an `Either` fails, the `recover` method applies a function to its failure
+ * to return a fallback `Either`.
  *
  * ## Collecting into `Either`
  *
