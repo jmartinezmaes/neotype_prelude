@@ -1155,16 +1155,27 @@ export namespace Ordering {
  * A helper type for reversing order.
  */
 export class Reverse<out T> {
+    /**
+     * The value of this `Reverse`.
+     */
     readonly val: T;
 
     constructor(val: T) {
         this.val = val;
     }
 
+    /**
+     * If the values of and that `Reverse` are equal, return `true`; otherwise,
+     * return `false`.
+     */
     [Eq.eq]<T extends Eq<T>>(this: Reverse<T>, that: Reverse<T>): boolean {
         return eq(this.val, that.val);
     }
 
+    /**
+     * Compare the value of this `Reverse` to the value of that `Reverse` and
+     * reverse the result of the comparison.
+     */
     [Ord.cmp]<T extends Ord<T>>(this: Reverse<T>, that: Reverse<T>): Ordering {
         return cmp(this.val, that.val).reverse();
     }
