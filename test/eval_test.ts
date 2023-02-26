@@ -94,8 +94,7 @@ describe("eval.js", () => {
 
         describe("collect", () => {
             it("turns the array or the tuple literal of Eval elements inside out", () => {
-                const inputs: [Eval<1>, Eval<2>] = [Eval.now(1), Eval.now(2)];
-                const ev = Eval.collect(inputs);
+                const ev = Eval.collect([Eval.now<1>(1), Eval.now<2>(2)]);
                 const outcome = ev.run();
                 expect(outcome).to.deep.equal([1, 2]);
             });

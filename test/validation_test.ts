@@ -60,11 +60,10 @@ describe("validation.js", () => {
 
         describe("collect", () => {
             it("turns the array or the tuple literal of Validation elements inside out", () => {
-                const inputs: [Validation<Str, 2>, Validation<Str, 4>] = [
-                    Validation.ok(2),
-                    Validation.ok(4),
-                ];
-                const vdn = Validation.collect(inputs);
+                const vdn = Validation.collect([
+                    Validation.ok<2, Str>(2),
+                    Validation.ok<4, Str>(4),
+                ]);
                 expect(vdn).to.deep.equal(Validation.ok([2, 4]));
             });
         });

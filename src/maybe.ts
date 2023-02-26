@@ -590,7 +590,7 @@ export namespace Maybe {
      * -   `Maybe<T>[]` becomes `Maybe<T[]>`
      * -   `[Maybe<T1>, Maybe<T2>]` becomes `Maybe<[T1, T2]>`
      */
-    export function collect<TMaybes extends readonly Maybe<any>[]>(
+    export function collect<TMaybes extends readonly Maybe<any>[] | []>(
         maybes: TMaybes,
     ): Maybe<{ [K in keyof TMaybes]: JustT<TMaybes[K]> }> {
         return go(function* () {

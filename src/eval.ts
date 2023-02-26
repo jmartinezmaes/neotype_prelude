@@ -231,14 +231,14 @@
  *     );
  * }
  *
- * type Traversals<T> = readonly [in: T[], pre: T[], post: T[]];
+ * type Traversals<T> = [in: T[], pre: T[], post: T[]];
  *
  * function traversals<T>(tree: Tree<T>): Eval<Traversals<T>> {
  *     return Eval.collect([
  *         inOrder(tree),
  *         preOrder(tree),
  *         postOrder(tree),
- *     ] as const);
+ *     ]);
  * }
  *
  * console.log(JSON.stringify(traversals(oneToSeven).run()));
@@ -251,9 +251,9 @@
  *
  * ```ts
  * interface TraversalsObj<T> {
- *     readonly in: T[];
- *     readonly pre: T[];
- *     readonly post: T[];
+ *     in: T[];
+ *     pre: T[];
+ *     post: T[];
  * }
  *
  * function traversalsKeyed<T>(tree: Tree<T>): Eval<TraversalsObj<T>> {
@@ -445,7 +445,7 @@ export class Eval<out T> {
      * -   `Eval<T>[]` becomes `Eval<T[]>`
      * -   `[Eval<T1>, Eval<T2>]` becomes `Eval<[T1, T2]>`
      */
-    static collect<TEvals extends readonly Eval<any>[]>(
+    static collect<TEvals extends readonly Eval<any>[] | []>(
         evals: TEvals,
     ): Eval<{ [K in keyof TEvals]: Eval.ResultT<TEvals[K]> }> {
         return Eval.go(function* () {

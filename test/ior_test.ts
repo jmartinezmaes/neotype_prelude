@@ -175,11 +175,10 @@ describe("ior.js", () => {
 
         describe("collect", () => {
             it("turns the array or the tuple literal of Ior elements inside out", () => {
-                const inputs: [Ior<Str, 2>, Ior<Str, 4>] = [
-                    Ior.both(new Str("a"), 2),
-                    Ior.both(new Str("b"), 4),
-                ];
-                const ior = Ior.collect(inputs);
+                const ior = Ior.collect([
+                    Ior.both<Str, 2>(new Str("a"), 2),
+                    Ior.both<Str, 4>(new Str("b"), 4),
+                ]);
                 expect(ior).to.deep.equal(Ior.both(new Str("ab"), [2, 4]));
             });
         });

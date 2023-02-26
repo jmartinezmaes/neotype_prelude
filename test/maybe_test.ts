@@ -134,11 +134,10 @@ describe("maybe.js", () => {
 
         describe("collect", () => {
             it("turns the array or the tuple literal of Maybe elements inside out", () => {
-                const inputs: [Maybe<1>, Maybe<2>] = [
-                    Maybe.just(1),
-                    Maybe.just(2),
-                ];
-                const maybe = Maybe.collect(inputs);
+                const maybe = Maybe.collect([
+                    Maybe.just<1>(1),
+                    Maybe.just<2>(2),
+                ]);
                 expect(maybe).to.deep.equal(Maybe.just([1, 2]));
             });
         });
