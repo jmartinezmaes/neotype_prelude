@@ -431,7 +431,7 @@ export namespace Validation {
      *     T2]>`
      */
     export function collect<
-        TVdns extends readonly Validation<Semigroup<any>, any>[],
+        TVdns extends readonly Validation<Semigroup<any>, any>[] | [],
     >(
         vdns: TVdns,
     ): Validation<ErrT<TVdns[number]>, { [K in keyof TVdns]: OkT<TVdns[K]> }> {

@@ -100,11 +100,10 @@ describe("either.js", () => {
 
         describe("collect", () => {
             it("turns the array or the tuple literal of Either elements inside out", () => {
-                const inputs: [Either<1, 2>, Either<3, 4>] = [
-                    Either.right(2),
-                    Either.right(4),
-                ];
-                const either = Either.collect(inputs);
+                const either = Either.collect([
+                    Either.right<2, 1>(2),
+                    Either.right<4, 3>(4),
+                ]);
                 expect(either).to.deep.equal(Either.right([2, 4]));
             });
         });

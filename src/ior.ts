@@ -675,7 +675,9 @@ export namespace Ior {
      * -   `Ior<A, B>[]` becomes `Ior<A, B[]>`
      * -   `[Ior<A, B>, Ior<A, C>]` becomes `Ior<A, [B, C]>`
      */
-    export function collect<TIors extends readonly Ior<Semigroup<any>, any>[]>(
+    export function collect<
+        TIors extends readonly Ior<Semigroup<any>, any>[] | [],
+    >(
         iors: TIors,
     ): Ior<LeftT<TIors[number]>, { [K in keyof TIors]: RightT<TIors[K]> }> {
         return go(function* () {

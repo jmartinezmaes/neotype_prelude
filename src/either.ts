@@ -562,7 +562,7 @@ export namespace Either {
      * -   `Either<E, T>[]` becomes `Either<E, T[]>`
      * -   `[Either<E, T1>, Either<E, T2>]` becomes `Either<E, [T1, T2]>`
      */
-    export function collect<TEithers extends readonly Either<any, any>[]>(
+    export function collect<TEithers extends readonly Either<any, any>[] | []>(
         eithers: TEithers,
     ): Either<
         LeftT<TEithers[number]>,
