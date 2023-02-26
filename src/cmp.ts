@@ -1070,6 +1070,13 @@ export namespace Ordering {
      * An `Ordering` that indicates a "less than" comparison result.
      */
     export class Less extends Syntax {
+        /**
+         * The singleton instance of the `Less` variant of `Ordering`.
+         *
+         * @remarks
+         *
+         * The `less` constant is a more accessible alias for this object.
+         */
         static readonly singleton = new Less();
 
         /**
@@ -1086,6 +1093,13 @@ export namespace Ordering {
      * An `Ordering` that indicates an "equal" comparison result.
      */
     export class Equal extends Syntax {
+        /**
+         * The singleton instance of the `Equal` variant of `Ordering`.
+         *
+         * @remarks
+         *
+         * The `equal` constant is a more accessible alias for this object.
+         */
         static readonly singleton = new Equal();
 
         /**
@@ -1102,6 +1116,13 @@ export namespace Ordering {
      * An `Ordering` that indicates a "greater than" comparison result.
      */
     export class Greater extends Syntax {
+        /**
+         * The singleton instance of the `Greater` variant of `Ordering`.
+         *
+         * @remarks
+         *
+         * The `greater` constant is a more accessible alias for this object.
+         */
         static readonly singleton = new Greater();
 
         /**

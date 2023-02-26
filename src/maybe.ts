@@ -870,6 +870,13 @@ export namespace Maybe {
      * An absent `Maybe`.
      */
     export class Nothing extends Syntax {
+        /**
+         * The singleton instance of the `Nothing` variant of `Maybe`.
+         *
+         * @remarks
+         *
+         * The `nothing` constant is a more accessible alias for this object.
+         */
         static readonly singleton = new Nothing();
 
         /**
