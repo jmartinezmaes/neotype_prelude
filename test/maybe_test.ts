@@ -395,6 +395,18 @@ describe("maybe.js", () => {
             });
         });
 
+        describe("#toNullish", () => {
+            it("returns undefined if the variant is Nothing", () => {
+                const result = nothing<1>().toNullish();
+                expect(result).to.be.undefined;
+            });
+
+            it("extracts the value if the variant is Just", () => {
+                const result = Maybe.just<1>(1).toNullish();
+                expect(result).to.equal(1);
+            });
+        });
+
         describe("#recover", () => {
             it("evaluates the function if the variant is Nothing", () => {
                 const maybe = nothing<1>().recover(() => Maybe.just<2>(2));

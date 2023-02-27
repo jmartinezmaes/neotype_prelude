@@ -97,8 +97,9 @@
  *
  * These methods extract the value from a `Maybe` if present; otherwise:
  *
- * - `getOrElse` evaluates a function to return a fallback result.
- * - `getOr` returns a fallback value.
+ * -   `getOrElse` evaluates a function to return a fallback result.
+ * -   `getOr` returns a fallback value.
+ * -   `toNullish` returns `undefined`.
  *
  * ## Comparing `Maybe`
  *
@@ -801,6 +802,14 @@ export namespace Maybe {
          */
         getOr<T, T1>(this: Maybe<T>, fallback: T1): T | T1 {
             return this.unwrap(() => fallback, id);
+        }
+
+        /**
+         * If this `Maybe` is present, extract its value; otherwise, return
+         * `undefined`.
+         */
+        toNullish<T>(this: Maybe<T>): T | undefined {
+            return this.unwrap(() => undefined, id);
         }
 
         /**
