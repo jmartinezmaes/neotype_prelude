@@ -106,8 +106,8 @@ describe("pair.js", () => {
 
         describe("#unwrap", () => {
             it("applies the function to the first value and the second value", () => {
-                const pair = new Pair<1, 2>(1, 2).unwrap(tuple);
-                expect(pair).to.deep.equal([1, 2]);
+                const result = new Pair<1, 2>(1, 2).unwrap(tuple);
+                expect(result).to.deep.equal([1, 2]);
             });
         });
 

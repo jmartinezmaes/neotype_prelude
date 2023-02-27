@@ -216,19 +216,19 @@ describe("validation.js", () => {
 
         describe("#unwrap", () => {
             it("applies the first function to the failure if the variant is Err", () => {
-                const vdn = Validation.err<1, 2>(1).unwrap(
+                const result = Validation.err<1, 2>(1).unwrap(
                     (x): [1, 3] => [x, 3],
                     (x): [2, 4] => [x, 4],
                 );
-                expect(vdn).to.deep.equal([1, 3]);
+                expect(result).to.deep.equal([1, 3]);
             });
 
             it("applies the second function to the success if the variant is Ok", () => {
-                const vdn = Validation.ok<2, 1>(2).unwrap(
+                const result = Validation.ok<2, 1>(2).unwrap(
                     (x): [1, 3] => [x, 3],
                     (x): [2, 4] => [x, 4],
                 );
-                expect(vdn).to.deep.equal([2, 4]);
+                expect(result).to.deep.equal([2, 4]);
             });
         });
 

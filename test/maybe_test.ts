@@ -355,43 +355,43 @@ describe("maybe.js", () => {
 
         describe("#unwrap", () => {
             it("evaluates the first function if the variant is Nothing", () => {
-                const maybe = nothing<1>().unwrap(
+                const result = nothing<1>().unwrap(
                     (): 2 => 2,
                     (x): [1, 3] => [x, 3],
                 );
-                expect(maybe).to.equal(2);
+                expect(result).to.equal(2);
             });
 
             it("applies the second function to the value if the variant is Just", () => {
-                const maybe = Maybe.just<1>(1).unwrap(
+                const result = Maybe.just<1>(1).unwrap(
                     (): 2 => 2,
                     (x): [1, 3] => [x, 3],
                 );
-                expect(maybe).to.deep.equal([1, 3]);
+                expect(result).to.deep.equal([1, 3]);
             });
         });
 
         describe("getOrElse", () => {
             it("evaluates the function if the variant is Nothing", () => {
-                const maybe = nothing<1>().getOrElse((): 2 => 2);
-                expect(maybe).to.equal(2);
+                const result = nothing<1>().getOrElse((): 2 => 2);
+                expect(result).to.equal(2);
             });
 
             it("extracts the value if the variant is Just", () => {
-                const maybe = Maybe.just<1>(1).getOrElse((): 2 => 2);
-                expect(maybe).to.equal(1);
+                const result = Maybe.just<1>(1).getOrElse((): 2 => 2);
+                expect(result).to.equal(1);
             });
         });
 
         describe("#getOr", () => {
             it("returns the fallback value if the variant is Nothing", () => {
-                const maybe = nothing<1>().getOr(2 as const);
-                expect(maybe).to.equal(2);
+                const result = nothing<1>().getOr(2 as const);
+                expect(result).to.equal(2);
             });
 
             it("extracts the value if the variant is Just", () => {
-                const maybe = Maybe.just<1>(1).getOr(2 as const);
-                expect(maybe).to.equal(1);
+                const result = Maybe.just<1>(1).getOr(2 as const);
+                expect(result).to.equal(1);
             });
         });
 
