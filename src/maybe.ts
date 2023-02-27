@@ -121,7 +121,7 @@
  *
  * -   A `Maybe<T>` implements `Semigroup` when `T` implements `Semigroup`.
  * -   When combined, present `Maybe` values have precedence over absent `Maybe`
- *     values. If they are both present, thier values are combined and returned
+ *     values. If they are both present, their values are combined and returned
  *     in a `Just`.
  *
  * ## Transforming values
@@ -820,7 +820,7 @@ export namespace Maybe {
         }
 
         /**
-         * If this and that `Maybe` are both present, apply a function to thier
+         * If this and that `Maybe` are both present, apply a function to their
          * values and return the result in a `Just`; otherwise, return
          * `Nothing`.
          */
