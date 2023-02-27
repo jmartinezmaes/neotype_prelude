@@ -3,6 +3,52 @@
 All notable changes to this project will be documented in this file. This
 project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## Version 0.8.0 - 2023-02-27
+
+## What's Changed
+
+### 💥 Breaking Changes
+
+-   Rename discriminator enumerations and properties by
+    [@jm4rtinez](https://github.com/jm4rtinez) in
+    [#70]https://github.com/jm4rtinez/neotype_prelude/pull/70
+-   For `Maybe`, rename `fromMissing` to `fromNullish` by
+    [@jm4rtinez](https://github.com/jm4rtinez) in
+    [#81]https://github.com/jm4rtinez/neotype_prelude/pull/81
+
+### 🚀 Enhancements
+
+-   Introduce the `goFn` and `goAsyncFn` functions by
+    [@jm4rtinez](https://github.com/jm4rtinez) in
+    [#71]https://github.com/jm4rtinez/neotype_prelude/pull/71
+-   Improve tuple type inference in functions that accept arrays or tuples by
+    [@jm4rtinez](https://github.com/jm4rtinez) in
+    [#79]https://github.com/jm4rtinez/neotype_prelude/pull/79
+-   For `Maybe`, introduce the `toNullish` method by
+    [@jm4rtinez](https://github.com/jm4rtinez) in
+    [#82]https://github.com/jm4rtinez/neotype_prelude/pull/82
+
+### 📖 Documentation
+
+-   Add doc comments for all members currently missing them by
+    [@jm4rtinez](https://github.com/jm4rtinez) in
+    [#74]https://github.com/jm4rtinez/neotype_prelude/pull/74
+-   Fix broken Markdown links in the documentation by
+    [@jm4rtinez](https://github.com/jm4rtinez) in
+    [#75]https://github.com/jm4rtinez/neotype_prelude/pull/75
+-   Revise the module documentation for `Either` by
+    [@jm4rtinez](https://github.com/jm4rtinez) in
+    [#77]https://github.com/jm4rtinez/neotype_prelude/pull/77
+-   Fill in more missing documentation by
+    [@jm4rtinez](https://github.com/jm4rtinez) in
+    [#78]https://github.com/jm4rtinez/neotype_prelude/pull/78
+-   Fix incorrect spelling of "their" in the docs for `maybe` by
+    [@jm4rtinez](https://github.com/jm4rtinez) in
+    [#80]https://github.com/jm4rtinez/neotype_prelude/pull/80
+
+**Full Changelog**:
+https://github.com/jm4rtinez/neotype_prelude/compare/v0.7.0...v0.8.0
+
 ## Version 0.7.0 - 2023-01-22
 
 ### What's Changed
