@@ -313,19 +313,19 @@ describe("either.js", () => {
 
         describe("#unwrap", () => {
             it("applies the first function to the value if the variant is Left", () => {
-                const either = Either.left<1, 2>(1).unwrap(
+                const result = Either.left<1, 2>(1).unwrap(
                     (x): [1, 3] => [x, 3],
                     (x): [2, 4] => [x, 4],
                 );
-                expect(either).to.deep.equal([1, 3]);
+                expect(result).to.deep.equal([1, 3]);
             });
 
             it("applies the second function to the value if the variant is Right", () => {
-                const either = Either.right<2, 1>(2).unwrap(
+                const result = Either.right<2, 1>(2).unwrap(
                     (x): [1, 3] => [x, 3],
                     (x): [2, 4] => [x, 4],
                 );
-                expect(either).to.deep.equal([2, 4]);
+                expect(result).to.deep.equal([2, 4]);
             });
         });
 

@@ -618,81 +618,72 @@ describe("ior.js", () => {
 
         describe("#unwrap", () => {
             it("applies the first function to the value if the variant is Left", () => {
-                const ior = Ior.left<1, 2>(1).unwrap(
+                const result = Ior.left<1, 2>(1).unwrap(
                     (x): [1, 3] => [x, 3],
                     (x): [2, 4] => [x, 4],
                     tuple,
                 );
-                expect(ior).to.deep.equal([1, 3]);
+                expect(result).to.deep.equal([1, 3]);
             });
 
             it("applies the second function to the value if the variant is Right", () => {
-                const ior = Ior.right<2, 1>(2).unwrap(
+                const result = Ior.right<2, 1>(2).unwrap(
                     (x): [1, 3] => [x, 3],
                     (x): [2, 4] => [x, 4],
                     tuple,
                 );
-                expect(ior).to.deep.equal([2, 4]);
+                expect(result).to.deep.equal([2, 4]);
             });
 
             it("applies the third function to the left-hand value and the right-hand value if the variant is Both", () => {
-                const ior = Ior.both<1, 2>(1, 2).unwrap(
+                const result = Ior.both<1, 2>(1, 2).unwrap(
                     (x): [1, 3] => [x, 3],
                     (x): [2, 4] => [x, 4],
                     tuple,
                 );
-                expect(ior).to.deep.equal([1, 2]);
+                expect(result).to.deep.equal([1, 2]);
             });
         });
 
         describe("#isLeft", () => {
             it("returns true if the variant is Left", () => {
-                const ior = Ior.left<1, 2>(1).isLeft();
-                expect(ior).to.be.true;
+                expect(Ior.left<1, 2>(1).isLeft()).to.be.true;
             });
 
             it("returns false if the variant is Right", () => {
-                const ior = Ior.right<2, 1>(2).isLeft();
-                expect(ior).to.be.false;
+                expect(Ior.right<2, 1>(2).isLeft()).to.be.false;
             });
 
             it("returns false if the variant is Both", () => {
-                const ior = Ior.both<1, 2>(1, 2).isLeft();
-                expect(ior).to.be.false;
+                expect(Ior.both<1, 2>(1, 2).isLeft()).to.be.false;
             });
         });
 
         describe("#isRight", () => {
             it("returns false if the variant is Left", () => {
-                const ior = Ior.left<1, 2>(1).isRight();
-                expect(ior).to.be.false;
+                expect(Ior.left<1, 2>(1).isRight()).to.be.false;
             });
 
             it("returns true if the variant is Right", () => {
-                const ior = Ior.right<2, 1>(2).isRight();
-                expect(ior).to.be.true;
+                expect(Ior.right<2, 1>(2).isRight()).to.be.true;
             });
 
             it("returns false if the variant is Both", () => {
-                const ior = Ior.both<1, 2>(1, 2).isRight();
-                expect(ior).to.be.false;
+                expect(Ior.both<1, 2>(1, 2).isRight()).to.be.false;
             });
         });
 
         describe("#isBoth", () => {
             it("returns false if the variant is Left", () => {
-                const ior = Ior.left<1, 2>(1).isBoth();
-                expect(ior).to.be.false;
+                expect(Ior.left<1, 2>(1).isBoth()).to.be.false;
             });
 
             it("returns false if the variant is Right", () => {
-                const ior = Ior.right<2, 1>(2).isBoth();
-                expect(ior).to.be.false;
+                expect(Ior.right<2, 1>(2).isBoth()).to.be.false;
             });
 
             it("returns true if the variant is Both", () => {
-                const ior = Ior.both<1, 2>(1, 2).isBoth();
-                expect(ior).to.be.true;
+                expect(Ior.both<1, 2>(1, 2).isBoth()).to.be.true;
             });
         });
 
