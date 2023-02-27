@@ -41,17 +41,17 @@ describe("maybe.js", () => {
             });
         });
 
-        describe("fromMissing", () => {
+        describe("fromNullish", () => {
             it("returns Nothing if the argument is undefined", () => {
-                expect(Maybe.fromMissing<1>(undefined)).to.equal(Maybe.nothing);
+                expect(Maybe.fromNullish<1>(undefined)).to.equal(Maybe.nothing);
             });
 
             it("returns Nothing if the argument is null", () => {
-                expect(Maybe.fromMissing<1>(null)).to.equal(Maybe.nothing);
+                expect(Maybe.fromNullish<1>(null)).to.equal(Maybe.nothing);
             });
 
             it("returns any non-undefined, non-null argument in a Just", () => {
-                expect(Maybe.fromMissing<1>(1)).to.deep.equal(Maybe.just(1));
+                expect(Maybe.fromNullish<1>(1)).to.deep.equal(Maybe.just(1));
             });
         });
 

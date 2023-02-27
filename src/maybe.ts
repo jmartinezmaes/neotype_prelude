@@ -69,7 +69,7 @@
  * These functions construct a `Maybe`:
  *
  * -   `just` constructs a present `Maybe`.
- * -   `fromMissing` constructs a `Maybe` from a value that is potentially
+ * -   `fromNullish` constructs a `Maybe` from a value that is potentially
  *     `null` or `undefined`.
  *
  * These functions adapt other functions to return a `Maybe`:
@@ -425,7 +425,7 @@ export namespace Maybe {
      * If the value is `null` or `undefined`, return `Nothing`; otherwise,
      * return the value in a `Just`.
      */
-    export function fromMissing<T>(val: T | null | undefined): Maybe<T> {
+    export function fromNullish<T>(val: T | null | undefined): Maybe<T> {
         return val === null || val === undefined ? nothing : just(val);
     }
 
@@ -441,7 +441,7 @@ export namespace Maybe {
     export function wrapFn<TArgs extends unknown[], T>(
         f: (...args: TArgs) => T | null | undefined,
     ): (...args: TArgs) => Maybe<T> {
-        return (...args) => fromMissing(f(...args));
+        return (...args) => fromNullish(f(...args));
     }
 
     /**
