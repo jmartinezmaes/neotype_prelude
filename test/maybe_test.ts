@@ -435,6 +435,37 @@ describe("maybe.js", () => {
             });
         });
 
+        describe("#mapNullish", () => {
+            it("does not apply the continuation if the variant is Nothing", () => {
+                const maybe = nothing<1>().mapNullish((x): [1, 2] | null => [
+                    x,
+                    2,
+                ]);
+                expect(maybe).to.equal(Maybe.nothing);
+            });
+
+            it("returns Nothing if the continuation returns null", () => {
+                const maybe = Maybe.just<1>(1).mapNullish(
+                    (): [1, 2] | null => null,
+                );
+                expect(maybe).to.deep.equal(Maybe.nothing);
+            });
+
+            it("returns Nothing if the continuation returns undefined", () => {
+                const maybe = Maybe.just<1>(1).mapNullish(
+                    (): [1, 2] | undefined => undefined,
+                );
+                expect(maybe).to.deep.equal(Maybe.nothing);
+            });
+
+            it("returns the result in a Just if the continuation returns a non-null result", () => {
+                const maybe = Maybe.just<1>(1).mapNullish(
+                    (x): [1, 2] | null | undefined => [x, 2],
+                );
+                expect(maybe).to.deep.equal(Maybe.just([1, 2]));
+            });
+        });
+
         describe("#zipWith", () => {
             it("applies the function to the values if both variants are Just", () => {
                 const maybe = Maybe.just<1>(1).zipWith(Maybe.just<2>(2), tuple);
