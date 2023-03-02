@@ -127,8 +127,12 @@
  *
  * ## Transforming values
  *
- * The `map` method transforms the value within a `Maybe` if present, and does
- * nothing if absent.
+ * These methods transform the value within a `Maybe` if present, or do nothing
+ * if absent:
+ *
+ * -   `map` applies a function to the value.
+ * -   `mapNullish` applies a function to the value that may return a `null` or
+ *     `undefined` result, and converts those results to `Nothing`.
  *
  * These methods combine the values of two `Maybe` values if both are present,
  * or short-circuit on the first absent `Maybe`:
@@ -826,6 +830,18 @@ export namespace Maybe {
          */
         flatMap<T, T1>(this: Maybe<T>, f: (val: T) => Maybe<T1>): Maybe<T1> {
             return this.isNothing() ? this : f(this.val);
+        }
+
+        /**
+         * If this `Maybe` is present, apply a function to its value. If the
+         * result is `null` or `undefined`, return `Nothing`; otherwise, return
+         * the result in a `Just`. If this `Maybe` is absent, return `Nothing`.
+         */
+        mapNullish<T, T1>(
+            this: Maybe<T>,
+            f: (val: T) => T1 | null | undefined,
+        ): Maybe<T1> {
+            return this.flatMap((val) => fromNullish(f(val)));
         }
 
         /**
