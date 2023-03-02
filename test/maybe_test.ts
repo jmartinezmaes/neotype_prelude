@@ -448,14 +448,14 @@ describe("maybe.js", () => {
                 const maybe = Maybe.just<1>(1).mapNullish(
                     (): [1, 2] | null => null,
                 );
-                expect(maybe).to.deep.equal(Maybe.nothing);
+                expect(maybe).to.equal(Maybe.nothing);
             });
 
             it("returns Nothing if the continuation returns undefined", () => {
                 const maybe = Maybe.just<1>(1).mapNullish(
                     (): [1, 2] | undefined => undefined,
                 );
-                expect(maybe).to.deep.equal(Maybe.nothing);
+                expect(maybe).to.equal(Maybe.nothing);
             });
 
             it("returns the result in a Just if the continuation returns a non-null result", () => {
@@ -463,6 +463,23 @@ describe("maybe.js", () => {
                     (x): [1, 2] | null | undefined => [x, 2],
                 );
                 expect(maybe).to.deep.equal(Maybe.just([1, 2]));
+            });
+        });
+
+        describe("#filter", () => {
+            it("does not apply the predicate if the variant is Nothing", () => {
+                const maybe = nothing<number>().filter((x) => x === 1);
+                expect(maybe).to.equal(Maybe.nothing);
+            });
+
+            it("returns Nothing if the predicate returns false", () => {
+                const maybe = Maybe.just(1).filter((x) => x === 2);
+                expect(maybe).to.equal(Maybe.nothing);
+            });
+
+            it("returns the value in a Just if the predicate returns true", () => {
+                const maybe = Maybe.just(1).filter((x) => x === 1);
+                expect(maybe).to.deep.equal(Maybe.just(1));
             });
         });
 

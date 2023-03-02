@@ -132,7 +132,9 @@
  *
  * -   `map` applies a function to the value.
  * -   `mapNullish` applies a function to the value that may return a `null` or
- *     `undefined` result, and converts those results to `Nothing`.
+ *     an `undefined` result, and converts those results to `Nothing`.
+ * -   `filter` keeps the value if it satisfies a predicate, or returns
+ *     `Nothing` otherwise.
  *
  * These methods combine the values of two `Maybe` values if both are present,
  * or short-circuit on the first absent `Maybe`:
@@ -842,6 +844,22 @@ export namespace Maybe {
             f: (val: T) => T1 | null | undefined,
         ): Maybe<T1> {
             return this.flatMap((val) => fromNullish(f(val)));
+        }
+
+        /**
+         * If this `Maybe` is present, apply a predicate to its value. If the
+         * predicate returns `true`, return the value in a `Just`; otherwise,
+         * return `Nothing`. If this `Maybe` is absent, return `Nothing`.
+         */
+        filter<T, T1 extends T>(
+            this: Maybe<T>,
+            f: (val: T) => val is T1,
+        ): Maybe<T1>;
+
+        filter<T>(this: Maybe<T>, f: (val: T) => boolean): Maybe<T>;
+
+        filter<T>(this: Maybe<T>, f: (val: T) => boolean): Maybe<T> {
+            return this.flatMap((val) => (f(val) ? just(val) : nothing));
         }
 
         /**
