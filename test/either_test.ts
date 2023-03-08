@@ -73,6 +73,36 @@ describe("either.js", () => {
                 });
                 expect(either).to.deep.equal(Either.right([2, 2, 4]));
             });
+
+            it("executes the finally block if a Left is yielded in the try block", () => {
+                const logs: string[] = [];
+                const either = Either.go(function* () {
+                    try {
+                        const results = [];
+                        const x = yield* Either.left<1, 2>(1);
+                        results.push(x);
+                        return results;
+                    } finally {
+                        logs.push("finally");
+                    }
+                });
+                expect(either).to.deep.equal(Either.left(1));
+                expect(logs).to.deep.equal(["finally"]);
+            });
+
+            it("keeps the most recent yielded Left when using try and finally blocks", () => {
+                const either = Either.go(function* () {
+                    try {
+                        const results = [];
+                        const x = yield* Either.left<1, 2>(1);
+                        results.push(x);
+                        return results;
+                    } finally {
+                        yield* Either.left<3, 4>(3);
+                    }
+                });
+                expect(either).to.deep.equal(Either.left(3));
+            });
         });
 
         describe("goFn", () => {
@@ -168,6 +198,40 @@ describe("either.js", () => {
                     return Promise.resolve(tuple(x, y, z));
                 });
                 expect(either).to.deep.equal(Either.right([2, 2, 4]));
+            });
+
+            it("executes the finally block if a Left is yielded in the try block", async () => {
+                const logs: string[] = [];
+                const either = await Either.goAsync(async function* () {
+                    try {
+                        const results = [];
+                        const x = yield* await Promise.resolve(
+                            Either.left<1, 2>(1),
+                        );
+                        results.push(x);
+                        return results;
+                    } finally {
+                        logs.push("finally");
+                    }
+                });
+                expect(either).to.deep.equal(Either.left(1));
+                expect(logs).to.deep.equal(["finally"]);
+            });
+
+            it("keeps the most recent yielded Left when using try and finally blocks", async () => {
+                const either = await Either.goAsync(async function* () {
+                    try {
+                        const results = [];
+                        const x = yield* await Promise.resolve(
+                            Either.left<1, 2>(1),
+                        );
+                        results.push(x);
+                        return results;
+                    } finally {
+                        yield* await Promise.resolve(Either.left<3, 4>(3));
+                    }
+                });
+                expect(either).to.deep.equal(Either.left(3));
             });
         });
 

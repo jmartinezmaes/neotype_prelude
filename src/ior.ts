@@ -455,6 +455,7 @@ import { cmb, Semigroup } from "./cmb.js";
 import { cmp, Eq, eq, Ord, Ordering } from "./cmp.js";
 import { type Either } from "./either.js";
 import { id } from "./fn.js";
+import { halt } from "./internal/halt.js";
 import { type Validation } from "./validation.js";
 
 /**
@@ -513,7 +514,7 @@ export namespace Ior {
     }
 
     function step<A extends Semigroup<A>, TReturn>(
-        gen: Generator<Ior<A, any>, TReturn, unknown>,
+        gen: Generator<Ior<A, any>, TReturn | typeof halt, unknown>,
     ): Ior<A, TReturn> {
         let nxt = gen.next();
         let acc: A | undefined;
@@ -523,13 +524,30 @@ export namespace Ior {
             if (ior.isRight()) {
                 nxt = gen.next(ior.val);
             } else if (ior.isBoth()) {
-                acc = acc !== undefined ? cmb(acc, ior.fst) : ior.fst;
+                if (acc === undefined) {
+                    acc = ior.fst;
+                } else {
+                    acc = cmb(acc, ior.fst);
+                }
                 nxt = gen.next(ior.snd);
             } else {
-                return acc !== undefined ? left(cmb(acc, ior.val)) : ior;
+                if (acc === undefined) {
+                    acc = ior.val;
+                } else {
+                    acc = cmb(acc, ior.val);
+                }
+                nxt = gen.return(halt);
             }
         }
-        return acc !== undefined ? both(acc, nxt.value) : right(nxt.value);
+
+        const result = nxt.value;
+        if (result === halt) {
+            return left(acc as A);
+        }
+        if (acc === undefined) {
+            return right(result);
+        }
+        return both(acc, result);
     }
 
     /**
@@ -681,7 +699,7 @@ export namespace Ior {
         iors: TIors,
     ): Ior<LeftT<TIors[number]>, { [K in keyof TIors]: RightT<TIors[K]> }> {
         return go(function* () {
-            const results: unknown[] = new Array(iors.length);
+            const results = new Array(iors.length);
             for (const [idx, ior] of iors.entries()) {
                 results[idx] = yield* ior;
             }
@@ -717,7 +735,7 @@ export namespace Ior {
         { [K in keyof TIors]: RightT<TIors[K]> }
     > {
         return Ior.go(function* () {
-            const results: Record<any, unknown> = {};
+            const results: Record<any, any> = {};
             for (const [key, ior] of Object.entries(iors)) {
                 results[key] = yield* ior;
             }
@@ -752,7 +770,7 @@ export namespace Ior {
     }
 
     async function stepAsync<A extends Semigroup<A>, TReturn>(
-        gen: AsyncGenerator<Ior<A, any>, TReturn, unknown>,
+        gen: AsyncGenerator<Ior<A, any>, TReturn | typeof halt, unknown>,
     ): Promise<Ior<A, TReturn>> {
         let nxt = await gen.next();
         let acc: A | undefined;
@@ -762,13 +780,30 @@ export namespace Ior {
             if (ior.isRight()) {
                 nxt = await gen.next(ior.val);
             } else if (ior.isBoth()) {
-                acc = acc !== undefined ? cmb(acc, ior.fst) : ior.fst;
+                if (acc === undefined) {
+                    acc = ior.fst;
+                } else {
+                    acc = cmb(acc, ior.fst);
+                }
                 nxt = await gen.next(ior.snd);
             } else {
-                return acc !== undefined ? left(cmb(acc, ior.val)) : ior;
+                if (acc === undefined) {
+                    acc = ior.val;
+                } else {
+                    acc = cmb(acc, ior.val);
+                }
+                nxt = await gen.return(halt);
             }
         }
-        return acc !== undefined ? both(acc, nxt.value) : right(nxt.value);
+
+        const result = nxt.value;
+        if (result === halt) {
+            return left(acc as A);
+        }
+        if (acc === undefined) {
+            return right(result);
+        }
+        return both(acc, result);
     }
 
     /**

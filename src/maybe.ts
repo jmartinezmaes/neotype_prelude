@@ -405,6 +405,7 @@
 import { cmb, Semigroup } from "./cmb.js";
 import { cmp, Eq, eq, Ord, Ordering } from "./cmp.js";
 import { id } from "./fn.js";
+import { halt } from "./internal/halt.js";
 
 /**
  * A type that represents either an absent value (`Nothing`) or a present value
@@ -470,7 +471,7 @@ export namespace Maybe {
     }
 
     function step<TReturn>(
-        gen: Generator<Maybe<any>, TReturn, unknown>,
+        gen: Generator<Maybe<any>, TReturn | typeof halt, unknown>,
     ): Maybe<TReturn> {
         let nxt = gen.next();
         while (!nxt.done) {
@@ -478,10 +479,11 @@ export namespace Maybe {
             if (maybe.isJust()) {
                 nxt = gen.next(maybe.val);
             } else {
-                return maybe;
+                nxt = gen.return(halt);
             }
         }
-        return just(nxt.value);
+        const result = nxt.value;
+        return result === halt ? nothing : just(result);
     }
 
     /**
@@ -601,7 +603,7 @@ export namespace Maybe {
         maybes: TMaybes,
     ): Maybe<{ [K in keyof TMaybes]: JustT<TMaybes[K]> }> {
         return go(function* () {
-            const results: unknown[] = new Array(maybes.length);
+            const results = new Array(maybes.length);
             for (const [idx, maybe] of maybes.entries()) {
                 results[idx] = yield* maybe;
             }
@@ -628,7 +630,7 @@ export namespace Maybe {
         maybes: TMaybes,
     ): Maybe<{ [K in keyof TMaybes]: JustT<TMaybes[K]> }> {
         return go(function* () {
-            const results: Record<any, unknown> = {};
+            const results: Record<any, any> = {};
             for (const [key, maybe] of Object.entries(maybes)) {
                 results[key] = yield* maybe;
             }
@@ -654,7 +656,7 @@ export namespace Maybe {
     }
 
     async function stepAsync<TReturn>(
-        gen: AsyncGenerator<Maybe<any>, TReturn, unknown>,
+        gen: AsyncGenerator<Maybe<any>, TReturn | typeof halt, unknown>,
     ): Promise<Maybe<TReturn>> {
         let nxt = await gen.next();
         while (!nxt.done) {
@@ -662,10 +664,11 @@ export namespace Maybe {
             if (maybe.isJust()) {
                 nxt = await gen.next(maybe.val);
             } else {
-                return maybe;
+                nxt = await gen.return(halt);
             }
         }
-        return just(nxt.value);
+        const result = nxt.value;
+        return result === halt ? nothing : just(result);
     }
 
     /**

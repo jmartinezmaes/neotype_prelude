@@ -143,6 +143,50 @@ describe("ior.js", () => {
                 });
                 expect(ior).to.deep.equal(Ior.both(new Str("ab"), [2, 2, 4]));
             });
+
+            it("executes the finally block if a Left is yielded in the try block", () => {
+                const logs: string[] = [];
+                const ior = Ior.go(function* () {
+                    try {
+                        const results = [];
+                        const x = yield* Ior.left<Str, 2>(new Str("a"));
+                        results.push(x);
+                        return results;
+                    } finally {
+                        logs.push("finally");
+                    }
+                });
+                expect(ior).to.deep.equal(Ior.left(new Str("a")));
+                expect(logs).to.deep.equal(["finally"]);
+            });
+
+            it("combines the left-hand values of two Left variants across the try...finally block", () => {
+                const ior = Ior.go(function* () {
+                    try {
+                        const results = [];
+                        const x = yield* Ior.left<Str, 2>(new Str("a"));
+                        results.push(x);
+                        return results;
+                    } finally {
+                        yield* Ior.left<Str, 4>(new Str("b"));
+                    }
+                });
+                expect(ior).to.deep.equal(Ior.left(new Str("ab")));
+            });
+
+            it("combines the left-hand values of a Left variant and a Both variant across the try...finally block", () => {
+                const ior = Ior.go(function* () {
+                    try {
+                        const results = [];
+                        const x = yield* Ior.left<Str, 2>(new Str("a"));
+                        results.push(x);
+                        return results;
+                    } finally {
+                        yield* Ior.both<Str, 4>(new Str("b"), 4);
+                    }
+                });
+                expect(ior).to.deep.equal(Ior.left(new Str("ab")));
+            });
         });
 
         describe("goFn", () => {
@@ -303,6 +347,58 @@ describe("ior.js", () => {
                     return Promise.resolve(tuple(x, y, z));
                 });
                 expect(ior).to.deep.equal(Ior.both(new Str("ab"), [2, 2, 4]));
+            });
+
+            it("executes the finally block if a Left is yielded in the try block", async () => {
+                const logs: string[] = [];
+                const ior = await Ior.goAsync(async function* () {
+                    try {
+                        const results = [];
+                        const x = yield* await Promise.resolve(
+                            Ior.left<Str, 2>(new Str("a")),
+                        );
+                        results.push(x);
+                        return results;
+                    } finally {
+                        logs.push("finally");
+                    }
+                });
+                expect(ior).to.deep.equal(Ior.left(new Str("a")));
+                expect(logs).to.deep.equal(["finally"]);
+            });
+
+            it("combines the left-hand values of two Left variants across the try...finally block", async () => {
+                const ior = await Ior.goAsync(async function* () {
+                    try {
+                        const results = [];
+                        const x = yield* await Promise.resolve(
+                            Ior.left<Str, 2>(new Str("a")),
+                        );
+                        results.push(x);
+                        return results;
+                    } finally {
+                        yield* Ior.left<Str, 4>(new Str("b"));
+                    }
+                });
+                expect(ior).to.deep.equal(Ior.left(new Str("ab")));
+            });
+
+            it("combines the left-hand values of a Left variant and a Both variant across the try...finally block", async () => {
+                const ior = await Ior.goAsync(async function* () {
+                    try {
+                        const results = [];
+                        const x = yield* await Promise.resolve(
+                            Ior.left<Str, 2>(new Str("a")),
+                        );
+                        results.push(x);
+                        return results;
+                    } finally {
+                        yield* await Promise.resolve(
+                            Ior.both<Str, 4>(new Str("b"), 4),
+                        );
+                    }
+                });
+                expect(ior).to.deep.equal(Ior.left(new Str("ab")));
             });
         });
 
