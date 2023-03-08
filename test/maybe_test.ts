@@ -107,6 +107,22 @@ describe("maybe.js", () => {
                 });
                 expect(maybe).to.deep.equal(Maybe.just([1, 1, 2]));
             });
+
+            it("executes the finally block if Nothing is yielded in the try block", () => {
+                const logs: string[] = [];
+                const maybe = Maybe.go(function* () {
+                    try {
+                        const results = [];
+                        const x = yield* nothing<1>();
+                        results.push(x);
+                        return results;
+                    } finally {
+                        logs.push("finally");
+                    }
+                });
+                expect(maybe).to.equal(Maybe.nothing);
+                expect(logs).to.deep.equal(["finally"]);
+            });
         });
 
         describe("goFn", () => {
@@ -196,6 +212,22 @@ describe("maybe.js", () => {
                     return Promise.resolve(tuple(x, y, z));
                 });
                 expect(maybe).to.deep.equal(Maybe.just([1, 1, 2]));
+            });
+
+            it("executes the finally block if Nothing is yielded in the try block", async () => {
+                const logs: string[] = [];
+                const maybe = await Maybe.goAsync(async function* () {
+                    try {
+                        const results = [];
+                        const x = yield* await Promise.resolve(nothing<1>());
+                        results.push(x);
+                        return results;
+                    } finally {
+                        logs.push("finally");
+                    }
+                });
+                expect(maybe).to.equal(Maybe.nothing);
+                expect(logs).to.deep.equal(["finally"]);
             });
         });
 

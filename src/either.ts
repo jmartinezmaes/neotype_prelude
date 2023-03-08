@@ -391,6 +391,7 @@
 import { cmb, Semigroup } from "./cmb.js";
 import { cmp, Eq, eq, Ord, Ordering } from "./cmp.js";
 import { id } from "./fn.js";
+import { halt } from "./internal/halt.js";
 import { type Validation } from "./validation.js";
 
 /**
@@ -429,18 +430,21 @@ export namespace Either {
     }
 
     function step<TYield extends Either<any, any>, TReturn>(
-        gen: Generator<TYield, TReturn, unknown>,
+        gen: Generator<TYield, TReturn | typeof halt, unknown>,
     ): Either<LeftT<TYield>, TReturn> {
         let nxt = gen.next();
+        let err: any;
         while (!nxt.done) {
             const either = nxt.value;
             if (either.isRight()) {
                 nxt = gen.next(either.val);
             } else {
-                return either;
+                err = either.val;
+                nxt = gen.return(halt);
             }
         }
-        return right(nxt.value);
+        const result = nxt.value;
+        return result === halt ? left(err) : right(result);
     }
 
     /**
@@ -569,7 +573,7 @@ export namespace Either {
         { [K in keyof TEithers]: RightT<TEithers[K]> }
     > {
         return go(function* () {
-            const results: unknown[] = new Array(eithers.length);
+            const results = new Array(eithers.length);
             for (const [idx, either] of eithers.entries()) {
                 results[idx] = yield* either;
             }
@@ -600,7 +604,7 @@ export namespace Either {
         { [K in keyof TEithers]: RightT<TEithers[K]> }
     > {
         return go(function* () {
-            const results: Record<any, unknown> = {};
+            const results: Record<any, any> = {};
             for (const [key, either] of Object.entries(eithers)) {
                 results[key] = yield* either;
             }
@@ -629,18 +633,21 @@ export namespace Either {
     }
 
     async function stepAsync<TYield extends Either<any, any>, TReturn>(
-        gen: AsyncGenerator<TYield, TReturn, unknown>,
+        gen: AsyncGenerator<TYield, TReturn | typeof halt, unknown>,
     ): Promise<Either<LeftT<TYield>, TReturn>> {
         let nxt = await gen.next();
+        let err: any;
         while (!nxt.done) {
             const either = nxt.value;
             if (either.isRight()) {
                 nxt = await gen.next(either.val);
             } else {
-                return either;
+                err = either.val;
+                nxt = await gen.return(halt);
             }
         }
-        return right(nxt.value);
+        const result = nxt.value;
+        return result === halt ? left(err) : right(result);
     }
 
     /**

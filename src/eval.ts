@@ -449,7 +449,7 @@ export class Eval<out T> {
         evals: TEvals,
     ): Eval<{ [K in keyof TEvals]: Eval.ResultT<TEvals[K]> }> {
         return Eval.go(function* () {
-            const results: unknown[] = new Array(evals.length);
+            const results = new Array(evals.length);
             for (const [idx, ev] of evals.entries()) {
                 results[idx] = yield* ev;
             }
@@ -475,7 +475,7 @@ export class Eval<out T> {
         evals: TEvals,
     ): Eval<{ [K in keyof TEvals]: Eval.ResultT<TEvals[K]> }> {
         return Eval.go(function* () {
-            const results: Record<any, unknown> = {};
+            const results: Record<any, any> = {};
             for (const [key, ev] of Object.entries(evals)) {
                 results[key] = yield* ev;
             }
