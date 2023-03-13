@@ -927,14 +927,14 @@ export namespace Either {
     }
 
     /**
-     * Extract the left-sided value type `T` from the type `Either<T, U>`.
+     * Extract the left-sided value type `A` from the type `Either<A, B>`.
      */
     // prettier-ignore
     export type LeftT<TEither extends Either<any, any>> = 
         [TEither] extends [Either<infer A, any>] ? A : never;
 
     /**
-     * Extract the right-sided value type `U` from the type `Either<T, U>`.
+     * Extract the right-sided value type `B` from the type `Either<A, B>`.
      */
     // prettier-ignore
     export type RightT<TEither extends Either<any, any>> = 

@@ -188,11 +188,11 @@
  * -   `collect` turns an array or a tuple literal of `Ior` elements inside out.
  *     For example:
  *     -   `Ior<A, B>[]` becomes `Ior<A, B[]>`
- *     -   `[Ior<A, B>, Ior<A, C>]` becomes `Ior<A, [B, C]>`
+ *     -   `[Ior<A, B1>, Ior<A, B2>]` becomes `Ior<A, [B1, B2]>`
  * -   `gather` turns a record or an object literal of `Ior` elements inside
  *     out. For example:
  *     -   `Record<string, Ior<A, B>>` becomes `Ior<A, Record<string, B>>`
- *     -   `{ x: Ior<A, B>, y: Ior<A, C> }` becomes `Ior<A, { x: B, y: C }>`
+ *     -   `{ x: Ior<A, B1>, y: Ior<A, B2> }` becomes `Ior<A, { x: B1, y: B2 }>`
  *
  * The `reduce` function reduces a finite iterable from left to right in the
  * context of `Ior`. This is useful for mapping, filtering, and accumulating
@@ -691,7 +691,7 @@ export namespace Ior {
      * For example:
      *
      * -   `Ior<A, B>[]` becomes `Ior<A, B[]>`
-     * -   `[Ior<A, B>, Ior<A, C>]` becomes `Ior<A, [B, C]>`
+     * -   `[Ior<A, B1>, Ior<A, B2>]` becomes `Ior<A, [B1, B2]>`
      */
     export function collect<
         TIors extends readonly Ior<Semigroup<any>, any>[] | [],
@@ -726,7 +726,7 @@ export namespace Ior {
      * For example:
      *
      * -   `Record<string, Ior<A, B>>` becomes `Ior<A, Record<string, B>>`
-     * -   `{ x: Ior<A, B>, y: Ior<A, C> }` becomes `Ior<A, { x: B, y: C }>`
+     * -   `{ x: Ior<A, B1>, y: Ior<A, B2> }` becomes `Ior<A, { x: B1, y: B2 }>`
      */
     export function gather<TIors extends Record<any, Ior<Semigroup<any>, any>>>(
         iors: TIors,
