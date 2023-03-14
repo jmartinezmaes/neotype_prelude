@@ -3,6 +3,25 @@
 All notable changes to this project will be documented in this file. This
 project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## Version 0.8.1 - 2023-03-13
+
+### What's Changed
+
+#### 🚀 Enhancements
+
+-   For `Maybe`, introduce the `mapNullish` method by
+    [@jm4rtinez](https://github.com/jm4rtinez) in
+    [#84](https://github.com/jm4rtinez/neotype_prelude/pull/84)
+-   For `Maybe`, introduce the `filter` method by
+    [@jm4rtinez](https://github.com/jm4rtinez) in
+    [#85](https://github.com/jm4rtinez/neotype_prelude/pull/85)
+-   Allow `finally` blocks to execute in generator comprehensions by
+    [@jm4rtinez](https://github.com/jm4rtinez) in
+    [#86](https://github.com/jm4rtinez/neotype_prelude/pull/86)
+
+**Full Changelog**:
+https://github.com/jm4rtinez/neotype_prelude/compare/v0.8.0...v0.8.1
+
 ## Version 0.8.0 - 2023-02-27
 
 ### What's Changed
