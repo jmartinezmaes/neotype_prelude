@@ -1,7 +1,7 @@
 import { expect } from "chai";
 import * as fc from "fast-check";
-import { cmb, Semigroup } from "../src/cmb.js";
-import { cmp, Eq, eq, le, Ord, Ordering } from "../src/cmp.js";
+import { cmb, Semigroup } from "../cmb.js";
+import { cmp, Eq, eq, le, Ord, Ordering } from "../cmp.js";
 
 export class Num implements Ord<Num> {
     constructor(readonly val: number) {}

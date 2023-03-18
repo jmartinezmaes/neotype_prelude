@@ -23,10 +23,11 @@
         "jsxFactory": "JSX.createElement",
         "jsxFragmentFactory": "JSX.Fragment"
     },
-    "include": ["./scripts", "./src", "./test"],
+    "include": ["./scripts", "./src"],
     "typedocOptions": {
         "customCss": "./assets/custom.css",
-        "entryPoints": "./src/*.ts",
+        "entryPoints": "./*.ts",
+        "exclude": "**/_*.ts",
         "excludePrivate": true,
         "json": "./docsite/docs.json",
         "name": "Neotype Prelude",

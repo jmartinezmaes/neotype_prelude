@@ -34,7 +34,7 @@
         "node": "16.* || >= 18.*"
     },
     "exports": {
-        "./internal/*": null,
+        "./_*": null,
         "./cmb.js": "./dist/cmb.js",
         "./cmp.js": "./dist/cmp.js",
         "./either.js": "./dist/either.js",
@@ -77,6 +77,11 @@
         "ts-node": "^10.9.1",
         "typedoc": "0.23.21",
         "typescript": "~4.9"
+    },
+    "c8": {
+        "exclude": [
+            "**/*_test.ts"
+        ]
     },
     "eslintConfig": {
         "env": {
@@ -127,7 +132,7 @@
             "no-warnings"
         ],
         "spec": [
-            "test/*_test.ts"
+            "**/*_test.ts"
         ]
     },
     "prettier": {

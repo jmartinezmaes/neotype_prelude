@@ -292,9 +292,9 @@
  * @module
  */
 
+import { MutStack } from "./_mut_stack.js";
 import { cmb, Semigroup } from "./cmb.js";
 import { id } from "./fn.js";
-import { MutStack } from "./internal/mut_stack.js";
 
 /**
  * A type that models a synchronous computation.
