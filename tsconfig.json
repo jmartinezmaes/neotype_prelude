@@ -23,7 +23,7 @@
         "jsxFactory": "JSX.createElement",
         "jsxFragmentFactory": "JSX.Fragment"
     },
-    "include": ["./scripts", "./src"],
+    "include": ["./src"],
     "typedocOptions": {
         "customCss": "./assets/custom.css",
         "entryPoints": "./src",
