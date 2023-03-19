@@ -28,7 +28,7 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
       - run: npm ci
-      - run: vitest run
+      - run: npx vitest run
 
   test_ts:
     name: TypeScript @${{ matrix.ts-version }}
@@ -46,4 +46,4 @@ jobs:
       - uses: volta-cli/action@v4
       - run: npm ci
       - run: npm i -D typescript@${{ matrix.ts-version }}
-      - run: vitest run
+      - run: npx vitest run
