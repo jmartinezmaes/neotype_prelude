@@ -455,7 +455,6 @@ import { cmb, Semigroup } from "./cmb.js";
 import { cmp, Eq, eq, Ord, Ordering } from "./cmp.js";
 import { type Either } from "./either.js";
 import { id } from "./fn.js";
-import { halt } from "./internal/halt.js";
 import { type Validation } from "./validation.js";
 
 /**
@@ -1232,4 +1231,9 @@ export namespace Ior {
     // prettier-ignore
     export type RightT<TIor extends Ior<any, any>> =
         [TIor] extends [Ior<any, infer B>] ? B : never;
+
+    // A unique symbol used by the `Ior` generator comprehension implementation
+    // to signal the underlying generator to return early. This ensures
+    // `try...finally` blocks can execute.
+    const halt = Symbol();
 }

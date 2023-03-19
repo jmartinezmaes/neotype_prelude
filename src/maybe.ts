@@ -405,7 +405,6 @@
 import { cmb, Semigroup } from "./cmb.js";
 import { cmp, Eq, eq, Ord, Ordering } from "./cmp.js";
 import { id } from "./fn.js";
-import { halt } from "./internal/halt.js";
 
 /**
  * A type that represents either an absent value (`Nothing`) or a present value
@@ -988,4 +987,9 @@ export namespace Maybe {
     // prettier-ignore
     export type JustT<TMaybe extends Maybe<any>> =
         TMaybe extends Maybe<infer T> ? T : never;
+
+    // A unique symbol used by the `Maybe` generator comprehension
+    // implementation to signal the underlying generator to return early. This
+    // ensures `try...finally` blocks can properly execute.
+    const halt = Symbol();
 }

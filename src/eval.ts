@@ -294,7 +294,6 @@
 
 import { cmb, Semigroup } from "./cmb.js";
 import { id } from "./fn.js";
-import { MutStack } from "./internal/mut_stack.js";
 
 /**
  * A type that models a synchronous computation.
@@ -573,23 +572,26 @@ export class Eval<out T> {
      * Evaluate this `Eval` to return its outcome.
      */
     run(): T {
-        const conts = new MutStack<(val: any) => Eval<any>>();
+        type Cont = (val: any) => Eval<any>;
+        type Stack = [Cont, Stack] | undefined;
+        let stack: Stack;
         // eslint-disable-next-line @typescript-eslint/no-this-alias
         let currentEval: Eval<any> = this;
 
         for (;;) {
             switch (currentEval.#ixn.kind) {
                 case Ixn.Kind.NOW: {
-                    const cont = conts.pop();
-                    if (!cont) {
+                    if (!stack) {
                         return currentEval.#ixn.val;
                     }
+                    const [cont, rest] = stack;
                     currentEval = cont(currentEval.#ixn.val);
+                    stack = rest;
                     break;
                 }
 
                 case Ixn.Kind.FLAT_MAP:
-                    conts.push(currentEval.#ixn.cont);
+                    stack = [currentEval.#ixn.cont, stack];
                     currentEval = currentEval.#ixn.ev;
                     break;
 

@@ -14,8 +14,19 @@
  * limitations under the License.
  */
 
-/**
- * A unique symbol used by generator comprehension implementations to indicate
- * that the generator has halted and returned with a non-successful result.
- */
-export const halt = Symbol();
+import { expect } from "chai";
+import * as fc from "fast-check";
+import { cmb, Semigroup } from "./cmb.js";
+import { arbStr } from "./_test/utils.js";
+
+describe("cmb.js", () => {
+    describe("cmb", () => {
+        it("combines the two Semigroup values", () => {
+            fc.assert(
+                fc.property(arbStr(), arbStr(), (x, y) => {
+                    expect(cmb(x, y)).to.deep.equal(x[Semigroup.cmb](y));
+                }),
+            );
+        });
+    });
+});

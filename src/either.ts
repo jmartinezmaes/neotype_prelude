@@ -391,7 +391,6 @@
 import { cmb, Semigroup } from "./cmb.js";
 import { cmp, Eq, eq, Ord, Ordering } from "./cmp.js";
 import { id } from "./fn.js";
-import { halt } from "./internal/halt.js";
 import { type Validation } from "./validation.js";
 
 /**
@@ -939,4 +938,9 @@ export namespace Either {
     // prettier-ignore
     export type RightT<TEither extends Either<any, any>> = 
         [TEither] extends [Either<any, infer B>] ? B : never;
+
+    // A unique symbol used by the `Either` generator comprehension
+    // implementation to signal the underlying generator to return early. This
+    // ensures `try...finally` blocks can execute.
+    const halt = Symbol();
 }

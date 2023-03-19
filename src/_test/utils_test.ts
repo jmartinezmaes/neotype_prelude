@@ -1,7 +1,7 @@
 import { expect } from "chai";
 import * as fc from "fast-check";
-import { cmb } from "../src/cmb.js";
-import { cmp, eq, Ordering } from "../src/cmp.js";
+import { cmb } from "../cmb.js";
+import { cmp, eq, Ordering } from "../cmp.js";
 import {
     arbNum,
     arbStr,
@@ -9,7 +9,7 @@ import {
     expectLawfulOrd,
     expectLawfulSemigroup,
     Str,
-} from "./util.js";
+} from "./utils.js";
 
 describe("util.js", () => {
     describe("Num", () => {
