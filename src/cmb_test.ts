@@ -14,19 +14,17 @@
  * limitations under the License.
  */
 
-import { expect } from "chai";
 import * as fc from "fast-check";
+import { describe, expect, it } from "vitest";
 import { cmb, Semigroup } from "./cmb.js";
 import { arbStr } from "./_test/utils.js";
 
-describe("cmb.js", () => {
-    describe("cmb", () => {
-        it("combines the two Semigroup values", () => {
-            fc.assert(
-                fc.property(arbStr(), arbStr(), (x, y) => {
-                    expect(cmb(x, y)).to.deep.equal(x[Semigroup.cmb](y));
-                }),
-            );
-        });
+describe("cmb", () => {
+    it("combines the two Semigroup values", () => {
+        fc.assert(
+            fc.property(arbStr(), arbStr(), (x, y) => {
+                expect(cmb(x, y)).to.deep.equal(x[Semigroup.cmb](y));
+            }),
+        );
     });
 });
