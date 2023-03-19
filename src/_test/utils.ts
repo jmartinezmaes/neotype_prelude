@@ -1,5 +1,5 @@
-import { expect } from "chai";
 import * as fc from "fast-check";
+import { expect } from "vitest";
 import { cmb, Semigroup } from "../cmb.js";
 import { cmp, Eq, eq, le, Ord, Ordering } from "../cmp.js";
 
