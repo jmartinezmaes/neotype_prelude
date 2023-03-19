@@ -1232,7 +1232,7 @@ export namespace Ior {
     export type RightT<TIor extends Ior<any, any>> =
         [TIor] extends [Ior<any, infer B>] ? B : never;
 
-    // A unique symbol used by `Ior` the generator comprehension implementation
+    // A unique symbol used by the `Ior` generator comprehension implementation
     // to signal the underlying generator to return early. This ensures
     // `try...finally` blocks can execute.
     const halt = Symbol();

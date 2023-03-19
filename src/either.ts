@@ -939,7 +939,7 @@ export namespace Either {
     export type RightT<TEither extends Either<any, any>> = 
         [TEither] extends [Either<any, infer B>] ? B : never;
 
-    // A unique symbol used by `Either` the generator comprehension
+    // A unique symbol used by the `Either` generator comprehension
     // implementation to signal the underlying generator to return early. This
     // ensures `try...finally` blocks can execute.
     const halt = Symbol();

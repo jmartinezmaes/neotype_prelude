@@ -988,7 +988,7 @@ export namespace Maybe {
     export type JustT<TMaybe extends Maybe<any>> =
         TMaybe extends Maybe<infer T> ? T : never;
 
-    // A unique symbol used by `Maybe` the generator comprehension
+    // A unique symbol used by the `Maybe` generator comprehension
     // implementation to signal the underlying generator to return early. This
     // ensures `try...finally` blocks can properly execute.
     const halt = Symbol();
