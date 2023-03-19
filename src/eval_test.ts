@@ -16,10 +16,10 @@
 
 import { expect } from "chai";
 import * as fc from "fast-check";
-import { arbStr, expectLawfulSemigroup, tuple } from "./_test/utils.js";
-import { Semigroup, cmb } from "./cmb.js";
+import { cmb, Semigroup } from "./cmb.js";
 import { Eq, eq } from "./cmp.js";
 import { Eval } from "./eval.js";
+import { arbStr, expectLawfulSemigroup, tuple } from "./_test/utils.js";
 
 describe("eval.js", () => {
     describe("Eval", () => {

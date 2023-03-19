@@ -16,6 +16,10 @@
 
 import { expect } from "chai";
 import * as fc from "fast-check";
+import { cmb } from "./cmb.js";
+import { cmp, eq, Ordering } from "./cmp.js";
+import { Either } from "./either.js";
+import { Validation } from "./validation.js";
 import {
     arbNum,
     arbStr,
@@ -24,10 +28,6 @@ import {
     expectLawfulSemigroup,
     tuple,
 } from "./_test/utils.js";
-import { cmb } from "./cmb.js";
-import { Ordering, cmp, eq } from "./cmp.js";
-import { Either } from "./either.js";
-import { Validation } from "./validation.js";
 
 describe("either.js", () => {
     describe("Either", () => {

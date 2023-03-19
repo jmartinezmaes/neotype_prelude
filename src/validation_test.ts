@@ -16,6 +16,10 @@
 
 import { expect } from "chai";
 import * as fc from "fast-check";
+import { cmb } from "./cmb.js";
+import { cmp, eq, Ordering } from "./cmp.js";
+import { Either } from "./either.js";
+import { Validation } from "./validation.js";
 import {
     arbNum,
     arbStr,
@@ -25,10 +29,6 @@ import {
     Str,
     tuple,
 } from "./_test/utils.js";
-import { cmb } from "./cmb.js";
-import { cmp, eq, Ordering } from "./cmp.js";
-import { Either } from "./either.js";
-import { Validation } from "./validation.js";
 
 describe("validation.js", () => {
     describe("Validation", () => {

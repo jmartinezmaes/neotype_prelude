@@ -16,6 +16,9 @@
 
 import { expect } from "chai";
 import * as fc from "fast-check";
+import { cmb } from "./cmb.js";
+import { cmp, eq } from "./cmp.js";
+import { Pair } from "./pair.js";
 import {
     arbNum,
     arbStr,
@@ -24,9 +27,6 @@ import {
     expectLawfulSemigroup,
     tuple,
 } from "./_test/utils.js";
-import { cmb } from "./cmb.js";
-import { cmp, eq } from "./cmp.js";
-import { Pair } from "./pair.js";
 
 describe("pair.js", () => {
     describe("Pair", () => {

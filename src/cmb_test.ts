@@ -16,8 +16,8 @@
 
 import { expect } from "chai";
 import * as fc from "fast-check";
-import { arbStr } from "./_test/utils.js";
 import { cmb, Semigroup } from "./cmb.js";
+import { arbStr } from "./_test/utils.js";
 
 describe("cmb.js", () => {
     describe("cmb", () => {
