@@ -47,16 +47,16 @@
         "./package.json": "./package.json"
     },
     "scripts": {
-        "clean": "npx rimraf ./dist",
-        "lint": "npx eslint --ext .ts --max-warnings 0 .",
-        "prettier:check": "npx prettier --check --ignore-path ./.gitignore .",
-        "prettier:write": "npx prettier --write --ignore-path ./.gitignore .",
+        "clean": "rimraf ./dist",
+        "lint": "eslint --ext .ts --max-warnings 0 .",
+        "prettier:check": "prettier --check --ignore-path ./.gitignore .",
+        "prettier:write": "prettier --write --ignore-path ./.gitignore .",
         "style": "npm run lint && npm run prettier:check",
         "test": "vitest run --coverage",
         "test:watch": "vitest",
-        "docs": "npx typedoc",
+        "docs": "typedoc",
         "prebuild": "npm run clean",
-        "build": "npx tsc --project ./tsconfig.build.json",
+        "build": "tsc --project ./tsconfig.build.json",
         "prepublishOnly": "npm run build",
         "postpublish": "npm run clean"
     },
