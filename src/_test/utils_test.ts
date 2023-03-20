@@ -27,66 +27,64 @@ import {
     Str,
 } from "./utils.js";
 
-describe("util.js", () => {
-    describe("Num", () => {
-        describe("#[Eq.eq]", () => {
-            it("compares the values strictly", () => {
-                fc.assert(
-                    fc.property(arbNum(), arbNum(), (x, y) => {
-                        expect(eq(x, y)).to.equal(x.val === y.val);
-                    }),
-                );
-            });
-
-            it("implements a lawful equivalence relation", () => {
-                expectLawfulEq(arbNum());
-            });
+describe("Num", () => {
+    describe("#[Eq.eq]", () => {
+        it("compares the values strictly", () => {
+            fc.assert(
+                fc.property(arbNum(), arbNum(), (x, y) => {
+                    expect(eq(x, y)).to.equal(x.val === y.val);
+                }),
+            );
         });
 
-        describe("#[Ord.cmp]", () => {
-            it("compares the values as ordered from least to greatest", () => {
-                fc.assert(
-                    fc.property(arbNum(), arbNum(), (x, y) => {
-                        expect(cmp(x, y)).to.equal(
-                            Ordering.fromNumber(x.val - y.val),
-                        );
-                    }),
-                );
-            });
-
-            it("implements a lawful total order", () => {
-                expectLawfulOrd(arbNum());
-            });
+        it("implements a lawful equivalence relation", () => {
+            expectLawfulEq(arbNum());
         });
     });
 
-    describe("Str", () => {
-        describe("#[Eq.eq]", () => {
-            it("compares the values strictly", () => {
-                fc.assert(
-                    fc.property(arbStr(), arbStr(), (x, y) => {
-                        expect(eq(x, y)).to.equal(x.val === y.val);
-                    }),
-                );
-            });
-
-            it("implements a lawful equivalence relation", () => {
-                expectLawfulEq(arbStr());
-            });
+    describe("#[Ord.cmp]", () => {
+        it("compares the values as ordered from least to greatest", () => {
+            fc.assert(
+                fc.property(arbNum(), arbNum(), (x, y) => {
+                    expect(cmp(x, y)).to.equal(
+                        Ordering.fromNumber(x.val - y.val),
+                    );
+                }),
+            );
         });
 
-        describe("#[Semigroup.cmb]", () => {
-            it("concatenates the values", () => {
-                fc.assert(
-                    fc.property(arbStr(), arbStr(), (x, y) => {
-                        expect(cmb(x, y)).to.deep.equal(new Str(x.val + y.val));
-                    }),
-                );
-            });
+        it("implements a lawful total order", () => {
+            expectLawfulOrd(arbNum());
+        });
+    });
+});
 
-            it("implements a lawful semigroup", () => {
-                expectLawfulSemigroup(arbStr());
-            });
+describe("Str", () => {
+    describe("#[Eq.eq]", () => {
+        it("compares the values strictly", () => {
+            fc.assert(
+                fc.property(arbStr(), arbStr(), (x, y) => {
+                    expect(eq(x, y)).to.equal(x.val === y.val);
+                }),
+            );
+        });
+
+        it("implements a lawful equivalence relation", () => {
+            expectLawfulEq(arbStr());
+        });
+    });
+
+    describe("#[Semigroup.cmb]", () => {
+        it("concatenates the values", () => {
+            fc.assert(
+                fc.property(arbStr(), arbStr(), (x, y) => {
+                    expect(cmb(x, y)).to.deep.equal(new Str(x.val + y.val));
+                }),
+            );
+        });
+
+        it("implements a lawful semigroup", () => {
+            expectLawfulSemigroup(arbStr());
         });
     });
 });
