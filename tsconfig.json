@@ -28,7 +28,7 @@
         "customCss": "./assets/custom.css",
         "entryPoints": "./src",
         "entryPointStrategy": "expand",
-        "exclude": ["**/_*", "**/*_test.ts", "**/_test/*"],
+        "exclude": ["**/_*", "**/*.test.ts", "**/_test/*"],
         "excludePrivate": true,
         "json": "./docsite/docs.json",
         "name": "Neotype Prelude",
