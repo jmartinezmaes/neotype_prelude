@@ -391,7 +391,7 @@
 import { cmb, Semigroup } from "./cmb.js";
 import { cmp, Eq, eq, Ord, Ordering } from "./cmp.js";
 import { id } from "./fn.js";
-import { type Validation } from "./validation.js";
+import type { Validation } from "./validation.js";
 
 /**
  * A type that represents one of two values (`Left` or `Right`).

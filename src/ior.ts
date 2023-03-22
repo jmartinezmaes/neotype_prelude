@@ -453,9 +453,9 @@
 
 import { cmb, Semigroup } from "./cmb.js";
 import { cmp, Eq, eq, Ord, Ordering } from "./cmp.js";
-import { type Either } from "./either.js";
+import type { Either } from "./either.js";
 import { id } from "./fn.js";
-import { type Validation } from "./validation.js";
+import type { Validation } from "./validation.js";
 
 /**
  * A type that represents one or both of two values (`Left`, `Right`, or
