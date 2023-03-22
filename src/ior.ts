@@ -696,7 +696,10 @@ export namespace Ior {
         TIors extends readonly Ior<Semigroup<any>, any>[] | [],
     >(
         iors: TIors,
-    ): Ior<LeftT<TIors[number]>, { [K in keyof TIors]: RightT<TIors[K]> }> {
+    ): Ior<
+        LeftT<TIors[number]>,
+        { -readonly [K in keyof TIors]: RightT<TIors[K]> }
+    > {
         return go(function* () {
             const results = new Array(iors.length);
             for (const [idx, ior] of iors.entries()) {
@@ -731,7 +734,7 @@ export namespace Ior {
         iors: TIors,
     ): Ior<
         LeftT<TIors[keyof TIors]>,
-        { [K in keyof TIors]: RightT<TIors[K]> }
+        { -readonly [K in keyof TIors]: RightT<TIors[K]> }
     > {
         return Ior.go(function* () {
             const results: Record<any, any> = {};

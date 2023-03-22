@@ -569,7 +569,7 @@ export namespace Either {
         eithers: TEithers,
     ): Either<
         LeftT<TEithers[number]>,
-        { [K in keyof TEithers]: RightT<TEithers[K]> }
+        { -readonly [K in keyof TEithers]: RightT<TEithers[K]> }
     > {
         return go(function* () {
             const results = new Array(eithers.length);
@@ -600,7 +600,7 @@ export namespace Either {
         eithers: TEithers,
     ): Either<
         LeftT<TEithers[keyof TEithers]>,
-        { [K in keyof TEithers]: RightT<TEithers[K]> }
+        { -readonly [K in keyof TEithers]: RightT<TEithers[K]> }
     > {
         return go(function* () {
             const results: Record<any, any> = {};
