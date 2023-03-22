@@ -600,7 +600,7 @@ export namespace Maybe {
      */
     export function collect<TMaybes extends readonly Maybe<any>[] | []>(
         maybes: TMaybes,
-    ): Maybe<{ [K in keyof TMaybes]: JustT<TMaybes[K]> }> {
+    ): Maybe<{ -readonly [K in keyof TMaybes]: JustT<TMaybes[K]> }> {
         return go(function* () {
             const results = new Array(maybes.length);
             for (const [idx, maybe] of maybes.entries()) {
@@ -627,7 +627,7 @@ export namespace Maybe {
      */
     export function gather<TMaybes extends Record<any, Maybe<any>>>(
         maybes: TMaybes,
-    ): Maybe<{ [K in keyof TMaybes]: JustT<TMaybes[K]> }> {
+    ): Maybe<{ -readonly [K in keyof TMaybes]: JustT<TMaybes[K]> }> {
         return go(function* () {
             const results: Record<any, any> = {};
             for (const [key, maybe] of Object.entries(maybes)) {

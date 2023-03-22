@@ -434,7 +434,10 @@ export namespace Validation {
         TVdns extends readonly Validation<Semigroup<any>, any>[] | [],
     >(
         vdns: TVdns,
-    ): Validation<ErrT<TVdns[number]>, { [K in keyof TVdns]: OkT<TVdns[K]> }> {
+    ): Validation<
+        ErrT<TVdns[number]>,
+        { -readonly [K in keyof TVdns]: OkT<TVdns[K]> }
+    > {
         let acc = ok<any, any>(new Array(vdns.length));
         for (const [idx, vdn] of vdns.entries()) {
             acc = acc.zipWith(vdn, (results, val) => {
@@ -468,7 +471,7 @@ export namespace Validation {
         vdns: TVdns,
     ): Validation<
         ErrT<TVdns[keyof TVdns]>,
-        { [K in keyof TVdns]: OkT<TVdns[K]> }
+        { -readonly [K in keyof TVdns]: OkT<TVdns[K]> }
     > {
         let acc = ok<any, any>({});
         for (const [key, vdn] of Object.entries(vdns)) {

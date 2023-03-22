@@ -446,7 +446,7 @@ export class Eval<out T> {
      */
     static collect<TEvals extends readonly Eval<any>[] | []>(
         evals: TEvals,
-    ): Eval<{ [K in keyof TEvals]: Eval.ResultT<TEvals[K]> }> {
+    ): Eval<{ -readonly [K in keyof TEvals]: Eval.ResultT<TEvals[K]> }> {
         return Eval.go(function* () {
             const results = new Array(evals.length);
             for (const [idx, ev] of evals.entries()) {
@@ -472,7 +472,7 @@ export class Eval<out T> {
      */
     static gather<TEvals extends Record<any, Eval<any>>>(
         evals: TEvals,
-    ): Eval<{ [K in keyof TEvals]: Eval.ResultT<TEvals[K]> }> {
+    ): Eval<{ -readonly [K in keyof TEvals]: Eval.ResultT<TEvals[K]> }> {
         return Eval.go(function* () {
             const results: Record<any, any> = {};
             for (const [key, ev] of Object.entries(evals)) {
