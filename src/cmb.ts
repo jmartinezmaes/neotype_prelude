@@ -280,20 +280,20 @@
  * ```
  */
 export interface Semigroup<in out T> {
-    /**
-     * Combine this and that `Semigroup` value using an associative operation.
-     */
-    [Semigroup.cmb](that: T): T;
+	/**
+	 * Combine this and that `Semigroup` value using an associative operation.
+	 */
+	[Semigroup.cmb](that: T): T;
 }
 
 /**
  * The companion namespace for the `Semigroup` interface.
  */
 export namespace Semigroup {
-    /**
-     * The unique symbol used by implementors of `Semigroup`.
-     */
-    export const cmb = Symbol();
+	/**
+	 * The unique symbol used by implementors of `Semigroup`.
+	 */
+	export const cmb = Symbol();
 }
 
 /**
@@ -304,5 +304,5 @@ export namespace Semigroup {
  * `cmb(lhs, rhs)` is equivalent to `lhs[Semigroup.cmb](rhs)`.
  */
 export function cmb<T extends Semigroup<T>>(lhs: T, rhs: T): T {
-    return lhs[Semigroup.cmb](rhs);
+	return lhs[Semigroup.cmb](rhs);
 }

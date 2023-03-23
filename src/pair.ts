@@ -91,89 +91,89 @@ import { cmp, Eq, eq, Ord, type Ordering } from "./cmp.js";
  * A pair of values.
  */
 export class Pair<out A, out B> {
-    /**
-     * Construct a `Pair` from a 2-tuple of values.
-     */
-    static fromTuple<A, B>(tuple: readonly [A, B]): Pair<A, B> {
-        return new Pair(tuple[0], tuple[1]);
-    }
+	/**
+	 * Construct a `Pair` from a 2-tuple of values.
+	 */
+	static fromTuple<A, B>(tuple: readonly [A, B]): Pair<A, B> {
+		return new Pair(tuple[0], tuple[1]);
+	}
 
-    /**
-     * The first value of this `Pair`.
-     */
-    readonly fst: A;
+	/**
+	 * The first value of this `Pair`.
+	 */
+	readonly fst: A;
 
-    /**
-     * The second value of this `Pair`.
-     */
-    readonly snd: B;
+	/**
+	 * The second value of this `Pair`.
+	 */
+	readonly snd: B;
 
-    /**
-     * A 2-tuple of the first value and second value of this `Pair`.
-     */
-    get val(): [A, B] {
-        return [this.fst, this.snd];
-    }
+	/**
+	 * A 2-tuple of the first value and second value of this `Pair`.
+	 */
+	get val(): [A, B] {
+		return [this.fst, this.snd];
+	}
 
-    constructor(fst: A, snd: B) {
-        this.fst = fst;
-        this.snd = snd;
-    }
+	constructor(fst: A, snd: B) {
+		this.fst = fst;
+		this.snd = snd;
+	}
 
-    /**
-     * If the first values and second values of this and that `Pair` are
-     * respectively equal, return `true`; otherwise, return `false`.
-     */
-    [Eq.eq]<A extends Eq<A>, B extends Eq<B>>(
-        this: Pair<A, B>,
-        that: Pair<A, B>,
-    ): boolean {
-        return eq(this.fst, that.fst) && eq(this.snd, that.snd);
-    }
+	/**
+	 * If the first values and second values of this and that `Pair` are
+	 * respectively equal, return `true`; otherwise, return `false`.
+	 */
+	[Eq.eq]<A extends Eq<A>, B extends Eq<B>>(
+		this: Pair<A, B>,
+		that: Pair<A, B>,
+	): boolean {
+		return eq(this.fst, that.fst) && eq(this.snd, that.snd);
+	}
 
-    /**
-     * Compare the first values and second values of this and that `Pair`
-     * lexicographically.
-     */
-    [Ord.cmp]<A extends Ord<A>, B extends Ord<B>>(
-        this: Pair<A, B>,
-        that: Pair<A, B>,
-    ): Ordering {
-        return cmb(cmp(this.fst, that.fst), cmp(this.snd, that.snd));
-    }
+	/**
+	 * Compare the first values and second values of this and that `Pair`
+	 * lexicographically.
+	 */
+	[Ord.cmp]<A extends Ord<A>, B extends Ord<B>>(
+		this: Pair<A, B>,
+		that: Pair<A, B>,
+	): Ordering {
+		return cmb(cmp(this.fst, that.fst), cmp(this.snd, that.snd));
+	}
 
-    /**
-     * Combine the first values and second values of this and that `Pair`
-     * pairwise into a new `Pair`.
-     */
-    [Semigroup.cmb]<A extends Semigroup<A>, B extends Semigroup<B>>(
-        this: Pair<A, B>,
-        that: Pair<A, B>,
-    ): Pair<A, B> {
-        return new Pair(cmb(this.fst, that.fst), cmb(this.snd, that.snd));
-    }
+	/**
+	 * Combine the first values and second values of this and that `Pair`
+	 * pairwise into a new `Pair`.
+	 */
+	[Semigroup.cmb]<A extends Semigroup<A>, B extends Semigroup<B>>(
+		this: Pair<A, B>,
+		that: Pair<A, B>,
+	): Pair<A, B> {
+		return new Pair(cmb(this.fst, that.fst), cmb(this.snd, that.snd));
+	}
 
-    /**
-     * Apply a function to the first value and second value of this `Pair` and
-     * return the result.
-     */
-    unwrap<T>(f: (fst: A, snd: B) => T): T {
-        return f(this.fst, this.snd);
-    }
+	/**
+	 * Apply a function to the first value and second value of this `Pair` and
+	 * return the result.
+	 */
+	unwrap<T>(f: (fst: A, snd: B) => T): T {
+		return f(this.fst, this.snd);
+	}
 
-    /**
-     * Apply a function to the first value of this `Pair`, and return a new
-     * `Pair` of the result and the existing second value.
-     */
-    lmap<A1>(f: (val: A) => A1): Pair<A1, B> {
-        return new Pair(f(this.fst), this.snd);
-    }
+	/**
+	 * Apply a function to the first value of this `Pair`, and return a new
+	 * `Pair` of the result and the existing second value.
+	 */
+	lmap<A1>(f: (val: A) => A1): Pair<A1, B> {
+		return new Pair(f(this.fst), this.snd);
+	}
 
-    /**
-     * Apply a function to the second value of this `Pair`, and return a new
-     * `Pair` of the existing first value and the result.
-     */
-    map<B1>(f: (val: B) => B1): Pair<A, B1> {
-        return new Pair(this.fst, f(this.snd));
-    }
+	/**
+	 * Apply a function to the second value of this `Pair`, and return a new
+	 * `Pair` of the existing first value and the result.
+	 */
+	map<B1>(f: (val: B) => B1): Pair<A, B1> {
+		return new Pair(this.fst, f(this.snd));
+	}
 }

@@ -388,320 +388,320 @@ export type Validation<E, T> = Validation.Err<E> | Validation.Ok<T>;
  * The companion namespace for the `Validation` type.
  */
 export namespace Validation {
-    /**
-     * Construct a failed `Validation` from a value.
-     */
-    export function err<E, T = never>(val: E): Validation<E, T> {
-        return new Err(val);
-    }
+	/**
+	 * Construct a failed `Validation` from a value.
+	 */
+	export function err<E, T = never>(val: E): Validation<E, T> {
+		return new Err(val);
+	}
 
-    /**
-     * Construct a successful `Validation` from a value.
-     */
-    export function ok<T, E = never>(val: T): Validation<E, T> {
-        return new Ok(val);
-    }
+	/**
+	 * Construct a successful `Validation` from a value.
+	 */
+	export function ok<T, E = never>(val: T): Validation<E, T> {
+		return new Ok(val);
+	}
 
-    /**
-     * Construct a `Validation` from an `Either`.
-     *
-     * @remarks
-     *
-     * If the `Either` is a `Left`, return its value in an `Err`; otherwise,
-     * return its value in an `Ok`.
-     */
-    export function fromEither<A, B>(either: Either<A, B>): Validation<A, B> {
-        return either.unwrap(err, ok);
-    }
+	/**
+	 * Construct a `Validation` from an `Either`.
+	 *
+	 * @remarks
+	 *
+	 * If the `Either` is a `Left`, return its value in an `Err`; otherwise,
+	 * return its value in an `Ok`.
+	 */
+	export function fromEither<A, B>(either: Either<A, B>): Validation<A, B> {
+		return either.unwrap(err, ok);
+	}
 
-    /**
-     * Turn an array or a tuple literal of `Validation` elements "inside out".
-     *
-     * @remarks
-     *
-     * Evaluate the `Validation` elements in an array or a tuple literal from
-     * left to right. If they all succeed, collect their successes in an array
-     * or a tuple literal, respectively, and succeed with the result; otherwise,
-     * begin accumulating failures on the first failed `Validation`.
-     *
-     * For example:
-     *
-     * -   `Validation<E, T>[]` becomes `Validation<E, T[]>`
-     * -   `[Validation<E, T1>, Validation<E, T2>]` becomes `Validation<E, [T1,
-     *     T2]>`
-     */
-    export function collect<
-        TVdns extends readonly Validation<Semigroup<any>, any>[] | [],
-    >(
-        vdns: TVdns,
-    ): Validation<
-        ErrT<TVdns[number]>,
-        { -readonly [K in keyof TVdns]: OkT<TVdns[K]> }
-    > {
-        let acc = ok<any, any>(new Array(vdns.length));
-        for (const [idx, vdn] of vdns.entries()) {
-            acc = acc.zipWith(vdn, (results, val) => {
-                results[idx] = val;
-                return results;
-            });
-        }
-        return acc;
-    }
+	/**
+	 * Turn an array or a tuple literal of `Validation` elements "inside out".
+	 *
+	 * @remarks
+	 *
+	 * Evaluate the `Validation` elements in an array or a tuple literal from
+	 * left to right. If they all succeed, collect their successes in an array
+	 * or a tuple literal, respectively, and succeed with the result; otherwise,
+	 * begin accumulating failures on the first failed `Validation`.
+	 *
+	 * For example:
+	 *
+	 * -   `Validation<E, T>[]` becomes `Validation<E, T[]>`
+	 * -   `[Validation<E, T1>, Validation<E, T2>]` becomes `Validation<E, [T1,
+	 *     T2]>`
+	 */
+	export function collect<
+		TVdns extends readonly Validation<Semigroup<any>, any>[] | [],
+	>(
+		vdns: TVdns,
+	): Validation<
+		ErrT<TVdns[number]>,
+		{ -readonly [K in keyof TVdns]: OkT<TVdns[K]> }
+	> {
+		let acc = ok<any, any>(new Array(vdns.length));
+		for (const [idx, vdn] of vdns.entries()) {
+			acc = acc.zipWith(vdn, (results, val) => {
+				results[idx] = val;
+				return results;
+			});
+		}
+		return acc;
+	}
 
-    /**
-     * Turn a record or an object literal of `Validation` elements "inside out".
-     *
-     * @remarks
-     *
-     * Evaluate the `Validation` elements in a record or an object literal. If
-     * they all succeed, collect their successes in a record or an object
-     * literal, respectively, and succeed with the result; otherwise, begin
-     * accumulating failures on the first failed `Validation`.
-     *
-     * For example:
-     *
-     * -   `Record<string, Validation<E, T>>` becomes `Validation<E,
-     *     Record<string, T>>`
-     * -   `{ x: Validation<E, T1>, y: Validation<E, T2> }` becomes
-     *     `Validation<E, { x: T1, y: T2 }>`
-     */
-    export function gather<
-        TVdns extends Record<string, Validation<Semigroup<any>, any>>,
-    >(
-        vdns: TVdns,
-    ): Validation<
-        ErrT<TVdns[keyof TVdns]>,
-        { -readonly [K in keyof TVdns]: OkT<TVdns[K]> }
-    > {
-        let acc = ok<any, any>({});
-        for (const [key, vdn] of Object.entries(vdns)) {
-            acc = acc.zipWith(vdn, (results, val) => {
-                results[key] = val;
-                return results;
-            });
-        }
-        return acc;
-    }
+	/**
+	 * Turn a record or an object literal of `Validation` elements "inside out".
+	 *
+	 * @remarks
+	 *
+	 * Evaluate the `Validation` elements in a record or an object literal. If
+	 * they all succeed, collect their successes in a record or an object
+	 * literal, respectively, and succeed with the result; otherwise, begin
+	 * accumulating failures on the first failed `Validation`.
+	 *
+	 * For example:
+	 *
+	 * -   `Record<string, Validation<E, T>>` becomes `Validation<E,
+	 *     Record<string, T>>`
+	 * -   `{ x: Validation<E, T1>, y: Validation<E, T2> }` becomes
+	 *     `Validation<E, { x: T1, y: T2 }>`
+	 */
+	export function gather<
+		TVdns extends Record<string, Validation<Semigroup<any>, any>>,
+	>(
+		vdns: TVdns,
+	): Validation<
+		ErrT<TVdns[keyof TVdns]>,
+		{ -readonly [K in keyof TVdns]: OkT<TVdns[K]> }
+	> {
+		let acc = ok<any, any>({});
+		for (const [key, vdn] of Object.entries(vdns)) {
+			acc = acc.zipWith(vdn, (results, val) => {
+				results[key] = val;
+				return results;
+			});
+		}
+		return acc;
+	}
 
-    /**
-     * Lift a function into the context of `Validation`.
-     *
-     * @remarks
-     *
-     * Given a function that accepts arbitrary arguments, return an adapted
-     * function that accepts `Validation` values as arguments. When applied,
-     * evaluate the arguments from left to right. If they all succeed, apply the
-     * original function to their successes and succeed with the result;
-     * otherwise, begin accumulating failures on the first failed `Validation`.
-     */
-    export function lift<TArgs extends unknown[], T>(
-        f: (...args: TArgs) => T,
-    ): <E extends Semigroup<E>>(
-        ...vdns: { [K in keyof TArgs]: Validation<E, TArgs[K]> }
-    ) => Validation<E, T> {
-        // prettier-ignore
-        return (...vdns) =>
+	/**
+	 * Lift a function into the context of `Validation`.
+	 *
+	 * @remarks
+	 *
+	 * Given a function that accepts arbitrary arguments, return an adapted
+	 * function that accepts `Validation` values as arguments. When applied,
+	 * evaluate the arguments from left to right. If they all succeed, apply the
+	 * original function to their successes and succeed with the result;
+	 * otherwise, begin accumulating failures on the first failed `Validation`.
+	 */
+	export function lift<TArgs extends unknown[], T>(
+		f: (...args: TArgs) => T,
+	): <E extends Semigroup<E>>(
+		...vdns: { [K in keyof TArgs]: Validation<E, TArgs[K]> }
+	) => Validation<E, T> {
+		// prettier-ignore
+		return (...vdns) =>
             collect(vdns).map(
                 (args) => f(...(args as TArgs))
             ) as Validation<any, T>;
-    }
+	}
 
-    /**
-     * The fluent syntax for `Validation`.
-     */
-    export abstract class Syntax {
-        /**
-         * If this and that `Validation` are the same variant and their values
-         * are equal, return `true`; otherwise, return `false`.
-         */
-        [Eq.eq]<E extends Eq<E>, T extends Eq<T>>(
-            this: Validation<E, T>,
-            that: Validation<E, T>,
-        ): boolean {
-            if (this.isErr()) {
-                return that.isErr() && eq(this.val, that.val);
-            }
-            return that.isOk() && eq(this.val, that.val);
-        }
+	/**
+	 * The fluent syntax for `Validation`.
+	 */
+	export abstract class Syntax {
+		/**
+		 * If this and that `Validation` are the same variant and their values
+		 * are equal, return `true`; otherwise, return `false`.
+		 */
+		[Eq.eq]<E extends Eq<E>, T extends Eq<T>>(
+			this: Validation<E, T>,
+			that: Validation<E, T>,
+		): boolean {
+			if (this.isErr()) {
+				return that.isErr() && eq(this.val, that.val);
+			}
+			return that.isOk() && eq(this.val, that.val);
+		}
 
-        /**
-         * Compare this and that `Validation` to determine their ordering.
-         *
-         * @remarks
-         *
-         * When ordered, a failed `Validation` always compares as less than any
-         * successful `Validation`. If the variants are the same, their failures
-         * or successes are compared to determine the ordering.
-         */
-        [Ord.cmp]<E extends Ord<E>, T extends Ord<T>>(
-            this: Validation<E, T>,
-            that: Validation<E, T>,
-        ): Ordering {
-            if (this.isErr()) {
-                return that.isErr() ? cmp(this.val, that.val) : Ordering.less;
-            }
-            return that.isOk() ? cmp(this.val, that.val) : Ordering.greater;
-        }
+		/**
+		 * Compare this and that `Validation` to determine their ordering.
+		 *
+		 * @remarks
+		 *
+		 * When ordered, a failed `Validation` always compares as less than any
+		 * successful `Validation`. If the variants are the same, their failures
+		 * or successes are compared to determine the ordering.
+		 */
+		[Ord.cmp]<E extends Ord<E>, T extends Ord<T>>(
+			this: Validation<E, T>,
+			that: Validation<E, T>,
+		): Ordering {
+			if (this.isErr()) {
+				return that.isErr() ? cmp(this.val, that.val) : Ordering.less;
+			}
+			return that.isOk() ? cmp(this.val, that.val) : Ordering.greater;
+		}
 
-        /**
-         * If this and that `Validation` both succeed, combine their successes
-         * and succeed with the result; otherwise, begin accumulating failures
-         * on the first failed `Validation`.
-         */
-        [Semigroup.cmb]<E extends Semigroup<E>, T extends Semigroup<T>>(
-            this: Validation<E, T>,
-            that: Validation<E, T>,
-        ): Validation<E, T> {
-            return this.zipWith(that, cmb);
-        }
+		/**
+		 * If this and that `Validation` both succeed, combine their successes
+		 * and succeed with the result; otherwise, begin accumulating failures
+		 * on the first failed `Validation`.
+		 */
+		[Semigroup.cmb]<E extends Semigroup<E>, T extends Semigroup<T>>(
+			this: Validation<E, T>,
+			that: Validation<E, T>,
+		): Validation<E, T> {
+			return this.zipWith(that, cmb);
+		}
 
-        /**
-         * Test whether this `Validation` has failed.
-         */
-        isErr<E>(this: Validation<E, any>): this is Err<E> {
-            return this.kind === Kind.ERR;
-        }
+		/**
+		 * Test whether this `Validation` has failed.
+		 */
+		isErr<E>(this: Validation<E, any>): this is Err<E> {
+			return this.kind === Kind.ERR;
+		}
 
-        /**
-         * Test whether this `Validation` has succeeded.
-         */
-        isOk<T>(this: Validation<any, T>): this is Ok<T> {
-            return this.kind === Kind.OK;
-        }
+		/**
+		 * Test whether this `Validation` has succeeded.
+		 */
+		isOk<T>(this: Validation<any, T>): this is Ok<T> {
+			return this.kind === Kind.OK;
+		}
 
-        /**
-         * Case analysis for `Validation`.
-         */
-        unwrap<E, T, T1, T2>(
-            this: Validation<E, T>,
-            unwrapErr: (val: E) => T1,
-            unwrapOk: (val: T) => T2,
-        ): T1 | T2 {
-            return this.isErr() ? unwrapErr(this.val) : unwrapOk(this.val);
-        }
+		/**
+		 * Case analysis for `Validation`.
+		 */
+		unwrap<E, T, T1, T2>(
+			this: Validation<E, T>,
+			unwrapErr: (val: E) => T1,
+			unwrapOk: (val: T) => T2,
+		): T1 | T2 {
+			return this.isErr() ? unwrapErr(this.val) : unwrapOk(this.val);
+		}
 
-        /**
-         * If this and that `Validation` both succeed, apply a function to their
-         * successes and succeed with the result; otherwise, begin accumulating
-         * failures on the first failed `Validation`.
-         */
-        zipWith<E extends Semigroup<E>, T, T1, T2>(
-            this: Validation<E, T>,
-            that: Validation<E, T1>,
-            f: (lhs: T, rhs: T1) => T2,
-        ): Validation<E, T2> {
-            if (this.isErr()) {
-                return that.isErr() ? err(cmb(this.val, that.val)) : this;
-            }
-            return that.isErr() ? that : ok(f(this.val, that.val));
-        }
+		/**
+		 * If this and that `Validation` both succeed, apply a function to their
+		 * successes and succeed with the result; otherwise, begin accumulating
+		 * failures on the first failed `Validation`.
+		 */
+		zipWith<E extends Semigroup<E>, T, T1, T2>(
+			this: Validation<E, T>,
+			that: Validation<E, T1>,
+			f: (lhs: T, rhs: T1) => T2,
+		): Validation<E, T2> {
+			if (this.isErr()) {
+				return that.isErr() ? err(cmb(this.val, that.val)) : this;
+			}
+			return that.isErr() ? that : ok(f(this.val, that.val));
+		}
 
-        /**
-         * If this and that `Validation` both succeed, succeed with only the
-         * first success and discard the second; otherwise, begin accumulating
-         * failures on the first failed `Validation`.
-         */
-        zipFst<E extends Semigroup<E>, T>(
-            this: Validation<E, T>,
-            that: Validation<E, any>,
-        ): Validation<E, T> {
-            return this.zipWith(that, id);
-        }
+		/**
+		 * If this and that `Validation` both succeed, succeed with only the
+		 * first success and discard the second; otherwise, begin accumulating
+		 * failures on the first failed `Validation`.
+		 */
+		zipFst<E extends Semigroup<E>, T>(
+			this: Validation<E, T>,
+			that: Validation<E, any>,
+		): Validation<E, T> {
+			return this.zipWith(that, id);
+		}
 
-        /**
-         * If this and that `Validation` both succeed, succeed with only the
-         * second success and discard the first; otherwise, begin accumulating
-         * failures on the first failed `Validation`.
-         */
-        zipSnd<E extends Semigroup<E>, T1>(
-            this: Validation<E, any>,
-            that: Validation<E, T1>,
-        ): Validation<E, T1> {
-            return this.zipWith(that, (_, rhs) => rhs);
-        }
+		/**
+		 * If this and that `Validation` both succeed, succeed with only the
+		 * second success and discard the first; otherwise, begin accumulating
+		 * failures on the first failed `Validation`.
+		 */
+		zipSnd<E extends Semigroup<E>, T1>(
+			this: Validation<E, any>,
+			that: Validation<E, T1>,
+		): Validation<E, T1> {
+			return this.zipWith(that, (_, rhs) => rhs);
+		}
 
-        /**
-         * If this `Validation` fails, apply a function to its failure and fail
-         * with the result; otherwise, return this `Validation` as is.
-         */
-        lmap<E, T, E1>(
-            this: Validation<E, T>,
-            f: (val: E) => E1,
-        ): Validation<E1, T> {
-            return this.isErr() ? err(f(this.val)) : this;
-        }
+		/**
+		 * If this `Validation` fails, apply a function to its failure and fail
+		 * with the result; otherwise, return this `Validation` as is.
+		 */
+		lmap<E, T, E1>(
+			this: Validation<E, T>,
+			f: (val: E) => E1,
+		): Validation<E1, T> {
+			return this.isErr() ? err(f(this.val)) : this;
+		}
 
-        /**
-         * If this `Validation` succeeds, apply a function to its success and
-         * succeed with the result; otherwise, return this `Validation` as is.
-         */
-        map<E, T, T1>(
-            this: Validation<E, T>,
-            f: (val: T) => T1,
-        ): Validation<E, T1> {
-            return this.isErr() ? this : ok(f(this.val));
-        }
-    }
+		/**
+		 * If this `Validation` succeeds, apply a function to its success and
+		 * succeed with the result; otherwise, return this `Validation` as is.
+		 */
+		map<E, T, T1>(
+			this: Validation<E, T>,
+			f: (val: T) => T1,
+		): Validation<E, T1> {
+			return this.isErr() ? this : ok(f(this.val));
+		}
+	}
 
-    /**
-     * An enumeration that discriminates `Validation`.
-     */
-    export enum Kind {
-        ERR,
-        OK,
-    }
+	/**
+	 * An enumeration that discriminates `Validation`.
+	 */
+	export enum Kind {
+		ERR,
+		OK,
+	}
 
-    /**
-     * A failed `Validation`.
-     */
-    export class Err<out E> extends Syntax {
-        /**
-         * The property that discriminates `Validation`.
-         */
-        readonly kind = Kind.ERR;
+	/**
+	 * A failed `Validation`.
+	 */
+	export class Err<out E> extends Syntax {
+		/**
+		 * The property that discriminates `Validation`.
+		 */
+		readonly kind = Kind.ERR;
 
-        /**
-         * The value of this `Validation`.
-         */
-        readonly val: E;
+		/**
+		 * The value of this `Validation`.
+		 */
+		readonly val: E;
 
-        constructor(val: E) {
-            super();
-            this.val = val;
-        }
-    }
+		constructor(val: E) {
+			super();
+			this.val = val;
+		}
+	}
 
-    /**
-     * A successful `Validation`.
-     */
-    export class Ok<out T> extends Syntax {
-        /**
-         * The property that discriminates `Validation`.
-         */
-        readonly kind = Kind.OK;
+	/**
+	 * A successful `Validation`.
+	 */
+	export class Ok<out T> extends Syntax {
+		/**
+		 * The property that discriminates `Validation`.
+		 */
+		readonly kind = Kind.OK;
 
-        /**
-         * The value of this `Validation`.
-         */
-        readonly val: T;
+		/**
+		 * The value of this `Validation`.
+		 */
+		readonly val: T;
 
-        constructor(val: T) {
-            super();
-            this.val = val;
-        }
-    }
+		constructor(val: T) {
+			super();
+			this.val = val;
+		}
+	}
 
-    /**
-     * Extract the failure type `E` from the type `Validation<E, T>`.
-     */
-    // prettier-ignore
-    export type ErrT<TVdn extends Validation<any, any>> =
+	/**
+	 * Extract the failure type `E` from the type `Validation<E, T>`.
+	 */
+	// prettier-ignore
+	export type ErrT<TVdn extends Validation<any, any>> =
         [TVdn] extends [Validation<infer E, any>] ? E : never;
 
-    /**
-     * Extract the success type `T` from the type `Validation<E, T>`.
-     */
-    // prettier-ignore
-    export type OkT<TVdn extends Validation<any, any>> =
+	/**
+	 * Extract the success type `T` from the type `Validation<E, T>`.
+	 */
+	// prettier-ignore
+	export type OkT<TVdn extends Validation<any, any>> =
         [TVdn] extends [Validation<any, infer T>] ? T : never;
 }

@@ -402,545 +402,545 @@ export type Either<A, B> = Either.Left<A> | Either.Right<B>;
  * The companion namespace for the `Either` type.
  */
 export namespace Either {
-    /**
-     * Construct a left-sided `Either` from a value.
-     */
-    export function left<A, B = never>(val: A): Either<A, B> {
-        return new Left(val);
-    }
+	/**
+	 * Construct a left-sided `Either` from a value.
+	 */
+	export function left<A, B = never>(val: A): Either<A, B> {
+		return new Left(val);
+	}
 
-    /**
-     * Construct a right-sided `Either` from a value.
-     */
-    export function right<B, A = never>(val: B): Either<A, B> {
-        return new Right(val);
-    }
+	/**
+	 * Construct a right-sided `Either` from a value.
+	 */
+	export function right<B, A = never>(val: B): Either<A, B> {
+		return new Right(val);
+	}
 
-    /**
-     * Construct an `Either` from a `Validation`.
-     *
-     * @remarks
-     *
-     * If the `Validation` is an `Err`, return its failure in a `Left`;
-     * otherwise, return its success in a `Right`.
-     */
-    export function fromValidation<E, T>(vdn: Validation<E, T>): Either<E, T> {
-        return vdn.unwrap(left, right);
-    }
+	/**
+	 * Construct an `Either` from a `Validation`.
+	 *
+	 * @remarks
+	 *
+	 * If the `Validation` is an `Err`, return its failure in a `Left`;
+	 * otherwise, return its success in a `Right`.
+	 */
+	export function fromValidation<E, T>(vdn: Validation<E, T>): Either<E, T> {
+		return vdn.unwrap(left, right);
+	}
 
-    function step<TYield extends Either<any, any>, TReturn>(
-        gen: Generator<TYield, TReturn | typeof halt, unknown>,
-    ): Either<LeftT<TYield>, TReturn> {
-        let nxt = gen.next();
-        let err: any;
-        while (!nxt.done) {
-            const either = nxt.value;
-            if (either.isRight()) {
-                nxt = gen.next(either.val);
-            } else {
-                err = either.val;
-                nxt = gen.return(halt);
-            }
-        }
-        const result = nxt.value;
-        return result === halt ? left(err) : right(result);
-    }
+	function step<TYield extends Either<any, any>, TReturn>(
+		gen: Generator<TYield, TReturn | typeof halt, unknown>,
+	): Either<LeftT<TYield>, TReturn> {
+		let nxt = gen.next();
+		let err: any;
+		while (!nxt.done) {
+			const either = nxt.value;
+			if (either.isRight()) {
+				nxt = gen.next(either.val);
+			} else {
+				err = either.val;
+				nxt = gen.return(halt);
+			}
+		}
+		const result = nxt.value;
+		return result === halt ? left(err) : right(result);
+	}
 
-    /**
-     * Construct an `Either` using a generator comprehension.
-     *
-     * @remarks
-     *
-     * The contract for generator comprehensions is as follows:
-     *
-     * -   The generator provided to `go` must only yield `Either` values.
-     * -   `Either` values must only be yielded using the `yield*` keyword, and
-     *     never `yield` (without the `*`). Omitting the `*` inhibits proper
-     *     type inference and may cause undefined behavior.
-     * -   A `yield*` statement may bind a variable provided by the caller. The
-     *     variable inherits the type of the success of the yielded `Either`.
-     * -   If a yielded `Either` succeeds, its success is bound to a variable
-     *     (if provided) and the generator advances.
-     * -   If a yielded `Either` fails, the generator halts and `go` returns the
-     *     failed `Either`.
-     * -   The `return` statement of the generator may return a final result,
-     *     which is returned from `go` as a success if all yielded `Either`
-     *     values succeed.
-     * -   All syntax normally permitted in generators (statements, loops,
-     *     declarations, etc.) is permitted within generator comprehensions.
-     *
-     * @example Basic yielding and returning
-     *
-     * Consider a comprehension that sums the successes of three `Either`
-     * values:
-     *
-     * ```ts
-     * import { Either } from "@neotype/prelude/either.js";
-     *
-     * const errOrOne: Either<string, number> = Either.right(1);
-     * const errOrTwo: Either<string, number> = Either.right(2);
-     * const errOrThree: Either<string, number> = Either.right(3);
-     *
-     * const summed: Either<string, number> = Either.go(function* () {
-     *     const one = yield* errOrOne;
-     *     const two = yield* errOrTwo;
-     *     const three = yield* errOrThree;
-     *
-     *     return one + two + three;
-     * });
-     *
-     * console.log(summed.val); // 6
-     * ```
-     *
-     * Now, observe the change in behavior if one of the yielded arguments was
-     * a failed `Either` instead. Replace the declaration of `errOrTwo` with the
-     * following and re-run the program.
-     *
-     * ```ts
-     * const errOrTwo: Either<string, number> = Either.left("oops");
-     * ```
-     */
-    export function go<TYield extends Either<any, any>, TReturn>(
-        f: () => Generator<TYield, TReturn, unknown>,
-    ): Either<LeftT<TYield>, TReturn> {
-        return step(f());
-    }
+	/**
+	 * Construct an `Either` using a generator comprehension.
+	 *
+	 * @remarks
+	 *
+	 * The contract for generator comprehensions is as follows:
+	 *
+	 * -   The generator provided to `go` must only yield `Either` values.
+	 * -   `Either` values must only be yielded using the `yield*` keyword, and
+	 *     never `yield` (without the `*`). Omitting the `*` inhibits proper
+	 *     type inference and may cause undefined behavior.
+	 * -   A `yield*` statement may bind a variable provided by the caller. The
+	 *     variable inherits the type of the success of the yielded `Either`.
+	 * -   If a yielded `Either` succeeds, its success is bound to a variable
+	 *     (if provided) and the generator advances.
+	 * -   If a yielded `Either` fails, the generator halts and `go` returns the
+	 *     failed `Either`.
+	 * -   The `return` statement of the generator may return a final result,
+	 *     which is returned from `go` as a success if all yielded `Either`
+	 *     values succeed.
+	 * -   All syntax normally permitted in generators (statements, loops,
+	 *     declarations, etc.) is permitted within generator comprehensions.
+	 *
+	 * @example Basic yielding and returning
+	 *
+	 * Consider a comprehension that sums the successes of three `Either`
+	 * values:
+	 *
+	 * ```ts
+	 * import { Either } from "@neotype/prelude/either.js";
+	 *
+	 * const errOrOne: Either<string, number> = Either.right(1);
+	 * const errOrTwo: Either<string, number> = Either.right(2);
+	 * const errOrThree: Either<string, number> = Either.right(3);
+	 *
+	 * const summed: Either<string, number> = Either.go(function* () {
+	 *     const one = yield* errOrOne;
+	 *     const two = yield* errOrTwo;
+	 *     const three = yield* errOrThree;
+	 *
+	 *     return one + two + three;
+	 * });
+	 *
+	 * console.log(summed.val); // 6
+	 * ```
+	 *
+	 * Now, observe the change in behavior if one of the yielded arguments was
+	 * a failed `Either` instead. Replace the declaration of `errOrTwo` with the
+	 * following and re-run the program.
+	 *
+	 * ```ts
+	 * const errOrTwo: Either<string, number> = Either.left("oops");
+	 * ```
+	 */
+	export function go<TYield extends Either<any, any>, TReturn>(
+		f: () => Generator<TYield, TReturn, unknown>,
+	): Either<LeftT<TYield>, TReturn> {
+		return step(f());
+	}
 
-    /**
-     * Construct a function that returns an `Either` using a generator
-     * comprehension.
-     *
-     * @remarks
-     *
-     * This is the higher-order function variant of `go`.
-     */
-    export function goFn<
-        TArgs extends unknown[],
-        TYield extends Either<any, any>,
-        TReturn,
-    >(
-        f: (...args: TArgs) => Generator<TYield, TReturn, unknown>,
-    ): (...args: TArgs) => Either<LeftT<TYield>, TReturn> {
-        return (...args) => step(f(...args));
-    }
+	/**
+	 * Construct a function that returns an `Either` using a generator
+	 * comprehension.
+	 *
+	 * @remarks
+	 *
+	 * This is the higher-order function variant of `go`.
+	 */
+	export function goFn<
+		TArgs extends unknown[],
+		TYield extends Either<any, any>,
+		TReturn,
+	>(
+		f: (...args: TArgs) => Generator<TYield, TReturn, unknown>,
+	): (...args: TArgs) => Either<LeftT<TYield>, TReturn> {
+		return (...args) => step(f(...args));
+	}
 
-    /**
-     * Reduce a finite iterable from left to right in the context of `Either`.
-     *
-     * @remarks
-     *
-     * Start with an initial accumulator and reduce the elements of an iterable
-     * using a reducer function that returns an `Either`. While the function
-     * returns a successful `Either`, continue the reduction using the success
-     * as the new accumulator until there are no elements remaining, and then
-     * succeed with the final accumulator; otherwise, return the first failed
-     * `Either`.
-     */
-    export function reduce<T, TAcc, E>(
-        vals: Iterable<T>,
-        accum: (acc: TAcc, val: T) => Either<E, TAcc>,
-        initial: TAcc,
-    ): Either<E, TAcc> {
-        return go(function* () {
-            let acc = initial;
-            for (const val of vals) {
-                acc = yield* accum(acc, val);
-            }
-            return acc;
-        });
-    }
+	/**
+	 * Reduce a finite iterable from left to right in the context of `Either`.
+	 *
+	 * @remarks
+	 *
+	 * Start with an initial accumulator and reduce the elements of an iterable
+	 * using a reducer function that returns an `Either`. While the function
+	 * returns a successful `Either`, continue the reduction using the success
+	 * as the new accumulator until there are no elements remaining, and then
+	 * succeed with the final accumulator; otherwise, return the first failed
+	 * `Either`.
+	 */
+	export function reduce<T, TAcc, E>(
+		vals: Iterable<T>,
+		accum: (acc: TAcc, val: T) => Either<E, TAcc>,
+		initial: TAcc,
+	): Either<E, TAcc> {
+		return go(function* () {
+			let acc = initial;
+			for (const val of vals) {
+				acc = yield* accum(acc, val);
+			}
+			return acc;
+		});
+	}
 
-    /**
-     * Turn an array or a tuple literal of `Either` elements "inside out".
-     *
-     * @remarks
-     *
-     * Evaluate the `Either` elements in an array or a tuple literal from left
-     * to right. If they all succeed, collect their successes in an array or a
-     * tuple literal, respectively, and succeed with the result; otherwise,
-     * return the first failed `Either`.
-     *
-     * For example:
-     *
-     * -   `Either<E, T>[]` becomes `Either<E, T[]>`
-     * -   `[Either<E, T1>, Either<E, T2>]` becomes `Either<E, [T1, T2]>`
-     */
-    export function collect<TEithers extends readonly Either<any, any>[] | []>(
-        eithers: TEithers,
-    ): Either<
-        LeftT<TEithers[number]>,
-        { -readonly [K in keyof TEithers]: RightT<TEithers[K]> }
-    > {
-        return go(function* () {
-            const results = new Array(eithers.length);
-            for (const [idx, either] of eithers.entries()) {
-                results[idx] = yield* either;
-            }
-            return results as any;
-        });
-    }
+	/**
+	 * Turn an array or a tuple literal of `Either` elements "inside out".
+	 *
+	 * @remarks
+	 *
+	 * Evaluate the `Either` elements in an array or a tuple literal from left
+	 * to right. If they all succeed, collect their successes in an array or a
+	 * tuple literal, respectively, and succeed with the result; otherwise,
+	 * return the first failed `Either`.
+	 *
+	 * For example:
+	 *
+	 * -   `Either<E, T>[]` becomes `Either<E, T[]>`
+	 * -   `[Either<E, T1>, Either<E, T2>]` becomes `Either<E, [T1, T2]>`
+	 */
+	export function collect<TEithers extends readonly Either<any, any>[] | []>(
+		eithers: TEithers,
+	): Either<
+		LeftT<TEithers[number]>,
+		{ -readonly [K in keyof TEithers]: RightT<TEithers[K]> }
+	> {
+		return go(function* () {
+			const results = new Array(eithers.length);
+			for (const [idx, either] of eithers.entries()) {
+				results[idx] = yield* either;
+			}
+			return results as any;
+		});
+	}
 
-    /**
-     * Turn a record or an object literal of `Either` elements "inside out".
-     *
-     * @remarks
-     *
-     * Evaluate the `Either` elements in a record or an object literal. If they
-     * all succeed, collect their successes in a record or an object literal,
-     * respectively, and succeed with the result; otherwise, return the first
-     * failed `Either`.
-     *
-     * For example:
-     *
-     * -   `Record<string, Either<E, T>>` becomes `Either<E, Record<string, T>>`
-     * -   `{ x: Either<E, T1>, y: Either<E, T2> }` becomes `Either<E, { x: T1,
-     *     y: T2 }>`
-     */
-    export function gather<TEithers extends Record<any, Either<any, any>>>(
-        eithers: TEithers,
-    ): Either<
-        LeftT<TEithers[keyof TEithers]>,
-        { -readonly [K in keyof TEithers]: RightT<TEithers[K]> }
-    > {
-        return go(function* () {
-            const results: Record<any, any> = {};
-            for (const [key, either] of Object.entries(eithers)) {
-                results[key] = yield* either;
-            }
-            return results as any;
-        });
-    }
+	/**
+	 * Turn a record or an object literal of `Either` elements "inside out".
+	 *
+	 * @remarks
+	 *
+	 * Evaluate the `Either` elements in a record or an object literal. If they
+	 * all succeed, collect their successes in a record or an object literal,
+	 * respectively, and succeed with the result; otherwise, return the first
+	 * failed `Either`.
+	 *
+	 * For example:
+	 *
+	 * -   `Record<string, Either<E, T>>` becomes `Either<E, Record<string, T>>`
+	 * -   `{ x: Either<E, T1>, y: Either<E, T2> }` becomes `Either<E, { x: T1,
+	 *     y: T2 }>`
+	 */
+	export function gather<TEithers extends Record<any, Either<any, any>>>(
+		eithers: TEithers,
+	): Either<
+		LeftT<TEithers[keyof TEithers]>,
+		{ -readonly [K in keyof TEithers]: RightT<TEithers[K]> }
+	> {
+		return go(function* () {
+			const results: Record<any, any> = {};
+			for (const [key, either] of Object.entries(eithers)) {
+				results[key] = yield* either;
+			}
+			return results as any;
+		});
+	}
 
-    /**
-     * Lift a function into the context of `Either`.
-     *
-     * @remarks
-     *
-     * Given a function that accepts arbitrary arguments, return an adapted
-     * function that accepts `Either` values as arguments. When applied,
-     * evaluate the arguments from left to right. If they all succeed, apply the
-     * original function to their successes and succeed with the result;
-     * otherwise, return the first failed `Either`.
-     */
-    export function lift<TArgs extends unknown[], T>(
-        f: (...args: TArgs) => T,
-    ): <TEithers extends { [K in keyof TArgs]: Either<any, TArgs[K]> }>(
-        ...eithers: TEithers
-    ) => Either<LeftT<TEithers[number]>, T> {
-        return (...eithers) =>
-            collect(eithers).map((args) => f(...(args as TArgs)));
-    }
+	/**
+	 * Lift a function into the context of `Either`.
+	 *
+	 * @remarks
+	 *
+	 * Given a function that accepts arbitrary arguments, return an adapted
+	 * function that accepts `Either` values as arguments. When applied,
+	 * evaluate the arguments from left to right. If they all succeed, apply the
+	 * original function to their successes and succeed with the result;
+	 * otherwise, return the first failed `Either`.
+	 */
+	export function lift<TArgs extends unknown[], T>(
+		f: (...args: TArgs) => T,
+	): <TEithers extends { [K in keyof TArgs]: Either<any, TArgs[K]> }>(
+		...eithers: TEithers
+	) => Either<LeftT<TEithers[number]>, T> {
+		return (...eithers) =>
+			collect(eithers).map((args) => f(...(args as TArgs)));
+	}
 
-    async function stepAsync<TYield extends Either<any, any>, TReturn>(
-        gen: AsyncGenerator<TYield, TReturn | typeof halt, unknown>,
-    ): Promise<Either<LeftT<TYield>, TReturn>> {
-        let nxt = await gen.next();
-        let err: any;
-        while (!nxt.done) {
-            const either = nxt.value;
-            if (either.isRight()) {
-                nxt = await gen.next(either.val);
-            } else {
-                err = either.val;
-                nxt = await gen.return(halt);
-            }
-        }
-        const result = nxt.value;
-        return result === halt ? left(err) : right(result);
-    }
+	async function stepAsync<TYield extends Either<any, any>, TReturn>(
+		gen: AsyncGenerator<TYield, TReturn | typeof halt, unknown>,
+	): Promise<Either<LeftT<TYield>, TReturn>> {
+		let nxt = await gen.next();
+		let err: any;
+		while (!nxt.done) {
+			const either = nxt.value;
+			if (either.isRight()) {
+				nxt = await gen.next(either.val);
+			} else {
+				err = either.val;
+				nxt = await gen.return(halt);
+			}
+		}
+		const result = nxt.value;
+		return result === halt ? left(err) : right(result);
+	}
 
-    /**
-     * Construct a `Promise` that fulfills with an `Either` using an async
-     * generator comprehension.
-     *
-     * @remarks
-     *
-     * The contract for async generator comprehensions is as follows:
-     *
-     * -   The async generator provided to `goAsync` must only yield `Either`
-     *     values.
-     *     -   `Promise` values must never be yielded. If a `Promise` contains
-     *         an `Either`, the `Promise` must first be awaited to access and
-     *         yield the `Either`. This is done with a `yield* await` statement.
-     * -   `Either` values must only be yielded using the `yield*` keyword, and
-     *     never `yield` (without the `*`). Omitting the `*` inhibits proper
-     *     type inference and may cause undefined behavior.
-     * -   A `yield*` statement may bind a variable provided by the caller. The
-     *     variable inherits the type of the success of the yielded `Either`.
-     * -   If a yielded `Either` succeeds, its success is bound to a variable
-     *     (if provided) and the generator advances.
-     * -   If a yielded `Either` fails, the generator halts and `goAsync`
-     *     fulfills with the failed `Either`.
-     * -   If a `Promise` rejects or an operation throws, the generator halts
-     *     and `goAsync` rejects with the error.
-     * -   The `return` statement of the generator may return a final result,
-     *     and `goAsync` fulfills with the result as a success if all yielded
-     *     `Either` values succeed and no errors are encountered.
-     * -   All syntax normally permitted in async generators (the `await`
-     *     keyword, statements, loops, declarations, etc.) is permitted within
-     *     async generator comprehensions.
-     */
-    export function goAsync<TYield extends Either<any, any>, TReturn>(
-        f: () => AsyncGenerator<TYield, TReturn, unknown>,
-    ): Promise<Either<LeftT<TYield>, TReturn>> {
-        return stepAsync(f());
-    }
+	/**
+	 * Construct a `Promise` that fulfills with an `Either` using an async
+	 * generator comprehension.
+	 *
+	 * @remarks
+	 *
+	 * The contract for async generator comprehensions is as follows:
+	 *
+	 * -   The async generator provided to `goAsync` must only yield `Either`
+	 *     values.
+	 *     -   `Promise` values must never be yielded. If a `Promise` contains
+	 *         an `Either`, the `Promise` must first be awaited to access and
+	 *         yield the `Either`. This is done with a `yield* await` statement.
+	 * -   `Either` values must only be yielded using the `yield*` keyword, and
+	 *     never `yield` (without the `*`). Omitting the `*` inhibits proper
+	 *     type inference and may cause undefined behavior.
+	 * -   A `yield*` statement may bind a variable provided by the caller. The
+	 *     variable inherits the type of the success of the yielded `Either`.
+	 * -   If a yielded `Either` succeeds, its success is bound to a variable
+	 *     (if provided) and the generator advances.
+	 * -   If a yielded `Either` fails, the generator halts and `goAsync`
+	 *     fulfills with the failed `Either`.
+	 * -   If a `Promise` rejects or an operation throws, the generator halts
+	 *     and `goAsync` rejects with the error.
+	 * -   The `return` statement of the generator may return a final result,
+	 *     and `goAsync` fulfills with the result as a success if all yielded
+	 *     `Either` values succeed and no errors are encountered.
+	 * -   All syntax normally permitted in async generators (the `await`
+	 *     keyword, statements, loops, declarations, etc.) is permitted within
+	 *     async generator comprehensions.
+	 */
+	export function goAsync<TYield extends Either<any, any>, TReturn>(
+		f: () => AsyncGenerator<TYield, TReturn, unknown>,
+	): Promise<Either<LeftT<TYield>, TReturn>> {
+		return stepAsync(f());
+	}
 
-    /**
-     * Construct a function that returns a `Promise` that fulfills with an
-     * `Either` using an async generator comprehension.
-     *
-     * @remarks
-     *
-     * This is the higher-order function variant of `goAsync`.
-     */
-    export function goAsyncFn<
-        TArgs extends unknown[],
-        TYield extends Either<any, any>,
-        TReturn,
-    >(
-        f: (...args: TArgs) => AsyncGenerator<TYield, TReturn, unknown>,
-    ): (...args: TArgs) => Promise<Either<LeftT<TYield>, TReturn>> {
-        return (...args) => stepAsync(f(...args));
-    }
+	/**
+	 * Construct a function that returns a `Promise` that fulfills with an
+	 * `Either` using an async generator comprehension.
+	 *
+	 * @remarks
+	 *
+	 * This is the higher-order function variant of `goAsync`.
+	 */
+	export function goAsyncFn<
+		TArgs extends unknown[],
+		TYield extends Either<any, any>,
+		TReturn,
+	>(
+		f: (...args: TArgs) => AsyncGenerator<TYield, TReturn, unknown>,
+	): (...args: TArgs) => Promise<Either<LeftT<TYield>, TReturn>> {
+		return (...args) => stepAsync(f(...args));
+	}
 
-    /**
-     * The fluent syntax for `Either`.
-     */
-    export abstract class Syntax {
-        /**
-         * If this and that `Either` are the same variant and their values are
-         * equal, return `true`; otherwise, return `false`.
-         */
-        [Eq.eq]<A extends Eq<A>, B extends Eq<B>>(
-            this: Either<A, B>,
-            that: Either<A, B>,
-        ): boolean {
-            if (this.isLeft()) {
-                return that.isLeft() && eq(this.val, that.val);
-            }
-            return that.isRight() && eq(this.val, that.val);
-        }
+	/**
+	 * The fluent syntax for `Either`.
+	 */
+	export abstract class Syntax {
+		/**
+		 * If this and that `Either` are the same variant and their values are
+		 * equal, return `true`; otherwise, return `false`.
+		 */
+		[Eq.eq]<A extends Eq<A>, B extends Eq<B>>(
+			this: Either<A, B>,
+			that: Either<A, B>,
+		): boolean {
+			if (this.isLeft()) {
+				return that.isLeft() && eq(this.val, that.val);
+			}
+			return that.isRight() && eq(this.val, that.val);
+		}
 
-        /**
-         * Compare this and that `Either` to determine their ordering.
-         *
-         * @remarks
-         *
-         * When ordered, a left-sided `Either` always compares as less than any
-         * right-sided `Either`. If the variants are the same, their values are
-         * compared to determine the ordering.
-         */
-        [Ord.cmp]<A extends Ord<A>, B extends Ord<B>>(
-            this: Either<A, B>,
-            that: Either<A, B>,
-        ): Ordering {
-            if (this.isLeft()) {
-                return that.isLeft() ? cmp(this.val, that.val) : Ordering.less;
-            }
-            return that.isRight() ? cmp(this.val, that.val) : Ordering.greater;
-        }
+		/**
+		 * Compare this and that `Either` to determine their ordering.
+		 *
+		 * @remarks
+		 *
+		 * When ordered, a left-sided `Either` always compares as less than any
+		 * right-sided `Either`. If the variants are the same, their values are
+		 * compared to determine the ordering.
+		 */
+		[Ord.cmp]<A extends Ord<A>, B extends Ord<B>>(
+			this: Either<A, B>,
+			that: Either<A, B>,
+		): Ordering {
+			if (this.isLeft()) {
+				return that.isLeft() ? cmp(this.val, that.val) : Ordering.less;
+			}
+			return that.isRight() ? cmp(this.val, that.val) : Ordering.greater;
+		}
 
-        /**
-         * If this and that `Either` both succeed, combine their successes and
-         * succeed with the result; otherwise, return the first failed `Either`.
-         */
-        [Semigroup.cmb]<E, T extends Semigroup<T>>(
-            this: Either<E, T>,
-            that: Either<E, T>,
-        ): Either<E, T> {
-            return this.zipWith(that, cmb);
-        }
+		/**
+		 * If this and that `Either` both succeed, combine their successes and
+		 * succeed with the result; otherwise, return the first failed `Either`.
+		 */
+		[Semigroup.cmb]<E, T extends Semigroup<T>>(
+			this: Either<E, T>,
+			that: Either<E, T>,
+		): Either<E, T> {
+			return this.zipWith(that, cmb);
+		}
 
-        /**
-         * Test whether this `Either` is left-sided.
-         */
-        isLeft<A>(this: Either<A, any>): this is Left<A> {
-            return this.kind === Kind.LEFT;
-        }
+		/**
+		 * Test whether this `Either` is left-sided.
+		 */
+		isLeft<A>(this: Either<A, any>): this is Left<A> {
+			return this.kind === Kind.LEFT;
+		}
 
-        /**
-         * Test whether this `Either` is right-sided.
-         */
-        isRight<B>(this: Either<any, B>): this is Right<B> {
-            return this.kind === Kind.RIGHT;
-        }
+		/**
+		 * Test whether this `Either` is right-sided.
+		 */
+		isRight<B>(this: Either<any, B>): this is Right<B> {
+			return this.kind === Kind.RIGHT;
+		}
 
-        /**
-         * Apply one of two functions to the value of this `Either` depending
-         * on its variant, and return the result.
-         */
-        unwrap<A, B, T1, T2>(
-            this: Either<A, B>,
-            unwrapLeft: (val: A) => T1,
-            unwrapRight: (val: B) => T2,
-        ): T1 | T2 {
-            return this.isLeft() ? unwrapLeft(this.val) : unwrapRight(this.val);
-        }
+		/**
+		 * Apply one of two functions to the value of this `Either` depending
+		 * on its variant, and return the result.
+		 */
+		unwrap<A, B, T1, T2>(
+			this: Either<A, B>,
+			unwrapLeft: (val: A) => T1,
+			unwrapRight: (val: B) => T2,
+		): T1 | T2 {
+			return this.isLeft() ? unwrapLeft(this.val) : unwrapRight(this.val);
+		}
 
-        /**
-         * If this `Either` fails, apply a function to its failure to return
-         * another `Either`; otherwise, return this `Either` as is.
-         */
-        recover<E, T, E1, T1>(
-            this: Either<E, T>,
-            f: (val: E) => Either<E1, T1>,
-        ): Either<E1, T | T1> {
-            return this.isLeft() ? f(this.val) : this;
-        }
+		/**
+		 * If this `Either` fails, apply a function to its failure to return
+		 * another `Either`; otherwise, return this `Either` as is.
+		 */
+		recover<E, T, E1, T1>(
+			this: Either<E, T>,
+			f: (val: E) => Either<E1, T1>,
+		): Either<E1, T | T1> {
+			return this.isLeft() ? f(this.val) : this;
+		}
 
-        /**
-         * If this `Either` succeeds, apply a function to its success to return
-         * another `Either`; otherwise, return this `Either` as is.
-         */
-        flatMap<E, T, E1, T1>(
-            this: Either<E, T>,
-            f: (val: T) => Either<E1, T1>,
-        ): Either<E | E1, T1> {
-            return this.isLeft() ? this : f(this.val);
-        }
+		/**
+		 * If this `Either` succeeds, apply a function to its success to return
+		 * another `Either`; otherwise, return this `Either` as is.
+		 */
+		flatMap<E, T, E1, T1>(
+			this: Either<E, T>,
+			f: (val: T) => Either<E1, T1>,
+		): Either<E | E1, T1> {
+			return this.isLeft() ? this : f(this.val);
+		}
 
-        /**
-         * If this and that `Either` both succeed, apply a function to their
-         * successes and succeed with the result; otherwise, return the first
-         * failed `Either`.
-         */
-        zipWith<E, T, E1, T1, T2>(
-            this: Either<E, T>,
-            that: Either<E1, T1>,
-            f: (lhs: T, rhs: T1) => T2,
-        ): Either<E | E1, T2> {
-            return this.flatMap((lhs) => that.map((rhs) => f(lhs, rhs)));
-        }
+		/**
+		 * If this and that `Either` both succeed, apply a function to their
+		 * successes and succeed with the result; otherwise, return the first
+		 * failed `Either`.
+		 */
+		zipWith<E, T, E1, T1, T2>(
+			this: Either<E, T>,
+			that: Either<E1, T1>,
+			f: (lhs: T, rhs: T1) => T2,
+		): Either<E | E1, T2> {
+			return this.flatMap((lhs) => that.map((rhs) => f(lhs, rhs)));
+		}
 
-        /**
-         * If this and that `Either` both succeed, succeed with only the first
-         * success and discard the second; otherwise, return the first failed
-         * `Either`.
-         */
-        zipFst<E, T, E1>(
-            this: Either<E, T>,
-            that: Either<E1, any>,
-        ): Either<E | E1, T> {
-            return this.zipWith(that, id);
-        }
+		/**
+		 * If this and that `Either` both succeed, succeed with only the first
+		 * success and discard the second; otherwise, return the first failed
+		 * `Either`.
+		 */
+		zipFst<E, T, E1>(
+			this: Either<E, T>,
+			that: Either<E1, any>,
+		): Either<E | E1, T> {
+			return this.zipWith(that, id);
+		}
 
-        /**
-         * If this and that `Either` both succeed, succeed with only the second
-         * success and discard the first; otherwise, return the first failed
-         * `Either`.
-         */
-        zipSnd<E, E1, T1>(
-            this: Either<E, any>,
-            that: Either<E1, T1>,
-        ): Either<E | E1, T1> {
-            return this.flatMap(() => that);
-        }
+		/**
+		 * If this and that `Either` both succeed, succeed with only the second
+		 * success and discard the first; otherwise, return the first failed
+		 * `Either`.
+		 */
+		zipSnd<E, E1, T1>(
+			this: Either<E, any>,
+			that: Either<E1, T1>,
+		): Either<E | E1, T1> {
+			return this.flatMap(() => that);
+		}
 
-        /**
-         * If this `Either` is left-sided, apply a function to its value and
-         * return the result in a `Left`; otherwise, return this `Either` as is.
-         */
-        lmap<A, B, A1>(this: Either<A, B>, f: (val: A) => A1): Either<A1, B> {
-            return this.recover((val) => left(f(val)));
-        }
+		/**
+		 * If this `Either` is left-sided, apply a function to its value and
+		 * return the result in a `Left`; otherwise, return this `Either` as is.
+		 */
+		lmap<A, B, A1>(this: Either<A, B>, f: (val: A) => A1): Either<A1, B> {
+			return this.recover((val) => left(f(val)));
+		}
 
-        /**
-         * If this `Either` is right-sided, apply a function to its value and
-         * return the result in a `Right`; otherwise, return this `Either` as
-         * is.
-         */
-        map<A, B, B1>(this: Either<A, B>, f: (val: B) => B1): Either<A, B1> {
-            return this.flatMap((val) => right(f(val)));
-        }
-    }
+		/**
+		 * If this `Either` is right-sided, apply a function to its value and
+		 * return the result in a `Right`; otherwise, return this `Either` as
+		 * is.
+		 */
+		map<A, B, B1>(this: Either<A, B>, f: (val: B) => B1): Either<A, B1> {
+			return this.flatMap((val) => right(f(val)));
+		}
+	}
 
-    /**
-     * An enumeration that discriminates `Either`.
-     */
-    export enum Kind {
-        LEFT,
-        RIGHT,
-    }
+	/**
+	 * An enumeration that discriminates `Either`.
+	 */
+	export enum Kind {
+		LEFT,
+		RIGHT,
+	}
 
-    /**
-     * A left-sided Either.
-     */
-    export class Left<out A> extends Syntax {
-        /**
-         * The property that discriminates `Either`.
-         */
-        readonly kind = Kind.LEFT;
+	/**
+	 * A left-sided Either.
+	 */
+	export class Left<out A> extends Syntax {
+		/**
+		 * The property that discriminates `Either`.
+		 */
+		readonly kind = Kind.LEFT;
 
-        /**
-         * The value of this `Either`.
-         */
-        readonly val: A;
+		/**
+		 * The value of this `Either`.
+		 */
+		readonly val: A;
 
-        constructor(val: A) {
-            super();
-            this.val = val;
-        }
+		constructor(val: A) {
+			super();
+			this.val = val;
+		}
 
-        /**
-         * Defining iterable behavior for `Either` allows TypeScript to infer
-         * right-sided value types when yielding `Either` values in generator
-         * comprehensions using `yield*`.
-         *
-         * @hidden
-         */
-        *[Symbol.iterator](): Iterator<Either<A, never>, never, unknown> {
-            return (yield this) as never;
-        }
-    }
+		/**
+		 * Defining iterable behavior for `Either` allows TypeScript to infer
+		 * right-sided value types when yielding `Either` values in generator
+		 * comprehensions using `yield*`.
+		 *
+		 * @hidden
+		 */
+		*[Symbol.iterator](): Iterator<Either<A, never>, never, unknown> {
+			return (yield this) as never;
+		}
+	}
 
-    /**
-     * A right-sided Either.
-     */
-    export class Right<out B> extends Syntax {
-        /**
-         * The property that discriminates `Either`.
-         */
-        readonly kind = Kind.RIGHT;
+	/**
+	 * A right-sided Either.
+	 */
+	export class Right<out B> extends Syntax {
+		/**
+		 * The property that discriminates `Either`.
+		 */
+		readonly kind = Kind.RIGHT;
 
-        /**
-         * The value of this `Either`.
-         */
-        readonly val: B;
+		/**
+		 * The value of this `Either`.
+		 */
+		readonly val: B;
 
-        constructor(val: B) {
-            super();
-            this.val = val;
-        }
+		constructor(val: B) {
+			super();
+			this.val = val;
+		}
 
-        /**
-         * Defining iterable behavior for `Either` allows TypeScript to infer
-         * right-sided value types when yielding `Either` values in generator
-         * comprehensions using `yield*`.
-         *
-         * @hidden
-         */
-        *[Symbol.iterator](): Iterator<Either<never, B>, B, unknown> {
-            return (yield this) as B;
-        }
-    }
+		/**
+		 * Defining iterable behavior for `Either` allows TypeScript to infer
+		 * right-sided value types when yielding `Either` values in generator
+		 * comprehensions using `yield*`.
+		 *
+		 * @hidden
+		 */
+		*[Symbol.iterator](): Iterator<Either<never, B>, B, unknown> {
+			return (yield this) as B;
+		}
+	}
 
-    /**
-     * Extract the left-sided value type `A` from the type `Either<A, B>`.
-     */
-    // prettier-ignore
-    export type LeftT<TEither extends Either<any, any>> = 
+	/**
+	 * Extract the left-sided value type `A` from the type `Either<A, B>`.
+	 */
+	// prettier-ignore
+	export type LeftT<TEither extends Either<any, any>> = 
         [TEither] extends [Either<infer A, any>] ? A : never;
 
-    /**
-     * Extract the right-sided value type `B` from the type `Either<A, B>`.
-     */
-    // prettier-ignore
-    export type RightT<TEither extends Either<any, any>> = 
+	/**
+	 * Extract the right-sided value type `B` from the type `Either<A, B>`.
+	 */
+	// prettier-ignore
+	export type RightT<TEither extends Either<any, any>> = 
         [TEither] extends [Either<any, infer B>] ? B : never;
 
-    // A unique symbol used by the `Either` generator comprehension
-    // implementation to signal the underlying generator to return early. This
-    // ensures `try...finally` blocks can execute.
-    const halt = Symbol();
+	// A unique symbol used by the `Either` generator comprehension
+	// implementation to signal the underlying generator to return early. This
+	// ensures `try...finally` blocks can execute.
+	const halt = Symbol();
 }

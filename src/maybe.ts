@@ -416,580 +416,580 @@ export type Maybe<T> = Maybe.Nothing | Maybe.Just<T>;
  * The companion namespace for the `Maybe` type.
  */
 export namespace Maybe {
-    /**
-     * Construct a present `Maybe` from a value.
-     */
-    export function just<T>(val: T): Maybe<T> {
-        return new Just(val);
-    }
+	/**
+	 * Construct a present `Maybe` from a value.
+	 */
+	export function just<T>(val: T): Maybe<T> {
+		return new Just(val);
+	}
 
-    /**
-     * Consruct a `Maybe` from a value that is potentially `null` or
-     * `undefined`.
-     *
-     * @remarks
-     *
-     * If the value is `null` or `undefined`, return `Nothing`; otherwise,
-     * return the value in a `Just`.
-     */
-    export function fromNullish<T>(val: T | null | undefined): Maybe<T> {
-        return val === null || val === undefined ? nothing : just(val);
-    }
+	/**
+	 * Consruct a `Maybe` from a value that is potentially `null` or
+	 * `undefined`.
+	 *
+	 * @remarks
+	 *
+	 * If the value is `null` or `undefined`, return `Nothing`; otherwise,
+	 * return the value in a `Just`.
+	 */
+	export function fromNullish<T>(val: T | null | undefined): Maybe<T> {
+		return val === null || val === undefined ? nothing : just(val);
+	}
 
-    /**
-     * Adapt a function that may return `null` or `undefined` into a function
-     * that returns a `Maybe`.
-     *
-     * @remarks
-     *
-     * If the function returns `null` or `undefined`, return `Nothing`;
-     * otherwise, return the result in a `Just`.
-     */
-    export function wrapFn<TArgs extends unknown[], T>(
-        f: (...args: TArgs) => T | null | undefined,
-    ): (...args: TArgs) => Maybe<T> {
-        return (...args) => fromNullish(f(...args));
-    }
+	/**
+	 * Adapt a function that may return `null` or `undefined` into a function
+	 * that returns a `Maybe`.
+	 *
+	 * @remarks
+	 *
+	 * If the function returns `null` or `undefined`, return `Nothing`;
+	 * otherwise, return the result in a `Just`.
+	 */
+	export function wrapFn<TArgs extends unknown[], T>(
+		f: (...args: TArgs) => T | null | undefined,
+	): (...args: TArgs) => Maybe<T> {
+		return (...args) => fromNullish(f(...args));
+	}
 
-    /**
-     * Adapt a predicate into a function that returns a `Maybe`.
-     *
-     * @remarks
-     *
-     * If the predicate returns `true`, return the argument in a `Just`;
-     * otherwise, return `Nothing`.
-     */
-    export function wrapPred<T, T1 extends T>(
-        f: (val: T) => val is T1,
-    ): (val: T) => Maybe<T1>;
+	/**
+	 * Adapt a predicate into a function that returns a `Maybe`.
+	 *
+	 * @remarks
+	 *
+	 * If the predicate returns `true`, return the argument in a `Just`;
+	 * otherwise, return `Nothing`.
+	 */
+	export function wrapPred<T, T1 extends T>(
+		f: (val: T) => val is T1,
+	): (val: T) => Maybe<T1>;
 
-    export function wrapPred<T>(f: (val: T) => boolean): (val: T) => Maybe<T>;
+	export function wrapPred<T>(f: (val: T) => boolean): (val: T) => Maybe<T>;
 
-    export function wrapPred<T>(f: (val: T) => boolean): (val: T) => Maybe<T> {
-        return (val) => (f(val) ? just(val) : nothing);
-    }
+	export function wrapPred<T>(f: (val: T) => boolean): (val: T) => Maybe<T> {
+		return (val) => (f(val) ? just(val) : nothing);
+	}
 
-    function step<TReturn>(
-        gen: Generator<Maybe<any>, TReturn | typeof halt, unknown>,
-    ): Maybe<TReturn> {
-        let nxt = gen.next();
-        while (!nxt.done) {
-            const maybe = nxt.value;
-            if (maybe.isJust()) {
-                nxt = gen.next(maybe.val);
-            } else {
-                nxt = gen.return(halt);
-            }
-        }
-        const result = nxt.value;
-        return result === halt ? nothing : just(result);
-    }
+	function step<TReturn>(
+		gen: Generator<Maybe<any>, TReturn | typeof halt, unknown>,
+	): Maybe<TReturn> {
+		let nxt = gen.next();
+		while (!nxt.done) {
+			const maybe = nxt.value;
+			if (maybe.isJust()) {
+				nxt = gen.next(maybe.val);
+			} else {
+				nxt = gen.return(halt);
+			}
+		}
+		const result = nxt.value;
+		return result === halt ? nothing : just(result);
+	}
 
-    /**
-     * Construct a `Maybe` using a generator comprehension.
-     *
-     * @remarks
-     *
-     * The contract for generator comprehensions is as follows:
-     *
-     * -   The generator provided to `go` must only yield `Maybe` values.
-     * -   `Maybe` values must only be yielded using the `yield*` keyword, and
-     *     never `yield` (without the `*`). Omitting the `*` inhibits proper
-     *     type inference and may cause undefined behavior.
-     * -   A `yield*` statement may bind a variable provided by the caller. The
-     *     variable inherits the type of the value of the yielded `Maybe`.
-     * -   If a yielded `Maybe` is present, its value is bound to a variable (if
-     *     provided) and the generator advances.
-     * -   If a yielded `Maybe` is absent, the generator halts and `go` returns
-     *     `Nothing`.
-     * -   The `return` statement of the generator may return a final result,
-     *     which is returned from `go` in a `Just` if all yielded `Maybe` values
-     *     are present.
-     * -   All syntax normally permitted in generators (statements, loops,
-     *     declarations, etc.) is permitted within generator comprehensions.
-     *
-     * @example Basic yielding and returning
-     *
-     * Consider a comprehension that sums the successes of three `Maybe` values:
-     *
-     * ```ts
-     * import { Maybe } from "@neotype/prelude/maybe.js";
-     *
-     * const maybeOne: Maybe<number> = Maybe.just(1);
-     * const maybeTwo: Maybe<number> = Maybe.just(2);
-     * const maybeThree: Maybe<number> = Maybe.just(3);
-     *
-     * const summed: Maybe<number> = Maybe.go(function* () {
-     *     const one = yield* maybeOne;
-     *     const two = yield* maybeTwo;
-     *     const three = yield* maybeThree;
-     *
-     *     return one + two + three;
-     * });
-     *
-     * console.log(summed.getOr("Nothing")); // 6
-     * ```
-     *
-     * Now, observe the change in behavior if one of the yielded arguments was
-     * an absent `Maybe` instead. Replace the declaration of `maybeTwo` with the
-     * following and re-run the program.
-     *
-     * ```ts
-     * const maybeTwo: Maybe<number> = Maybe.nothing;
-     * ```
-     */
-    export function go<TReturn>(
-        f: () => Generator<Maybe<any>, TReturn, unknown>,
-    ): Maybe<TReturn> {
-        return step(f());
-    }
+	/**
+	 * Construct a `Maybe` using a generator comprehension.
+	 *
+	 * @remarks
+	 *
+	 * The contract for generator comprehensions is as follows:
+	 *
+	 * -   The generator provided to `go` must only yield `Maybe` values.
+	 * -   `Maybe` values must only be yielded using the `yield*` keyword, and
+	 *     never `yield` (without the `*`). Omitting the `*` inhibits proper
+	 *     type inference and may cause undefined behavior.
+	 * -   A `yield*` statement may bind a variable provided by the caller. The
+	 *     variable inherits the type of the value of the yielded `Maybe`.
+	 * -   If a yielded `Maybe` is present, its value is bound to a variable (if
+	 *     provided) and the generator advances.
+	 * -   If a yielded `Maybe` is absent, the generator halts and `go` returns
+	 *     `Nothing`.
+	 * -   The `return` statement of the generator may return a final result,
+	 *     which is returned from `go` in a `Just` if all yielded `Maybe` values
+	 *     are present.
+	 * -   All syntax normally permitted in generators (statements, loops,
+	 *     declarations, etc.) is permitted within generator comprehensions.
+	 *
+	 * @example Basic yielding and returning
+	 *
+	 * Consider a comprehension that sums the successes of three `Maybe` values:
+	 *
+	 * ```ts
+	 * import { Maybe } from "@neotype/prelude/maybe.js";
+	 *
+	 * const maybeOne: Maybe<number> = Maybe.just(1);
+	 * const maybeTwo: Maybe<number> = Maybe.just(2);
+	 * const maybeThree: Maybe<number> = Maybe.just(3);
+	 *
+	 * const summed: Maybe<number> = Maybe.go(function* () {
+	 *     const one = yield* maybeOne;
+	 *     const two = yield* maybeTwo;
+	 *     const three = yield* maybeThree;
+	 *
+	 *     return one + two + three;
+	 * });
+	 *
+	 * console.log(summed.getOr("Nothing")); // 6
+	 * ```
+	 *
+	 * Now, observe the change in behavior if one of the yielded arguments was
+	 * an absent `Maybe` instead. Replace the declaration of `maybeTwo` with the
+	 * following and re-run the program.
+	 *
+	 * ```ts
+	 * const maybeTwo: Maybe<number> = Maybe.nothing;
+	 * ```
+	 */
+	export function go<TReturn>(
+		f: () => Generator<Maybe<any>, TReturn, unknown>,
+	): Maybe<TReturn> {
+		return step(f());
+	}
 
-    /**
-     * Construct a function that returns a `Maybe` using a generator
-     * comprehension.
-     *
-     * @remarks
-     *
-     * This is the higher-order function variant of `go`.
-     */
-    export function goFn<TArgs extends unknown[], TReturn>(
-        f: (...args: TArgs) => Generator<Maybe<any>, TReturn, unknown>,
-    ): (...args: TArgs) => Maybe<TReturn> {
-        return (...args) => step(f(...args));
-    }
+	/**
+	 * Construct a function that returns a `Maybe` using a generator
+	 * comprehension.
+	 *
+	 * @remarks
+	 *
+	 * This is the higher-order function variant of `go`.
+	 */
+	export function goFn<TArgs extends unknown[], TReturn>(
+		f: (...args: TArgs) => Generator<Maybe<any>, TReturn, unknown>,
+	): (...args: TArgs) => Maybe<TReturn> {
+		return (...args) => step(f(...args));
+	}
 
-    /**
-     * Reduce a finite iterable from left to right in the context of `Maybe`.
-     *
-     * @remarks
-     *
-     * Start with an initial accumulator and reduce the elements of an iterable
-     * using a reducer function that returns a `Maybe`. While the function
-     * returns a present `Maybe`, continue the reduction using the value as the
-     * new accumulator until there are no elements remaining, and then return
-     * the final accumulator in a `Just`; otherwise, return `Nothing`.
-     */
-    export function reduce<T, TAcc>(
-        vals: Iterable<T>,
-        accum: (acc: TAcc, val: T) => Maybe<TAcc>,
-        initial: TAcc,
-    ): Maybe<TAcc> {
-        return go(function* () {
-            let acc = initial;
-            for (const val of vals) {
-                acc = yield* accum(acc, val);
-            }
-            return acc;
-        });
-    }
+	/**
+	 * Reduce a finite iterable from left to right in the context of `Maybe`.
+	 *
+	 * @remarks
+	 *
+	 * Start with an initial accumulator and reduce the elements of an iterable
+	 * using a reducer function that returns a `Maybe`. While the function
+	 * returns a present `Maybe`, continue the reduction using the value as the
+	 * new accumulator until there are no elements remaining, and then return
+	 * the final accumulator in a `Just`; otherwise, return `Nothing`.
+	 */
+	export function reduce<T, TAcc>(
+		vals: Iterable<T>,
+		accum: (acc: TAcc, val: T) => Maybe<TAcc>,
+		initial: TAcc,
+	): Maybe<TAcc> {
+		return go(function* () {
+			let acc = initial;
+			for (const val of vals) {
+				acc = yield* accum(acc, val);
+			}
+			return acc;
+		});
+	}
 
-    /**
-     * Turn an array or a tuple literal of `Maybe` elements "inside out".
-     *
-     * @remarks
-     *
-     * Evaluate the `Maybe` elements in an array or a tuple literal from left to
-     * right. If they are all present, collect their values in an array or a
-     * tuple literal, respectively, and return the result in a `Just`;
-     * otherwise, return `Nothing`.
-     *
-     * For example:
-     *
-     * -   `Maybe<T>[]` becomes `Maybe<T[]>`
-     * -   `[Maybe<T1>, Maybe<T2>]` becomes `Maybe<[T1, T2]>`
-     */
-    export function collect<TMaybes extends readonly Maybe<any>[] | []>(
-        maybes: TMaybes,
-    ): Maybe<{ -readonly [K in keyof TMaybes]: JustT<TMaybes[K]> }> {
-        return go(function* () {
-            const results = new Array(maybes.length);
-            for (const [idx, maybe] of maybes.entries()) {
-                results[idx] = yield* maybe;
-            }
-            return results as any;
-        });
-    }
+	/**
+	 * Turn an array or a tuple literal of `Maybe` elements "inside out".
+	 *
+	 * @remarks
+	 *
+	 * Evaluate the `Maybe` elements in an array or a tuple literal from left to
+	 * right. If they are all present, collect their values in an array or a
+	 * tuple literal, respectively, and return the result in a `Just`;
+	 * otherwise, return `Nothing`.
+	 *
+	 * For example:
+	 *
+	 * -   `Maybe<T>[]` becomes `Maybe<T[]>`
+	 * -   `[Maybe<T1>, Maybe<T2>]` becomes `Maybe<[T1, T2]>`
+	 */
+	export function collect<TMaybes extends readonly Maybe<any>[] | []>(
+		maybes: TMaybes,
+	): Maybe<{ -readonly [K in keyof TMaybes]: JustT<TMaybes[K]> }> {
+		return go(function* () {
+			const results = new Array(maybes.length);
+			for (const [idx, maybe] of maybes.entries()) {
+				results[idx] = yield* maybe;
+			}
+			return results as any;
+		});
+	}
 
-    /**
-     * Turn a record or an object literal of `Maybe` elements "inside out".
-     *
-     * @remarks
-     *
-     * Evaluate the `Maybe` elements in a record or an object literal. If they
-     * are all present, collect their values in a record or an object literal,
-     * respectively, and return the result in a `Just`; otherwise, return
-     * `Nothing`.
-     *
-     * For example:
-     *
-     * -   `Record<string, Maybe<T>>` becomes `Maybe<Record<string, T>>`
-     * -   `{ x: Maybe<T1>, y: Maybe<T2> }` becomes `Maybe<{ x: T1, y: T2 }>`
-     */
-    export function gather<TMaybes extends Record<any, Maybe<any>>>(
-        maybes: TMaybes,
-    ): Maybe<{ -readonly [K in keyof TMaybes]: JustT<TMaybes[K]> }> {
-        return go(function* () {
-            const results: Record<any, any> = {};
-            for (const [key, maybe] of Object.entries(maybes)) {
-                results[key] = yield* maybe;
-            }
-            return results as any;
-        });
-    }
+	/**
+	 * Turn a record or an object literal of `Maybe` elements "inside out".
+	 *
+	 * @remarks
+	 *
+	 * Evaluate the `Maybe` elements in a record or an object literal. If they
+	 * are all present, collect their values in a record or an object literal,
+	 * respectively, and return the result in a `Just`; otherwise, return
+	 * `Nothing`.
+	 *
+	 * For example:
+	 *
+	 * -   `Record<string, Maybe<T>>` becomes `Maybe<Record<string, T>>`
+	 * -   `{ x: Maybe<T1>, y: Maybe<T2> }` becomes `Maybe<{ x: T1, y: T2 }>`
+	 */
+	export function gather<TMaybes extends Record<any, Maybe<any>>>(
+		maybes: TMaybes,
+	): Maybe<{ -readonly [K in keyof TMaybes]: JustT<TMaybes[K]> }> {
+		return go(function* () {
+			const results: Record<any, any> = {};
+			for (const [key, maybe] of Object.entries(maybes)) {
+				results[key] = yield* maybe;
+			}
+			return results as any;
+		});
+	}
 
-    /**
-     * Lift a function into the context of `Maybe`.
-     *
-     * @remarks
-     *
-     * Given a function that accepts arbitrary arguments, return an adapted
-     * function that accepts `Maybe` values as arguments. When applied, evaluate
-     * the arguments from left to right. If they are all present, apply the
-     * original function to their values and return the result in a `Just`;
-     * otherwise, return `Nothing`.
-     */
-    export function lift<TArgs extends unknown[], T>(
-        f: (...args: TArgs) => T,
-    ): (...maybes: { [K in keyof TArgs]: Maybe<TArgs[K]> }) => Maybe<T> {
-        return (...maybes) => collect(maybes).map((args) => f(...args));
-    }
+	/**
+	 * Lift a function into the context of `Maybe`.
+	 *
+	 * @remarks
+	 *
+	 * Given a function that accepts arbitrary arguments, return an adapted
+	 * function that accepts `Maybe` values as arguments. When applied, evaluate
+	 * the arguments from left to right. If they are all present, apply the
+	 * original function to their values and return the result in a `Just`;
+	 * otherwise, return `Nothing`.
+	 */
+	export function lift<TArgs extends unknown[], T>(
+		f: (...args: TArgs) => T,
+	): (...maybes: { [K in keyof TArgs]: Maybe<TArgs[K]> }) => Maybe<T> {
+		return (...maybes) => collect(maybes).map((args) => f(...args));
+	}
 
-    async function stepAsync<TReturn>(
-        gen: AsyncGenerator<Maybe<any>, TReturn | typeof halt, unknown>,
-    ): Promise<Maybe<TReturn>> {
-        let nxt = await gen.next();
-        while (!nxt.done) {
-            const maybe = nxt.value;
-            if (maybe.isJust()) {
-                nxt = await gen.next(maybe.val);
-            } else {
-                nxt = await gen.return(halt);
-            }
-        }
-        const result = nxt.value;
-        return result === halt ? nothing : just(result);
-    }
+	async function stepAsync<TReturn>(
+		gen: AsyncGenerator<Maybe<any>, TReturn | typeof halt, unknown>,
+	): Promise<Maybe<TReturn>> {
+		let nxt = await gen.next();
+		while (!nxt.done) {
+			const maybe = nxt.value;
+			if (maybe.isJust()) {
+				nxt = await gen.next(maybe.val);
+			} else {
+				nxt = await gen.return(halt);
+			}
+		}
+		const result = nxt.value;
+		return result === halt ? nothing : just(result);
+	}
 
-    /**
-     * Construct a `Promise` that fulfills with a `Maybe` using an async
-     * generator comprehension.
-     *
-     * @remarks
-     *
-     * The contract for async generator comprehensions is as follows:
-     *
-     * -   The async generator provided to `goAsync` must only yield `Maybe`
-     *     values.
-     *     -   `Promise` values must never be yielded. If a `Promise` contains
-     *         a `Maybe`, the `Promise` must first be awaited to access and
-     *         yield the `Maybe`. This is done with a `yield* await` statement.
-     * -   `Maybe` values must only be yielded using the `yield*` keyword, and
-     *     never `yield` (without the `*`). Omitting the `*` inhibits proper
-     *     type inference and may cause undefined behavior.
-     * -   A `yield*` statement may bind a variable provided by the caller. The
-     *     variable inherits the type of the value of the yielded `Maybe`.
-     * -   If a yielded `Maybe` is present, its value is bound to a variable (if
-     *     provided) and the generator advances.
-     * -   If a yielded `Maybe` is absent, the generator halts and `goAsync`
-     *     fulfills with `Nothing`.
-     * -   If a `Promise` rejects or an operation throws, the generator halts
-     *     and `goAsync` rejects with the error.
-     * -   The `return` statement of the generator may return a final result,
-     *     and `goAsync` fulfills with the result in a `Just` if all yielded
-     *     `Maybe` values are present and no errors are encountered.
-     * -   All syntax normally permitted in async generators (the `await`
-     *     keyword, statements, loops, declarations, etc.) is permitted within
-     *     async generator comprehensions.
-     */
-    export function goAsync<TReturn>(
-        f: () => AsyncGenerator<Maybe<any>, TReturn, unknown>,
-    ): Promise<Maybe<TReturn>> {
-        return stepAsync(f());
-    }
+	/**
+	 * Construct a `Promise` that fulfills with a `Maybe` using an async
+	 * generator comprehension.
+	 *
+	 * @remarks
+	 *
+	 * The contract for async generator comprehensions is as follows:
+	 *
+	 * -   The async generator provided to `goAsync` must only yield `Maybe`
+	 *     values.
+	 *     -   `Promise` values must never be yielded. If a `Promise` contains
+	 *         a `Maybe`, the `Promise` must first be awaited to access and
+	 *         yield the `Maybe`. This is done with a `yield* await` statement.
+	 * -   `Maybe` values must only be yielded using the `yield*` keyword, and
+	 *     never `yield` (without the `*`). Omitting the `*` inhibits proper
+	 *     type inference and may cause undefined behavior.
+	 * -   A `yield*` statement may bind a variable provided by the caller. The
+	 *     variable inherits the type of the value of the yielded `Maybe`.
+	 * -   If a yielded `Maybe` is present, its value is bound to a variable (if
+	 *     provided) and the generator advances.
+	 * -   If a yielded `Maybe` is absent, the generator halts and `goAsync`
+	 *     fulfills with `Nothing`.
+	 * -   If a `Promise` rejects or an operation throws, the generator halts
+	 *     and `goAsync` rejects with the error.
+	 * -   The `return` statement of the generator may return a final result,
+	 *     and `goAsync` fulfills with the result in a `Just` if all yielded
+	 *     `Maybe` values are present and no errors are encountered.
+	 * -   All syntax normally permitted in async generators (the `await`
+	 *     keyword, statements, loops, declarations, etc.) is permitted within
+	 *     async generator comprehensions.
+	 */
+	export function goAsync<TReturn>(
+		f: () => AsyncGenerator<Maybe<any>, TReturn, unknown>,
+	): Promise<Maybe<TReturn>> {
+		return stepAsync(f());
+	}
 
-    /**
-     * Construct a function that returns a `Promise` that fulfills with a
-     * `Maybe` using an async generator comprehension.
-     *
-     * @remarks
-     *
-     * This is the higher-order function variant of `goAsync`.
-     */
-    export function goAsyncFn<TArgs extends unknown[], TReturn>(
-        f: (...args: TArgs) => AsyncGenerator<Maybe<any>, TReturn, unknown>,
-    ): (...args: TArgs) => Promise<Maybe<TReturn>> {
-        return (...args) => stepAsync(f(...args));
-    }
+	/**
+	 * Construct a function that returns a `Promise` that fulfills with a
+	 * `Maybe` using an async generator comprehension.
+	 *
+	 * @remarks
+	 *
+	 * This is the higher-order function variant of `goAsync`.
+	 */
+	export function goAsyncFn<TArgs extends unknown[], TReturn>(
+		f: (...args: TArgs) => AsyncGenerator<Maybe<any>, TReturn, unknown>,
+	): (...args: TArgs) => Promise<Maybe<TReturn>> {
+		return (...args) => stepAsync(f(...args));
+	}
 
-    /**
-     * The fluent syntax for `Maybe`.
-     */
-    export abstract class Syntax {
-        /**
-         * If this and that `Maybe` are both absent, or they are both present
-         * and their values are equal, return `true`; otherwise, return `false`.
-         */
-        [Eq.eq]<T extends Eq<T>>(this: Maybe<T>, that: Maybe<T>): boolean {
-            if (this.isNothing()) {
-                return that.isNothing();
-            }
-            return that.isJust() && eq(this.val, that.val);
-        }
+	/**
+	 * The fluent syntax for `Maybe`.
+	 */
+	export abstract class Syntax {
+		/**
+		 * If this and that `Maybe` are both absent, or they are both present
+		 * and their values are equal, return `true`; otherwise, return `false`.
+		 */
+		[Eq.eq]<T extends Eq<T>>(this: Maybe<T>, that: Maybe<T>): boolean {
+			if (this.isNothing()) {
+				return that.isNothing();
+			}
+			return that.isJust() && eq(this.val, that.val);
+		}
 
-        /**
-         * Compare this and that `Maybe` to determine their ordering.
-         *
-         * @remarks
-         *
-         * When ordered, an absent `Maybe` always compares as less than than any
-         * present `Maybe`. If they are both present, their values are compared
-         * to determine the ordering.
-         */
-        [Ord.cmp]<T extends Ord<T>>(this: Maybe<T>, that: Maybe<T>): Ordering {
-            if (this.isNothing()) {
-                return that.isNothing() ? Ordering.equal : Ordering.less;
-            }
-            return that.isNothing()
-                ? Ordering.greater
-                : cmp(this.val, that.val);
-        }
+		/**
+		 * Compare this and that `Maybe` to determine their ordering.
+		 *
+		 * @remarks
+		 *
+		 * When ordered, an absent `Maybe` always compares as less than than any
+		 * present `Maybe`. If they are both present, their values are compared
+		 * to determine the ordering.
+		 */
+		[Ord.cmp]<T extends Ord<T>>(this: Maybe<T>, that: Maybe<T>): Ordering {
+			if (this.isNothing()) {
+				return that.isNothing() ? Ordering.equal : Ordering.less;
+			}
+			return that.isNothing()
+				? Ordering.greater
+				: cmp(this.val, that.val);
+		}
 
-        /**
-         * If this and that `Maybe` are both absent, return `Nothing`. If only
-         * one is absent, return the non-absent `Maybe`. If both are present,
-         * combine their values and return the result in a `Just`.
-         */
-        [Semigroup.cmb]<T extends Semigroup<T>>(
-            this: Maybe<T>,
-            that: Maybe<T>,
-        ): Maybe<T> {
-            if (this.isJust()) {
-                return that.isJust() ? just(cmb(this.val, that.val)) : this;
-            }
-            return that;
-        }
+		/**
+		 * If this and that `Maybe` are both absent, return `Nothing`. If only
+		 * one is absent, return the non-absent `Maybe`. If both are present,
+		 * combine their values and return the result in a `Just`.
+		 */
+		[Semigroup.cmb]<T extends Semigroup<T>>(
+			this: Maybe<T>,
+			that: Maybe<T>,
+		): Maybe<T> {
+			if (this.isJust()) {
+				return that.isJust() ? just(cmb(this.val, that.val)) : this;
+			}
+			return that;
+		}
 
-        /**
-         * Test whether this `Maybe` is absent.
-         */
-        isNothing(this: Maybe<any>): this is Nothing {
-            return this.kind === Kind.NOTHING;
-        }
+		/**
+		 * Test whether this `Maybe` is absent.
+		 */
+		isNothing(this: Maybe<any>): this is Nothing {
+			return this.kind === Kind.NOTHING;
+		}
 
-        /**
-         * Test whether this `Maybe` is present.
-         */
-        isJust<T>(this: Maybe<T>): this is Just<T> {
-            return this.kind === Kind.JUST;
-        }
+		/**
+		 * Test whether this `Maybe` is present.
+		 */
+		isJust<T>(this: Maybe<T>): this is Just<T> {
+			return this.kind === Kind.JUST;
+		}
 
-        /**
-         * If this `Maybe` is present, apply a function to its value and return
-         * the result; otherwise, evaluate a fallback function and return the
-         * result.
-         */
-        unwrap<T, T1, T2>(
-            this: Maybe<T>,
-            ifNothing: () => T1,
-            unwrapJust: (val: T) => T2,
-        ): T1 | T2 {
-            return this.isNothing() ? ifNothing() : unwrapJust(this.val);
-        }
+		/**
+		 * If this `Maybe` is present, apply a function to its value and return
+		 * the result; otherwise, evaluate a fallback function and return the
+		 * result.
+		 */
+		unwrap<T, T1, T2>(
+			this: Maybe<T>,
+			ifNothing: () => T1,
+			unwrapJust: (val: T) => T2,
+		): T1 | T2 {
+			return this.isNothing() ? ifNothing() : unwrapJust(this.val);
+		}
 
-        /**
-         * If this `Maybe` is present, extract its value; otherwise, evaluate a
-         * function to return a fallback result.
-         */
-        getOrElse<T, T1>(this: Maybe<T>, f: () => T1): T | T1 {
-            return this.unwrap(f, id);
-        }
+		/**
+		 * If this `Maybe` is present, extract its value; otherwise, evaluate a
+		 * function to return a fallback result.
+		 */
+		getOrElse<T, T1>(this: Maybe<T>, f: () => T1): T | T1 {
+			return this.unwrap(f, id);
+		}
 
-        /**
-         * If this `Maybe` is present, extract its value; otherwise, return a
-         * fallback value.
-         */
-        getOr<T, T1>(this: Maybe<T>, fallback: T1): T | T1 {
-            return this.unwrap(() => fallback, id);
-        }
+		/**
+		 * If this `Maybe` is present, extract its value; otherwise, return a
+		 * fallback value.
+		 */
+		getOr<T, T1>(this: Maybe<T>, fallback: T1): T | T1 {
+			return this.unwrap(() => fallback, id);
+		}
 
-        /**
-         * If this `Maybe` is present, extract its value; otherwise, return
-         * `undefined`.
-         */
-        toNullish<T>(this: Maybe<T>): T | undefined {
-            return this.unwrap(() => undefined, id);
-        }
+		/**
+		 * If this `Maybe` is present, extract its value; otherwise, return
+		 * `undefined`.
+		 */
+		toNullish<T>(this: Maybe<T>): T | undefined {
+			return this.unwrap(() => undefined, id);
+		}
 
-        /**
-         * If this `Maybe` is absent, evaluate a function to return a fallback
-         * `Maybe`; otherwise, return this `Maybe` as is.
-         */
-        recover<T, T1>(this: Maybe<T>, f: () => Maybe<T1>): Maybe<T | T1> {
-            return this.isNothing() ? f() : this;
-        }
+		/**
+		 * If this `Maybe` is absent, evaluate a function to return a fallback
+		 * `Maybe`; otherwise, return this `Maybe` as is.
+		 */
+		recover<T, T1>(this: Maybe<T>, f: () => Maybe<T1>): Maybe<T | T1> {
+			return this.isNothing() ? f() : this;
+		}
 
-        /**
-         * If this `Maybe` is present, apply a function to its value to return
-         * another `Maybe`; otherwise, return `Nothing`.
-         */
-        flatMap<T, T1>(this: Maybe<T>, f: (val: T) => Maybe<T1>): Maybe<T1> {
-            return this.isNothing() ? this : f(this.val);
-        }
+		/**
+		 * If this `Maybe` is present, apply a function to its value to return
+		 * another `Maybe`; otherwise, return `Nothing`.
+		 */
+		flatMap<T, T1>(this: Maybe<T>, f: (val: T) => Maybe<T1>): Maybe<T1> {
+			return this.isNothing() ? this : f(this.val);
+		}
 
-        /**
-         * If this `Maybe` is present, apply a function to its value. If the
-         * result is `null` or `undefined`, return `Nothing`; otherwise, return
-         * the result in a `Just`. If this `Maybe` is absent, return `Nothing`.
-         */
-        mapNullish<T, T1>(
-            this: Maybe<T>,
-            f: (val: T) => T1 | null | undefined,
-        ): Maybe<T1> {
-            return this.flatMap((val) => fromNullish(f(val)));
-        }
+		/**
+		 * If this `Maybe` is present, apply a function to its value. If the
+		 * result is `null` or `undefined`, return `Nothing`; otherwise, return
+		 * the result in a `Just`. If this `Maybe` is absent, return `Nothing`.
+		 */
+		mapNullish<T, T1>(
+			this: Maybe<T>,
+			f: (val: T) => T1 | null | undefined,
+		): Maybe<T1> {
+			return this.flatMap((val) => fromNullish(f(val)));
+		}
 
-        /**
-         * If this `Maybe` is present, apply a predicate to its value. If the
-         * predicate returns `true`, return the value in a `Just`; otherwise,
-         * return `Nothing`. If this `Maybe` is absent, return `Nothing`.
-         */
-        filter<T, T1 extends T>(
-            this: Maybe<T>,
-            f: (val: T) => val is T1,
-        ): Maybe<T1>;
+		/**
+		 * If this `Maybe` is present, apply a predicate to its value. If the
+		 * predicate returns `true`, return the value in a `Just`; otherwise,
+		 * return `Nothing`. If this `Maybe` is absent, return `Nothing`.
+		 */
+		filter<T, T1 extends T>(
+			this: Maybe<T>,
+			f: (val: T) => val is T1,
+		): Maybe<T1>;
 
-        filter<T>(this: Maybe<T>, f: (val: T) => boolean): Maybe<T>;
+		filter<T>(this: Maybe<T>, f: (val: T) => boolean): Maybe<T>;
 
-        filter<T>(this: Maybe<T>, f: (val: T) => boolean): Maybe<T> {
-            return this.flatMap((val) => (f(val) ? just(val) : nothing));
-        }
+		filter<T>(this: Maybe<T>, f: (val: T) => boolean): Maybe<T> {
+			return this.flatMap((val) => (f(val) ? just(val) : nothing));
+		}
 
-        /**
-         * If this and that `Maybe` are both present, apply a function to their
-         * values and return the result in a `Just`; otherwise, return
-         * `Nothing`.
-         */
-        zipWith<T, T1, T2>(
-            this: Maybe<T>,
-            that: Maybe<T1>,
-            f: (lhs: T, rhs: T1) => T2,
-        ): Maybe<T2> {
-            return this.flatMap((lhs) => that.map((rhs) => f(lhs, rhs)));
-        }
+		/**
+		 * If this and that `Maybe` are both present, apply a function to their
+		 * values and return the result in a `Just`; otherwise, return
+		 * `Nothing`.
+		 */
+		zipWith<T, T1, T2>(
+			this: Maybe<T>,
+			that: Maybe<T1>,
+			f: (lhs: T, rhs: T1) => T2,
+		): Maybe<T2> {
+			return this.flatMap((lhs) => that.map((rhs) => f(lhs, rhs)));
+		}
 
-        /**
-         * If this and that `Maybe` are both present, return only the first
-         * value in a `Just` and discard the second; otherwise, return
-         * `Nothing`.
-         */
-        zipFst<T>(this: Maybe<T>, that: Maybe<any>): Maybe<T> {
-            return this.zipWith(that, id);
-        }
+		/**
+		 * If this and that `Maybe` are both present, return only the first
+		 * value in a `Just` and discard the second; otherwise, return
+		 * `Nothing`.
+		 */
+		zipFst<T>(this: Maybe<T>, that: Maybe<any>): Maybe<T> {
+			return this.zipWith(that, id);
+		}
 
-        /**
-         * If this and that `Maybe` are both present, return only the second
-         * value in a `Just` and discard the first; otherwise, return `Nothing`.
-         */
-        zipSnd<T1>(this: Maybe<any>, that: Maybe<T1>): Maybe<T1> {
-            return this.flatMap(() => that);
-        }
+		/**
+		 * If this and that `Maybe` are both present, return only the second
+		 * value in a `Just` and discard the first; otherwise, return `Nothing`.
+		 */
+		zipSnd<T1>(this: Maybe<any>, that: Maybe<T1>): Maybe<T1> {
+			return this.flatMap(() => that);
+		}
 
-        /**
-         * If this `Maybe` is present, apply a function to its value and return
-         * the result in a `Just`; otherwise, return `Nothing`.
-         */
-        map<T, T1>(this: Maybe<T>, f: (val: T) => T1): Maybe<T1> {
-            return this.flatMap((val) => just(f(val)));
-        }
-    }
+		/**
+		 * If this `Maybe` is present, apply a function to its value and return
+		 * the result in a `Just`; otherwise, return `Nothing`.
+		 */
+		map<T, T1>(this: Maybe<T>, f: (val: T) => T1): Maybe<T1> {
+			return this.flatMap((val) => just(f(val)));
+		}
+	}
 
-    /**
-     * An enumeration that discriminates `Maybe`.
-     */
-    export enum Kind {
-        NOTHING,
-        JUST,
-    }
+	/**
+	 * An enumeration that discriminates `Maybe`.
+	 */
+	export enum Kind {
+		NOTHING,
+		JUST,
+	}
 
-    /**
-     * An absent `Maybe`.
-     */
-    export class Nothing extends Syntax {
-        /**
-         * The singleton instance of the `Nothing` variant of `Maybe`.
-         *
-         * @remarks
-         *
-         * The `nothing` constant is a more accessible alias for this object.
-         */
-        static readonly singleton = new Nothing();
+	/**
+	 * An absent `Maybe`.
+	 */
+	export class Nothing extends Syntax {
+		/**
+		 * The singleton instance of the `Nothing` variant of `Maybe`.
+		 *
+		 * @remarks
+		 *
+		 * The `nothing` constant is a more accessible alias for this object.
+		 */
+		static readonly singleton = new Nothing();
 
-        /**
-         * The property that discriminates Maybe.
-         */
-        readonly kind = Kind.NOTHING;
+		/**
+		 * The property that discriminates Maybe.
+		 */
+		readonly kind = Kind.NOTHING;
 
-        private constructor() {
-            super();
-        }
+		private constructor() {
+			super();
+		}
 
-        /**
-         * Defining iterable behavior for `Maybe` allows TypeScript to infer
-         * `Just` types when yielding `Maybe` values in generator comprehensions
-         * using `yield*`.
-         *
-         * @hidden
-         */
-        *[Symbol.iterator](): Iterator<Maybe<never>, never, unknown> {
-            return (yield this) as never;
-        }
-    }
+		/**
+		 * Defining iterable behavior for `Maybe` allows TypeScript to infer
+		 * `Just` types when yielding `Maybe` values in generator comprehensions
+		 * using `yield*`.
+		 *
+		 * @hidden
+		 */
+		*[Symbol.iterator](): Iterator<Maybe<never>, never, unknown> {
+			return (yield this) as never;
+		}
+	}
 
-    /**
-     * A present `Maybe`.
-     */
-    export class Just<out T> extends Syntax {
-        /**
-         * The property that discriminates `Maybe`.
-         */
-        readonly kind = Kind.JUST;
+	/**
+	 * A present `Maybe`.
+	 */
+	export class Just<out T> extends Syntax {
+		/**
+		 * The property that discriminates `Maybe`.
+		 */
+		readonly kind = Kind.JUST;
 
-        /**
-         * The value of this `Maybe`.
-         */
-        readonly val: T;
+		/**
+		 * The value of this `Maybe`.
+		 */
+		readonly val: T;
 
-        constructor(val: T) {
-            super();
-            this.val = val;
-        }
+		constructor(val: T) {
+			super();
+			this.val = val;
+		}
 
-        /**
-         * Defining iterable behavior for `Maybe` allows TypeScript to infer
-         * `Just` types when yielding `Maybe` values in generator comprehensions
-         * using `yield*`.
-         *
-         * @hidden
-         */
-        *[Symbol.iterator](): Iterator<Maybe<T>, T, unknown> {
-            return (yield this) as T;
-        }
-    }
+		/**
+		 * Defining iterable behavior for `Maybe` allows TypeScript to infer
+		 * `Just` types when yielding `Maybe` values in generator comprehensions
+		 * using `yield*`.
+		 *
+		 * @hidden
+		 */
+		*[Symbol.iterator](): Iterator<Maybe<T>, T, unknown> {
+			return (yield this) as T;
+		}
+	}
 
-    /**
-     * The absent `Maybe`.
-     */
-    export const nothing = Maybe.Nothing.singleton as Maybe<never>;
+	/**
+	 * The absent `Maybe`.
+	 */
+	export const nothing = Maybe.Nothing.singleton as Maybe<never>;
 
-    /**
-     * Extract the present value type `T` from the type `Maybe<T>`.
-     */
-    // prettier-ignore
-    export type JustT<TMaybe extends Maybe<any>> =
+	/**
+	 * Extract the present value type `T` from the type `Maybe<T>`.
+	 */
+	// prettier-ignore
+	export type JustT<TMaybe extends Maybe<any>> =
         TMaybe extends Maybe<infer T> ? T : never;
 
-    // A unique symbol used by the `Maybe` generator comprehension
-    // implementation to signal the underlying generator to return early. This
-    // ensures `try...finally` blocks can properly execute.
-    const halt = Symbol();
+	// A unique symbol used by the `Maybe` generator comprehension
+	// implementation to signal the underlying generator to return early. This
+	// ensures `try...finally` blocks can properly execute.
+	const halt = Symbol();
 }
