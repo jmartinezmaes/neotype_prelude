@@ -928,16 +928,20 @@ export namespace Either {
 	/**
 	 * Extract the left-sided value type `A` from the type `Either<A, B>`.
 	 */
-	// prettier-ignore
-	export type LeftT<TEither extends Either<any, any>> = 
-        [TEither] extends [Either<infer A, any>] ? A : never;
+	export type LeftT<TEither extends Either<any, any>> = [TEither] extends [
+		Either<infer A, any>,
+	]
+		? A
+		: never;
 
 	/**
 	 * Extract the right-sided value type `B` from the type `Either<A, B>`.
 	 */
-	// prettier-ignore
-	export type RightT<TEither extends Either<any, any>> = 
-        [TEither] extends [Either<any, infer B>] ? B : never;
+	export type RightT<TEither extends Either<any, any>> = [TEither] extends [
+		Either<any, infer B>,
+	]
+		? B
+		: never;
 
 	// A unique symbol used by the `Either` generator comprehension
 	// implementation to signal the underlying generator to return early. This

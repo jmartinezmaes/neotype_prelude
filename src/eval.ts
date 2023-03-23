@@ -619,9 +619,9 @@ export namespace Eval {
 	/**
 	 * Extract the outcome type `T` from the type `Eval<T>`.
 	 */
-	// prettier-ignore
-	export type ResultT<TEval extends Eval<any>> = 
-        TEval extends Eval<infer T> ? T : never;
+	export type ResultT<TEval extends Eval<any>> = TEval extends Eval<infer T>
+		? T
+		: never;
 }
 
 type Ixn = Ixn.Now | Ixn.FlatMap | Ixn.Once | Ixn.Always;

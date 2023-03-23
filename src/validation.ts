@@ -499,11 +499,11 @@ export namespace Validation {
 	): <E extends Semigroup<E>>(
 		...vdns: { [K in keyof TArgs]: Validation<E, TArgs[K]> }
 	) => Validation<E, T> {
-		// prettier-ignore
 		return (...vdns) =>
-            collect(vdns).map(
-                (args) => f(...(args as TArgs))
-            ) as Validation<any, T>;
+			collect(vdns).map((args) => f(...(args as TArgs))) as Validation<
+				any,
+				T
+			>;
 	}
 
 	/**
@@ -694,14 +694,18 @@ export namespace Validation {
 	/**
 	 * Extract the failure type `E` from the type `Validation<E, T>`.
 	 */
-	// prettier-ignore
-	export type ErrT<TVdn extends Validation<any, any>> =
-        [TVdn] extends [Validation<infer E, any>] ? E : never;
+	export type ErrT<TVdn extends Validation<any, any>> = [TVdn] extends [
+		Validation<infer E, any>,
+	]
+		? E
+		: never;
 
 	/**
 	 * Extract the success type `T` from the type `Validation<E, T>`.
 	 */
-	// prettier-ignore
-	export type OkT<TVdn extends Validation<any, any>> =
-        [TVdn] extends [Validation<any, infer T>] ? T : never;
+	export type OkT<TVdn extends Validation<any, any>> = [TVdn] extends [
+		Validation<any, infer T>,
+	]
+		? T
+		: never;
 }

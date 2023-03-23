@@ -1224,16 +1224,20 @@ export namespace Ior {
 	/**
 	 * Extract the left-hand value type `A` from the type `Ior<A, B>`.
 	 */
-	// prettier-ignore
-	export type LeftT<TIor extends Ior<any, any>> =
-        [TIor] extends [Ior<infer A, any>] ? A : never;
+	export type LeftT<TIor extends Ior<any, any>> = [TIor] extends [
+		Ior<infer A, any>,
+	]
+		? A
+		: never;
 
 	/**
 	 * Extract the right-hand value type `B` from the type `Ior<A, B>`.
 	 */
-	// prettier-ignore
-	export type RightT<TIor extends Ior<any, any>> =
-        [TIor] extends [Ior<any, infer B>] ? B : never;
+	export type RightT<TIor extends Ior<any, any>> = [TIor] extends [
+		Ior<any, infer B>,
+	]
+		? B
+		: never;
 
 	// A unique symbol used by the `Ior` generator comprehension implementation
 	// to signal the underlying generator to return early. This ensures

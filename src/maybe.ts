@@ -984,9 +984,9 @@ export namespace Maybe {
 	/**
 	 * Extract the present value type `T` from the type `Maybe<T>`.
 	 */
-	// prettier-ignore
-	export type JustT<TMaybe extends Maybe<any>> =
-        TMaybe extends Maybe<infer T> ? T : never;
+	export type JustT<TMaybe extends Maybe<any>> = TMaybe extends Maybe<infer T>
+		? T
+		: never;
 
 	// A unique symbol used by the `Maybe` generator comprehension
 	// implementation to signal the underlying generator to return early. This
