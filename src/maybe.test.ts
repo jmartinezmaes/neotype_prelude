@@ -25,9 +25,9 @@ import {
     expectLawfulEq,
     expectLawfulOrd,
     expectLawfulSemigroup,
-    Num,
-    Str,
     tuple,
+    type Num,
+    type Str,
 } from "./_test/utils.js";
 
 function nothing<T>(): Maybe<T> {

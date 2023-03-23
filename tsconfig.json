@@ -7,7 +7,6 @@
         "declarationMap": true,
         "sourceMap": true,
         "outDir": "./dist",
-        "importsNotUsedAsValues": "remove",
         "downlevelIteration": false,
         "esModuleInterop": false,
         "allowSyntheticDefaultImports": false,
@@ -18,10 +17,7 @@
         "noImplicitReturns": true,
         "noUncheckedIndexedAccess": true,
         "noUnusedLocals": true,
-        "noUnusedParameters": true,
-        "jsx": "react",
-        "jsxFactory": "JSX.createElement",
-        "jsxFragmentFactory": "JSX.Fragment"
+        "noUnusedParameters": true
     },
     "include": ["./src"],
     "typedocOptions": {
