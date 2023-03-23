@@ -117,18 +117,6 @@ describe("Either", () => {
 		});
 	});
 
-	describe("goFn", () => {
-		it("accesses the parameters of the generator function", () => {
-			const f = Either.goFn(function* <T>(w: T) {
-				const x = yield* Either.right<2, 1>(2);
-				const [y, z] = yield* Either.right<[2, 4], 3>([x, 4]);
-				return tuple(w, x, y, z);
-			});
-			const either = f<0>(0);
-			expect(either).to.deep.equal(Either.right([0, 2, 2, 4]));
-		});
-	});
-
 	describe("reduce", () => {
 		it("reduces the finite iterable from left to right in the context of Either", () => {
 			const either = Either.reduce(
@@ -238,20 +226,6 @@ describe("Either", () => {
 				}
 			});
 			expect(either).to.deep.equal(Either.left(3));
-		});
-	});
-
-	describe("goAsyncFn", () => {
-		it("accesses the parameters of the async generator function", async () => {
-			const f = Either.goAsyncFn(async function* <T>(w: T) {
-				const x = yield* await Promise.resolve(Either.right<2, 1>(2));
-				const [y, z] = yield* await Promise.resolve(
-					Either.right<[2, 4], 3>([x, 4]),
-				);
-				return tuple(w, x, y, z);
-			});
-			const either = await f<0>(0);
-			expect(either).to.deep.equal(Either.right([0, 2, 2, 4]));
 		});
 	});
 

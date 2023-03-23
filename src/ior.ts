@@ -628,24 +628,6 @@ export namespace Ior {
 	}
 
 	/**
-	 * Construct a function that returns an `Ior` using a generator
-	 * comprehension.
-	 *
-	 * @remarks
-	 *
-	 * This is the higher-order function variant of `go`.
-	 */
-	export function goFn<
-		TArgs extends unknown[],
-		A extends Semigroup<A>,
-		TReturn,
-	>(
-		f: (...args: TArgs) => Generator<Ior<A, any>, TReturn, unknown>,
-	): (...args: TArgs) => Ior<A, TReturn> {
-		return (...args) => step(f(...args));
-	}
-
-	/**
 	 * Reduce a finite iterable from left to right in the context of `Ior`.
 	 *
 	 * @remarks
@@ -847,24 +829,6 @@ export namespace Ior {
 		f: () => AsyncGenerator<Ior<A, any>, TReturn, unknown>,
 	): Promise<Ior<A, TReturn>> {
 		return stepAsync(f());
-	}
-
-	/**
-	 * Construct a function that returns a `Promise` that fulfills with an `Ior`
-	 * using an async generator comprehension.
-	 *
-	 * @remarks
-	 *
-	 * This is the higher-order function variant of `goAsync`.
-	 */
-	export function goAsyncFn<
-		TArgs extends unknown[],
-		A extends Semigroup<A>,
-		TReturn,
-	>(
-		f: (...args: TArgs) => AsyncGenerator<Ior<A, any>, TReturn, unknown>,
-	): (...args: TArgs) => Promise<Ior<A, TReturn>> {
-		return (...args) => stepAsync(f(...args));
 	}
 
 	/**

@@ -507,24 +507,6 @@ export namespace Either {
 	}
 
 	/**
-	 * Construct a function that returns an `Either` using a generator
-	 * comprehension.
-	 *
-	 * @remarks
-	 *
-	 * This is the higher-order function variant of `go`.
-	 */
-	export function goFn<
-		TArgs extends unknown[],
-		TYield extends Either<any, any>,
-		TReturn,
-	>(
-		f: (...args: TArgs) => Generator<TYield, TReturn, unknown>,
-	): (...args: TArgs) => Either<LeftT<TYield>, TReturn> {
-		return (...args) => step(f(...args));
-	}
-
-	/**
 	 * Reduce a finite iterable from left to right in the context of `Either`.
 	 *
 	 * @remarks
@@ -684,24 +666,6 @@ export namespace Either {
 		f: () => AsyncGenerator<TYield, TReturn, unknown>,
 	): Promise<Either<LeftT<TYield>, TReturn>> {
 		return stepAsync(f());
-	}
-
-	/**
-	 * Construct a function that returns a `Promise` that fulfills with an
-	 * `Either` using an async generator comprehension.
-	 *
-	 * @remarks
-	 *
-	 * This is the higher-order function variant of `goAsync`.
-	 */
-	export function goAsyncFn<
-		TArgs extends unknown[],
-		TYield extends Either<any, any>,
-		TReturn,
-	>(
-		f: (...args: TArgs) => AsyncGenerator<TYield, TReturn, unknown>,
-	): (...args: TArgs) => Promise<Either<LeftT<TYield>, TReturn>> {
-		return (...args) => stepAsync(f(...args));
 	}
 
 	/**

@@ -389,24 +389,6 @@ export class Eval<out T> {
 	}
 
 	/**
-	 * Construct a function that returns an `Eval` using a generator
-	 * comprehension.
-	 *
-	 * @remarks
-	 *
-	 * This is the higher-order function variant of `go`.
-	 */
-	static goFn<TArgs extends unknown[], TReturn>(
-		f: (...args: TArgs) => Generator<Eval<any>, TReturn, unknown>,
-	): (...args: TArgs) => Eval<TReturn> {
-		return (...args) =>
-			Eval.defer(() => {
-				const gen = f(...args);
-				return Eval.#step(gen, gen.next());
-			});
-	}
-
-	/**
 	 * Reduce a finite iterable from left to right in the context of `Eval`.
 	 *
 	 * @remarks

@@ -545,20 +545,6 @@ export namespace Maybe {
 	}
 
 	/**
-	 * Construct a function that returns a `Maybe` using a generator
-	 * comprehension.
-	 *
-	 * @remarks
-	 *
-	 * This is the higher-order function variant of `go`.
-	 */
-	export function goFn<TArgs extends unknown[], TReturn>(
-		f: (...args: TArgs) => Generator<Maybe<any>, TReturn, unknown>,
-	): (...args: TArgs) => Maybe<TReturn> {
-		return (...args) => step(f(...args));
-	}
-
-	/**
 	 * Reduce a finite iterable from left to right in the context of `Maybe`.
 	 *
 	 * @remarks
@@ -705,20 +691,6 @@ export namespace Maybe {
 		f: () => AsyncGenerator<Maybe<any>, TReturn, unknown>,
 	): Promise<Maybe<TReturn>> {
 		return stepAsync(f());
-	}
-
-	/**
-	 * Construct a function that returns a `Promise` that fulfills with a
-	 * `Maybe` using an async generator comprehension.
-	 *
-	 * @remarks
-	 *
-	 * This is the higher-order function variant of `goAsync`.
-	 */
-	export function goAsyncFn<TArgs extends unknown[], TReturn>(
-		f: (...args: TArgs) => AsyncGenerator<Maybe<any>, TReturn, unknown>,
-	): (...args: TArgs) => Promise<Maybe<TReturn>> {
-		return (...args) => stepAsync(f(...args));
 	}
 
 	/**
