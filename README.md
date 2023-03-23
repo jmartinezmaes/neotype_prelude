@@ -1,8 +1,6 @@
-<h1 align="center">Neotype Prelude</h1>
+# Neotype Prelude
 
-<p align="center">
-    <strong>Functional programming essentials for TypeScript</strong>
-</p>
+_Functional programming essentials for TypeScript_
 
 ## Quick links
 
