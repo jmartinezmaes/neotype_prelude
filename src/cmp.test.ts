@@ -16,11 +16,20 @@
 
 import * as fc from "fast-check";
 import { describe, expect, it } from "vitest";
+import {
+    arbNum,
+    expectLawfulEq,
+    expectLawfulOrd,
+    expectLawfulSemigroup,
+} from "./_test/utils.js";
 import { cmb } from "./cmb.js";
 import {
+    Eq,
+    Ord,
+    Ordering,
+    Reverse,
     clamp,
     cmp,
-    Eq,
     eq,
     ge,
     gt,
@@ -33,16 +42,7 @@ import {
     max,
     min,
     ne,
-    Ord,
-    Ordering,
-    Reverse,
 } from "./cmp.js";
-import {
-    arbNum,
-    expectLawfulEq,
-    expectLawfulOrd,
-    expectLawfulSemigroup,
-} from "./_test/utils.js";
 
 describe("eq", () => {
     it("tests whether the two Eq values are equal", () => {
