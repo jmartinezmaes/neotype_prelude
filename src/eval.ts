@@ -292,7 +292,7 @@
  * @module
  */
 
-import { cmb, Semigroup } from "./cmb.js";
+import { Semigroup, cmb } from "./cmb.js";
 import { id } from "./fn.js";
 
 /**

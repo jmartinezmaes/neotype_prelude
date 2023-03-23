@@ -27,8 +27,8 @@
  * It is recommended to import items from this module individually:
  *
  * ```ts
- * import { clamp, cmp, Eq, eq, ge, gt, icmp, icmpBy ieq, ieqBy, le, lt, max,
- *          min, ne, Ord, Ordering, Reverse } from "@neotype/prelude/cmp.js";
+ * import { Eq, Ord, Ordering, Reverse, clamp, cmp, eq, ge, gt, icmp, icmpBy,
+ *          ieq, ieqBy, le, lt, max, min, ne } from "@neotype/prelude/cmp.js";
  * ```
  *
  * ## Implementing equivalence relations and total orders
@@ -171,7 +171,7 @@
  * a given value:
  *
  * ```ts
- * import { lt, Ord } from "@neotype/prelude/cmp.js";
+ * import { Ord, lt } from "@neotype/prelude/cmp.js";
  *
  * function filterLt<T extends Ord<T>>(vals: T[], input: T): T[] {
  *     return vals.filter((val) => lt(val, input));
@@ -655,7 +655,7 @@ export function ieq<T extends Eq<T>>(
  * lexicographically, which requires that the elements implement `Ord`:
  *
  * ```ts
- * import { Eq, icmp, Ord, Ordering } from "@neotype/prelude/cmp.js";
+ * import { Eq, Ord, Ordering, icmp } from "@neotype/prelude/cmp.js";
  *
  * class Arr<out T> {
  *     constructor(readonly val: T[]) {}
@@ -684,7 +684,7 @@ export function ieq<T extends Eq<T>>(
  *
  * ```ts
  * import { cmb } from "@neotype/prelude/cmb.js";
- * import { Eq, cmp, Ord, Ordering } from "@neotype/prelude/cmp.js";
+ * import { Eq, Ord, Ordering, cmp } from "@neotype/prelude/cmp.js";
  *
  * class Pair<out A, out B> {
  *     constructor(readonly fst: A, readonly snd: B) {}
@@ -738,7 +738,7 @@ export function ieq<T extends Eq<T>>(
  * Consider a global augmentation for the `Array` prototype:
  *
  * ```ts
- * import { Eq, icmp, Ord, Ordering } from "@neotype/prelude/cmp.js";
+ * import { Eq, Ord, Ordering, icmp } from "@neotype/prelude/cmp.js";
  *
  * declare global {
  *     interface Array<T> {

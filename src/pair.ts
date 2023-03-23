@@ -84,8 +84,8 @@
  * @module
  */
 
-import { cmb, Semigroup } from "./cmb.js";
-import { cmp, Eq, eq, Ord, type Ordering } from "./cmp.js";
+import { Semigroup, cmb } from "./cmb.js";
+import { Eq, Ord, cmp, eq, type Ordering } from "./cmp.js";
 
 /**
  * A pair of values.

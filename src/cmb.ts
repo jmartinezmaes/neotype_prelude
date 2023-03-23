@@ -25,7 +25,7 @@
  * to import them as they are named:
  *
  * ```ts
- * import { cmb, Semigroup } from "@neotype/prelude/cmb.js";
+ * import { Semigroup, cmb } from "@neotype/prelude/cmb.js";
  * ```
  *
  * ## Implementing semigroups
@@ -52,7 +52,7 @@
  * number of times:
  *
  * ```ts
- * import { cmb, Semigroup } from "@neotype/prelude/cmp.js";
+ * import { Semigroup, cmb } from "@neotype/prelude/cmp.js";
  *
  * function cmbTimes<T extends Semigroup<T>>(val: T, times: number): T {
  *     if (times < 2 || times === Infinity) {
@@ -188,7 +188,7 @@
  * which requires that the results also implement `Semigroup`:
  *
  * ```ts
- * import { cmb, Semigroup } from "@neotype/prelude/cmb.js";
+ * import { Semigroup, cmb } from "@neotype/prelude/cmb.js";
  *
  * class Async<out T> {
  *     constructor(readonly val: Promise<T>) {}
@@ -218,7 +218,7 @@
  * value implement `Semigroup`:
  *
  * ```ts
- * import { cmb, Semigroup } from "@neotype/prelude/cmb.js";
+ * import { Semigroup, cmb } from "@neotype/prelude/cmb.js";
  *
  * class Pair<out A, out B> {
  *     constructor(readonly fst: A, readonly snd: B) {}
@@ -259,7 +259,7 @@
  * Consider a module augmentation for an externally defined `Pair` type:
  *
  * ```ts
- * import { cmb, Semigroup } from "@neotype/prelude/cmb.js";
+ * import { Semigroup, cmb } from "@neotype/prelude/cmb.js";
  * import { Pair } from "path_to/pair.js";
  *
  * declare module "path_to/pair.js" {

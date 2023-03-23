@@ -388,8 +388,8 @@
  * @module
  */
 
-import { cmb, Semigroup } from "./cmb.js";
-import { cmp, Eq, eq, Ord, Ordering } from "./cmp.js";
+import { Semigroup, cmb } from "./cmb.js";
+import { Eq, Ord, Ordering, cmp, eq } from "./cmp.js";
 import { id } from "./fn.js";
 import type { Validation } from "./validation.js";
 

@@ -16,8 +16,8 @@
 
 import * as fc from "fast-check";
 import { expect } from "vitest";
-import { cmb, Semigroup } from "../cmb.js";
-import { cmp, Eq, eq, le, Ord, Ordering } from "../cmp.js";
+import { Semigroup, cmb } from "../cmb.js";
+import { Eq, Ord, Ordering, cmp, eq, le } from "../cmp.js";
 
 export class Num implements Ord<Num> {
 	constructor(readonly val: number) {}
