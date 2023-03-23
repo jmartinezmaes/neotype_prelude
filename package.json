@@ -1,138 +1,140 @@
 {
-    "name": "@neotype/prelude",
-    "version": "0.8.1",
-    "description": "Functional programming essentials for TypeScript",
-    "repository": {
-        "type": "git",
-        "url": "https://github.com/jm4rtinez/neotype_prelude.git"
-    },
-    "keywords": [
-        "adt",
-        "algebraic-data-types",
-        "do-notation",
-        "effects",
-        "fluent-api",
-        "functional-programming",
-        "typescript"
-    ],
-    "author": "Josh Martinez",
-    "license": "Apache-2.0",
-    "homepage": "https://github.com/jm4rtinez/neotype_prelude#readme",
-    "bugs": {
-        "url": "https://github.com/jm4rtinez/neotype_prelude/issues"
-    },
-    "files": [
-        "dist",
-        "src"
-    ],
-    "publishConfig": {
-        "access": "public"
-    },
-    "type": "module",
-    "sideEffects": false,
-    "engines": {
-        "node": "16.* || >= 18.*"
-    },
-    "exports": {
-        "./_*": null,
-        "./cmb.js": "./dist/cmb.js",
-        "./cmp.js": "./dist/cmp.js",
-        "./either.js": "./dist/either.js",
-        "./eval.js": "./dist/eval.js",
-        "./fn.js": "./dist/fn.js",
-        "./ior.js": "./dist/ior.js",
-        "./maybe.js": "./dist/maybe.js",
-        "./pair.js": "./dist/pair.js",
-        "./validation.js": "./dist/validation.js",
-        "./package.json": "./package.json"
-    },
-    "scripts": {
-        "clean": "rimraf ./dist",
-        "lint": "eslint --ext .ts --max-warnings 0 .",
-        "prettier:check": "prettier --check --ignore-path ./.gitignore .",
-        "prettier:write": "prettier --write --ignore-path ./.gitignore .",
-        "style": "npm run lint && npm run prettier:check",
-        "test": "npm run typecheck && vitest run --coverage",
-        "test:watch": "vitest",
-        "typecheck": "tsc --skipLibCheck --noEmit",
-        "docs": "typedoc",
-        "prebuild": "npm run clean",
-        "build": "tsc --project ./tsconfig.build.json",
-        "prepublishOnly": "npm run build",
-        "postpublish": "npm run clean"
-    },
-    "devDependencies": {
-        "@typescript-eslint/eslint-plugin": "^5.55.0",
-        "@typescript-eslint/parser": "^5.55.0",
-        "@vitest/coverage-c8": "^0.29.3",
-        "eslint": "^8.36.0",
-        "eslint-config-prettier": "^8.8.0",
-        "eslint-plugin-import": "^2.27.5",
-        "fast-check": "^3.7.1",
-        "prettier": "2.8.6",
-        "prettier-plugin-organize-imports": "^3.2.2",
-        "rimraf": "^3.0.2",
-        "ts-node": "^10.9.1",
-        "typedoc": "0.23.28",
-        "typescript": "~5.0",
-        "vitest": "^0.29.3"
-    },
-    "eslintConfig": {
-        "env": {
-            "browser": true,
-            "es2021": true,
-            "node": true
-        },
-        "extends": [
-            "eslint:recommended",
-            "plugin:@typescript-eslint/recommended",
-            "prettier"
-        ],
-        "ignorePatterns": [
-            "dist"
-        ],
-        "parser": "@typescript-eslint/parser",
-        "parserOptions": {
-            "ecmaVersion": "latest",
-            "sourceType": "module"
-        },
-        "plugins": [
-            "@typescript-eslint"
-        ],
-        "rules": {
-            "@typescript-eslint/consistent-type-imports": "error",
-            "@typescript-eslint/no-explicit-any": "off",
-            "@typescript-eslint/no-import-type-side-effects": "error",
-            "@typescript-eslint/no-namespace": "off",
-            "no-inner-declarations": "off",
-            "quotes": [
-                "error",
-                "double"
-            ],
-            "semi": [
-                "error",
-                "always"
-            ]
-        }
-    },
-    "prettier": {
-        "trailingComma": "all",
-        "tabWidth": 4,
-        "overrides": [
-            {
-                "files": [
-                    "*.yaml",
-                    "*.yml"
-                ],
-                "options": {
-                    "tabWidth": 2
-                }
-            }
-        ],
-        "proseWrap": "always"
-    },
-    "volta": {
-        "node": "18.12.1",
-        "npm": "9.1.3"
-    }
+	"name": "@neotype/prelude",
+	"version": "0.8.1",
+	"description": "Functional programming essentials for TypeScript",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/jm4rtinez/neotype_prelude.git"
+	},
+	"keywords": [
+		"adt",
+		"algebraic-data-types",
+		"do-notation",
+		"effects",
+		"fluent-api",
+		"functional-programming",
+		"typescript"
+	],
+	"author": "Josh Martinez",
+	"license": "Apache-2.0",
+	"homepage": "https://github.com/jm4rtinez/neotype_prelude#readme",
+	"bugs": {
+		"url": "https://github.com/jm4rtinez/neotype_prelude/issues"
+	},
+	"files": [
+		"dist",
+		"src"
+	],
+	"publishConfig": {
+		"access": "public"
+	},
+	"type": "module",
+	"sideEffects": false,
+	"engines": {
+		"node": "16.* || >= 18.*"
+	},
+	"exports": {
+		"./_*": null,
+		"./cmb.js": "./dist/cmb.js",
+		"./cmp.js": "./dist/cmp.js",
+		"./either.js": "./dist/either.js",
+		"./eval.js": "./dist/eval.js",
+		"./fn.js": "./dist/fn.js",
+		"./ior.js": "./dist/ior.js",
+		"./maybe.js": "./dist/maybe.js",
+		"./pair.js": "./dist/pair.js",
+		"./validation.js": "./dist/validation.js",
+		"./package.json": "./package.json"
+	},
+	"scripts": {
+		"clean": "rimraf ./dist",
+		"lint": "eslint --ext .ts --max-warnings 0 .",
+		"prettier:check": "prettier --check --ignore-path ./.gitignore .",
+		"prettier:write": "prettier --write --ignore-path ./.gitignore .",
+		"style": "npm run lint && npm run prettier:check",
+		"test": "npm run typecheck && vitest run --coverage",
+		"test:watch": "vitest",
+		"typecheck": "tsc --skipLibCheck --noEmit",
+		"docs": "typedoc",
+		"prebuild": "npm run clean",
+		"build": "tsc --project ./tsconfig.build.json",
+		"prepublishOnly": "npm run build",
+		"postpublish": "npm run clean"
+	},
+	"devDependencies": {
+		"@typescript-eslint/eslint-plugin": "^5.55.0",
+		"@typescript-eslint/parser": "^5.55.0",
+		"@vitest/coverage-c8": "^0.29.3",
+		"eslint": "^8.36.0",
+		"eslint-config-prettier": "^8.8.0",
+		"eslint-plugin-import": "^2.27.5",
+		"fast-check": "^3.7.1",
+		"prettier": "2.8.6",
+		"prettier-plugin-organize-imports": "^3.2.2",
+		"rimraf": "^3.0.2",
+		"ts-node": "^10.9.1",
+		"typedoc": "0.23.28",
+		"typescript": "~5.0",
+		"vitest": "^0.29.3"
+	},
+	"eslintConfig": {
+		"env": {
+			"browser": true,
+			"es2021": true,
+			"node": true
+		},
+		"extends": [
+			"eslint:recommended",
+			"plugin:@typescript-eslint/recommended",
+			"prettier"
+		],
+		"ignorePatterns": [
+			"dist"
+		],
+		"parser": "@typescript-eslint/parser",
+		"parserOptions": {
+			"ecmaVersion": "latest",
+			"sourceType": "module"
+		},
+		"plugins": [
+			"@typescript-eslint"
+		],
+		"rules": {
+			"@typescript-eslint/consistent-type-imports": "error",
+			"@typescript-eslint/no-explicit-any": "off",
+			"@typescript-eslint/no-import-type-side-effects": "error",
+			"@typescript-eslint/no-namespace": "off",
+			"no-inner-declarations": "off",
+			"quotes": [
+				"error",
+				"double"
+			],
+			"semi": [
+				"error",
+				"always"
+			]
+		}
+	},
+	"prettier": {
+		"trailingComma": "all",
+		"tabWidth": 4,
+		"useTabs": true,
+		"overrides": [
+			{
+				"files": [
+					"*.yaml",
+					"*.yml"
+				],
+				"options": {
+					"useTabs": false,
+					"tabWidth": 2
+				}
+			}
+		],
+		"proseWrap": "always"
+	},
+	"volta": {
+		"node": "18.12.1",
+		"npm": "9.1.3"
+	}
 }

@@ -50,4 +50,4 @@ See each module's documentation for recommended import practices and available
 exports.
 
 [es6 modules]:
-    https://exploringjs.com/es6/ch_modules.html#sec_basics-of-es6-modules
+	https://exploringjs.com/es6/ch_modules.html#sec_basics-of-es6-modules

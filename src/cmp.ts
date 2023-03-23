@@ -403,20 +403,20 @@ import { Semigroup } from "./cmb.js";
  * ```
  */
 export interface Eq<in T> {
-    /**
-     * Test whether this and that `Eq` value are equal.
-     */
-    [Eq.eq](that: T): boolean;
+	/**
+	 * Test whether this and that `Eq` value are equal.
+	 */
+	[Eq.eq](that: T): boolean;
 }
 
 /**
  * The companion namespace for the `Eq` interface.
  */
 export namespace Eq {
-    /**
-     * The unique symbol used by implementors of `Eq`.
-     */
-    export const eq = Symbol();
+	/**
+	 * The unique symbol used by implementors of `Eq`.
+	 */
+	export const eq = Symbol();
 }
 
 /**
@@ -427,7 +427,7 @@ export namespace Eq {
  * `eq(lhs, rhs)` is equivalent to `lhs[Eq.eq](rhs)`.
  */
 export function eq<T extends Eq<T>>(lhs: T, rhs: T): boolean {
-    return lhs[Eq.eq](rhs);
+	return lhs[Eq.eq](rhs);
 }
 
 /**
@@ -438,7 +438,7 @@ export function eq<T extends Eq<T>>(lhs: T, rhs: T): boolean {
  * `ne(lhs, rhs)` is equivalent to `!lhs[Eq.eq](rhs)`.
  */
 export function ne<T extends Eq<T>>(lhs: T, rhs: T): boolean {
-    return !lhs[Eq.eq](rhs);
+	return !lhs[Eq.eq](rhs);
 }
 
 /**
@@ -451,28 +451,28 @@ export function ne<T extends Eq<T>>(lhs: T, rhs: T): boolean {
  * lexicographically equal.
  */
 export function ieqBy<T>(
-    lhs: Iterable<T>,
-    rhs: Iterable<T>,
-    eqBy: (lhs: T, rhs: T) => boolean,
+	lhs: Iterable<T>,
+	rhs: Iterable<T>,
+	eqBy: (lhs: T, rhs: T) => boolean,
 ): boolean {
-    const lhsIter = lhs[Symbol.iterator]();
-    const rhsIter = rhs[Symbol.iterator]();
+	const lhsIter = lhs[Symbol.iterator]();
+	const rhsIter = rhs[Symbol.iterator]();
 
-    for (
-        let lhsNxt = lhsIter.next(), rhsNxt = rhsIter.next();
-        ;
-        lhsNxt = lhsIter.next(), rhsNxt = rhsIter.next()
-    ) {
-        if (lhsNxt.done) {
-            return !!rhsNxt.done;
-        }
-        if (rhsNxt.done) {
-            return false;
-        }
-        if (!eqBy(lhsNxt.value, rhsNxt.value)) {
-            return false;
-        }
-    }
+	for (
+		let lhsNxt = lhsIter.next(), rhsNxt = rhsIter.next();
+		;
+		lhsNxt = lhsIter.next(), rhsNxt = rhsIter.next()
+	) {
+		if (lhsNxt.done) {
+			return !!rhsNxt.done;
+		}
+		if (rhsNxt.done) {
+			return false;
+		}
+		if (!eqBy(lhsNxt.value, rhsNxt.value)) {
+			return false;
+		}
+	}
 }
 
 /**
@@ -484,10 +484,10 @@ export function ieqBy<T>(
  * then the iterables are lexicographically equal.
  */
 export function ieq<T extends Eq<T>>(
-    lhs: Iterable<T>,
-    rhs: Iterable<T>,
+	lhs: Iterable<T>,
+	rhs: Iterable<T>,
 ): boolean {
-    return ieqBy(lhs, rhs, eq);
+	return ieqBy(lhs, rhs, eq);
 }
 
 /**
@@ -763,20 +763,20 @@ export function ieq<T extends Eq<T>>(
  * ```
  */
 export interface Ord<in T> extends Eq<T> {
-    /**
-     * Compare this and that `Ord` value to determine their ordering.
-     */
-    [Ord.cmp](that: T): Ordering;
+	/**
+	 * Compare this and that `Ord` value to determine their ordering.
+	 */
+	[Ord.cmp](that: T): Ordering;
 }
 
 /**
  * The companion namespace for the `Ord` interface.
  */
 export namespace Ord {
-    /**
-     * The unique symbol used by implementors of `Ord`.
-     */
-    export const cmp = Symbol();
+	/**
+	 * The unique symbol used by implementors of `Ord`.
+	 */
+	export const cmp = Symbol();
 }
 
 /**
@@ -787,7 +787,7 @@ export namespace Ord {
  * `cmp(lhs, rhs)` is equivalent to `lhs[Ord.cmp](rhs)`.
  */
 export function cmp<T extends Ord<T>>(lhs: T, rhs: T): Ordering {
-    return lhs[Ord.cmp](rhs);
+	return lhs[Ord.cmp](rhs);
 }
 
 /**
@@ -795,29 +795,29 @@ export function cmp<T extends Ord<T>>(lhs: T, rhs: T): Ordering {
  * ordering.
  */
 export function icmpBy<T>(
-    lhs: Iterable<T>,
-    rhs: Iterable<T>,
-    cmpBy: (lhs: T, rhs: T) => Ordering,
+	lhs: Iterable<T>,
+	rhs: Iterable<T>,
+	cmpBy: (lhs: T, rhs: T) => Ordering,
 ): Ordering {
-    const lhsIter = lhs[Symbol.iterator]();
-    const rhsIter = rhs[Symbol.iterator]();
+	const lhsIter = lhs[Symbol.iterator]();
+	const rhsIter = rhs[Symbol.iterator]();
 
-    for (
-        let lhsNxt = lhsIter.next(), rhsNxt = rhsIter.next();
-        ;
-        lhsNxt = lhsIter.next(), rhsNxt = rhsIter.next()
-    ) {
-        if (lhsNxt.done) {
-            return rhsNxt.done ? Ordering.equal : Ordering.less;
-        }
-        if (rhsNxt.done) {
-            return Ordering.greater;
-        }
-        const ordering = cmpBy(lhsNxt.value, rhsNxt.value);
-        if (ordering.isNe()) {
-            return ordering;
-        }
-    }
+	for (
+		let lhsNxt = lhsIter.next(), rhsNxt = rhsIter.next();
+		;
+		lhsNxt = lhsIter.next(), rhsNxt = rhsIter.next()
+	) {
+		if (lhsNxt.done) {
+			return rhsNxt.done ? Ordering.equal : Ordering.less;
+		}
+		if (rhsNxt.done) {
+			return Ordering.greater;
+		}
+		const ordering = cmpBy(lhsNxt.value, rhsNxt.value);
+		if (ordering.isNe()) {
+			return ordering;
+		}
+	}
 }
 
 /**
@@ -825,10 +825,10 @@ export function icmpBy<T>(
  * ordering.
  */
 export function icmp<T extends Ord<T>>(
-    lhs: Iterable<T>,
-    rhs: Iterable<T>,
+	lhs: Iterable<T>,
+	rhs: Iterable<T>,
 ): Ordering {
-    return icmpBy(lhs, rhs, cmp);
+	return icmpBy(lhs, rhs, cmp);
 }
 
 /**
@@ -839,7 +839,7 @@ export function icmp<T extends Ord<T>>(
  * Return `true` if `lhs` is less than `rhs`.
  */
 export function lt<T extends Ord<T>>(lhs: T, rhs: T): boolean {
-    return cmp(lhs, rhs).isLt();
+	return cmp(lhs, rhs).isLt();
 }
 
 /**
@@ -850,7 +850,7 @@ export function lt<T extends Ord<T>>(lhs: T, rhs: T): boolean {
  * Return `true` if `lhs` is greater than `rhs`.
  */
 export function gt<T extends Ord<T>>(lhs: T, rhs: T): boolean {
-    return cmp(lhs, rhs).isGt();
+	return cmp(lhs, rhs).isGt();
 }
 
 /**
@@ -861,7 +861,7 @@ export function gt<T extends Ord<T>>(lhs: T, rhs: T): boolean {
  * Return `true` if `lhs` is less than or equal to `rhs`.
  */
 export function le<T extends Ord<T>>(lhs: T, rhs: T): boolean {
-    return cmp(lhs, rhs).isLe();
+	return cmp(lhs, rhs).isLe();
 }
 
 /**
@@ -872,7 +872,7 @@ export function le<T extends Ord<T>>(lhs: T, rhs: T): boolean {
  * Return `true` if `lhs` is greater than or equal to `rhs`.
  */
 export function ge<T extends Ord<T>>(lhs: T, rhs: T): boolean {
-    return cmp(lhs, rhs).isGe();
+	return cmp(lhs, rhs).isGe();
 }
 
 /**
@@ -883,7 +883,7 @@ export function ge<T extends Ord<T>>(lhs: T, rhs: T): boolean {
  * If the values are equal, return the first value.
  */
 export function min<T extends Ord<T>>(lhs: T, rhs: T): T {
-    return le(lhs, rhs) ? lhs : rhs;
+	return le(lhs, rhs) ? lhs : rhs;
 }
 
 /**
@@ -894,7 +894,7 @@ export function min<T extends Ord<T>>(lhs: T, rhs: T): T {
  * If the values are equal, return the first value.
  */
 export function max<T extends Ord<T>>(lhs: T, rhs: T): T {
-    return ge(lhs, rhs) ? lhs : rhs;
+	return ge(lhs, rhs) ? lhs : rhs;
 }
 
 /**
@@ -905,7 +905,7 @@ export function max<T extends Ord<T>>(lhs: T, rhs: T): T {
  * `clamp(val, lo, hi)` is equivalent to `min(max(val, lo), hi)`.
  */
 export function clamp<T extends Ord<T>>(val: T, lo: T, hi: T) {
-    return min(max(val, lo), hi);
+	return min(max(val, lo), hi);
 }
 
 /**
@@ -917,262 +917,262 @@ export type Ordering = Ordering.Less | Ordering.Equal | Ordering.Greater;
  * The companion namespace for the `Ordering` type.
  */
 export namespace Ordering {
-    /**
-     * Construct an `Ordering` from a `number` or a `bigint`.
-     *
-     * @remarks
-     *
-     * -   If `n < 0`, return `Less`.
-     * -   If `n > 0`, return `Greater`.
-     * -   If `n === 0`, return `Equal`.
-     *
-     * An argument must never be `NaN`. This is the caller's responsibility to
-     * enforce!
-     */
-    export function fromNumber(num: number | bigint): Ordering {
-        if (num < 0) {
-            return less;
-        }
-        if (num > 0) {
-            return greater;
-        }
-        return equal;
-    }
+	/**
+	 * Construct an `Ordering` from a `number` or a `bigint`.
+	 *
+	 * @remarks
+	 *
+	 * -   If `n < 0`, return `Less`.
+	 * -   If `n > 0`, return `Greater`.
+	 * -   If `n === 0`, return `Equal`.
+	 *
+	 * An argument must never be `NaN`. This is the caller's responsibility to
+	 * enforce!
+	 */
+	export function fromNumber(num: number | bigint): Ordering {
+		if (num < 0) {
+			return less;
+		}
+		if (num > 0) {
+			return greater;
+		}
+		return equal;
+	}
 
-    /**
-     * The fluent syntax for `Ordering`.
-     */
-    export abstract class Syntax {
-        /**
-         * If this and that `Ordering` are the same variant, return `true`;
-         * otherwise, return `false`.
-         */
-        [Eq.eq](this: Ordering, that: Ordering): boolean {
-            return this.kind === that.kind;
-        }
+	/**
+	 * The fluent syntax for `Ordering`.
+	 */
+	export abstract class Syntax {
+		/**
+		 * If this and that `Ordering` are the same variant, return `true`;
+		 * otherwise, return `false`.
+		 */
+		[Eq.eq](this: Ordering, that: Ordering): boolean {
+			return this.kind === that.kind;
+		}
 
-        /**
-         * Compare this and that `Ordering` to determine their ordering.
-         *
-         * @remarks
-         *
-         * When ordered, the `Less` variant compares as less than the `Equal`
-         * variant, and the `Equal` variant compares as less than the `Greater`
-         * variant.
-         */
-        [Ord.cmp](this: Ordering, that: Ordering): Ordering {
-            return fromNumber(this.kind - that.kind);
-        }
+		/**
+		 * Compare this and that `Ordering` to determine their ordering.
+		 *
+		 * @remarks
+		 *
+		 * When ordered, the `Less` variant compares as less than the `Equal`
+		 * variant, and the `Equal` variant compares as less than the `Greater`
+		 * variant.
+		 */
+		[Ord.cmp](this: Ordering, that: Ordering): Ordering {
+			return fromNumber(this.kind - that.kind);
+		}
 
-        /**
-         * If this `Ordering` is `Less` or `Greater`, return this `Ordering`;
-         * otherwise, return that `Ordering`.
-         */
-        [Semigroup.cmb](this: Ordering, that: Ordering): Ordering {
-            return this.isEq() ? that : this;
-        }
+		/**
+		 * If this `Ordering` is `Less` or `Greater`, return this `Ordering`;
+		 * otherwise, return that `Ordering`.
+		 */
+		[Semigroup.cmb](this: Ordering, that: Ordering): Ordering {
+			return this.isEq() ? that : this;
+		}
 
-        /**
-         * Test whether this `Ordering` is `Equal`.
-         */
-        isEq(this: Ordering): this is Equal {
-            return this.kind === Kind.EQUAL;
-        }
+		/**
+		 * Test whether this `Ordering` is `Equal`.
+		 */
+		isEq(this: Ordering): this is Equal {
+			return this.kind === Kind.EQUAL;
+		}
 
-        /**
-         * Test whether this `Ordering` is not `Equal`.
-         */
-        isNe(this: Ordering): this is Less | Greater {
-            return !this.isEq();
-        }
+		/**
+		 * Test whether this `Ordering` is not `Equal`.
+		 */
+		isNe(this: Ordering): this is Less | Greater {
+			return !this.isEq();
+		}
 
-        /**
-         * Test whether this `Ordering` is `Less`.
-         */
-        isLt(this: Ordering): this is Less {
-            return this.kind === Kind.LESS;
-        }
+		/**
+		 * Test whether this `Ordering` is `Less`.
+		 */
+		isLt(this: Ordering): this is Less {
+			return this.kind === Kind.LESS;
+		}
 
-        /**
-         * Test whether this `Ordering` is `Greater`.
-         */
-        isGt(this: Ordering): this is Greater {
-            return this.kind === Kind.GREATER;
-        }
+		/**
+		 * Test whether this `Ordering` is `Greater`.
+		 */
+		isGt(this: Ordering): this is Greater {
+			return this.kind === Kind.GREATER;
+		}
 
-        /**
-         * Test whether this `Ordering` is `Less` or `Equal`.
-         */
-        isLe(this: Ordering): this is Less | Equal {
-            return !this.isGt();
-        }
+		/**
+		 * Test whether this `Ordering` is `Less` or `Equal`.
+		 */
+		isLe(this: Ordering): this is Less | Equal {
+			return !this.isGt();
+		}
 
-        /**
-         * Test whether this `Ordering` is `Greater` or `Equal`.
-         */
-        isGe(this: Ordering): this is Greater | Equal {
-            return !this.isLt();
-        }
+		/**
+		 * Test whether this `Ordering` is `Greater` or `Equal`.
+		 */
+		isGe(this: Ordering): this is Greater | Equal {
+			return !this.isLt();
+		}
 
-        /**
-         * Reverse this `Ordering`.
-         *
-         * @remarks
-         *
-         * -   `Less` becomes `Greater`.
-         * -   `Greater` becomes `Less`.
-         * -   `Equal` remains `Equal`.
-         */
-        reverse(this: Ordering): Ordering {
-            if (this.isLt()) {
-                return greater;
-            }
-            if (this.isGt()) {
-                return less;
-            }
-            return this;
-        }
+		/**
+		 * Reverse this `Ordering`.
+		 *
+		 * @remarks
+		 *
+		 * -   `Less` becomes `Greater`.
+		 * -   `Greater` becomes `Less`.
+		 * -   `Equal` remains `Equal`.
+		 */
+		reverse(this: Ordering): Ordering {
+			if (this.isLt()) {
+				return greater;
+			}
+			if (this.isGt()) {
+				return less;
+			}
+			return this;
+		}
 
-        /**
-         * Convert this `Ordering` to a `number`.
-         *
-         * @remarks
-         *
-         * -   If this is `Less`, return -1.
-         * -   If this is `Greater`, return 1.
-         * -   If this is `Equal`, return 0.
-         */
-        toNumber(this: Ordering): -1 | 0 | 1 {
-            if (this.isLt()) {
-                return -1;
-            }
-            if (this.isGt()) {
-                return 1;
-            }
-            return 0;
-        }
-    }
+		/**
+		 * Convert this `Ordering` to a `number`.
+		 *
+		 * @remarks
+		 *
+		 * -   If this is `Less`, return -1.
+		 * -   If this is `Greater`, return 1.
+		 * -   If this is `Equal`, return 0.
+		 */
+		toNumber(this: Ordering): -1 | 0 | 1 {
+			if (this.isLt()) {
+				return -1;
+			}
+			if (this.isGt()) {
+				return 1;
+			}
+			return 0;
+		}
+	}
 
-    /**
-     * An enumeration that discriminates `Ordering`.
-     */
-    export enum Kind {
-        LESS,
-        EQUAL,
-        GREATER,
-    }
+	/**
+	 * An enumeration that discriminates `Ordering`.
+	 */
+	export enum Kind {
+		LESS,
+		EQUAL,
+		GREATER,
+	}
 
-    /**
-     * An `Ordering` that indicates a "less than" comparison result.
-     */
-    export class Less extends Syntax {
-        /**
-         * The singleton instance of the `Less` variant of `Ordering`.
-         *
-         * @remarks
-         *
-         * The `less` constant is a more accessible alias for this object.
-         */
-        static readonly singleton = new Less();
+	/**
+	 * An `Ordering` that indicates a "less than" comparison result.
+	 */
+	export class Less extends Syntax {
+		/**
+		 * The singleton instance of the `Less` variant of `Ordering`.
+		 *
+		 * @remarks
+		 *
+		 * The `less` constant is a more accessible alias for this object.
+		 */
+		static readonly singleton = new Less();
 
-        /**
-         * The property that discriminates `Ordering`.
-         */
-        readonly kind = Kind.LESS;
+		/**
+		 * The property that discriminates `Ordering`.
+		 */
+		readonly kind = Kind.LESS;
 
-        private constructor() {
-            super();
-        }
-    }
+		private constructor() {
+			super();
+		}
+	}
 
-    /**
-     * An `Ordering` that indicates an "equal" comparison result.
-     */
-    export class Equal extends Syntax {
-        /**
-         * The singleton instance of the `Equal` variant of `Ordering`.
-         *
-         * @remarks
-         *
-         * The `equal` constant is a more accessible alias for this object.
-         */
-        static readonly singleton = new Equal();
+	/**
+	 * An `Ordering` that indicates an "equal" comparison result.
+	 */
+	export class Equal extends Syntax {
+		/**
+		 * The singleton instance of the `Equal` variant of `Ordering`.
+		 *
+		 * @remarks
+		 *
+		 * The `equal` constant is a more accessible alias for this object.
+		 */
+		static readonly singleton = new Equal();
 
-        /**
-         * The property that discriminates `Ordering`.
-         */
-        readonly kind = Kind.EQUAL;
+		/**
+		 * The property that discriminates `Ordering`.
+		 */
+		readonly kind = Kind.EQUAL;
 
-        private constructor() {
-            super();
-        }
-    }
+		private constructor() {
+			super();
+		}
+	}
 
-    /**
-     * An `Ordering` that indicates a "greater than" comparison result.
-     */
-    export class Greater extends Syntax {
-        /**
-         * The singleton instance of the `Greater` variant of `Ordering`.
-         *
-         * @remarks
-         *
-         * The `greater` constant is a more accessible alias for this object.
-         */
-        static readonly singleton = new Greater();
+	/**
+	 * An `Ordering` that indicates a "greater than" comparison result.
+	 */
+	export class Greater extends Syntax {
+		/**
+		 * The singleton instance of the `Greater` variant of `Ordering`.
+		 *
+		 * @remarks
+		 *
+		 * The `greater` constant is a more accessible alias for this object.
+		 */
+		static readonly singleton = new Greater();
 
-        /**
-         * The property that discriminates `Ordering`.
-         */
-        readonly kind = Kind.GREATER;
+		/**
+		 * The property that discriminates `Ordering`.
+		 */
+		readonly kind = Kind.GREATER;
 
-        private constructor() {
-            super();
-        }
-    }
+		private constructor() {
+			super();
+		}
+	}
 
-    /**
-     * The `Ordering` that indicates a "less than" comparison result.
-     */
-    export const less = Ordering.Less.singleton as Ordering;
+	/**
+	 * The `Ordering` that indicates a "less than" comparison result.
+	 */
+	export const less = Ordering.Less.singleton as Ordering;
 
-    /**
-     * The `Ordering` that indicates an "equal" comparison result.
-     */
-    export const equal = Ordering.Equal.singleton as Ordering;
+	/**
+	 * The `Ordering` that indicates an "equal" comparison result.
+	 */
+	export const equal = Ordering.Equal.singleton as Ordering;
 
-    /**
-     * The `Ordering` that indicates a "greater than" comparison result.
-     */
-    export const greater = Ordering.Greater.singleton as Ordering;
+	/**
+	 * The `Ordering` that indicates a "greater than" comparison result.
+	 */
+	export const greater = Ordering.Greater.singleton as Ordering;
 }
 
 /**
  * A helper type for reversing order.
  */
 export class Reverse<out T> {
-    /**
-     * The value of this `Reverse`.
-     */
-    readonly val: T;
+	/**
+	 * The value of this `Reverse`.
+	 */
+	readonly val: T;
 
-    constructor(val: T) {
-        this.val = val;
-    }
+	constructor(val: T) {
+		this.val = val;
+	}
 
-    /**
-     * If the values of this and that `Reverse` are equal, return `true`;
-     * otherwise, return `false`.
-     */
-    [Eq.eq]<T extends Eq<T>>(this: Reverse<T>, that: Reverse<T>): boolean {
-        return eq(this.val, that.val);
-    }
+	/**
+	 * If the values of this and that `Reverse` are equal, return `true`;
+	 * otherwise, return `false`.
+	 */
+	[Eq.eq]<T extends Eq<T>>(this: Reverse<T>, that: Reverse<T>): boolean {
+		return eq(this.val, that.val);
+	}
 
-    /**
-     * Compare the value of this `Reverse` to the value of that `Reverse` and
-     * reverse the result of the comparison.
-     */
-    [Ord.cmp]<T extends Ord<T>>(this: Reverse<T>, that: Reverse<T>): Ordering {
-        return cmp(this.val, that.val).reverse();
-    }
+	/**
+	 * Compare the value of this `Reverse` to the value of that `Reverse` and
+	 * reverse the result of the comparison.
+	 */
+	[Ord.cmp]<T extends Ord<T>>(this: Reverse<T>, that: Reverse<T>): Ordering {
+		return cmp(this.val, that.val).reverse();
+	}
 }

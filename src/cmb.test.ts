@@ -20,11 +20,11 @@ import { arbStr } from "./_test/utils.js";
 import { Semigroup, cmb } from "./cmb.js";
 
 describe("cmb", () => {
-    it("combines the two Semigroup values", () => {
-        fc.assert(
-            fc.property(arbStr(), arbStr(), (x, y) => {
-                expect(cmb(x, y)).to.deep.equal(x[Semigroup.cmb](y));
-            }),
-        );
-    });
+	it("combines the two Semigroup values", () => {
+		fc.assert(
+			fc.property(arbStr(), arbStr(), (x, y) => {
+				expect(cmb(x, y)).to.deep.equal(x[Semigroup.cmb](y));
+			}),
+		);
+	});
 });

@@ -299,380 +299,380 @@ import { id } from "./fn.js";
  * A type that models a synchronous computation.
  */
 export class Eval<out T> {
-    /**
-     * Construct an `Eval` eagerly from a value.
-     */
-    static now<T>(val: T): Eval<T> {
-        return new Eval(Ixn.now(val));
-    }
+	/**
+	 * Construct an `Eval` eagerly from a value.
+	 */
+	static now<T>(val: T): Eval<T> {
+		return new Eval(Ixn.now(val));
+	}
 
-    /**
-     * Construct an `Eval` lazily from a thunk, and memoize the value upon the
-     * first evaluation.
-     */
-    static once<T>(f: () => T): Eval<T> {
-        return new Eval(Ixn.once(f));
-    }
+	/**
+	 * Construct an `Eval` lazily from a thunk, and memoize the value upon the
+	 * first evaluation.
+	 */
+	static once<T>(f: () => T): Eval<T> {
+		return new Eval(Ixn.once(f));
+	}
 
-    /**
-     * Construct an `Eval` lazily from a thunk, and re-compute the value upon
-     * every evaluation.
-     */
-    static always<T>(f: () => T): Eval<T> {
-        return new Eval(Ixn.always(f));
-    }
+	/**
+	 * Construct an `Eval` lazily from a thunk, and re-compute the value upon
+	 * every evaluation.
+	 */
+	static always<T>(f: () => T): Eval<T> {
+		return new Eval(Ixn.always(f));
+	}
 
-    /**
-     * Construct an `Eval` from a function that returns another `Eval`.
-     */
-    static defer<T>(f: () => Eval<T>): Eval<T> {
-        return Eval.now(undefined).flatMap(f);
-    }
+	/**
+	 * Construct an `Eval` from a function that returns another `Eval`.
+	 */
+	static defer<T>(f: () => Eval<T>): Eval<T> {
+		return Eval.now(undefined).flatMap(f);
+	}
 
-    static #step<TReturn>(
-        gen: Iterator<Eval<any>, TReturn>,
-        nxt: IteratorResult<Eval<any>, TReturn>,
-    ): Eval<TReturn> {
-        if (nxt.done) {
-            return Eval.now(nxt.value);
-        }
-        return nxt.value.flatMap((val) => Eval.#step(gen, gen.next(val)));
-    }
+	static #step<TReturn>(
+		gen: Iterator<Eval<any>, TReturn>,
+		nxt: IteratorResult<Eval<any>, TReturn>,
+	): Eval<TReturn> {
+		if (nxt.done) {
+			return Eval.now(nxt.value);
+		}
+		return nxt.value.flatMap((val) => Eval.#step(gen, gen.next(val)));
+	}
 
-    /**
-     * Construct an `Eval` using a generator comprehension.
-     *
-     * @remarks
-     *
-     * The contract for generator comprehensions is as follows:
-     *
-     * -   The generator provided to `go` must only yield `Eval` values.
-     * -   `Eval` values must only be yielded using the `yield*` keyword, and
-     *     never `yield` (without the `*`). Omitting the `*` inhibits proper
-     *     type inference and may cause undefined behavior.
-     * -   A `yield*` statement may bind a variable provided by the caller. The
-     *     variable inherits the type of the outcome of the yielded `Eval`.
-     * -   The `return` statement of the generator may return a final result,
-     *     which is returned from `go` in an `Eval`.
-     * -   All syntax normally permitted in generators (statements, loops,
-     *     declarations, etc.) is permitted within generator comprehensions.
-     *
-     * @example Basic yielding and returning
-     *
-     * Consider a comprehension that sums the outcomes of three `Eval` values:
-     *
-     * ```ts
-     * import { Eval } from "@neotype/prelude/eval.js";
-     *
-     * const evalOne: Eval<number> = Eval.now(1);
-     * const evalTimeMs: Eval<number> = Eval.always(() => Date.now());
-     * const evalRand: Eval<number> = Eval.always(() => Math.random());
-     *
-     * const summed: Eval<number> = Eval.go(function* () {
-     *     const one = yield* evalOne;
-     *     const timeMs = yield* evalTimeMs;
-     *     const rand = yield* evalRand;
-     *
-     *     return one + timeMs + rand;
-     * });
-     *
-     * console.log(summed.run());
-     * ```
-     */
-    static go<TReturn>(
-        f: () => Generator<Eval<any>, TReturn, unknown>,
-    ): Eval<TReturn> {
-        return Eval.defer(() => {
-            const gen = f();
-            return Eval.#step(gen, gen.next());
-        });
-    }
+	/**
+	 * Construct an `Eval` using a generator comprehension.
+	 *
+	 * @remarks
+	 *
+	 * The contract for generator comprehensions is as follows:
+	 *
+	 * -   The generator provided to `go` must only yield `Eval` values.
+	 * -   `Eval` values must only be yielded using the `yield*` keyword, and
+	 *     never `yield` (without the `*`). Omitting the `*` inhibits proper
+	 *     type inference and may cause undefined behavior.
+	 * -   A `yield*` statement may bind a variable provided by the caller. The
+	 *     variable inherits the type of the outcome of the yielded `Eval`.
+	 * -   The `return` statement of the generator may return a final result,
+	 *     which is returned from `go` in an `Eval`.
+	 * -   All syntax normally permitted in generators (statements, loops,
+	 *     declarations, etc.) is permitted within generator comprehensions.
+	 *
+	 * @example Basic yielding and returning
+	 *
+	 * Consider a comprehension that sums the outcomes of three `Eval` values:
+	 *
+	 * ```ts
+	 * import { Eval } from "@neotype/prelude/eval.js";
+	 *
+	 * const evalOne: Eval<number> = Eval.now(1);
+	 * const evalTimeMs: Eval<number> = Eval.always(() => Date.now());
+	 * const evalRand: Eval<number> = Eval.always(() => Math.random());
+	 *
+	 * const summed: Eval<number> = Eval.go(function* () {
+	 *     const one = yield* evalOne;
+	 *     const timeMs = yield* evalTimeMs;
+	 *     const rand = yield* evalRand;
+	 *
+	 *     return one + timeMs + rand;
+	 * });
+	 *
+	 * console.log(summed.run());
+	 * ```
+	 */
+	static go<TReturn>(
+		f: () => Generator<Eval<any>, TReturn, unknown>,
+	): Eval<TReturn> {
+		return Eval.defer(() => {
+			const gen = f();
+			return Eval.#step(gen, gen.next());
+		});
+	}
 
-    /**
-     * Construct a function that returns an `Eval` using a generator
-     * comprehension.
-     *
-     * @remarks
-     *
-     * This is the higher-order function variant of `go`.
-     */
-    static goFn<TArgs extends unknown[], TReturn>(
-        f: (...args: TArgs) => Generator<Eval<any>, TReturn, unknown>,
-    ): (...args: TArgs) => Eval<TReturn> {
-        return (...args) =>
-            Eval.defer(() => {
-                const gen = f(...args);
-                return Eval.#step(gen, gen.next());
-            });
-    }
+	/**
+	 * Construct a function that returns an `Eval` using a generator
+	 * comprehension.
+	 *
+	 * @remarks
+	 *
+	 * This is the higher-order function variant of `go`.
+	 */
+	static goFn<TArgs extends unknown[], TReturn>(
+		f: (...args: TArgs) => Generator<Eval<any>, TReturn, unknown>,
+	): (...args: TArgs) => Eval<TReturn> {
+		return (...args) =>
+			Eval.defer(() => {
+				const gen = f(...args);
+				return Eval.#step(gen, gen.next());
+			});
+	}
 
-    /**
-     * Reduce a finite iterable from left to right in the context of `Eval`.
-     *
-     * @remarks
-     *
-     * Start with an initial accumulator and reduce the elements of an iterable
-     * using a reducer function that returns an `Eval`. Use the outcome of the
-     * returned `Eval` as the new accumulator until there are no elements
-     * remaining, and then return the final accumulator in an `Eval`.
-     */
-    static reduce<T, TAcc>(
-        vals: Iterable<T>,
-        accum: (acc: TAcc, val: T) => Eval<TAcc>,
-        initial: TAcc,
-    ): Eval<TAcc> {
-        return Eval.go(function* () {
-            let acc = initial;
-            for (const val of vals) {
-                acc = yield* accum(acc, val);
-            }
-            return acc;
-        });
-    }
+	/**
+	 * Reduce a finite iterable from left to right in the context of `Eval`.
+	 *
+	 * @remarks
+	 *
+	 * Start with an initial accumulator and reduce the elements of an iterable
+	 * using a reducer function that returns an `Eval`. Use the outcome of the
+	 * returned `Eval` as the new accumulator until there are no elements
+	 * remaining, and then return the final accumulator in an `Eval`.
+	 */
+	static reduce<T, TAcc>(
+		vals: Iterable<T>,
+		accum: (acc: TAcc, val: T) => Eval<TAcc>,
+		initial: TAcc,
+	): Eval<TAcc> {
+		return Eval.go(function* () {
+			let acc = initial;
+			for (const val of vals) {
+				acc = yield* accum(acc, val);
+			}
+			return acc;
+		});
+	}
 
-    /**
-     * Turn an array or a tuple literal of `Eval` elements "inside out".
-     *
-     * @remarks
-     *
-     * Evaluate the `Eval` elements in an array or a tuple literal from left to
-     * right. Collect their outcomes in an array or a tuple literal,
-     * respectively, and return the result in an `Eval`.
-     *
-     * For example:
-     *
-     * -   `Eval<T>[]` becomes `Eval<T[]>`
-     * -   `[Eval<T1>, Eval<T2>]` becomes `Eval<[T1, T2]>`
-     */
-    static collect<TEvals extends readonly Eval<any>[] | []>(
-        evals: TEvals,
-    ): Eval<{ -readonly [K in keyof TEvals]: Eval.ResultT<TEvals[K]> }> {
-        return Eval.go(function* () {
-            const results = new Array(evals.length);
-            for (const [idx, ev] of evals.entries()) {
-                results[idx] = yield* ev;
-            }
-            return results as any;
-        });
-    }
+	/**
+	 * Turn an array or a tuple literal of `Eval` elements "inside out".
+	 *
+	 * @remarks
+	 *
+	 * Evaluate the `Eval` elements in an array or a tuple literal from left to
+	 * right. Collect their outcomes in an array or a tuple literal,
+	 * respectively, and return the result in an `Eval`.
+	 *
+	 * For example:
+	 *
+	 * -   `Eval<T>[]` becomes `Eval<T[]>`
+	 * -   `[Eval<T1>, Eval<T2>]` becomes `Eval<[T1, T2]>`
+	 */
+	static collect<TEvals extends readonly Eval<any>[] | []>(
+		evals: TEvals,
+	): Eval<{ -readonly [K in keyof TEvals]: Eval.ResultT<TEvals[K]> }> {
+		return Eval.go(function* () {
+			const results = new Array(evals.length);
+			for (const [idx, ev] of evals.entries()) {
+				results[idx] = yield* ev;
+			}
+			return results as any;
+		});
+	}
 
-    /**
-     * Turn a record or an object literal of `Eval` elements "inside out".
-     *
-     * @remarks
-     *
-     * Evaluate the `Eval` elements in a record or an object literal. Collect
-     * their outcomes in a record or an object literal, respectively, and return
-     * the result in an `Eval`.
-     *
-     * For example:
-     *
-     * -   `Record<string, Eval<T>>` becomes `Eval<Record<string, T>>`
-     * -   `{ x: Eval<T1>, y: Eval<T2> }` becomes `Eval<{ x: T1, y: T2 }>`
-     */
-    static gather<TEvals extends Record<any, Eval<any>>>(
-        evals: TEvals,
-    ): Eval<{ -readonly [K in keyof TEvals]: Eval.ResultT<TEvals[K]> }> {
-        return Eval.go(function* () {
-            const results: Record<any, any> = {};
-            for (const [key, ev] of Object.entries(evals)) {
-                results[key] = yield* ev;
-            }
-            return results as any;
-        });
-    }
+	/**
+	 * Turn a record or an object literal of `Eval` elements "inside out".
+	 *
+	 * @remarks
+	 *
+	 * Evaluate the `Eval` elements in a record or an object literal. Collect
+	 * their outcomes in a record or an object literal, respectively, and return
+	 * the result in an `Eval`.
+	 *
+	 * For example:
+	 *
+	 * -   `Record<string, Eval<T>>` becomes `Eval<Record<string, T>>`
+	 * -   `{ x: Eval<T1>, y: Eval<T2> }` becomes `Eval<{ x: T1, y: T2 }>`
+	 */
+	static gather<TEvals extends Record<any, Eval<any>>>(
+		evals: TEvals,
+	): Eval<{ -readonly [K in keyof TEvals]: Eval.ResultT<TEvals[K]> }> {
+		return Eval.go(function* () {
+			const results: Record<any, any> = {};
+			for (const [key, ev] of Object.entries(evals)) {
+				results[key] = yield* ev;
+			}
+			return results as any;
+		});
+	}
 
-    /**
-     * Lift a function into the context of `Eval`.
-     *
-     * @remarks
-     *
-     * Given a function that accepts arbitrary arguments, return an adapted
-     * function that accepts `Eval` values as arguments. When applied, evaluate
-     * the arguments from left to right, and then apply the original function to
-     * their outcomes and return the result in an `Eval`.
-     */
-    static lift<TArgs extends unknown[], T>(
-        f: (...args: TArgs) => T,
-    ): (...evals: { [K in keyof TArgs]: Eval<TArgs[K]> }) => Eval<T> {
-        return (...evals) => Eval.collect(evals).map((args) => f(...args));
-    }
+	/**
+	 * Lift a function into the context of `Eval`.
+	 *
+	 * @remarks
+	 *
+	 * Given a function that accepts arbitrary arguments, return an adapted
+	 * function that accepts `Eval` values as arguments. When applied, evaluate
+	 * the arguments from left to right, and then apply the original function to
+	 * their outcomes and return the result in an `Eval`.
+	 */
+	static lift<TArgs extends unknown[], T>(
+		f: (...args: TArgs) => T,
+	): (...evals: { [K in keyof TArgs]: Eval<TArgs[K]> }) => Eval<T> {
+		return (...evals) => Eval.collect(evals).map((args) => f(...args));
+	}
 
-    /**
-     * An instruction that builds an evaluation tree for `Eval`.
-     */
-    readonly #ixn: Ixn;
+	/**
+	 * An instruction that builds an evaluation tree for `Eval`.
+	 */
+	readonly #ixn: Ixn;
 
-    private constructor(ixn: Ixn) {
-        this.#ixn = ixn;
-    }
+	private constructor(ixn: Ixn) {
+		this.#ixn = ixn;
+	}
 
-    /**
-     * Defining iterable behavior for `Eval` allows TypeScript to infer outcome
-     * types when yielding `Eval` values in generator comprehensions using
-     * `yield*`.
-     *
-     * @hidden
-     */
-    *[Symbol.iterator](): Iterator<Eval<T>, T, unknown> {
-        return (yield this) as T;
-    }
+	/**
+	 * Defining iterable behavior for `Eval` allows TypeScript to infer outcome
+	 * types when yielding `Eval` values in generator comprehensions using
+	 * `yield*`.
+	 *
+	 * @hidden
+	 */
+	*[Symbol.iterator](): Iterator<Eval<T>, T, unknown> {
+		return (yield this) as T;
+	}
 
-    /**
-     * Combine the outcomes of this and that `Eval` and return the result in an
-     * `Eval`.
-     */
-    [Semigroup.cmb]<T extends Semigroup<T>>(
-        this: Eval<T>,
-        that: Eval<T>,
-    ): Eval<T> {
-        return this.zipWith(that, cmb);
-    }
+	/**
+	 * Combine the outcomes of this and that `Eval` and return the result in an
+	 * `Eval`.
+	 */
+	[Semigroup.cmb]<T extends Semigroup<T>>(
+		this: Eval<T>,
+		that: Eval<T>,
+	): Eval<T> {
+		return this.zipWith(that, cmb);
+	}
 
-    /**
-     * Apply a function to the outcome of this `Eval` to return another `Eval`.
-     */
-    flatMap<T1>(f: (val: T) => Eval<T1>): Eval<T1> {
-        return new Eval(Ixn.flatMap(this, f));
-    }
+	/**
+	 * Apply a function to the outcome of this `Eval` to return another `Eval`.
+	 */
+	flatMap<T1>(f: (val: T) => Eval<T1>): Eval<T1> {
+		return new Eval(Ixn.flatMap(this, f));
+	}
 
-    /**
-     * Apply a function to the outcomes of this and that `Eval` and return the
-     * result in an `Eval`.
-     */
-    zipWith<T1, T2>(that: Eval<T1>, f: (lhs: T, rhs: T1) => T2): Eval<T2> {
-        return this.flatMap((lhs) => that.map((rhs) => f(lhs, rhs)));
-    }
+	/**
+	 * Apply a function to the outcomes of this and that `Eval` and return the
+	 * result in an `Eval`.
+	 */
+	zipWith<T1, T2>(that: Eval<T1>, f: (lhs: T, rhs: T1) => T2): Eval<T2> {
+		return this.flatMap((lhs) => that.map((rhs) => f(lhs, rhs)));
+	}
 
-    /**
-     * Keep only the first outcome of this and that `Eval`, and return it in an
-     * `Eval`.
-     */
-    zipFst(that: Eval<any>): Eval<T> {
-        return this.zipWith(that, id);
-    }
+	/**
+	 * Keep only the first outcome of this and that `Eval`, and return it in an
+	 * `Eval`.
+	 */
+	zipFst(that: Eval<any>): Eval<T> {
+		return this.zipWith(that, id);
+	}
 
-    /**
-     * Keep only the second outcome of this and that `Eval`, and return it in an
-     * `Eval`.
-     */
-    zipSnd<T1>(that: Eval<T1>): Eval<T1> {
-        return this.flatMap(() => that);
-    }
+	/**
+	 * Keep only the second outcome of this and that `Eval`, and return it in an
+	 * `Eval`.
+	 */
+	zipSnd<T1>(that: Eval<T1>): Eval<T1> {
+		return this.flatMap(() => that);
+	}
 
-    /**
-     * Apply a function to the outcome of this `Eval` and return the result
-     * in an `Eval`.
-     */
-    map<T1>(f: (val: T) => T1): Eval<T1> {
-        return this.flatMap((val) => Eval.now(f(val)));
-    }
+	/**
+	 * Apply a function to the outcome of this `Eval` and return the result
+	 * in an `Eval`.
+	 */
+	map<T1>(f: (val: T) => T1): Eval<T1> {
+		return this.flatMap((val) => Eval.now(f(val)));
+	}
 
-    /**
-     * Evaluate this `Eval` to return its outcome.
-     */
-    run(): T {
-        type Cont = (val: any) => Eval<any>;
-        type Stack = [Cont, Stack] | undefined;
-        let stack: Stack;
-        // eslint-disable-next-line @typescript-eslint/no-this-alias
-        let currentEval: Eval<any> = this;
+	/**
+	 * Evaluate this `Eval` to return its outcome.
+	 */
+	run(): T {
+		type Cont = (val: any) => Eval<any>;
+		type Stack = [Cont, Stack] | undefined;
+		let stack: Stack;
+		// eslint-disable-next-line @typescript-eslint/no-this-alias
+		let currentEval: Eval<any> = this;
 
-        for (;;) {
-            switch (currentEval.#ixn.kind) {
-                case Ixn.Kind.NOW: {
-                    if (!stack) {
-                        return currentEval.#ixn.val;
-                    }
-                    const [cont, rest] = stack;
-                    currentEval = cont(currentEval.#ixn.val);
-                    stack = rest;
-                    break;
-                }
+		for (;;) {
+			switch (currentEval.#ixn.kind) {
+				case Ixn.Kind.NOW: {
+					if (!stack) {
+						return currentEval.#ixn.val;
+					}
+					const [cont, rest] = stack;
+					currentEval = cont(currentEval.#ixn.val);
+					stack = rest;
+					break;
+				}
 
-                case Ixn.Kind.FLAT_MAP:
-                    stack = [currentEval.#ixn.cont, stack];
-                    currentEval = currentEval.#ixn.ev;
-                    break;
+				case Ixn.Kind.FLAT_MAP:
+					stack = [currentEval.#ixn.cont, stack];
+					currentEval = currentEval.#ixn.ev;
+					break;
 
-                case Ixn.Kind.ONCE:
-                    if (!currentEval.#ixn.isMemoized) {
-                        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-                        currentEval.#ixn.val = currentEval.#ixn.f!();
-                        delete currentEval.#ixn.f;
-                        currentEval.#ixn.isMemoized = true;
-                    }
-                    currentEval = Eval.now(currentEval.#ixn.val);
-                    break;
+				case Ixn.Kind.ONCE:
+					if (!currentEval.#ixn.isMemoized) {
+						// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+						currentEval.#ixn.val = currentEval.#ixn.f!();
+						delete currentEval.#ixn.f;
+						currentEval.#ixn.isMemoized = true;
+					}
+					currentEval = Eval.now(currentEval.#ixn.val);
+					break;
 
-                case Ixn.Kind.ALWAYS:
-                    currentEval = Eval.now(currentEval.#ixn.f());
-            }
-        }
-    }
+				case Ixn.Kind.ALWAYS:
+					currentEval = Eval.now(currentEval.#ixn.f());
+			}
+		}
+	}
 }
 
 /**
  * The companion namespace for the `Eval` class.
  */
 export namespace Eval {
-    /**
-     * Extract the outcome type `T` from the type `Eval<T>`.
-     */
-    // prettier-ignore
-    export type ResultT<TEval extends Eval<any>> = 
+	/**
+	 * Extract the outcome type `T` from the type `Eval<T>`.
+	 */
+	// prettier-ignore
+	export type ResultT<TEval extends Eval<any>> = 
         TEval extends Eval<infer T> ? T : never;
 }
 
 type Ixn = Ixn.Now | Ixn.FlatMap | Ixn.Once | Ixn.Always;
 
 namespace Ixn {
-    export const enum Kind {
-        NOW,
-        FLAT_MAP,
-        ONCE,
-        ALWAYS,
-    }
+	export const enum Kind {
+		NOW,
+		FLAT_MAP,
+		ONCE,
+		ALWAYS,
+	}
 
-    export interface Now {
-        readonly kind: Kind.NOW;
-        readonly val: any;
-    }
+	export interface Now {
+		readonly kind: Kind.NOW;
+		readonly val: any;
+	}
 
-    export interface FlatMap {
-        readonly kind: Kind.FLAT_MAP;
-        readonly ev: Eval<any>;
-        readonly cont: (val: any) => Eval<any>;
-    }
+	export interface FlatMap {
+		readonly kind: Kind.FLAT_MAP;
+		readonly ev: Eval<any>;
+		readonly cont: (val: any) => Eval<any>;
+	}
 
-    export interface Once {
-        readonly kind: Kind.ONCE;
-        isMemoized: boolean;
-        f?: () => any;
-        val?: any;
-    }
+	export interface Once {
+		readonly kind: Kind.ONCE;
+		isMemoized: boolean;
+		f?: () => any;
+		val?: any;
+	}
 
-    export interface Always {
-        readonly kind: Kind.ALWAYS;
-        readonly f: () => any;
-    }
+	export interface Always {
+		readonly kind: Kind.ALWAYS;
+		readonly f: () => any;
+	}
 
-    export function now<T>(val: T): Now {
-        return { kind: Kind.NOW, val };
-    }
+	export function now<T>(val: T): Now {
+		return { kind: Kind.NOW, val };
+	}
 
-    export function flatMap<T, T1>(
-        ev: Eval<T>,
-        cont: (val: T) => Eval<T1>,
-    ): FlatMap {
-        return { kind: Kind.FLAT_MAP, ev, cont };
-    }
+	export function flatMap<T, T1>(
+		ev: Eval<T>,
+		cont: (val: T) => Eval<T1>,
+	): FlatMap {
+		return { kind: Kind.FLAT_MAP, ev, cont };
+	}
 
-    export function once<T>(f: () => T): Once {
-        return { kind: Kind.ONCE, f, isMemoized: false };
-    }
+	export function once<T>(f: () => T): Once {
+		return { kind: Kind.ONCE, f, isMemoized: false };
+	}
 
-    export function always<T>(f: () => T): Always {
-        return { kind: Kind.ALWAYS, f };
-    }
+	export function always<T>(f: () => T): Always {
+		return { kind: Kind.ALWAYS, f };
+	}
 }
