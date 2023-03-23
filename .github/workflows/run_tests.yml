@@ -43,6 +43,7 @@ jobs:
           - ~4.7
           - ~4.8
           - ~4.9
+          - ~5.0
           - next
     steps:
       - uses: actions/checkout@v3

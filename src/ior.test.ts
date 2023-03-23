@@ -16,20 +16,20 @@
 
 import * as fc from "fast-check";
 import { describe, expect, it } from "vitest";
-import { cmb } from "./cmb.js";
-import { cmp, eq, Ordering } from "./cmp.js";
-import { Either } from "./either.js";
-import { Ior } from "./ior.js";
-import { Validation } from "./validation.js";
 import {
+    Str,
     arbNum,
     arbStr,
     expectLawfulEq,
     expectLawfulOrd,
     expectLawfulSemigroup,
-    Str,
     tuple,
 } from "./_test/utils.js";
+import { cmb } from "./cmb.js";
+import { Ordering, cmp, eq } from "./cmp.js";
+import { Either } from "./either.js";
+import { Ior } from "./ior.js";
+import { Validation } from "./validation.js";
 
 describe("Ior", () => {
     function arbIor<A, B>(

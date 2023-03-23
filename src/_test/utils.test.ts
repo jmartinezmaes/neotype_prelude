@@ -17,14 +17,14 @@
 import * as fc from "fast-check";
 import { describe, expect, it } from "vitest";
 import { cmb } from "../cmb.js";
-import { cmp, eq, Ordering } from "../cmp.js";
+import { Ordering, cmp, eq } from "../cmp.js";
 import {
+    Str,
     arbNum,
     arbStr,
     expectLawfulEq,
     expectLawfulOrd,
     expectLawfulSemigroup,
-    Str,
 } from "./utils.js";
 
 describe("Num", () => {

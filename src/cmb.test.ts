@@ -16,8 +16,8 @@
 
 import * as fc from "fast-check";
 import { describe, expect, it } from "vitest";
-import { cmb, Semigroup } from "./cmb.js";
 import { arbStr } from "./_test/utils.js";
+import { Semigroup, cmb } from "./cmb.js";
 
 describe("cmb", () => {
     it("combines the two Semigroup values", () => {

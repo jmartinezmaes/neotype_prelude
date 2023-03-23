@@ -16,19 +16,19 @@
 
 import * as fc from "fast-check";
 import { describe, expect, it } from "vitest";
-import { cmb } from "./cmb.js";
-import { cmp, eq, Ordering } from "./cmp.js";
-import { Maybe } from "./maybe.js";
 import {
     arbNum,
     arbStr,
     expectLawfulEq,
     expectLawfulOrd,
     expectLawfulSemigroup,
-    Num,
-    Str,
     tuple,
+    type Num,
+    type Str,
 } from "./_test/utils.js";
+import { cmb } from "./cmb.js";
+import { Ordering, cmp, eq } from "./cmp.js";
+import { Maybe } from "./maybe.js";
 
 function nothing<T>(): Maybe<T> {
     return Maybe.nothing;
