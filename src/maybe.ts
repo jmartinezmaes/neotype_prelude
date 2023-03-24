@@ -474,16 +474,17 @@ export namespace Maybe {
 	 */
 	export function go<TReturn>(gen: Go<TReturn>): Maybe<TReturn> {
 		let nxt = gen.next();
+		let isHalted = false;
 		while (!nxt.done) {
 			const maybe = nxt.value;
 			if (maybe.isJust()) {
 				nxt = gen.next(maybe.val);
 			} else {
-				nxt = gen.return(halt as any);
+				isHalted = true;
+				nxt = gen.return(undefined as any);
 			}
 		}
-		const result = nxt.value;
-		return result === halt ? nothing : just(result);
+		return isHalted ? nothing : just(nxt.value);
 	}
 
 	/**
@@ -595,16 +596,17 @@ export namespace Maybe {
 		gen: GoAsync<TReturn>,
 	): Promise<Maybe<TReturn>> {
 		let nxt = await gen.next();
+		let isHalted = false;
 		while (!nxt.done) {
 			const maybe = nxt.value;
 			if (maybe.isJust()) {
 				nxt = await gen.next(maybe.val);
 			} else {
-				nxt = await gen.return(halt as any);
+				isHalted = true;
+				nxt = await gen.return(undefined as any);
 			}
 		}
-		const result = nxt.value;
-		return result === halt ? nothing : just(result);
+		return isHalted ? nothing : just(nxt.value);
 	}
 
 	/**
@@ -883,9 +885,4 @@ export namespace Maybe {
 	export type JustT<TMaybe extends Maybe<any>> = TMaybe extends Maybe<infer T>
 		? T
 		: never;
-
-	// A unique symbol used by the `Maybe` generator comprehension
-	// implementation to signal the underlying generator to return early. This
-	// ensures `try...finally` blocks can properly execute.
-	const halt = Symbol();
 }

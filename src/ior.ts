@@ -520,6 +520,7 @@ export namespace Ior {
 	): Ior<A, TReturn> {
 		let nxt = gen.next();
 		let acc: A | undefined;
+		let isHalted = false;
 
 		while (!nxt.done) {
 			const ior = nxt.value;
@@ -538,18 +539,18 @@ export namespace Ior {
 				} else {
 					acc = cmb(acc, ior.val);
 				}
-				nxt = gen.return(halt as any);
+				isHalted = true;
+				nxt = gen.return(undefined as any);
 			}
 		}
 
-		const result = nxt.value;
-		if (result === halt) {
+		if (isHalted) {
 			return left(acc as A);
 		}
 		if (acc === undefined) {
-			return right(result);
+			return right(nxt.value);
 		}
-		return both(acc, result);
+		return both(acc, nxt.value);
 	}
 
 	/**
@@ -692,6 +693,7 @@ export namespace Ior {
 	): Promise<Ior<A, TReturn>> {
 		let nxt = await gen.next();
 		let acc: A | undefined;
+		let isHalted = false;
 
 		while (!nxt.done) {
 			const ior = nxt.value;
@@ -710,18 +712,18 @@ export namespace Ior {
 				} else {
 					acc = cmb(acc, ior.val);
 				}
-				nxt = await gen.return(halt as any);
+				isHalted = true;
+				nxt = await gen.return(undefined as any);
 			}
 		}
 
-		const result = nxt.value;
-		if (result === halt) {
+		if (isHalted) {
 			return left(acc as A);
 		}
 		if (acc === undefined) {
-			return right(result);
+			return right(nxt.value);
 		}
-		return both(acc, result);
+		return both(acc, nxt.value);
 	}
 
 	/**
@@ -1113,9 +1115,4 @@ export namespace Ior {
 	]
 		? B
 		: never;
-
-	// A unique symbol used by the `Ior` generator comprehension implementation
-	// to signal the underlying generator to return early. This ensures
-	// `try...finally` blocks can execute.
-	const halt = Symbol();
 }

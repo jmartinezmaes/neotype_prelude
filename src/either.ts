@@ -434,17 +434,18 @@ export namespace Either {
 	export function go<E, TReturn>(gen: Go<E, TReturn>): Either<E, TReturn> {
 		let nxt = gen.next();
 		let err: any;
+		let isHalted = false;
 		while (!nxt.done) {
 			const either = nxt.value;
 			if (either.isRight()) {
 				nxt = gen.next(either.val);
 			} else {
 				err = either.val;
-				nxt = gen.return(halt as any);
+				isHalted = true;
+				nxt = gen.return(undefined as any);
 			}
 		}
-		const result = nxt.value;
-		return result === halt ? left(err) : right(result);
+		return isHalted ? left(err) : right(nxt.value);
 	}
 
 	/**
@@ -565,17 +566,18 @@ export namespace Either {
 	): Promise<Either<E, TReturn>> {
 		let nxt = await gen.next();
 		let err: any;
+		let isHalted = false;
 		while (!nxt.done) {
 			const either = nxt.value;
 			if (either.isRight()) {
 				nxt = await gen.next(either.val);
 			} else {
 				err = either.val;
-				nxt = await gen.return(halt as any);
+				isHalted = true;
+				nxt = await gen.return(undefined as any);
 			}
 		}
-		const result = nxt.value;
-		return result === halt ? left(err) : right(result);
+		return isHalted ? left(err) : right(nxt.value);
 	}
 
 	/**
@@ -830,9 +832,4 @@ export namespace Either {
 	]
 		? B
 		: never;
-
-	// A unique symbol used by the `Either` generator comprehension
-	// implementation to signal the underlying generator to return early. This
-	// ensures `try...finally` blocks can execute.
-	const halt = Symbol();
 }
