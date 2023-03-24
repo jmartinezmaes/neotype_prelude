@@ -23,7 +23,6 @@ import {
 	expectLawfulEq,
 	expectLawfulOrd,
 	expectLawfulSemigroup,
-	tuple,
 } from "./_test/utils.js";
 import { cmb } from "./cmb.js";
 import { Ordering, cmp, eq } from "./cmp.js";
@@ -102,7 +101,7 @@ describe("Ior", () => {
 				const x = yield* Ior.right<2, Str>(2);
 				expect(x).to.equal(2);
 				const [y, z] = yield* Ior.left<Str, [2, 4]>(new Str("b"));
-				return tuple(x, y, z);
+				return [x, y, z];
 			}
 			const ior = Ior.go(f());
 			expect(ior).to.deep.equal(Ior.left(new Str("b")));
@@ -112,7 +111,7 @@ describe("Ior", () => {
 			function* f(): Ior.Go<Str, [2, 2, 4]> {
 				const x = yield* Ior.right<2, Str>(2);
 				const [y, z] = yield* Ior.right<[2, 4], Str>([x, 4]);
-				return tuple(x, y, z);
+				return [x, y, z];
 			}
 			const ior = Ior.go(f());
 			expect(ior).to.deep.equal(Ior.right([2, 2, 4]));
@@ -121,11 +120,11 @@ describe("Ior", () => {
 		it("completes and retains the left-hand value if a Both is yielded after a Right", () => {
 			function* f(): Ior.Go<Str, [2, 2, 4]> {
 				const x = yield* Ior.right<2, Str>(2);
-				const [y, z] = yield* Ior.both(
-					new Str("b"),
-					tuple<[2, 4]>(x, 4),
-				);
-				return tuple(x, y, z);
+				const [y, z] = yield* Ior.both<Str, [2, 4]>(new Str("b"), [
+					x,
+					4,
+				]);
+				return [x, y, z];
 			}
 			const ior = Ior.go(f());
 			expect(ior).to.deep.equal(Ior.both(new Str("b"), [2, 2, 4]));
@@ -136,7 +135,7 @@ describe("Ior", () => {
 				const x = yield* Ior.both<Str, 2>(new Str("a"), 2);
 				expect(x).to.equal(2);
 				const [y, z] = yield* Ior.left<Str, [2, 4]>(new Str("b"));
-				return tuple(x, y, z);
+				return [x, y, z];
 			}
 			const ior = Ior.go(f());
 			expect(ior).to.deep.equal(Ior.left(new Str("ab")));
@@ -146,7 +145,7 @@ describe("Ior", () => {
 			function* f(): Ior.Go<Str, [2, 2, 4]> {
 				const x = yield* Ior.both<Str, 2>(new Str("a"), 2);
 				const [y, z] = yield* Ior.right<[2, 4], Str>([x, 4]);
-				return tuple(x, y, z);
+				return [x, y, z];
 			}
 			const ior = Ior.go(f());
 			expect(ior).to.deep.equal(Ior.both(new Str("a"), [2, 2, 4]));
@@ -155,11 +154,11 @@ describe("Ior", () => {
 		it("completes and combines the left-hand values if a Both is yielded after a Both", () => {
 			function* f(): Ior.Go<Str, [2, 2, 4]> {
 				const x = yield* Ior.both<Str, 2>(new Str("a"), 2);
-				const [y, z] = yield* Ior.both(
-					new Str("b"),
-					tuple<[2, 4]>(x, 4),
-				);
-				return tuple(x, y, z);
+				const [y, z] = yield* Ior.both<Str, [2, 4]>(new Str("b"), [
+					x,
+					4,
+				]);
+				return [x, y, z];
 			}
 			const ior = Ior.go(f());
 			expect(ior).to.deep.equal(Ior.both(new Str("ab"), [2, 2, 4]));
@@ -246,7 +245,10 @@ describe("Ior", () => {
 
 	describe("lift", () => {
 		it("lifts the function into the context of Ior", () => {
-			const ior = Ior.lift(tuple<[2, 4]>)(
+			function f<A, B>(lhs: A, rhs: B): [A, B] {
+				return [lhs, rhs];
+			}
+			const ior = Ior.lift(f<2, 4>)(
 				Ior.both(new Str("a"), 2),
 				Ior.both(new Str("b"), 4),
 			);
@@ -262,7 +264,7 @@ describe("Ior", () => {
 				const [y, z] = yield* await Promise.resolve(
 					Ior.left<Str, [2, 4]>(new Str("b")),
 				);
-				return tuple(x, y, z);
+				return [x, y, z];
 			}
 			const ior = await Ior.goAsync(f());
 			expect(ior).to.deep.equal(Ior.left(new Str("b")));
@@ -274,7 +276,7 @@ describe("Ior", () => {
 				const [y, z] = yield* await Promise.resolve(
 					Ior.right<[2, 4], Str>([x, 4]),
 				);
-				return tuple(x, y, z);
+				return [x, y, z];
 			}
 			const ior = await Ior.goAsync(f());
 			expect(ior).to.deep.equal(Ior.right([2, 2, 4]));
@@ -284,9 +286,9 @@ describe("Ior", () => {
 			async function* f(): Ior.GoAsync<Str, [2, 2, 4]> {
 				const x = yield* await Promise.resolve(Ior.right<2, Str>(2));
 				const [y, z] = yield* await Promise.resolve(
-					Ior.both(new Str("b"), tuple<[2, 4]>(x, 4)),
+					Ior.both<Str, [2, 4]>(new Str("b"), [x, 4]),
 				);
-				return tuple(x, y, z);
+				return [x, y, z];
 			}
 			const ior = await Ior.goAsync(f());
 			expect(ior).to.deep.equal(Ior.both(new Str("b"), [2, 2, 4]));
@@ -301,7 +303,7 @@ describe("Ior", () => {
 				const [y, z] = yield* await Promise.resolve(
 					Ior.left<Str, [2, 4]>(new Str("b")),
 				);
-				return tuple(x, y, z);
+				return [x, y, z];
 			}
 			const ior = await Ior.goAsync(f());
 			expect(ior).to.deep.equal(Ior.left(new Str("ab")));
@@ -315,7 +317,7 @@ describe("Ior", () => {
 				const [y, z] = yield* await Promise.resolve(
 					Ior.right<[2, 4], Str>([x, 4]),
 				);
-				return tuple(x, y, z);
+				return [x, y, z];
 			}
 			const ior = await Ior.goAsync(f());
 			expect(ior).to.deep.equal(Ior.both(new Str("a"), [2, 2, 4]));
@@ -327,9 +329,9 @@ describe("Ior", () => {
 					Ior.both<Str, 2>(new Str("a"), 2),
 				);
 				const [y, z] = yield* await Promise.resolve(
-					Ior.both(new Str("b"), tuple<[2, 4]>(x, 4)),
+					Ior.both<Str, [2, 4]>(new Str("b"), [x, 4]),
 				);
-				return tuple(x, y, z);
+				return [x, y, z];
 			}
 			const ior = await Ior.goAsync(f());
 			expect(ior).to.deep.equal(Ior.both(new Str("ab"), [2, 2, 4]));
@@ -341,12 +343,9 @@ describe("Ior", () => {
 					Ior.both<Str, Promise<2>>(new Str("a"), Promise.resolve(2)),
 				);
 				const [y, z] = yield* await Promise.resolve(
-					Ior.both(
-						new Str("b"),
-						Promise.resolve(tuple<[2, 4]>(x, 4)),
-					),
+					Ior.both(new Str("b"), Promise.resolve<[2, 4]>([x, 4])),
 				);
-				return Promise.resolve(tuple(x, y, z));
+				return Promise.resolve([x, y, z]);
 			}
 			const ior = await Ior.goAsync(f());
 			expect(ior).to.deep.equal(Ior.both(new Str("ab"), [2, 2, 4]));
@@ -699,7 +698,7 @@ describe("Ior", () => {
 			const result = Ior.left<1, 2>(1).unwrap(
 				(x): [1, 3] => [x, 3],
 				(x): [2, 4] => [x, 4],
-				tuple,
+				(fst, snd): [1, 2] => [fst, snd],
 			);
 			expect(result).to.deep.equal([1, 3]);
 		});
@@ -708,7 +707,7 @@ describe("Ior", () => {
 			const result = Ior.right<2, 1>(2).unwrap(
 				(x): [1, 3] => [x, 3],
 				(x): [2, 4] => [x, 4],
-				tuple,
+				(fst, snd): [1, 2] => [fst, snd],
 			);
 			expect(result).to.deep.equal([2, 4]);
 		});
@@ -717,7 +716,7 @@ describe("Ior", () => {
 			const result = Ior.both<1, 2>(1, 2).unwrap(
 				(x): [1, 3] => [x, 3],
 				(x): [2, 4] => [x, 4],
-				tuple,
+				(fst, snd): [1, 2] => [fst, snd],
 			);
 			expect(result).to.deep.equal([1, 2]);
 		});
@@ -816,7 +815,7 @@ describe("Ior", () => {
 		it("applies the function to the right-hand values if both variants have right-hand values", () => {
 			const ior = Ior.both<Str, 2>(new Str("a"), 2).zipWith(
 				Ior.both<Str, 4>(new Str("b"), 4),
-				tuple,
+				(lhs, rhs): [2, 4] => [lhs, rhs],
 			);
 			expect(ior).to.deep.equal(Ior.both(new Str("ab"), [2, 4]));
 		});

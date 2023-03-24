@@ -22,7 +22,6 @@ import {
 	expectLawfulEq,
 	expectLawfulOrd,
 	expectLawfulSemigroup,
-	tuple,
 } from "./_test/utils.js";
 import { cmb } from "./cmb.js";
 import { cmp, eq } from "./cmp.js";
@@ -121,7 +120,10 @@ describe("Pair", () => {
 
 	describe("#unwrap", () => {
 		it("applies the function to the first value and the second value", () => {
-			const result = new Pair<1, 2>(1, 2).unwrap(tuple);
+			const result = new Pair<1, 2>(1, 2).unwrap((fst, snd): [1, 2] => [
+				fst,
+				snd,
+			]);
 			expect(result).to.deep.equal([1, 2]);
 		});
 	});

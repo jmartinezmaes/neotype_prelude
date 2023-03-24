@@ -22,7 +22,6 @@ import {
 	expectLawfulEq,
 	expectLawfulOrd,
 	expectLawfulSemigroup,
-	tuple,
 } from "./_test/utils.js";
 import { cmb } from "./cmb.js";
 import { Ordering, cmp, eq } from "./cmp.js";
@@ -72,7 +71,7 @@ describe("Either", () => {
 			function* f(): Either.Go<1 | [2, 3], [2, 4]> {
 				const x = yield* Either.right<2, 1>(2);
 				const y = yield* Either.left<[2, 3], 4>([x, 3]);
-				return tuple(x, y);
+				return [x, y];
 			}
 			const either = Either.go(f());
 			expect(either).to.deep.equal(Either.left([2, 3]));
@@ -82,7 +81,7 @@ describe("Either", () => {
 			function* f(): Either.Go<1 | 3, [2, 2, 4]> {
 				const x = yield* Either.right<2, 1>(2);
 				const [y, z] = yield* Either.right<[2, 4], 3>([x, 4]);
-				return tuple(x, y, z);
+				return [x, y, z];
 			}
 			const either = Either.go(f());
 			expect(either).to.deep.equal(Either.right([2, 2, 4]));
@@ -154,7 +153,10 @@ describe("Either", () => {
 
 	describe("lift", () => {
 		it("lifts the function into the context of Either", () => {
-			const either = Either.lift(tuple<[2, 4]>)(
+			function f<A, B>(lhs: A, rhs: B): [A, B] {
+				return [lhs, rhs];
+			}
+			const either = Either.lift(f<2, 4>)(
 				Either.right<2, 1>(2),
 				Either.right<4, 3>(4),
 			);
@@ -169,7 +171,7 @@ describe("Either", () => {
 				const y = yield* await Promise.resolve(
 					Either.left<[2, 3], 4>([x, 3]),
 				);
-				return tuple(x, y);
+				return [x, y];
 			}
 			const either = await Either.goAsync(f());
 			expect(either).to.deep.equal(Either.left([2, 3]));
@@ -181,7 +183,7 @@ describe("Either", () => {
 				const [y, z] = yield* await Promise.resolve(
 					Either.right<[2, 4], 3>([x, 4]),
 				);
-				return tuple(x, y, z);
+				return [x, y, z];
 			}
 			const either = await Either.goAsync(f());
 			expect(either).to.deep.equal(Either.right([2, 2, 4]));
@@ -195,7 +197,7 @@ describe("Either", () => {
 				const [y, z] = yield* await Promise.resolve(
 					Either.right<Promise<[2, 4]>, 3>(Promise.resolve([x, 4])),
 				);
-				return Promise.resolve(tuple(x, y, z));
+				return Promise.resolve([x, y, z]);
 			}
 			const either = await Either.goAsync(f());
 			expect(either).to.deep.equal(Either.right([2, 2, 4]));
@@ -416,7 +418,7 @@ describe("Either", () => {
 		it("applies the function to the successes if both variants are Right", () => {
 			const either = Either.right<2, 1>(2).zipWith(
 				Either.right<4, 3>(4),
-				tuple,
+				(lhs, rhs): [2, 4] => [lhs, rhs],
 			);
 			expect(either).to.deep.equal(Either.right([2, 4]));
 		});

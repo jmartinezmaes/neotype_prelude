@@ -23,7 +23,6 @@ import {
 	expectLawfulEq,
 	expectLawfulOrd,
 	expectLawfulSemigroup,
-	tuple,
 } from "./_test/utils.js";
 import { cmb } from "./cmb.js";
 import { Ordering, cmp, eq } from "./cmp.js";
@@ -92,7 +91,10 @@ describe("Validation", () => {
 
 	describe("lift", () => {
 		it("lifts the function into the context of Validation", () => {
-			const vdn = Validation.lift(tuple<[2, 4]>)(
+			function f<A, B>(lhs: A, rhs: B): [A, B] {
+				return [lhs, rhs];
+			}
+			const vdn = Validation.lift(f<2, 4>)(
 				Validation.ok(2),
 				Validation.ok(4),
 			);
@@ -246,7 +248,7 @@ describe("Validation", () => {
 		it("combines the failures if both variants are Err", () => {
 			const vdn = Validation.err<Str, 2>(new Str("a")).zipWith(
 				Validation.err<Str, 4>(new Str("b")),
-				tuple,
+				(lhs, rhs): [2, 4] => [lhs, rhs],
 			);
 			expect(vdn).to.deep.equal(Validation.err(new Str("ab")));
 		});
@@ -254,7 +256,7 @@ describe("Validation", () => {
 		it("returns the first Err if the second variant is Ok", () => {
 			const vdn = Validation.err<Str, 2>(new Str("a")).zipWith(
 				Validation.ok<4, Str>(4),
-				tuple,
+				(lhs, rhs): [2, 4] => [lhs, rhs],
 			);
 			expect(vdn).to.deep.equal(Validation.err(new Str("a")));
 		});
@@ -262,7 +264,7 @@ describe("Validation", () => {
 		it("returns the second Err if the first variant is Ok", () => {
 			const vdn = Validation.ok<2, Str>(2).zipWith(
 				Validation.err<Str, 4>(new Str("b")),
-				tuple,
+				(lhs, rhs): [2, 4] => [lhs, rhs],
 			);
 			expect(vdn).to.deep.equal(Validation.err(new Str("b")));
 		});
@@ -270,7 +272,7 @@ describe("Validation", () => {
 		it("applies the function to the successes if both variants are Ok", () => {
 			const vdn = Validation.ok<2, Str>(2).zipWith(
 				Validation.ok<4, Str>(4),
-				tuple,
+				(lhs, rhs): [2, 4] => [lhs, rhs],
 			);
 			expect(vdn).to.deep.equal(Validation.ok([2, 4]));
 		});

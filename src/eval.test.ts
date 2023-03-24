@@ -16,7 +16,7 @@
 
 import * as fc from "fast-check";
 import { describe, expect, it } from "vitest";
-import { arbStr, expectLawfulSemigroup, tuple } from "./_test/utils.js";
+import { arbStr, expectLawfulSemigroup } from "./_test/utils.js";
 import { Semigroup, cmb } from "./cmb.js";
 import { Eq, eq } from "./cmp.js";
 import { Eval } from "./eval.js";
@@ -39,7 +39,7 @@ describe("Eval", () => {
 			f.counter = 0;
 
 			const once = Eval.once(f);
-			const ev = once.zipWith(once, tuple);
+			const ev = once.zipWith(once, (lhs, rhs): [1, 1] => [lhs, rhs]);
 			const outcome = ev.run();
 			expect(outcome).to.deep.equal([1, 1]);
 			expect(f.counter).to.equal(1);
@@ -55,7 +55,7 @@ describe("Eval", () => {
 			f.counter = 0;
 
 			const always = Eval.always(f);
-			const ev = always.zipWith(always, tuple);
+			const ev = always.zipWith(always, (lhs, rhs): [1, 1] => [lhs, rhs]);
 			const outcome = ev.run();
 			expect(outcome).to.deep.equal([1, 1]);
 			expect(f.counter).to.equal(2);
@@ -74,8 +74,8 @@ describe("Eval", () => {
 		it("constructs an Eval using the generator comprehension", () => {
 			function* f(): Eval.Go<[1, 1, 2]> {
 				const x = yield* Eval.now<1>(1);
-				const [y, z] = yield* Eval.now(tuple<[1, 2]>(x, 2));
-				return tuple(x, y, z);
+				const [y, z] = yield* Eval.now<[1, 2]>([x, 2]);
+				return [x, y, z];
 			}
 			const ev = Eval.go(f());
 			const outcome = ev.run();
@@ -112,7 +112,10 @@ describe("Eval", () => {
 
 	describe("lift", () => {
 		it("lifts the function into the context of Eval", () => {
-			const ev = Eval.lift(tuple)(Eval.now<1>(1), Eval.now<2>(2));
+			function f<A, B>(lhs: A, rhs: B): [A, B] {
+				return [lhs, rhs];
+			}
+			const ev = Eval.lift(f)(Eval.now<1>(1), Eval.now<2>(2));
 			const outcome = ev.run();
 			expect(outcome).to.deep.equal([1, 2]);
 		});
@@ -178,7 +181,10 @@ describe("Eval", () => {
 
 	describe("#zipWith", () => {
 		it("applies the function to the outcomes", () => {
-			const ev = Eval.now<1>(1).zipWith(Eval.now<2>(2), tuple);
+			const ev = Eval.now<1>(1).zipWith(
+				Eval.now<2>(2),
+				(lhs, rhs): [1, 2] => [lhs, rhs],
+			);
 			const outcome = ev.run();
 			expect(outcome).to.deep.equal([1, 2]);
 		});
@@ -202,7 +208,7 @@ describe("Eval", () => {
 
 	describe("#map", () => {
 		it("applies the function to the outcome", () => {
-			const ev = Eval.now<1>(1).map((x): [1, 2] => tuple(x, 2));
+			const ev = Eval.now<1>(1).map((x): [1, 2] => [x, 2]);
 			const outcome = ev.run();
 			expect(outcome).to.deep.equal([1, 2]);
 		});

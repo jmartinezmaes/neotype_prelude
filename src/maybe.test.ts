@@ -22,7 +22,6 @@ import {
 	expectLawfulEq,
 	expectLawfulOrd,
 	expectLawfulSemigroup,
-	tuple,
 	type Num,
 	type Str,
 } from "./_test/utils.js";
@@ -109,7 +108,7 @@ describe("Maybe", () => {
 			function* f(): Maybe.Go<[1, 1, 2]> {
 				const x = yield* Maybe.just<1>(1);
 				const [y, z] = yield* nothing<[1, 2]>();
-				return tuple(x, y, z);
+				return [x, y, z];
 			}
 			const maybe = Maybe.go(f());
 			expect(maybe).to.equal(Maybe.nothing);
@@ -119,7 +118,7 @@ describe("Maybe", () => {
 			function* f(): Maybe.Go<[1, 1, 2]> {
 				const x = yield* Maybe.just<1>(1);
 				const [y, z] = yield* Maybe.just<[1, 2]>([x, 2]);
-				return tuple(x, y, z);
+				return [x, y, z];
 			}
 			const maybe = Maybe.go(f());
 			expect(maybe).to.deep.equal(Maybe.just([1, 1, 2]));
@@ -185,10 +184,10 @@ describe("Maybe", () => {
 
 	describe("lift", () => {
 		it("lifts the function into the context of Maybe", () => {
-			const maybe = Maybe.lift(tuple<[1, 2]>)(
-				Maybe.just(1),
-				Maybe.just(2),
-			);
+			function f<A, B>(lhs: A, rhs: B): [A, B] {
+				return [lhs, rhs];
+			}
+			const maybe = Maybe.lift(f)(Maybe.just(1), Maybe.just(2));
 			expect(maybe).to.deep.equal(Maybe.just([1, 2]));
 		});
 	});
@@ -198,7 +197,7 @@ describe("Maybe", () => {
 			async function* f(): Maybe.GoAsync<[1, 1, 2]> {
 				const x = yield* await Promise.resolve(Maybe.just<1>(1));
 				const [y, z] = yield* await Promise.resolve(nothing<[1, 2]>());
-				return tuple(x, y, z);
+				return [x, y, z];
 			}
 			const maybe = await Maybe.goAsync(f());
 			expect(maybe).to.equal(Maybe.nothing);
@@ -210,7 +209,7 @@ describe("Maybe", () => {
 				const [y, z] = yield* await Promise.resolve(
 					Maybe.just<[1, 2]>([x, 2]),
 				);
-				return tuple(x, y, z);
+				return [x, y, z];
 			}
 			const maybe = await Maybe.goAsync(f());
 			expect(maybe).to.deep.equal(Maybe.just([1, 1, 2]));
@@ -224,7 +223,7 @@ describe("Maybe", () => {
 				const [y, z] = yield* await Promise.resolve(
 					Maybe.just(Promise.resolve<[1, 2]>([x, 2])),
 				);
-				return Promise.resolve(tuple(x, y, z));
+				return Promise.resolve([x, y, z]);
 			}
 			const maybe = await Maybe.goAsync(f());
 			expect(maybe).to.deep.equal(Maybe.just([1, 1, 2]));
@@ -527,7 +526,10 @@ describe("Maybe", () => {
 
 	describe("#zipWith", () => {
 		it("applies the function to the values if both variants are Just", () => {
-			const maybe = Maybe.just<1>(1).zipWith(Maybe.just<2>(2), tuple);
+			const maybe = Maybe.just<1>(1).zipWith(
+				Maybe.just<2>(2),
+				(lhs, rhs): [1, 2] => [lhs, rhs],
+			);
 			expect(maybe).to.deep.equal(Maybe.just([1, 2]));
 		});
 	});
@@ -548,7 +550,7 @@ describe("Maybe", () => {
 
 	describe("#map", () => {
 		it("applies the function to the value if the variant is Just", () => {
-			const maybe = Maybe.just<1>(1).map((x): [1, 2] => tuple(x, 2));
+			const maybe = Maybe.just<1>(1).map((x): [1, 2] => [x, 2]);
 			expect(maybe).to.deep.equal(Maybe.just([1, 2]));
 		});
 	});
