@@ -141,6 +141,18 @@ describe("Maybe", () => {
 			expect(maybe).to.equal(Maybe.nothing);
 			expect(logs).to.deep.equal(["finally"]);
 		});
+
+		it("returns Nothing if Nothing is yielded in the finally block", () => {
+			function* f(): Maybe.Go<number[]> {
+				try {
+					return [1];
+				} finally {
+					yield* nothing<1>();
+				}
+			}
+			const maybe = Maybe.go(f());
+			expect(maybe).to.equal(Maybe.nothing);
+		});
 	});
 
 	describe("reduce", () => {
@@ -233,6 +245,18 @@ describe("Maybe", () => {
 			const maybe = await Maybe.goAsync(f());
 			expect(maybe).to.equal(Maybe.nothing);
 			expect(logs).to.deep.equal(["finally"]);
+		});
+
+		it("returns Nothing if Nothing is yielded in the finally block", async () => {
+			async function* f(): Maybe.GoAsync<number[]> {
+				try {
+					return [1];
+				} finally {
+					yield* nothing<1>();
+				}
+			}
+			const maybe = await Maybe.goAsync(f());
+			expect(maybe).to.equal(Maybe.nothing);
 		});
 	});
 
