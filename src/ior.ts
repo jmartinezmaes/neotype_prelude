@@ -611,17 +611,14 @@ export namespace Ior {
 		{ -readonly [K in keyof TIors]: RightT<TIors[K]> }
 	> {
 		return go(
-			(function* () {
+			(function* (): Ior.Go<any, any> {
 				const results = new Array(iors.length);
 				for (const [idx, ior] of iors.entries()) {
 					results[idx] = yield* ior;
 				}
 				return results;
 			})(),
-		) as Ior<
-			LeftT<TIors[number]>,
-			{ [K in keyof TIors]: RightT<TIors[K]> }
-		>;
+		);
 	}
 
 	/**
@@ -649,17 +646,14 @@ export namespace Ior {
 		{ -readonly [K in keyof TIors]: RightT<TIors[K]> }
 	> {
 		return Ior.go(
-			(function* () {
+			(function* (): Ior.Go<any, any> {
 				const results: Record<any, any> = {};
 				for (const [key, ior] of Object.entries(iors)) {
 					results[key] = yield* ior;
 				}
 				return results;
 			})(),
-		) as Ior<
-			LeftT<TIors[keyof TIors]>,
-			{ [K in keyof TIors]: RightT<TIors[K]> }
-		>;
+		);
 	}
 
 	/**
