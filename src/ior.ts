@@ -1078,7 +1078,7 @@ export namespace Ior {
 	 *
 	 */
 	export type Go<A extends Semigroup<A>, TReturn> = Generator<
-		Ior<A, any>,
+		Ior<A, unknown>,
 		TReturn,
 		unknown
 	>;
@@ -1087,7 +1087,7 @@ export namespace Ior {
 	 *
 	 */
 	export type GoAsync<A extends Semigroup<A>, TReturn> = AsyncGenerator<
-		Ior<A, any>,
+		Ior<A, unknown>,
 		TReturn,
 		unknown
 	>;

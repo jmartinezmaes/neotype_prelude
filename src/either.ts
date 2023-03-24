@@ -804,7 +804,11 @@ export namespace Either {
 	/**
 	 *
 	 */
-	export type Go<E, TReturn> = Generator<Either<E, any>, TReturn, undefined>;
+	export type Go<E, TReturn> = Generator<
+		Either<E, unknown>,
+		TReturn,
+		unknown
+	>;
 
 	/**
 	 *
@@ -812,7 +816,7 @@ export namespace Either {
 	export type GoAsync<E, TReturn> = AsyncGenerator<
 		Either<E, any>,
 		TReturn,
-		undefined
+		unknown
 	>;
 
 	/**

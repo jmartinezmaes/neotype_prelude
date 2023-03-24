@@ -872,12 +872,16 @@ export namespace Maybe {
 	/**
 	 *
 	 */
-	export type Go<TReturn> = Generator<Maybe<any>, TReturn, unknown>;
+	export type Go<TReturn> = Generator<Maybe<unknown>, TReturn, unknown>;
 
 	/**
 	 *
 	 */
-	export type GoAsync<TReturn> = AsyncGenerator<Maybe<any>, TReturn, unknown>;
+	export type GoAsync<TReturn> = AsyncGenerator<
+		Maybe<unknown>,
+		TReturn,
+		unknown
+	>;
 
 	/**
 	 * Extract the present value type `T` from the type `Maybe<T>`.

@@ -565,7 +565,7 @@ export namespace Eval {
 	/**
 	 *
 	 */
-	export type Go<TReturn> = Generator<Eval<any>, TReturn, unknown>;
+	export type Go<TReturn> = Generator<Eval<unknown>, TReturn, unknown>;
 
 	/**
 	 * Extract the outcome type `T` from the type `Eval<T>`.
