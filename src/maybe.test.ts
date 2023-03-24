@@ -106,26 +106,28 @@ describe("Maybe", () => {
 
 	describe("go", () => {
 		it("short-circuits on the first yielded Nothing", () => {
-			const maybe = Maybe.go(function* () {
+			function* f(): Maybe.Go<[1, 1, 2]> {
 				const x = yield* Maybe.just<1>(1);
 				const [y, z] = yield* nothing<[1, 2]>();
 				return tuple(x, y, z);
-			});
+			}
+			const maybe = Maybe.go(f());
 			expect(maybe).to.equal(Maybe.nothing);
 		});
 
 		it("completes if all yielded values are Just", () => {
-			const maybe = Maybe.go(function* () {
+			function* f(): Maybe.Go<[1, 1, 2]> {
 				const x = yield* Maybe.just<1>(1);
 				const [y, z] = yield* Maybe.just<[1, 2]>([x, 2]);
 				return tuple(x, y, z);
-			});
+			}
+			const maybe = Maybe.go(f());
 			expect(maybe).to.deep.equal(Maybe.just([1, 1, 2]));
 		});
 
 		it("executes the finally block if Nothing is yielded in the try block", () => {
 			const logs: string[] = [];
-			const maybe = Maybe.go(function* () {
+			function* f(): Maybe.Go<number[]> {
 				try {
 					const results = [];
 					const x = yield* nothing<1>();
@@ -134,7 +136,8 @@ describe("Maybe", () => {
 				} finally {
 					logs.push("finally");
 				}
-			});
+			}
+			const maybe = Maybe.go(f());
 			expect(maybe).to.equal(Maybe.nothing);
 			expect(logs).to.deep.equal(["finally"]);
 		});
@@ -180,27 +183,29 @@ describe("Maybe", () => {
 
 	describe("goAsync", async () => {
 		it("short-circuits on the first yielded Nothing", async () => {
-			const maybe = await Maybe.goAsync(async function* () {
+			async function* f(): Maybe.GoAsync<[1, 1, 2]> {
 				const x = yield* await Promise.resolve(Maybe.just<1>(1));
 				const [y, z] = yield* await Promise.resolve(nothing<[1, 2]>());
 				return tuple(x, y, z);
-			});
+			}
+			const maybe = await Maybe.goAsync(f());
 			expect(maybe).to.equal(Maybe.nothing);
 		});
 
 		it("completes if all yielded values are Just", async () => {
-			const maybe = await Maybe.goAsync(async function* () {
+			async function* f(): Maybe.GoAsync<[1, 1, 2]> {
 				const x = yield* await Promise.resolve(Maybe.just<1>(1));
 				const [y, z] = yield* await Promise.resolve(
 					Maybe.just<[1, 2]>([x, 2]),
 				);
 				return tuple(x, y, z);
-			});
+			}
+			const maybe = await Maybe.goAsync(f());
 			expect(maybe).to.deep.equal(Maybe.just([1, 1, 2]));
 		});
 
 		it("unwraps Promises in Just variants and in return", async () => {
-			const maybe = await Maybe.goAsync(async function* () {
+			async function* f(): Maybe.GoAsync<[1, 1, 2]> {
 				const x = yield* await Promise.resolve(
 					Maybe.just(Promise.resolve<1>(1)),
 				);
@@ -208,13 +213,14 @@ describe("Maybe", () => {
 					Maybe.just(Promise.resolve<[1, 2]>([x, 2])),
 				);
 				return Promise.resolve(tuple(x, y, z));
-			});
+			}
+			const maybe = await Maybe.goAsync(f());
 			expect(maybe).to.deep.equal(Maybe.just([1, 1, 2]));
 		});
 
 		it("executes the finally block if Nothing is yielded in the try block", async () => {
 			const logs: string[] = [];
-			const maybe = await Maybe.goAsync(async function* () {
+			async function* f(): Maybe.GoAsync<number[]> {
 				try {
 					const results = [];
 					const x = yield* await Promise.resolve(nothing<1>());
@@ -223,7 +229,8 @@ describe("Maybe", () => {
 				} finally {
 					logs.push("finally");
 				}
-			});
+			}
+			const maybe = await Maybe.goAsync(f());
 			expect(maybe).to.equal(Maybe.nothing);
 			expect(logs).to.deep.equal(["finally"]);
 		});

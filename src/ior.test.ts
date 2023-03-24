@@ -98,70 +98,76 @@ describe("Ior", () => {
 
 	describe("go", () => {
 		it("short-circuits on the first yielded Left", () => {
-			const ior = Ior.go(function* () {
+			function* f(): Ior.Go<Str, [2, 2, 4]> {
 				const x = yield* Ior.right<2, Str>(2);
 				expect(x).to.equal(2);
 				const [y, z] = yield* Ior.left<Str, [2, 4]>(new Str("b"));
 				return tuple(x, y, z);
-			});
+			}
+			const ior = Ior.go(f());
 			expect(ior).to.deep.equal(Ior.left(new Str("b")));
 		});
 
 		it("completes if all yielded values are Right", () => {
-			const ior = Ior.go(function* () {
+			function* f(): Ior.Go<Str, [2, 2, 4]> {
 				const x = yield* Ior.right<2, Str>(2);
 				const [y, z] = yield* Ior.right<[2, 4], Str>([x, 4]);
 				return tuple(x, y, z);
-			});
+			}
+			const ior = Ior.go(f());
 			expect(ior).to.deep.equal(Ior.right([2, 2, 4]));
 		});
 
 		it("completes and retains the left-hand value if a Both is yielded after a Right", () => {
-			const ior = Ior.go(function* () {
+			function* f(): Ior.Go<Str, [2, 2, 4]> {
 				const x = yield* Ior.right<2, Str>(2);
 				const [y, z] = yield* Ior.both(
 					new Str("b"),
 					tuple<[2, 4]>(x, 4),
 				);
 				return tuple(x, y, z);
-			});
+			}
+			const ior = Ior.go(f());
 			expect(ior).to.deep.equal(Ior.both(new Str("b"), [2, 2, 4]));
 		});
 
 		it("short-circuits and combines the left-hand values if a Left is yielded after a Both", () => {
-			const ior = Ior.go(function* () {
+			function* f(): Ior.Go<Str, [2, 2, 4]> {
 				const x = yield* Ior.both<Str, 2>(new Str("a"), 2);
 				expect(x).to.equal(2);
 				const [y, z] = yield* Ior.left<Str, [2, 4]>(new Str("b"));
 				return tuple(x, y, z);
-			});
+			}
+			const ior = Ior.go(f());
 			expect(ior).to.deep.equal(Ior.left(new Str("ab")));
 		});
 
 		it("completes and retains the left-hand value if a Right is yielded after a Both", () => {
-			const ior = Ior.go(function* () {
+			function* f(): Ior.Go<Str, [2, 2, 4]> {
 				const x = yield* Ior.both<Str, 2>(new Str("a"), 2);
 				const [y, z] = yield* Ior.right<[2, 4], Str>([x, 4]);
 				return tuple(x, y, z);
-			});
+			}
+			const ior = Ior.go(f());
 			expect(ior).to.deep.equal(Ior.both(new Str("a"), [2, 2, 4]));
 		});
 
 		it("completes and combines the left-hand values if a Both is yielded after a Both", () => {
-			const ior = Ior.go(function* () {
+			function* f(): Ior.Go<Str, [2, 2, 4]> {
 				const x = yield* Ior.both<Str, 2>(new Str("a"), 2);
 				const [y, z] = yield* Ior.both(
 					new Str("b"),
 					tuple<[2, 4]>(x, 4),
 				);
 				return tuple(x, y, z);
-			});
+			}
+			const ior = Ior.go(f());
 			expect(ior).to.deep.equal(Ior.both(new Str("ab"), [2, 2, 4]));
 		});
 
 		it("executes the finally block if a Left is yielded in the try block", () => {
 			const logs: string[] = [];
-			const ior = Ior.go(function* () {
+			function* f(): Ior.Go<Str, number[]> {
 				try {
 					const results = [];
 					const x = yield* Ior.left<Str, 2>(new Str("a"));
@@ -170,13 +176,14 @@ describe("Ior", () => {
 				} finally {
 					logs.push("finally");
 				}
-			});
+			}
+			const ior = Ior.go(f());
 			expect(ior).to.deep.equal(Ior.left(new Str("a")));
 			expect(logs).to.deep.equal(["finally"]);
 		});
 
 		it("combines the left-hand values of two Left variants across the try...finally block", () => {
-			const ior = Ior.go(function* () {
+			function* f(): Ior.Go<Str, number[]> {
 				try {
 					const results = [];
 					const x = yield* Ior.left<Str, 2>(new Str("a"));
@@ -185,12 +192,13 @@ describe("Ior", () => {
 				} finally {
 					yield* Ior.left<Str, 4>(new Str("b"));
 				}
-			});
+			}
+			const ior = Ior.go(f());
 			expect(ior).to.deep.equal(Ior.left(new Str("ab")));
 		});
 
 		it("combines the left-hand values of a Left variant and a Both variant across the try...finally block", () => {
-			const ior = Ior.go(function* () {
+			function* f(): Ior.Go<Str, number[]> {
 				try {
 					const results = [];
 					const x = yield* Ior.left<Str, 2>(new Str("a"));
@@ -199,7 +207,8 @@ describe("Ior", () => {
 				} finally {
 					yield* Ior.both<Str, 4>(new Str("b"), 4);
 				}
-			});
+			}
+			const ior = Ior.go(f());
 			expect(ior).to.deep.equal(Ior.left(new Str("ab")));
 		});
 	});
@@ -247,41 +256,44 @@ describe("Ior", () => {
 
 	describe("goAsync", async () => {
 		it("short-circuits on the first yielded Left", async () => {
-			const ior = await Ior.goAsync(async function* () {
+			async function* f(): Ior.GoAsync<Str, [2, 2, 4]> {
 				const x = yield* await Promise.resolve(Ior.right<2, Str>(2));
 				expect(x).to.equal(2);
 				const [y, z] = yield* await Promise.resolve(
 					Ior.left<Str, [2, 4]>(new Str("b")),
 				);
 				return tuple(x, y, z);
-			});
+			}
+			const ior = await Ior.goAsync(f());
 			expect(ior).to.deep.equal(Ior.left(new Str("b")));
 		});
 
 		it("completes if all yielded values are Right", async () => {
-			const ior = await Ior.goAsync(async function* () {
+			async function* f(): Ior.GoAsync<Str, [2, 2, 4]> {
 				const x = yield* await Promise.resolve(Ior.right<2, Str>(2));
 				const [y, z] = yield* await Promise.resolve(
 					Ior.right<[2, 4], Str>([x, 4]),
 				);
 				return tuple(x, y, z);
-			});
+			}
+			const ior = await Ior.goAsync(f());
 			expect(ior).to.deep.equal(Ior.right([2, 2, 4]));
 		});
 
 		it("completes and retains the left-hand value if a Both is yielded after a Right", async () => {
-			const ior = await Ior.goAsync(async function* () {
+			async function* f(): Ior.GoAsync<Str, [2, 2, 4]> {
 				const x = yield* await Promise.resolve(Ior.right<2, Str>(2));
 				const [y, z] = yield* await Promise.resolve(
 					Ior.both(new Str("b"), tuple<[2, 4]>(x, 4)),
 				);
 				return tuple(x, y, z);
-			});
+			}
+			const ior = await Ior.goAsync(f());
 			expect(ior).to.deep.equal(Ior.both(new Str("b"), [2, 2, 4]));
 		});
 
 		it("short-circuits and combines the left-hand values if a Left is yielded after a Both", async () => {
-			const ior = await Ior.goAsync(async function* () {
+			async function* f(): Ior.GoAsync<Str, [2, 2, 4]> {
 				const x = yield* await Promise.resolve(
 					Ior.both<Str, 2>(new Str("a"), 2),
 				);
@@ -290,12 +302,13 @@ describe("Ior", () => {
 					Ior.left<Str, [2, 4]>(new Str("b")),
 				);
 				return tuple(x, y, z);
-			});
+			}
+			const ior = await Ior.goAsync(f());
 			expect(ior).to.deep.equal(Ior.left(new Str("ab")));
 		});
 
 		it("completes and retains the left-hand value if a Right is yielded after a Both", async () => {
-			const ior = await Ior.goAsync(async function* () {
+			async function* f(): Ior.GoAsync<Str, [2, 2, 4]> {
 				const x = yield* await Promise.resolve(
 					Ior.both<Str, 2>(new Str("a"), 2),
 				);
@@ -303,12 +316,13 @@ describe("Ior", () => {
 					Ior.right<[2, 4], Str>([x, 4]),
 				);
 				return tuple(x, y, z);
-			});
+			}
+			const ior = await Ior.goAsync(f());
 			expect(ior).to.deep.equal(Ior.both(new Str("a"), [2, 2, 4]));
 		});
 
 		it("completes and combines the left-hand values if a Both is yielded after", async () => {
-			const ior = await Ior.goAsync(async function* () {
+			async function* f(): Ior.GoAsync<Str, [2, 2, 4]> {
 				const x = yield* await Promise.resolve(
 					Ior.both<Str, 2>(new Str("a"), 2),
 				);
@@ -316,12 +330,13 @@ describe("Ior", () => {
 					Ior.both(new Str("b"), tuple<[2, 4]>(x, 4)),
 				);
 				return tuple(x, y, z);
-			});
+			}
+			const ior = await Ior.goAsync(f());
 			expect(ior).to.deep.equal(Ior.both(new Str("ab"), [2, 2, 4]));
 		});
 
 		it("unwraps Promises in right-hand channels and in return", async () => {
-			const ior = await Ior.goAsync(async function* () {
+			async function* f(): Ior.GoAsync<Str, [2, 2, 4]> {
 				const x = yield* await Promise.resolve(
 					Ior.both<Str, Promise<2>>(new Str("a"), Promise.resolve(2)),
 				);
@@ -332,13 +347,14 @@ describe("Ior", () => {
 					),
 				);
 				return Promise.resolve(tuple(x, y, z));
-			});
+			}
+			const ior = await Ior.goAsync(f());
 			expect(ior).to.deep.equal(Ior.both(new Str("ab"), [2, 2, 4]));
 		});
 
 		it("executes the finally block if a Left is yielded in the try block", async () => {
 			const logs: string[] = [];
-			const ior = await Ior.goAsync(async function* () {
+			async function* f(): Ior.GoAsync<Str, number[]> {
 				try {
 					const results = [];
 					const x = yield* await Promise.resolve(
@@ -349,13 +365,14 @@ describe("Ior", () => {
 				} finally {
 					logs.push("finally");
 				}
-			});
+			}
+			const ior = await Ior.goAsync(f());
 			expect(ior).to.deep.equal(Ior.left(new Str("a")));
 			expect(logs).to.deep.equal(["finally"]);
 		});
 
 		it("combines the left-hand values of two Left variants across the try...finally block", async () => {
-			const ior = await Ior.goAsync(async function* () {
+			async function* f(): Ior.GoAsync<Str, number[]> {
 				try {
 					const results = [];
 					const x = yield* await Promise.resolve(
@@ -366,12 +383,13 @@ describe("Ior", () => {
 				} finally {
 					yield* Ior.left<Str, 4>(new Str("b"));
 				}
-			});
+			}
+			const ior = await Ior.goAsync(f());
 			expect(ior).to.deep.equal(Ior.left(new Str("ab")));
 		});
 
 		it("combines the left-hand values of a Left variant and a Both variant across the try...finally block", async () => {
-			const ior = await Ior.goAsync(async function* () {
+			async function* f(): Ior.GoAsync<Str, number[]> {
 				try {
 					const results = [];
 					const x = yield* await Promise.resolve(
@@ -384,7 +402,8 @@ describe("Ior", () => {
 						Ior.both<Str, 4>(new Str("b"), 4),
 					);
 				}
-			});
+			}
+			const ior = await Ior.goAsync(f());
 			expect(ior).to.deep.equal(Ior.left(new Str("ab")));
 		});
 	});

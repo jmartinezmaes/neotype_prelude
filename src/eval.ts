@@ -340,52 +340,10 @@ export class Eval<out T> {
 	}
 
 	/**
-	 * Construct an `Eval` using a generator comprehension.
 	 *
-	 * @remarks
-	 *
-	 * The contract for generator comprehensions is as follows:
-	 *
-	 * -   The generator provided to `go` must only yield `Eval` values.
-	 * -   `Eval` values must only be yielded using the `yield*` keyword, and
-	 *     never `yield` (without the `*`). Omitting the `*` inhibits proper
-	 *     type inference and may cause undefined behavior.
-	 * -   A `yield*` statement may bind a variable provided by the caller. The
-	 *     variable inherits the type of the outcome of the yielded `Eval`.
-	 * -   The `return` statement of the generator may return a final result,
-	 *     which is returned from `go` in an `Eval`.
-	 * -   All syntax normally permitted in generators (statements, loops,
-	 *     declarations, etc.) is permitted within generator comprehensions.
-	 *
-	 * @example Basic yielding and returning
-	 *
-	 * Consider a comprehension that sums the outcomes of three `Eval` values:
-	 *
-	 * ```ts
-	 * import { Eval } from "@neotype/prelude/eval.js";
-	 *
-	 * const evalOne: Eval<number> = Eval.now(1);
-	 * const evalTimeMs: Eval<number> = Eval.always(() => Date.now());
-	 * const evalRand: Eval<number> = Eval.always(() => Math.random());
-	 *
-	 * const summed: Eval<number> = Eval.go(function* () {
-	 *     const one = yield* evalOne;
-	 *     const timeMs = yield* evalTimeMs;
-	 *     const rand = yield* evalRand;
-	 *
-	 *     return one + timeMs + rand;
-	 * });
-	 *
-	 * console.log(summed.run());
-	 * ```
 	 */
-	static go<TReturn>(
-		f: () => Generator<Eval<any>, TReturn, unknown>,
-	): Eval<TReturn> {
-		return Eval.defer(() => {
-			const gen = f();
-			return Eval.#step(gen, gen.next());
-		});
+	static go<TReturn>(gen: Eval.Go<TReturn>): Eval<TReturn> {
+		return Eval.defer(() => Eval.#step(gen, gen.next()));
 	}
 
 	/**
@@ -403,13 +361,15 @@ export class Eval<out T> {
 		accum: (acc: TAcc, val: T) => Eval<TAcc>,
 		initial: TAcc,
 	): Eval<TAcc> {
-		return Eval.go(function* () {
-			let acc = initial;
-			for (const val of vals) {
-				acc = yield* accum(acc, val);
-			}
-			return acc;
-		});
+		return Eval.go(
+			(function* () {
+				let acc = initial;
+				for (const val of vals) {
+					acc = yield* accum(acc, val);
+				}
+				return acc;
+			})(),
+		);
 	}
 
 	/**
@@ -429,13 +389,15 @@ export class Eval<out T> {
 	static collect<TEvals extends readonly Eval<any>[] | []>(
 		evals: TEvals,
 	): Eval<{ -readonly [K in keyof TEvals]: Eval.ResultT<TEvals[K]> }> {
-		return Eval.go(function* () {
-			const results = new Array(evals.length);
-			for (const [idx, ev] of evals.entries()) {
-				results[idx] = yield* ev;
-			}
-			return results as any;
-		});
+		return Eval.go(
+			(function* () {
+				const results = new Array(evals.length);
+				for (const [idx, ev] of evals.entries()) {
+					results[idx] = yield* ev;
+				}
+				return results as any;
+			})(),
+		);
 	}
 
 	/**
@@ -455,13 +417,15 @@ export class Eval<out T> {
 	static gather<TEvals extends Record<any, Eval<any>>>(
 		evals: TEvals,
 	): Eval<{ -readonly [K in keyof TEvals]: Eval.ResultT<TEvals[K]> }> {
-		return Eval.go(function* () {
-			const results: Record<any, any> = {};
-			for (const [key, ev] of Object.entries(evals)) {
-				results[key] = yield* ev;
-			}
-			return results as any;
-		});
+		return Eval.go(
+			(function* () {
+				const results: Record<any, any> = {};
+				for (const [key, ev] of Object.entries(evals)) {
+					results[key] = yield* ev;
+				}
+				return results as any;
+			})(),
+		);
 	}
 
 	/**
@@ -598,6 +562,11 @@ export class Eval<out T> {
  * The companion namespace for the `Eval` class.
  */
 export namespace Eval {
+	/**
+	 *
+	 */
+	export type Go<TReturn> = Generator<Eval<any>, TReturn, unknown>;
+
 	/**
 	 * Extract the outcome type `T` from the type `Eval<T>`.
 	 */

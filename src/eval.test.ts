@@ -72,11 +72,12 @@ describe("Eval", () => {
 
 	describe("go", () => {
 		it("constructs an Eval using the generator comprehension", () => {
-			const ev = Eval.go(function* () {
+			function* f(): Eval.Go<[1, 1, 2]> {
 				const x = yield* Eval.now<1>(1);
 				const [y, z] = yield* Eval.now(tuple<[1, 2]>(x, 2));
 				return tuple(x, y, z);
-			});
+			}
+			const ev = Eval.go(f());
 			const outcome = ev.run();
 			expect(outcome).to.deep.equal([1, 1, 2]);
 		});

@@ -469,79 +469,21 @@ export namespace Maybe {
 		return (val) => (f(val) ? just(val) : nothing);
 	}
 
-	function step<TReturn>(
-		gen: Generator<Maybe<any>, TReturn | typeof halt, unknown>,
-	): Maybe<TReturn> {
+	/**
+	 *
+	 */
+	export function go<TReturn>(gen: Go<TReturn>): Maybe<TReturn> {
 		let nxt = gen.next();
 		while (!nxt.done) {
 			const maybe = nxt.value;
 			if (maybe.isJust()) {
 				nxt = gen.next(maybe.val);
 			} else {
-				nxt = gen.return(halt);
+				nxt = gen.return(halt as any);
 			}
 		}
 		const result = nxt.value;
 		return result === halt ? nothing : just(result);
-	}
-
-	/**
-	 * Construct a `Maybe` using a generator comprehension.
-	 *
-	 * @remarks
-	 *
-	 * The contract for generator comprehensions is as follows:
-	 *
-	 * -   The generator provided to `go` must only yield `Maybe` values.
-	 * -   `Maybe` values must only be yielded using the `yield*` keyword, and
-	 *     never `yield` (without the `*`). Omitting the `*` inhibits proper
-	 *     type inference and may cause undefined behavior.
-	 * -   A `yield*` statement may bind a variable provided by the caller. The
-	 *     variable inherits the type of the value of the yielded `Maybe`.
-	 * -   If a yielded `Maybe` is present, its value is bound to a variable (if
-	 *     provided) and the generator advances.
-	 * -   If a yielded `Maybe` is absent, the generator halts and `go` returns
-	 *     `Nothing`.
-	 * -   The `return` statement of the generator may return a final result,
-	 *     which is returned from `go` in a `Just` if all yielded `Maybe` values
-	 *     are present.
-	 * -   All syntax normally permitted in generators (statements, loops,
-	 *     declarations, etc.) is permitted within generator comprehensions.
-	 *
-	 * @example Basic yielding and returning
-	 *
-	 * Consider a comprehension that sums the successes of three `Maybe` values:
-	 *
-	 * ```ts
-	 * import { Maybe } from "@neotype/prelude/maybe.js";
-	 *
-	 * const maybeOne: Maybe<number> = Maybe.just(1);
-	 * const maybeTwo: Maybe<number> = Maybe.just(2);
-	 * const maybeThree: Maybe<number> = Maybe.just(3);
-	 *
-	 * const summed: Maybe<number> = Maybe.go(function* () {
-	 *     const one = yield* maybeOne;
-	 *     const two = yield* maybeTwo;
-	 *     const three = yield* maybeThree;
-	 *
-	 *     return one + two + three;
-	 * });
-	 *
-	 * console.log(summed.getOr("Nothing")); // 6
-	 * ```
-	 *
-	 * Now, observe the change in behavior if one of the yielded arguments was
-	 * an absent `Maybe` instead. Replace the declaration of `maybeTwo` with the
-	 * following and re-run the program.
-	 *
-	 * ```ts
-	 * const maybeTwo: Maybe<number> = Maybe.nothing;
-	 * ```
-	 */
-	export function go<TReturn>(
-		f: () => Generator<Maybe<any>, TReturn, unknown>,
-	): Maybe<TReturn> {
-		return step(f());
 	}
 
 	/**
@@ -560,13 +502,15 @@ export namespace Maybe {
 		accum: (acc: TAcc, val: T) => Maybe<TAcc>,
 		initial: TAcc,
 	): Maybe<TAcc> {
-		return go(function* () {
-			let acc = initial;
-			for (const val of vals) {
-				acc = yield* accum(acc, val);
-			}
-			return acc;
-		});
+		return go(
+			(function* () {
+				let acc = initial;
+				for (const val of vals) {
+					acc = yield* accum(acc, val);
+				}
+				return acc;
+			})(),
+		);
 	}
 
 	/**
@@ -587,13 +531,15 @@ export namespace Maybe {
 	export function collect<TMaybes extends readonly Maybe<any>[] | []>(
 		maybes: TMaybes,
 	): Maybe<{ -readonly [K in keyof TMaybes]: JustT<TMaybes[K]> }> {
-		return go(function* () {
-			const results = new Array(maybes.length);
-			for (const [idx, maybe] of maybes.entries()) {
-				results[idx] = yield* maybe;
-			}
-			return results as any;
-		});
+		return go(
+			(function* () {
+				const results = new Array(maybes.length);
+				for (const [idx, maybe] of maybes.entries()) {
+					results[idx] = yield* maybe;
+				}
+				return results as any;
+			})(),
+		);
 	}
 
 	/**
@@ -614,13 +560,15 @@ export namespace Maybe {
 	export function gather<TMaybes extends Record<any, Maybe<any>>>(
 		maybes: TMaybes,
 	): Maybe<{ -readonly [K in keyof TMaybes]: JustT<TMaybes[K]> }> {
-		return go(function* () {
-			const results: Record<any, any> = {};
-			for (const [key, maybe] of Object.entries(maybes)) {
-				results[key] = yield* maybe;
-			}
-			return results as any;
-		});
+		return go(
+			(function* () {
+				const results: Record<any, any> = {};
+				for (const [key, maybe] of Object.entries(maybes)) {
+					results[key] = yield* maybe;
+				}
+				return results as any;
+			})(),
+		);
 	}
 
 	/**
@@ -640,8 +588,11 @@ export namespace Maybe {
 		return (...maybes) => collect(maybes).map((args) => f(...args));
 	}
 
-	async function stepAsync<TReturn>(
-		gen: AsyncGenerator<Maybe<any>, TReturn | typeof halt, unknown>,
+	/**
+	 *
+	 */
+	export async function goAsync<TReturn>(
+		gen: GoAsync<TReturn>,
 	): Promise<Maybe<TReturn>> {
 		let nxt = await gen.next();
 		while (!nxt.done) {
@@ -649,48 +600,11 @@ export namespace Maybe {
 			if (maybe.isJust()) {
 				nxt = await gen.next(maybe.val);
 			} else {
-				nxt = await gen.return(halt);
+				nxt = await gen.return(halt as any);
 			}
 		}
 		const result = nxt.value;
 		return result === halt ? nothing : just(result);
-	}
-
-	/**
-	 * Construct a `Promise` that fulfills with a `Maybe` using an async
-	 * generator comprehension.
-	 *
-	 * @remarks
-	 *
-	 * The contract for async generator comprehensions is as follows:
-	 *
-	 * -   The async generator provided to `goAsync` must only yield `Maybe`
-	 *     values.
-	 *     -   `Promise` values must never be yielded. If a `Promise` contains
-	 *         a `Maybe`, the `Promise` must first be awaited to access and
-	 *         yield the `Maybe`. This is done with a `yield* await` statement.
-	 * -   `Maybe` values must only be yielded using the `yield*` keyword, and
-	 *     never `yield` (without the `*`). Omitting the `*` inhibits proper
-	 *     type inference and may cause undefined behavior.
-	 * -   A `yield*` statement may bind a variable provided by the caller. The
-	 *     variable inherits the type of the value of the yielded `Maybe`.
-	 * -   If a yielded `Maybe` is present, its value is bound to a variable (if
-	 *     provided) and the generator advances.
-	 * -   If a yielded `Maybe` is absent, the generator halts and `goAsync`
-	 *     fulfills with `Nothing`.
-	 * -   If a `Promise` rejects or an operation throws, the generator halts
-	 *     and `goAsync` rejects with the error.
-	 * -   The `return` statement of the generator may return a final result,
-	 *     and `goAsync` fulfills with the result in a `Just` if all yielded
-	 *     `Maybe` values are present and no errors are encountered.
-	 * -   All syntax normally permitted in async generators (the `await`
-	 *     keyword, statements, loops, declarations, etc.) is permitted within
-	 *     async generator comprehensions.
-	 */
-	export function goAsync<TReturn>(
-		f: () => AsyncGenerator<Maybe<any>, TReturn, unknown>,
-	): Promise<Maybe<TReturn>> {
-		return stepAsync(f());
 	}
 
 	/**
@@ -952,6 +866,16 @@ export namespace Maybe {
 	 * The absent `Maybe`.
 	 */
 	export const nothing = Maybe.Nothing.singleton as Maybe<never>;
+
+	/**
+	 *
+	 */
+	export type Go<TReturn> = Generator<Maybe<any>, TReturn, unknown>;
+
+	/**
+	 *
+	 */
+	export type GoAsync<TReturn> = AsyncGenerator<Maybe<any>, TReturn, unknown>;
 
 	/**
 	 * Extract the present value type `T` from the type `Maybe<T>`.
