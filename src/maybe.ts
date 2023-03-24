@@ -725,6 +725,13 @@ export namespace Maybe {
 		}
 
 		/**
+		 *
+		 */
+		goMap<T, T1>(this: Maybe<T>, f: (val: T) => Go<T1>): Maybe<T1> {
+			return this.flatMap((val) => go(f(val)));
+		}
+
+		/**
 		 * If this `Maybe` is present, apply a function to its value. If the
 		 * result is `null` or `undefined`, return `Nothing`; otherwise, return
 		 * the result in a `Just`. If this `Maybe` is absent, return `Nothing`.

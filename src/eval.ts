@@ -483,6 +483,13 @@ export class Eval<out T> {
 	}
 
 	/**
+	 *
+	 */
+	goMap<T1>(f: (val: T) => Eval.Go<T1>): Eval<T1> {
+		return this.flatMap((val) => Eval.go(f(val)));
+	}
+
+	/**
 	 * Apply a function to the outcomes of this and that `Eval` and return the
 	 * result in an `Eval`.
 	 */

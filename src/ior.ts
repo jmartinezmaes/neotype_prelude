@@ -886,6 +886,16 @@ export namespace Ior {
 		}
 
 		/**
+		 *
+		 */
+		goMap<A extends Semigroup<A>, B, B1>(
+			this: Ior<A, B>,
+			f: (val: B) => Go<A, B1>,
+		): Ior<A, B1> {
+			return this.flatMap((val) => go(f(val)));
+		}
+
+		/**
 		 * If this and that `Ior` have a right-hand value, apply a function to
 		 * the values and return the result as a right-hand value. Accumulate
 		 * the left-hand values of `Both` variants using their behavior as a

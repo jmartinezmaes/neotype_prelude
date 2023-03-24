@@ -677,6 +677,16 @@ export namespace Either {
 		}
 
 		/**
+		 *
+		 */
+		goMap<E, T, E1, T1>(
+			this: Either<E, T>,
+			f: (val: T) => Go<E1, T1>,
+		): Either<E | E1, T1> {
+			return this.flatMap((val) => go(f(val)));
+		}
+
+		/**
 		 * If this and that `Either` both succeed, apply a function to their
 		 * successes and succeed with the result; otherwise, return the first
 		 * failed `Either`.
