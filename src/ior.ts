@@ -468,7 +468,7 @@ export namespace Ior {
 	}
 
 	/**
-	 *
+	 * Interpret an `Ior.Go` generator to return an `Ior`.
 	 */
 	export function go<A extends Semigroup<A>, TReturn>(
 		gen: Go<A, TReturn>,
@@ -635,7 +635,8 @@ export namespace Ior {
 	}
 
 	/**
-	 *
+	 * Interpret an `Ior.GoAsync` async generator to return a `Promise` that
+	 * resolves with an `Ior`.
 	 */
 	export async function goAsync<A extends Semigroup<A>, TReturn>(
 		gen: GoAsync<A, TReturn>,
@@ -841,7 +842,12 @@ export namespace Ior {
 		}
 
 		/**
-		 *
+		 * If this `Ior` has a right-hand value, apply a generator comprehension
+		 * function to the value and interpret the `Ior.Go` generator to return
+		 * another `Ior`. Accumulate the left-hand values of `Both` variants
+		 * using their behavior as a semigroup. If either `Ior` is a `Left`,
+		 * combine the left-hand value with any existing left-hand value and
+		 * return the result in a `Left`.
 		 */
 		goMap<A extends Semigroup<A>, B, B1>(
 			this: Ior<A, B>,
@@ -953,13 +959,11 @@ export namespace Ior {
 		}
 
 		/**
-		 * Defining iterable behavior for `Ior` allows TypeScript to infer
-		 * right-hand value types when yielding `Ior` values in generator
-		 * comprehensions using `yield*`.
-		 *
-		 * @hidden
+		 * Return an `Ior.Go` generator that yields this `Ior` and returns its
+		 * right-hand value if one is present. This allows `Ior` values to be
+		 * yielded directly in `Ior` generator comprehensions using `yield*`.
 		 */
-		*[Symbol.iterator](): Iterator<Ior<A, never>, never, unknown> {
+		*[Symbol.iterator](): Generator<Ior<A, never>, never, unknown> {
 			return (yield this) as never;
 		}
 	}
@@ -984,13 +988,11 @@ export namespace Ior {
 		}
 
 		/**
-		 * Defining iterable behavior for `Ior` allows TypeScript to infer
-		 * right-hand value types when yielding `Ior` values in generator
-		 * comprehensions using `yield*`.
-		 *
-		 * @hidden
+		 * Return an `Ior.Go` generator that yields this `Ior` and returns its
+		 * right-hand value if one is present. This allows `Ior` values to be
+		 * yielded directly in `Ior` generator comprehensions using `yield*`.
 		 */
-		*[Symbol.iterator](): Iterator<Ior<never, B>, B, unknown> {
+		*[Symbol.iterator](): Generator<Ior<never, B>, B, unknown> {
 			return (yield this) as B;
 		}
 	}
@@ -1028,19 +1030,17 @@ export namespace Ior {
 		}
 
 		/**
-		 * Defining iterable behavior for `Ior` allows TypeScript to infer
-		 * right-hand value types when yielding `Ior` values in generator
-		 * comprehensions using `yield*`.
-		 *
-		 * @hidden
+		 * Return an `Ior.Go` generator that yields this `Ior` and returns its
+		 * right-hand value if one is present. This allows `Ior` values to be
+		 * yielded directly in `Ior` generator comprehensions using `yield*`.
 		 */
-		*[Symbol.iterator](): Iterator<Ior<A, B>, B, unknown> {
+		*[Symbol.iterator](): Generator<Ior<A, B>, B, unknown> {
 			return (yield this) as B;
 		}
 	}
 
 	/**
-	 *
+	 * A generator that yields `Ior` values and may return a result.
 	 */
 	export type Go<A extends Semigroup<A>, TReturn> = Generator<
 		Ior<A, unknown>,
@@ -1049,7 +1049,7 @@ export namespace Ior {
 	>;
 
 	/**
-	 *
+	 * An async generator that yields `Ior` values and may return a result.
 	 */
 	export type GoAsync<A extends Semigroup<A>, TReturn> = AsyncGenerator<
 		Ior<A, unknown>,

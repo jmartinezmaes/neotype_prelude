@@ -298,7 +298,7 @@ export class Eval<out T> {
 	}
 
 	/**
-	 *
+	 * Interpret an `Eval.Go` generator to return an `Eval`.
 	 */
 	static go<TReturn>(gen: Eval.Go<TReturn>): Eval<TReturn> {
 		return Eval.defer(() => Eval.#step(gen, gen.next()));
@@ -412,13 +412,11 @@ export class Eval<out T> {
 	}
 
 	/**
-	 * Defining iterable behavior for `Eval` allows TypeScript to infer outcome
-	 * types when yielding `Eval` values in generator comprehensions using
-	 * `yield*`.
-	 *
-	 * @hidden
+	 * Return an `Eval.Go` generator that yields this `Eval` and returns its
+	 * its outcome. This allows `Eval` values to be yielded directly in `Eval`
+	 * generator comprehensions using `yield*`.
 	 */
-	*[Symbol.iterator](): Iterator<Eval<T>, T, unknown> {
+	*[Symbol.iterator](): Generator<Eval<T>, T, unknown> {
 		return (yield this) as T;
 	}
 
@@ -441,7 +439,8 @@ export class Eval<out T> {
 	}
 
 	/**
-	 *
+	 * Apply a generator comprehension function to the outcome of this `Eval`
+	 * and interpret the `Eval.Go` generator to return another `Eval`.
 	 */
 	goMap<T1>(f: (val: T) => Eval.Go<T1>): Eval<T1> {
 		return this.flatMap((val) => Eval.go(f(val)));
@@ -528,7 +527,7 @@ export class Eval<out T> {
  */
 export namespace Eval {
 	/**
-	 *
+	 * A generator that yields `Eval` values and returns a result.
 	 */
 	export type Go<TReturn> = Generator<Eval<unknown>, TReturn, unknown>;
 

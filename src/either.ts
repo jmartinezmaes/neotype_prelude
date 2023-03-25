@@ -387,7 +387,7 @@ export namespace Either {
 	}
 
 	/**
-	 *
+	 * Interpret an `Either.Go` generator to return an `Either`.
 	 */
 	export function go<E, TReturn>(gen: Go<E, TReturn>): Either<E, TReturn> {
 		let nxt = gen.next();
@@ -519,6 +519,10 @@ export namespace Either {
 			collect(eithers).map((args) => f(...(args as TArgs)));
 	}
 
+	/**
+	 * Interpret an `Either.GoAsync` async generator to return a `Promise` that
+	 * resolves with an `Either`.
+	 */
 	export async function goAsync<E, TReturn>(
 		gen: GoAsync<E, TReturn>,
 	): Promise<Either<E, TReturn>> {
@@ -635,7 +639,9 @@ export namespace Either {
 		}
 
 		/**
-		 *
+		 * If this `Either`, suceeds, apply a generator comprehension function
+		 * to its success and interpret the `Either.Go` generator to return
+		 * another `Either`; otherwise, return this `Either` as is.
 		 */
 		goMap<E, T, E1, T1>(
 			this: Either<E, T>,
@@ -727,13 +733,12 @@ export namespace Either {
 		}
 
 		/**
-		 * Defining iterable behavior for `Either` allows TypeScript to infer
-		 * right-sided value types when yielding `Either` values in generator
-		 * comprehensions using `yield*`.
-		 *
-		 * @hidden
+		 * Return an `Either.Go` generator that yields this `Either` and returns
+		 * its right-hand value if one is present. This allows `Either` values
+		 * to be yielded directly in `Either` generator comprehensions using
+		 * `yield*`.
 		 */
-		*[Symbol.iterator](): Iterator<Either<A, never>, never, unknown> {
+		*[Symbol.iterator](): Generator<Either<A, never>, never, unknown> {
 			return (yield this) as never;
 		}
 	}
@@ -758,19 +763,18 @@ export namespace Either {
 		}
 
 		/**
-		 * Defining iterable behavior for `Either` allows TypeScript to infer
-		 * right-sided value types when yielding `Either` values in generator
-		 * comprehensions using `yield*`.
-		 *
-		 * @hidden
+		 * Return an `Either.Go` generator that yields this `Either` and returns
+		 * its right-hand value if one is present. This allows `Either` values
+		 * to be yielded directly in `Either` generator comprehensions using
+		 * `yield*`.
 		 */
-		*[Symbol.iterator](): Iterator<Either<never, B>, B, unknown> {
+		*[Symbol.iterator](): Generator<Either<never, B>, B, unknown> {
 			return (yield this) as B;
 		}
 	}
 
 	/**
-	 *
+	 * A generator that yields `Either` values and returns a result.
 	 */
 	export type Go<E, TReturn> = Generator<
 		Either<E, unknown>,
@@ -779,7 +783,7 @@ export namespace Either {
 	>;
 
 	/**
-	 *
+	 * An async generator that yields `Either` values and returns a result.
 	 */
 	export type GoAsync<E, TReturn> = AsyncGenerator<
 		Either<E, any>,

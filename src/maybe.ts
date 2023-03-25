@@ -428,7 +428,7 @@ export namespace Maybe {
 	}
 
 	/**
-	 *
+	 * Interpret a `Maybe.Go` generator to return a `Maybe.`
 	 */
 	export function go<TReturn>(gen: Go<TReturn>): Maybe<TReturn> {
 		let nxt = gen.next();
@@ -548,7 +548,8 @@ export namespace Maybe {
 	}
 
 	/**
-	 *
+	 * Interpret a `Maybe.GoAsync` async generator to return a `Promise` that
+	 * resolves with a `Maybe`.
 	 */
 	export async function goAsync<TReturn>(
 		gen: GoAsync<TReturn>,
@@ -683,7 +684,9 @@ export namespace Maybe {
 		}
 
 		/**
-		 *
+		 * If this `Maybe` is present, apply a generator comprehension function
+		 * to its value and interpret the `Maybe.Go` generator to return another
+		 * `Maybe`; otherwise, return `Nothing`.
 		 */
 		goMap<T, T1>(this: Maybe<T>, f: (val: T) => Go<T1>): Maybe<T1> {
 			return this.flatMap((val) => go(f(val)));
@@ -787,13 +790,11 @@ export namespace Maybe {
 		}
 
 		/**
-		 * Defining iterable behavior for `Maybe` allows TypeScript to infer
-		 * `Just` types when yielding `Maybe` values in generator comprehensions
-		 * using `yield*`.
-		 *
-		 * @hidden
+		 * Return a `Maybe.Go` generator that yields this `Maybe` and returns
+		 * its value if one is present. This allows `Maybe` values to be yielded
+		 * directly in `Maybe` generator comprehensions using `yield*`.
 		 */
-		*[Symbol.iterator](): Iterator<Maybe<never>, never, unknown> {
+		*[Symbol.iterator](): Generator<Maybe<never>, never, unknown> {
 			return (yield this) as never;
 		}
 	}
@@ -818,13 +819,11 @@ export namespace Maybe {
 		}
 
 		/**
-		 * Defining iterable behavior for `Maybe` allows TypeScript to infer
-		 * `Just` types when yielding `Maybe` values in generator comprehensions
-		 * using `yield*`.
-		 *
-		 * @hidden
+		 * Return a `Maybe.Go` generator that yields this `Maybe` and returns
+		 * its value if one is present. This allows `Maybe` values to be yielded
+		 * directly in `Maybe` generator comprehensions using `yield*`.
 		 */
-		*[Symbol.iterator](): Iterator<Maybe<T>, T, unknown> {
+		*[Symbol.iterator](): Generator<Maybe<T>, T, unknown> {
 			return (yield this) as T;
 		}
 	}
@@ -835,12 +834,12 @@ export namespace Maybe {
 	export const nothing = Maybe.Nothing.singleton as Maybe<never>;
 
 	/**
-	 *
+	 * A generator that yields `Maybe` values and returns a result.
 	 */
 	export type Go<TReturn> = Generator<Maybe<unknown>, TReturn, unknown>;
 
 	/**
-	 *
+	 * An async generator that yields `Maybe` values and returns a result.
 	 */
 	export type GoAsync<TReturn> = AsyncGenerator<
 		Maybe<unknown>,
