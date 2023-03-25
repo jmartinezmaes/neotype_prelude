@@ -319,19 +319,6 @@
  * // input "0x2A: [["info: parse '0x2A' ok"],42]
  * ```
  *
- * We can refactor the `parseEvenInt` function to use a generator comprehension
- * instead:
- *
- * ```ts
- * function parseEvenInt(input: string): Ior<Log, number> {
- *     return Ior.go(function* () {
- *         const n = yield* parseInt(input);
- *         const even = yield* guardEven(n);
- *         return even;
- *     });
- * }
- * ```
- *
  * Suppose we want to parse an array of inputs and collect the successful
  * results, or fail on the first parse error. We may write the following:
  *
@@ -357,40 +344,8 @@
  * //   [["info: parse '+42' ok","info: parse '0x2A' ok"],[42,42]]
  * ```
  *
- * Perhaps we want to collect only distinct even numbers using a Set:
- *
- * ```ts
- * function parseEvenIntsUniq(inputs: string[]): Ior<Log, Set<number>> {
- *     return Ior.go(function* () {
- *         const results = new Set<number>();
- *         for (const input of inputs) {
- *             results.add(yield* parseEvenInt(input));
- *         }
- *         return results;
- *     });
- * }
- *
- * [
- *     ["a", "-4"],
- *     ["2", "-7"],
- *     ["+42", "0x2A"],
- * ].forEach((inputs) => {
- *     const result = JSON.stringify(
- *         parseEvenIntsUniq(inputs).map(Array.from).val,
- *     );
- *     console.log(`inputs ${JSON.stringify(inputs)}:\n  ${result}`);
- * });
- *
- * // inputs ["a","-4"]:
- * //   ["err: cannot parse 'a' as int"]
- * // inputs ["2","-7"]:
- * //   ["info: parse '2' ok","info: parse '-7' ok","err: -7 is not even"]
- * // inputs ["+42" "0x2A"]:
- * //   [["info: parse '+42' ok","info: parse '0x2A' ok"],[42]]
- * ```
- *
- * Or, perhaps we want to associate the original input strings with our
- * successful parses:
+ * Perhaps we want to associate the original input strings with our successful
+ * parses:
  *
  * ```ts
  * function parseEvenIntsKeyed(

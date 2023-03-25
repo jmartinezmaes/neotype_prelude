@@ -268,19 +268,6 @@
  * // input "0x2A": 42
  * ```
  *
- * We can refactor the `parseEvenInt` function to use a generator comprehension
- * instead:
- *
- * ```ts
- * function parseEvenInt(input: string): Either<string, number> {
- *     return Either.go(function* () {
- *         const n = yield* parseInt(input);
- *         const even = yield* guardEven(n);
- *         return even;
- *     });
- * }
- * ```
- *
  * Suppose we want to parse an array of inputs and collect the successful
  * results, or fail on the first parse error. We may write the following:
  *
@@ -303,37 +290,8 @@
  * // inputs ["+42","0x2A"]: [42,42]
  * ```
  *
- * Perhaps we want to collect only distinct even numbers using a `Set`:
- *
- * ```ts
- * function parseEvenIntsUniq(inputs: string[]): Either<string, Set<number>> {
- *     return Either.go(function* () {
- *         const results = new Set<number>();
- *         for (const input of inputs) {
- *             results.add(yield* parseEvenInt(input));
- *         }
- *         return results;
- *     });
- * }
- *
- * [
- *     ["a", "-4"],
- *     ["2", "-7"],
- *     ["+42", "0x2A"],
- * ].forEach((inputs) => {
- *     const result = JSON.stringify(
- *         parseEvenIntsUniq(inputs).map(Array.from).val,
- *     );
- *     console.log(`inputs ${JSON.stringify(inputs)}: ${result}`);
- * });
- *
- * // inputs ["a","-4"]: "cannot parse 'a' as int"
- * // inputs ["2","-7"]: "-7 is not even"
- * // inputs ["+42","0x2A"]: [42]
- * ```
- *
- * Or, perhaps we want to associate the original input strings with our
- * successful parses:
+ * Perhaps we want to associate the original input strings with our successful
+ * parses:
  *
  * ```ts
  * function parseEvenIntsKeyed(

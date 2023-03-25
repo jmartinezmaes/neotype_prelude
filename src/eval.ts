@@ -189,28 +189,6 @@
  * // [1,2,3,4,5,6,7]
  * ```
  *
- * We can refactor the `foldTree` function to use a generator comprehension
- * instead:
- *
- * ```ts
- * function foldTree<T, TAcc>(
- *     tree: Tree<T>,
- *     ifEmpty: TAcc,
- *     foldBranch: (val: T, lhs: TAcc, rhs: TAcc) => TAcc
- * ): Eval<TAcc> {
- *     return Eval.go(function* () {
- *         if (tree.kind === "EMPTY") {
- *             return ifEmpty;
- *         }
- *         // Challenge for the reader: why is `defer` not needed here?
- *         // Hint: it pertains to the behavior of `go`.
- *         const lhs = yield* foldTree(tree.lst, ifEmpty, foldBranch);
- *         const rhs = yield* foldTree(tree.rst, ifEmpty, foldBranch);
- *         return foldBranch(tree.val, lhs, rhs);
- *     });
- * }
- * ```
- *
  * Suppose we wanted to traverse a tree in multiple ways and collect the results
  * of each traversal. We may write the following:
  *
@@ -267,26 +245,6 @@
  * console.log(JSON.stringify(traversalsKeyed(oneToSeven).run()));
  *
  * // {"in":[1,2,3,4,5,6,7],"pre":[4,2,1,3,6,5,7],"post":[1,3,2,5,7,6,4]}
- * ```
- *
- * Or, perhaps we want to return a `Map` instead:
- *
- * ```ts
- * function traversalsMap(tree: Tree<T>): Eval<Map<string, T[]>> {
- *     return Eval.go(function* () {
- *         const results = new Map<string, T[]>();
- *
- *         results.set("in", yield* inOrder(tree));
- *         results.set("pre", yield* preOrder(tree));
- *         results.set("post", yield* postOrder(tree));
- *
- *         return results;
- *     });
- * }
- *
- * console.log(JSON.stringify(traversalsMap(oneToSeven).map(Array.from).run()));
- *
- * // [["in",[1,2,3,4,5,6,7]],["pre",[4,2,1,3,6,5,7]],["post",[1,3,2,5,7,6,4]]]
  * ```
  *
  * @module
