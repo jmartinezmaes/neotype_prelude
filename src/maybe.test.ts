@@ -479,6 +479,24 @@ describe("Maybe", () => {
 		});
 	});
 
+	describe("#goMap", () => {
+		it("does not apply the continuation if the variant is Nothing", () => {
+			const maybe = nothing<1>().goMap(function* (x) {
+				const y = yield* Maybe.just<2>(2);
+				return [x, y] as [1, 2];
+			});
+			expect(maybe).to.equal(Maybe.nothing);
+		});
+
+		it("applies the continuation to the value if the variant is Just", () => {
+			const maybe = Maybe.just<1>(1).goMap(function* (x) {
+				const y = yield* Maybe.just<2>(2);
+				return [x, y] as [1, 2];
+			});
+			expect(maybe).to.deep.equal(Maybe.just([1, 2]));
+		});
+	});
+
 	describe("#mapNullish", () => {
 		it("does not apply the continuation if the variant is Nothing", () => {
 			const maybe = nothing<1>().mapNullish((x): [1, 2] | null => [x, 2]);

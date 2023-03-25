@@ -414,6 +414,24 @@ describe("Either", () => {
 		});
 	});
 
+	describe("#goMap", () => {
+		it("does not apply the continuation if the variant is Left", () => {
+			const either = Either.left<1, 2>(1).goMap(function* (x) {
+				const y = yield* Either.right<4, 3>(4);
+				return [x, y] as [2, 4];
+			});
+			expect(either).to.deep.equal(Either.left(1));
+		});
+
+		it("applies the continuation to the success if the variant is Right", () => {
+			const either = Either.right<2, 1>(2).goMap(function* (x) {
+				const y = yield* Either.right<4, 3>(4);
+				return [x, y] as [2, 4];
+			});
+			expect(either).to.deep.equal(Either.right([2, 4]));
+		});
+	});
+
 	describe("#zipWith", () => {
 		it("applies the function to the successes if both variants are Right", () => {
 			const either = Either.right<2, 1>(2).zipWith(

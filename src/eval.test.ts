@@ -179,6 +179,17 @@ describe("Eval", () => {
 		});
 	});
 
+	describe("#goMap", () => {
+		it("applies the continuation to the outcome", () => {
+			const ev = Eval.now<1>(1).goMap(function* (x) {
+				const y = yield* Eval.now<2>(2);
+				return [x, y] as [1, 2];
+			});
+			const outcome = ev.run();
+			expect(outcome).to.deep.equal([1, 2]);
+		});
+	});
+
 	describe("#zipWith", () => {
 		it("applies the function to the outcomes", () => {
 			const ev = Eval.now<1>(1).zipWith(
