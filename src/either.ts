@@ -132,6 +132,11 @@
  * -   `zipFst` keeps only the first success, and discards the second.
  * -   `zipSnd` keeps only the second success, and discards the first.
  *
+ * ## Recovering from `Left` variants
+ *
+ * If an `Either` fails, the `recover` method applies a function to its failure
+ * to return a fallback `Either`.
+ *
  * ## Chaining `Either`
  *
  * The `flatMap` method chains together computations that return `Either`. If an
@@ -139,33 +144,51 @@
  * `Either`. If an `Either` fails, the computation halts and the failed `Either`
  * is returned instead.
  *
- * ### Generator comprehenshions
+ * ## Generator comprehenshions
  *
  * Generator comprehensions provide an imperative syntax for chaining together
- * computations that return `Either`. Instead of `flatMap`, a generator is used
- * to unwrap successful `Either` values and apply functions to their successes.
+ * synchronous or asynchronous computations that return or resolve with `Either`
+ * values.
  *
- * The `go` function evaluates a generator to return an `Either`. Within the
- * generator, `Either` values are yielded using the `yield*` keyword. If a
- * yielded `Either` succeeds, its success may be bound to a specified variable.
- * If any yielded `Either` fails, the generator halts and `go` returns the
- * failed `Either`; otherwise, when the computation is complete, the generator
- * may return a final result and `go` returns the result as a success.
+ * ### Writing comprehensions
  *
- * ### Async generator comprehensions
+ * Synchronus and asynchronous comprehensions are written using `function*` and
+ * `async function*` declarations, respectively.
  *
- * Async generator comprehensions provide `async`/`await` syntax to `Either`
- * generator comprehensions, allowing promise-like computations that fulfill
- * with `Either` to be chained together using the familiar generator syntax.
+ * Synchronous generator functions should use the `Either.Go` type alias as a
+ * return type. A generator function that returns an `Either.Go<E, T>` may
+ * `yield*` zero or more `Either<E, any>` values and must return a result of
+ * type `T`. Synchronous comprehensions may also `yield*` other `Either.Go`
+ * generators directly.
  *
- * The `goAsync` function evaluates an async generator to return a `Promise`
- * that fulfills with an `Either`. The semantics of `yield*` and `return` within
- * async comprehensions are identical to their synchronous counterparts.
+ * Async generator functions should use the `Either.GoAsync` type alias as a
+ * return type. An async generator function that returns an `Either.GoAsync<E,
+ * T>` may `yield*` zero or more `Either<E, any>` values and must return a
+ * result of type `T`. `PromiseLike` values that resolve with `Either` should
+ * be awaited before yielding. Async comprehensions may also `yieid*` other
+ * `Either.Go` and `Either.GoAsync` generators directly.
  *
- * ## Recovering from `Left` variants
+ * Each `yield*` expression may bind a variable of the success value type of the
+ * yielded `Either`. Comprehensions should always use `yield*` instead of
+ * `yield`. Using `yield*` allows TypeScript to accurately infer the success
+ * value type of each yielded `Either` when binding the value of a `yield*`
+ * expression.
  *
- * If an `Either` fails, the `recover` method applies a function to its failure
- * to return a fallback `Either`.
+ * ### Evaluating comprehensions
+ *
+ * `Either.Go` and `Either.GoAsync` generators must be evaluated before
+ * accessing their results.
+ *
+ * The `go` function evaluates an `Either.Go<E, T> generator to return an
+ * `Either<E, T>`. If any yielded `Either` fails, the generator halts and `go`
+ * returns the failed `Either`; otherwise, when the generator returns, `go`
+ * returns the result as a success.
+ *
+ * The `goAsync` function evaluates an `Either.GoAsync<E, T>` async generator to
+ * return a `Promise<Either<E, T>>`. If any yielded `Either` fails, the
+ * generator halts and `goAsync` resolves with the failed `Either`; otherwise,
+ * when the generator returns, `goAsync` resolves with the result as a success.
+ * Thrown errors are captured as rejections.
  *
  * ## Collecting into `Either`
  *
@@ -387,7 +410,7 @@ export namespace Either {
 	}
 
 	/**
-	 * Interpret an `Either.Go` generator to return an `Either`.
+	 * Evaluate an `Either.Go` generator to return an `Either`.
 	 */
 	export function go<E, TReturn>(gen: Go<E, TReturn>): Either<E, TReturn> {
 		let nxt = gen.next();
@@ -520,7 +543,7 @@ export namespace Either {
 	}
 
 	/**
-	 * Interpret an `Either.GoAsync` async generator to return a `Promise` that
+	 * Evaluate an `Either.GoAsync` async generator to return a `Promise` that
 	 * resolves with an `Either`.
 	 */
 	export async function goAsync<E, TReturn>(
@@ -640,7 +663,7 @@ export namespace Either {
 
 		/**
 		 * If this `Either`, suceeds, apply a generator comprehension function
-		 * to its success and interpret the `Either.Go` generator to return
+		 * to its success and evaluate the `Either.Go` generator to return
 		 * another `Either`; otherwise, return this `Either` as is.
 		 */
 		goMap<E, T, E1, T1>(
