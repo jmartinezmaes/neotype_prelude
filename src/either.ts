@@ -165,7 +165,7 @@
  * return type. An async generator function that returns an `Either.GoAsync<E,
  * T>` may `yield*` zero or more `Either<E, any>` values and must return a
  * result of type `T`. `PromiseLike` values that resolve with `Either` should
- * be awaited before yielding. Async comprehensions may also `yieid*` other
+ * be awaited before yielding. Async comprehensions may also `yield*` other
  * `Either.Go` and `Either.GoAsync` generators directly.
  *
  * Each `yield*` expression may bind a variable of the success value type of the

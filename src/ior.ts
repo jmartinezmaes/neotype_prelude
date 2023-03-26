@@ -171,7 +171,7 @@
  * type. An async generator function that returns an `Ior.GoAsync<A, T>` may
  * `yield*` zero or more `Ior<A, any>` values and must return a result of type
  * `T`. `PromiseLike` values that resolve with `Ior` should be awaited before
- * yielding. Async comprehensions may also `yieid*` other `Ior.Go` and
+ * yielding. Async comprehensions may also `yield*` other `Ior.Go` and
  * `Ior.GoAsync` generators directly.
  *
  * Each `yield*` expression may bind a variable of the right-hand value type of
