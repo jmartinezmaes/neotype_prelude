@@ -150,33 +150,56 @@
  * `Maybe`. If a `Maybe` is absent, the computation halts and `Nothing` is
  * returned instead.
  *
- * ### Generator comprehensions
- *
- * Generator comprehensions provide an imperative syntax for chaining together
- * computations that return `Maybe`. Instead of `flatMap`, a generator is used
- * to unwrap present `Maybe` values and apply functions to their values.
- *
- * The `go` function evaluates a generator to return a `Maybe`. Within the
- * generator, `Maybe` values are yielded using the `yield*` keyword. If a
- * yielded `Maybe` is present, its value may be bound to a specified variable.
- * If any yielded `Maybe` is absent, the generator halts and `go` returns
- * `Nothing`; otherwise, when the computation is complete, the generator may
- * return a final result and `go` returns the result in a `Just`.
- *
- * ### Async generator comprehensions
- *
- * Async generator comprehensions provide `async`/`await` syntax to `Maybe`
- * generator comprehensions, allowing promise-like computations that fulfill
- * with `Maybe` to be chained together using the familiar generator syntax.
- *
- * The `goAsync` function evaluates an async generator to return a `Promise`
- * that fulfills with a `Maybe`. The semantics of `yield*` and `return` within
- * async comprehensions are identical to their synchronous counterparts.
- *
  * ## Recovering from `Nothing`
  *
  * The `recover` method evaluates a function to return a fallback `Maybe` if
  * absent, and does nothing if present.
+ *
+ * ## Generator comprehenshions
+ *
+ * Generator comprehensions provide an imperative syntax for chaining together
+ * synchronous or asynchronous computations that return or resolve with `Maybe`
+ * values.
+ *
+ * ### Writing comprehensions
+ *
+ * Synchronus and asynchronous comprehensions are written using `function*` and
+ * `async function*` declarations, respectively.
+ *
+ * Synchronous generator functions should use the `Maybe.Go` type alias as a
+ * return type. A generator function that returns a `Maybe.Go<T>` may `yield*`
+ * zero or more `Maybe<any>` values and must return a result of type `T`.
+ * Synchronous comprehensions may also `yield*` other `Maybe.Go` generators
+ * directly.
+ *
+ * Async generator functions should use the `Maybe.GoAsync` type alias as a
+ * return type. An async generator function that returns a `Maybe.GoAsync<T>`
+ * may `yield*` zero or more `Maybe<any>` values and must return a result of
+ * type `T`. `PromiseLike` values that resolve with `Maybe` should be awaited
+ * before yielding. Async comprehensions may also `yield*` other `Maybe.Go` and
+ * `Maybe.GoAsync` generators directly.
+ *
+ * Each `yield*` expression may bind a variable of the present value type of the
+ * yielded `Maybe`. Comprehensions should always use `yield*` instead of
+ * `yield`. Using `yield*` allows TypeScript to accurately infer the present
+ * value type of each yielded `Maybe` when binding the value of a `yield*`
+ * expression.
+ *
+ * ### Evaluating comprehensions
+ *
+ * `Maybe.Go` and `Maybe.GoAsync` generators must be evaluated before accessing
+ * their results.
+ *
+ * The `go` function evaluates a `Maybe.Go<T> generator to return a `Maybe<T>`
+ * If any yielded `Maybe` is absent, the generator halts and `go` returns
+ * `Nothing`; otherwise, when the generator returns, `go` returns the result in
+ * a `Just`.
+ *
+ * The `goAsync` function evaluates a `Maybe.GoAsync<T>` async generator to
+ * return a `Promise<Maybe<T>>`. If any yielded `Maybe` is absent, the generator
+ * halts and `goAsync` resolves with the `Nothing`; otherwise, when the
+ * generator returns, `goAsync` resolves with the result in a `Just`. Thrown
+ * errors are captured as rejections.
  *
  * ## Collecting into `Maybe`
  *
