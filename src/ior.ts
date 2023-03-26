@@ -150,31 +150,60 @@
  * the left-hand value is combined with any existing left-hand value, and the
  * result is returned in a `Left`.
  *
- * ### Generator comprehensions
+ * ## Generator comprehenshions
  *
  * Generator comprehensions provide an imperative syntax for chaining together
- * computations that return `Ior`. Instead of `flatMap`, a generator is used
- * to unwrap `Ior` values and apply functions to right-hand values.
+ * synchronous or asynchronous computations that return or resolve with `Ior`
+ * values.
  *
- * The `go` function evaluates a generator to return an `Ior`. Within the
- * generator, `Ior` values are yielded using the `yield*` keyword. If a yielded
- * `Ior` has a right-hand value, the value may be bound to a specified variable.
- * The left-hand values of `Both` variants accumulate using their behavior as a
- * semigroup. If any yielded `Ior` is a `Left`, the generator halts and the
- * left-hand value is combined with any existing left-hand value, and the result
- * is returned in a `Left`; otherwise, when the computation is complete, the
- * generator may return a final result and `go` returns the result as a
- * right-hand value.
+ * ### Writing comprehensions
  *
- * ## Async generator comprehensions
+ * Synchronus and asynchronous comprehensions are written using `function*` and
+ * `async function*` declarations, respectively.
  *
- * Async generator comprehensions provide `async`/`await` syntax to `Ior`
- * generator comprehensions, allowing promise-like computations that fulfill
- * with `Ior` to be chained together using the familiar generator syntax.
+ * Synchronous generator functions should use the `Ior.Go` type alias as a
+ * return type. A generator function that returns an `Ior.Go<A, T>` may `yield*`
+ * zero or more `Ior<A, any>` values and must return a result of type `T`.
+ * Synchronous comprehensions may also `yield*` other `Ior.Go` generators
+ * directly.
  *
- * The `goAsync` function evaluates an async generator to return a `Promise`
- * that fulfills with an `Ior`. The semantics of `yield*` and `return` within
- * async comprehensions are identical to their synchronous counterparts.
+ * Async generator functions should use the `Ior.GoAsync` type alias as a return
+ * type. An async generator function that returns an `Ior.GoAsync<A, T>` may
+ * `yield*` zero or more `Ior<A, any>` values and must return a result of type
+ * `T`. `PromiseLike` values that resolve with `Ior` should be awaited before
+ * yielding. Async comprehensions may also `yieid*` other `Ior.Go` and
+ * `Ior.GoAsync` generators directly.
+ *
+ * Each `yield*` expression may bind a variable of the right-hand value type of
+ * the yielded `Ior`. Comprehensions should always use `yield*` instead of
+ * `yield`. Using `yield*` allows TypeScript to accurately infer the right-hand
+ * value type of each yielded `Ior` when binding the value of a `yield*`
+ * expression.
+ *
+ * Comprehensions require that the left-hand values of all yielded `Ior` values
+ * are implementors of the same `Semigroup` so the values may accumulate as the
+ * generator yields.
+ *
+ * ### Evaluating comprehensions
+ *
+ * `Ior.Go` and `Ior.GoAsync` generators must be evaluated before accessing
+ * their results.
+ *
+ * The `go` function evaluates an `Ior.Go<A, T> generator to return an `Ior<A,
+ * T>`. If any yielded `Ior` is a `Left`, the generator halts and the left-hand
+ * value is combined with any existing left-hand value, and `go` returns the
+ * result in a `Left`; otherwise, when the generator returns, `go` returns the
+ * result as a right-hand value.
+ *
+ * The `goAsync` function evaluates an `Ior.GoAsync<A, T>` async generator to
+ * return a `Promise<Ior<A, T>>`. If any yielded `Ior` is a `Left`, the
+ * generator halts and the left-hand value is combined with any existing
+ * left-hand value, and `goAsync` resolves with the result in a `Left`;
+ * otherwise, when the generator returns, `goAsync` resolves with the result as
+ * a right-hand value. Thrown errors are captured as rejections.
+ *
+ * In both synchronous and asynchronous comprehensions, the left-hand values of
+ * yielded `Both` variants accumulate using their behavior as a semigroup.
  *
  * ## Collecting into `Ior`
  *
