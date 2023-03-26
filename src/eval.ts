@@ -77,17 +77,28 @@
  * function is applied to the outcome of one `Eval` to return another `Eval`.
  * Composition with `flatMap` is stack safe, even for recursive programs.
  *
- * ### Generator comprehensions
+ * ## Generator comprehenshions
  *
  * Generator comprehensions provide an imperative syntax for chaining together
- * computations that return `Eval`. Instead of `flatMap`, a generator is used
- * to apply functions to the the outcomes of `Eval` values.
+ * synchronous computations that return `Eval` values.
  *
- * The `go` static method evaluates a generator to return an `Eval`. Within the
- * generator, `Eval` values are yielded using the `yield*` keyword, allowing
- * their outcomes to be bound to specified variables. When the computation is
- * complete, the generator may return a final result and `go` returns the result
- * in an `Eval`.
+ * ### Writing comprehensions
+ *
+ * Comprehensions are written using `function*` declarations. Generator
+ * functions should use the `Eval.Go` type alias as a return type. A generator
+ * function that returns an `Eval.Go<T>` may `yield*` zero or more `Eval<any>`
+ * values and must return a result of type `T`. Comprehensions may also `yield*`
+ * other `Eval.Go` generators directly.
+ *
+ * Each `yield*` expression may bind a variable of the outcome value type of the
+ * yielded `Eval`. Comprehensions should always use `yield*` instead of `yield`.
+ * Using `yield*` allows TypeScript to accurately infer the outcome value type
+ * of each yielded `Eval` when binding the value of a `yield*` expression.
+ *
+ * ### Evaluating comprehensions
+ *
+ * `Eval.Go` generators must be evaluated before accessing their results. The
+ * `go` function evaluates an `Eval.Go<T> generator to return an `Eval<T>`.
  *
  * `Eval` is automatically deferred in its implementation of `go`. The body of
  * the provided generator does not execute until the `Eval` is evaluated using
