@@ -110,8 +110,8 @@
  * These static methods turn a container of `Eval` elements "inside out" into an
  * `Eval` that contains an equivalent container of outcomes:
  *
- * -   `collect` turns an array or a tuple literal of `Eval` elements inside
- *     out. For example:
+ * -   `all` turns an array or a tuple literal of `Eval` elements inside out.
+ *     For example:
  *     -   `Eval<T>[]` becomes `Eval<T[]>`
  *     -   `[Eval<T1>, Eval<T2>]` becomes `Eval<[T1, T2]>`
  * -   `gather` turns a record or an object literal of `Eval` elements inside
@@ -223,7 +223,7 @@
  * type Traversals<T> = [in: T[], pre: T[], post: T[]];
  *
  * function traversals<T>(tree: Tree<T>): Eval<Traversals<T>> {
- *     return Eval.collect([
+ *     return Eval.all([
  *         inOrder(tree),
  *         preOrder(tree),
  *         postOrder(tree),
@@ -355,7 +355,7 @@ export class Eval<out T> {
 	 * -   `Eval<T>[]` becomes `Eval<T[]>`
 	 * -   `[Eval<T1>, Eval<T2>]` becomes `Eval<[T1, T2]>`
 	 */
-	static collect<TEvals extends readonly Eval<any>[] | []>(
+	static all<TEvals extends readonly Eval<any>[] | []>(
 		evals: TEvals,
 	): Eval<{ -readonly [K in keyof TEvals]: Eval.ResultT<TEvals[K]> }> {
 		return Eval.go(
@@ -410,7 +410,7 @@ export class Eval<out T> {
 	static lift<TArgs extends unknown[], T>(
 		f: (...args: TArgs) => T,
 	): (...evals: { [K in keyof TArgs]: Eval<TArgs[K]> }) => Eval<T> {
-		return (...evals) => Eval.collect(evals).map((args) => f(...args));
+		return (...evals) => Eval.all(evals).map((args) => f(...args));
 	}
 
 	/**

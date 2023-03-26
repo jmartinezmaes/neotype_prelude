@@ -208,8 +208,8 @@
  * container and returned in a `Just`. If any element is absent, `Nothing` is
  * returned instead.
  *
- * -   `collect` turns an array or a tuple literal of `Maybe` elements inside
- *     out. For example:
+ * -   `all` turns an array or a tuple literal of `Maybe` elements inside out.
+ *     For example:
  *     -   `Maybe<T>[]` becomes `Maybe<T[]>`
  *     -   `[Maybe<T1>, Maybe<T2>]` becomes `Maybe<[T1, T2]>`
  * -   `gather` turns a record or an object literal of `Maybe` elements inside
@@ -304,7 +304,7 @@
  *
  * ```ts
  * function parseEvenInts(inputs: string[]): Maybe<number[]> {
- *     return Maybe.collect(inputs.map(parseEvenInt));
+ *     return Maybe.all(inputs.map(parseEvenInt));
  * }
  *
  * [
@@ -510,7 +510,7 @@ export namespace Maybe {
 	 * -   `Maybe<T>[]` becomes `Maybe<T[]>`
 	 * -   `[Maybe<T1>, Maybe<T2>]` becomes `Maybe<[T1, T2]>`
 	 */
-	export function collect<TMaybes extends readonly Maybe<any>[] | []>(
+	export function all<TMaybes extends readonly Maybe<any>[] | []>(
 		maybes: TMaybes,
 	): Maybe<{ -readonly [K in keyof TMaybes]: JustT<TMaybes[K]> }> {
 		return go(
@@ -567,7 +567,7 @@ export namespace Maybe {
 	export function lift<TArgs extends unknown[], T>(
 		f: (...args: TArgs) => T,
 	): (...maybes: { [K in keyof TArgs]: Maybe<TArgs[K]> }) => Maybe<T> {
-		return (...maybes) => collect(maybes).map((args) => f(...args));
+		return (...maybes) => all(maybes).map((args) => f(...args));
 	}
 
 	/**

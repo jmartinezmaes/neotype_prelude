@@ -223,9 +223,9 @@ describe("Ior", () => {
 		});
 	});
 
-	describe("collect", () => {
+	describe("all", () => {
 		it("turns the array or the tuple literal of Ior elements inside out", () => {
-			const ior = Ior.collect([
+			const ior = Ior.all([
 				Ior.both<Str, 2>(new Str("a"), 2),
 				Ior.both<Str, 4>(new Str("b"), 4),
 			]);

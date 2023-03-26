@@ -69,9 +69,9 @@ describe("Validation", () => {
 		});
 	});
 
-	describe("collect", () => {
+	describe("all", () => {
 		it("turns the array or the tuple literal of Validation elements inside out", () => {
-			const vdn = Validation.collect([
+			const vdn = Validation.all([
 				Validation.ok<2, Str>(2),
 				Validation.ok<4, Str>(4),
 			]);

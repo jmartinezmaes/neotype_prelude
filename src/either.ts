@@ -197,8 +197,8 @@
  * container and returned as a success. If any element fails, the failed
  * `Either` is returned instead.
  *
- * -   `collect` turns an array or a tuple literal of `Either` elements inside
- *     out. For example:
+ * -   `all` turns an array or a tuple literal of `Either` elements inside out.
+ *     For example:
  *     -   `Either<E, T>[]` becomes `Either<E, T[]>`
  *     -   `[Either<E, T1>, Either<E, T2>]` becomes `Either<E, [T1, T2]>`
  * -   `gather` turns a record or an object literal of `Either` elements inside
@@ -296,7 +296,7 @@
  *
  * ```ts
  * function parseEvenInts(inputs: string[]): Either<string, number[]> {
- *     return Either.collect(inputs.map(parseEvenInt));
+ *     return Either.all(inputs.map(parseEvenInt));
  * }
  *
  * [
@@ -472,7 +472,7 @@ export namespace Either {
 	 * -   `Either<E, T>[]` becomes `Either<E, T[]>`
 	 * -   `[Either<E, T1>, Either<E, T2>]` becomes `Either<E, [T1, T2]>`
 	 */
-	export function collect<TEithers extends readonly Either<any, any>[] | []>(
+	export function all<TEithers extends readonly Either<any, any>[] | []>(
 		eithers: TEithers,
 	): Either<
 		LeftT<TEithers[number]>,
@@ -539,7 +539,7 @@ export namespace Either {
 		...eithers: TEithers
 	) => Either<LeftT<TEithers[number]>, T> {
 		return (...eithers) =>
-			collect(eithers).map((args) => f(...(args as TArgs)));
+			all(eithers).map((args) => f(...(args as TArgs)));
 	}
 
 	/**

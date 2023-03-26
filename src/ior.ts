@@ -214,8 +214,8 @@
  * `Left`, the collection halts and the left-hand value is combined with any
  * existing left-hand value, and the result is returned in a `Left`.
  *
- * -   `collect` turns an array or a tuple literal of `Ior` elements inside out.
- *     For example:
+ * -   `all` turns an array or a tuple literal of `Ior` elements inside out. For
+ *     example:
  *     -   `Ior<A, B>[]` becomes `Ior<A, B[]>`
  *     -   `[Ior<A, B1>, Ior<A, B2>]` becomes `Ior<A, [B1, B2]>`
  * -   `gather` turns a record or an object literal of `Ior` elements inside
@@ -353,7 +353,7 @@
  *
  * ```ts
  * function parseEvenInts(inputs: string[]): Ior<Log, number[]> {
- *     return Ior.collect(inputs.map(parseEvenInt));
+ *     return Ior.all(inputs.map(parseEvenInt));
  * }
  *
  * [
@@ -586,9 +586,7 @@ export namespace Ior {
 	 * -   `Ior<A, B>[]` becomes `Ior<A, B[]>`
 	 * -   `[Ior<A, B1>, Ior<A, B2>]` becomes `Ior<A, [B1, B2]>`
 	 */
-	export function collect<
-		TIors extends readonly Ior<Semigroup<any>, any>[] | [],
-	>(
+	export function all<TIors extends readonly Ior<Semigroup<any>, any>[] | []>(
 		iors: TIors,
 	): Ior<
 		LeftT<TIors[number]>,
@@ -660,7 +658,7 @@ export namespace Ior {
 		...iors: { [K in keyof TArgs]: Ior<A, TArgs[K]> }
 	) => Ior<A, T> {
 		return (...iors) =>
-			collect(iors).map((args) => f(...(args as TArgs))) as Ior<any, T>;
+			all(iors).map((args) => f(...(args as TArgs))) as Ior<any, T>;
 	}
 
 	/**

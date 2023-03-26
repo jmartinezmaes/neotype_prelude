@@ -165,9 +165,9 @@ describe("Maybe", () => {
 		});
 	});
 
-	describe("collect", () => {
+	describe("all", () => {
 		it("turns the array or the tuple literal of Maybe elements inside out", () => {
-			const maybe = Maybe.collect([Maybe.just<1>(1), Maybe.just<2>(2)]);
+			const maybe = Maybe.all([Maybe.just<1>(1), Maybe.just<2>(2)]);
 			expect(maybe).to.deep.equal(Maybe.just([1, 2]));
 		});
 	});
