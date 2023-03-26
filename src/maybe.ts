@@ -212,8 +212,8 @@
  *     For example:
  *     -   `Maybe<T>[]` becomes `Maybe<T[]>`
  *     -   `[Maybe<T1>, Maybe<T2>]` becomes `Maybe<[T1, T2]>`
- * -   `gather` turns a record or an object literal of `Maybe` elements inside
- *     out. For example:
+ * -   `allProps` turns a string-keyed record or object literal of `Maybe`
+ *     elements inside out. For example:
  *     -   `Record<string, Maybe<T>>` becomes `Maybe<Record<string, T>>`
  *     -   `{ x: Maybe<T1>, y: Maybe<T2> }` becomes `Maybe<{ x: T1, y: T2 }>`
  *
@@ -330,7 +330,7 @@
  * function parseEvenIntsKeyed(
  *     inputs: string[],
  * ): Maybe<Record<string, number>> {
- *     return Maybe.gather(
+ *     return Maybe.allProps(
  *         Object.fromEntries(
  *             inputs.map((input) => [input, parseEvenInt(input)] as const),
  *         ),
@@ -525,26 +525,27 @@ export namespace Maybe {
 	}
 
 	/**
-	 * Turn a record or an object literal of `Maybe` elements "inside out".
+	 * Turn a string-keyed record or object literal of `Maybe` elements "inside
+	 * out".
 	 *
 	 * @remarks
 	 *
-	 * Evaluate the `Maybe` elements in a record or an object literal. If they
-	 * are all present, collect their values in a record or an object literal,
-	 * respectively, and return the result in a `Just`; otherwise, return
-	 * `Nothing`.
+	 * Enumerate an object's own enumerable, string-keyed property key-`Maybe`
+	 * pairs. If all `Maybe` values are present, return a `Just` that contains
+	 * an object of the keys and their associated present values; otherwise,
+	 * return `Nothing`.
 	 *
 	 * For example:
 	 *
 	 * -   `Record<string, Maybe<T>>` becomes `Maybe<Record<string, T>>`
 	 * -   `{ x: Maybe<T1>, y: Maybe<T2> }` becomes `Maybe<{ x: T1, y: T2 }>`
 	 */
-	export function gather<TMaybes extends Record<any, Maybe<any>>>(
+	export function allProps<TMaybes extends Record<string, Maybe<any>>>(
 		maybes: TMaybes,
 	): Maybe<{ -readonly [K in keyof TMaybes]: JustT<TMaybes[K]> }> {
 		return go(
 			(function* () {
-				const results: Record<any, any> = {};
+				const results: Record<string, any> = {};
 				for (const [key, maybe] of Object.entries(maybes)) {
 					results[key] = yield* maybe;
 				}

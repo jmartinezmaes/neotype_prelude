@@ -79,9 +79,9 @@ describe("Validation", () => {
 		});
 	});
 
-	describe("gather", () => {
+	describe("allProps", () => {
 		it("turns the record or the object literal of Validation elements inside out", () => {
-			const vdn = Validation.gather({
+			const vdn = Validation.allProps({
 				x: Validation.ok<2, Str>(2),
 				y: Validation.ok<4, Str>(4),
 			});

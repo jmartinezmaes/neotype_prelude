@@ -142,8 +142,8 @@
  *     -   `Validation<E, T>[]` becomes `Validation<E, T[]>`
  *     -   `[Validation<E, T1>, Validation<E, T2>]` becomes `Validation<E, [T1,
  *         T2]>`
- * -   `gather` turns a record or an object literal of `Validation` elements
- *     inside out. For example:
+ * -   `allProps` turns a string-keyed record or object literal of `Validation`
+ *     elements inside out. For example:
  *     -   `Record<string, Validation<E, T>>` becomes `Validation<E,
  *         Record<string, T>>`
  *     -   `{ x: Validation<E, T1>, y: Validation<E, T2> }` becomes
@@ -284,7 +284,7 @@
  *     rawName: string,
  *     rawAge: number,
  * ): Validation<List<string>, Person> {
- *     return Validation.gather({
+ *     return Validation.allProps({
  *         name: validateName(rawName),
  *         age: validateAge(rawAge),
  *     });
@@ -449,14 +449,15 @@ export namespace Validation {
 	}
 
 	/**
-	 * Turn a record or an object literal of `Validation` elements "inside out".
+	 * Turn a string-keyed record or object literal of `Validation` elements
+	 * "inside out".
 	 *
 	 * @remarks
 	 *
-	 * Evaluate the `Validation` elements in a record or an object literal. If
-	 * they all succeed, collect their successes in a record or an object
-	 * literal, respectively, and succeed with the result; otherwise, begin
-	 * accumulating failures on the first failed `Validation`.
+	 * Enumerate an object's own enumerable, string-keyed property
+	 * key-`Validation` pairs. If all `Validation` values succeed, succeed with
+	 * an object that contains the keys and their associated successes;
+	 * otherwise, begin accumulating failures on the first failed `Validation`.
 	 *
 	 * For example:
 	 *
@@ -465,7 +466,7 @@ export namespace Validation {
 	 * -   `{ x: Validation<E, T1>, y: Validation<E, T2> }` becomes
 	 *     `Validation<E, { x: T1, y: T2 }>`
 	 */
-	export function gather<
+	export function allProps<
 		TVdns extends Record<string, Validation<Semigroup<any>, any>>,
 	>(
 		vdns: TVdns,

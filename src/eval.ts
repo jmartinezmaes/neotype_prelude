@@ -114,8 +114,8 @@
  *     For example:
  *     -   `Eval<T>[]` becomes `Eval<T[]>`
  *     -   `[Eval<T1>, Eval<T2>]` becomes `Eval<[T1, T2]>`
- * -   `gather` turns a record or an object literal of `Eval` elements inside
- *     out. For example:
+ * -   `allProps` turns a string-keyed record or object literal of `Eval`
+ *     elements inside out. For example:
  *     -   `Record<string, Eval<T>>` becomes `Eval<Record<string, T>>`
  *     -   `{ x: Eval<T1>, y: Eval<T2> }` becomes `Eval<{ x: T1, y: T2 }>`
  *
@@ -246,7 +246,7 @@
  * }
  *
  * function traversalsKeyed<T>(tree: Tree<T>): Eval<TraversalsObj<T>> {
- *     return Eval.gather({
+ *     return Eval.allProps({
  *         in: inOrder(tree),
  *         pre: preOrder(tree),
  *         post: postOrder(tree),
@@ -370,25 +370,26 @@ export class Eval<out T> {
 	}
 
 	/**
-	 * Turn a record or an object literal of `Eval` elements "inside out".
+	 * Turn a string-keyed record or object literal of `Eval` elements "inside
+	 * out".
 	 *
 	 * @remarks
 	 *
-	 * Evaluate the `Eval` elements in a record or an object literal. Collect
-	 * their outcomes in a record or an object literal, respectively, and return
-	 * the result in an `Eval`.
+	 * Enumerate an object's own enumerable, string-keyed property key-`Eval`
+	 * pairs. Return an `Eval` that contains an object of the keys and their
+	 * associated outcomes.
 	 *
 	 * For example:
 	 *
 	 * -   `Record<string, Eval<T>>` becomes `Eval<Record<string, T>>`
 	 * -   `{ x: Eval<T1>, y: Eval<T2> }` becomes `Eval<{ x: T1, y: T2 }>`
 	 */
-	static gather<TEvals extends Record<any, Eval<any>>>(
+	static allProps<TEvals extends Record<string, Eval<any>>>(
 		evals: TEvals,
 	): Eval<{ -readonly [K in keyof TEvals]: Eval.ResultT<TEvals[K]> }> {
 		return Eval.go(
 			(function* () {
-				const results: Record<any, any> = {};
+				const results: Record<string, any> = {};
 				for (const [key, ev] of Object.entries(evals)) {
 					results[key] = yield* ev;
 				}

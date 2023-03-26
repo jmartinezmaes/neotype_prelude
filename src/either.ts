@@ -201,8 +201,8 @@
  *     For example:
  *     -   `Either<E, T>[]` becomes `Either<E, T[]>`
  *     -   `[Either<E, T1>, Either<E, T2>]` becomes `Either<E, [T1, T2]>`
- * -   `gather` turns a record or an object literal of `Either` elements inside
- *     out. For example:
+ * -   `allProps` turns a string-keyed record or object literal of `Either`
+ *     elements inside out. For example:
  *     -   `Record<string, Either<E, T>>` becomes `Either<E, Record<string, T>>`
  *     -   `{ x: Either<E, T1>, y: Either<E, T2> }` becomes `Either<E, { x: T1,
  *         y: T2 }>`
@@ -320,7 +320,7 @@
  * function parseEvenIntsKeyed(
  *     inputs: string[],
  * ): Either<string, Record<string, number>> {
- *     return Either.gather(
+ *     return Either.allProps(
  *         Object.fromEntries(
  *             inputs.map((input) => [input, parseEvenInt(input)] as const),
  *         ),
@@ -490,14 +490,15 @@ export namespace Either {
 	}
 
 	/**
-	 * Turn a record or an object literal of `Either` elements "inside out".
+	 * Turn a string-keyed record or object literal of `Either` elements "inside
+	 * out".
 	 *
 	 * @remarks
 	 *
-	 * Evaluate the `Either` elements in a record or an object literal. If they
-	 * all succeed, collect their successes in a record or an object literal,
-	 * respectively, and succeed with the result; otherwise, return the first
-	 * failed `Either`.
+	 * Enumerate an object's own enumerable, string-keyed property key-`Either`
+	 * pairs. If all `Either` values succeed, succeed with an object that
+	 * contains the keys and their associated successes; otherwise, return the
+	 * first failed `Either`.
 	 *
 	 * For example:
 	 *
@@ -505,7 +506,7 @@ export namespace Either {
 	 * -   `{ x: Either<E, T1>, y: Either<E, T2> }` becomes `Either<E, { x: T1,
 	 *     y: T2 }>`
 	 */
-	export function gather<TEithers extends Record<any, Either<any, any>>>(
+	export function allProps<TEithers extends Record<string, Either<any, any>>>(
 		eithers: TEithers,
 	): Either<
 		LeftT<TEithers[keyof TEithers]>,
@@ -513,7 +514,7 @@ export namespace Either {
 	> {
 		return go(
 			(function* () {
-				const results: Record<any, any> = {};
+				const results: Record<string, any> = {};
 				for (const [key, either] of Object.entries(eithers)) {
 					results[key] = yield* either;
 				}

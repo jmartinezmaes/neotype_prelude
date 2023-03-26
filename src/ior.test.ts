@@ -233,9 +233,9 @@ describe("Ior", () => {
 		});
 	});
 
-	describe("gather", () => {
+	describe("allProps", () => {
 		it("turns the record or the object literal of Ior elements inside out", () => {
-			const ior = Ior.gather({
+			const ior = Ior.allProps({
 				x: Ior.both<Str, 2>(new Str("a"), 2),
 				y: Ior.both<Str, 4>(new Str("b"), 4),
 			});
