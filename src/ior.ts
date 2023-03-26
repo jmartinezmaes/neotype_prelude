@@ -1070,7 +1070,7 @@ export namespace Ior {
 	}
 
 	/**
-	 * A generator that yields `Ior` values and may return a result.
+	 * A generator that yields `Ior` values and returns a result.
 	 */
 	export type Go<A extends Semigroup<A>, TReturn> = Generator<
 		Ior<A, unknown>,
@@ -1079,7 +1079,7 @@ export namespace Ior {
 	>;
 
 	/**
-	 * An async generator that yields `Ior` values and may return a result.
+	 * An async generator that yields `Ior` values and returns a result.
 	 */
 	export type GoAsync<A extends Semigroup<A>, TReturn> = AsyncGenerator<
 		Ior<A, unknown>,
