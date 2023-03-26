@@ -137,8 +137,8 @@
  * container and returned as a success. If any element fails, the collection
  * halts and failures begin accumulating instead.
  *
- * -   `collect` turns an array or a tuple literal of `Validation` elements
- *     inside out. For example:
+ * -   `all` turns an array or a tuple literal of `Validation` elements inside
+ *     out. For example:
  *     -   `Validation<E, T>[]` becomes `Validation<E, T[]>`
  *     -   `[Validation<E, T1>, Validation<E, T2>]` becomes `Validation<E, [T1,
  *         T2]>`
@@ -349,7 +349,7 @@
  * function requireLowercaseElems(
  *     inputs: string[]
  * ): Validation<List<string>, string[]> {
- *     return Validation.collect(inputs.map(requireLowercase));
+ *     return Validation.all(inputs.map(requireLowercase));
  * }
  *
  * [
@@ -430,7 +430,7 @@ export namespace Validation {
 	 * -   `[Validation<E, T1>, Validation<E, T2>]` becomes `Validation<E, [T1,
 	 *     T2]>`
 	 */
-	export function collect<
+	export function all<
 		TVdns extends readonly Validation<Semigroup<any>, any>[] | [],
 	>(
 		vdns: TVdns,
@@ -500,7 +500,7 @@ export namespace Validation {
 		...vdns: { [K in keyof TArgs]: Validation<E, TArgs[K]> }
 	) => Validation<E, T> {
 		return (...vdns) =>
-			collect(vdns).map((args) => f(...(args as TArgs))) as Validation<
+			all(vdns).map((args) => f(...(args as TArgs))) as Validation<
 				any,
 				T
 			>;

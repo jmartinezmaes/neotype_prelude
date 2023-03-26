@@ -131,9 +131,9 @@ describe("Either", () => {
 		});
 	});
 
-	describe("collect", () => {
+	describe("all", () => {
 		it("turns the array or the tuple literal of Either elements inside out", () => {
-			const either = Either.collect([
+			const either = Either.all([
 				Either.right<2, 1>(2),
 				Either.right<4, 3>(4),
 			]);
