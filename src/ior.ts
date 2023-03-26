@@ -629,7 +629,7 @@ export namespace Ior {
 		LeftT<TIors[keyof TIors]>,
 		{ -readonly [K in keyof TIors]: RightT<TIors[K]> }
 	> {
-		return Ior.go(
+		return go(
 			(function* (): Ior.Go<any, any> {
 				const results: Record<any, any> = {};
 				for (const [key, ior] of Object.entries(iors)) {
