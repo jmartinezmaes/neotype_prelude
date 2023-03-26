@@ -98,7 +98,7 @@
  * ### Evaluating comprehensions
  *
  * `Eval.Go` generators must be evaluated before accessing their results. The
- * `go` function evaluates an `Eval.Go<T> generator to return an `Eval<T>`.
+ * `go` function evaluates an `Eval.Go<T>` generator to return an `Eval<T>`.
  *
  * `Eval` is automatically deferred in its implementation of `go`. The body of
  * the provided generator does not execute until the `Eval` is evaluated using

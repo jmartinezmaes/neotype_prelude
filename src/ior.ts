@@ -189,7 +189,7 @@
  * `Ior.Go` and `Ior.GoAsync` generators must be evaluated before accessing
  * their results.
  *
- * The `go` function evaluates an `Ior.Go<A, T> generator to return an `Ior<A,
+ * The `go` function evaluates an `Ior.Go<A, T>` generator to return an `Ior<A,
  * T>`. If any yielded `Ior` is a `Left`, the generator halts and the left-hand
  * value is combined with any existing left-hand value, and `go` returns the
  * result in a `Left`; otherwise, when the generator returns, `go` returns the

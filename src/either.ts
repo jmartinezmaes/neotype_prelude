@@ -179,7 +179,7 @@
  * `Either.Go` and `Either.GoAsync` generators must be evaluated before
  * accessing their results.
  *
- * The `go` function evaluates an `Either.Go<E, T> generator to return an
+ * The `go` function evaluates an `Either.Go<E, T>` generator to return an
  * `Either<E, T>`. If any yielded `Either` fails, the generator halts and `go`
  * returns the failed `Either`; otherwise, when the generator returns, `go`
  * returns the result as a success.

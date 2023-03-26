@@ -190,7 +190,7 @@
  * `Maybe.Go` and `Maybe.GoAsync` generators must be evaluated before accessing
  * their results.
  *
- * The `go` function evaluates a `Maybe.Go<T> generator to return a `Maybe<T>`
+ * The `go` function evaluates a `Maybe.Go<T>` generator to return a `Maybe<T>`
  * If any yielded `Maybe` is absent, the generator halts and `go` returns
  * `Nothing`; otherwise, when the generator returns, `go` returns the result in
  * a `Just`.
