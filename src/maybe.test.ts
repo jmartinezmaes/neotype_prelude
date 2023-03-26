@@ -172,9 +172,9 @@ describe("Maybe", () => {
 		});
 	});
 
-	describe("gather", () => {
+	describe("allProps", () => {
 		it("turns the record or the object literal of Maybe elements inside out", () => {
-			const maybe = Maybe.gather({
+			const maybe = Maybe.allProps({
 				x: Maybe.just<1>(1),
 				y: Maybe.just<2>(2),
 			});

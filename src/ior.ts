@@ -218,8 +218,8 @@
  *     example:
  *     -   `Ior<A, B>[]` becomes `Ior<A, B[]>`
  *     -   `[Ior<A, B1>, Ior<A, B2>]` becomes `Ior<A, [B1, B2]>`
- * -   `gather` turns a record or an object literal of `Ior` elements inside
- *     out. For example:
+ * -   `allProps` turns a string-keyed record or object literal of `Ior`
+ *     elements inside out. For example:
  *     -   `Record<string, Ior<A, B>>` becomes `Ior<A, Record<string, B>>`
  *     -   `{ x: Ior<A, B1>, y: Ior<A, B2> }` becomes `Ior<A, { x: B1, y: B2 }>`
  *
@@ -380,7 +380,7 @@
  * function parseEvenIntsKeyed(
  *     inputs: string[],
  * ): Ior<Log, Record<string, number>> {
- *     return Ior.gather(
+ *     return Ior.allProps(
  *         Object.fromEntries(
  *             inputs.map((input) => [input, parseEvenInt(input)] as const),
  *         ),
@@ -593,7 +593,7 @@ export namespace Ior {
 		{ -readonly [K in keyof TIors]: RightT<TIors[K]> }
 	> {
 		return go(
-			(function* (): Ior.Go<any, any> {
+			(function* (): Go<any, any> {
 				const results = new Array(iors.length);
 				for (const [idx, ior] of iors.entries()) {
 					results[idx] = yield* ior;
@@ -604,32 +604,35 @@ export namespace Ior {
 	}
 
 	/**
-	 * Turn a record or an object literal of `Ior` elements "inside out".
+	 * Turn a string-keyed record or object literal of `Ior` elements "inside
+	 * out".
 	 *
 	 * @remarks
 	 *
-	 * Evaluate the `Ior` elements in a record or an object literal. If they all
-	 * have right-hand values, collect the values in a record or an object
-	 * literal, tuple literal, respectively, and return the result as a
-	 * right-hand value. Accumulate the left-hand values of `Both` variants
-	 * using their behavior as a semigroup. If any element is a `Left`, halt the
-	 * collection and combine the left-hand value with any existing left-hand
-	 * value, and return the result in a `Left`.
+	 * Enumerate an object's own enumerable, string-keyed property key-`Ior`
+	 * pairs. If all `Ior` values have right-hand values, return an object as a
+	 * right-hand value that contains the keys and their associated right-hand
+	 * values. Accumulate the left-hand values of `Both` variants using their
+	 * behavior as a semigroup. If any value is a `Left`, halt the collection
+	 * and combine the left-hand value with any existing left-hand value, and
+	 * return the result in a `Left`.
 	 *
 	 * For example:
 	 *
 	 * -   `Record<string, Ior<A, B>>` becomes `Ior<A, Record<string, B>>`
 	 * -   `{ x: Ior<A, B1>, y: Ior<A, B2> }` becomes `Ior<A, { x: B1, y: B2 }>`
 	 */
-	export function gather<TIors extends Record<any, Ior<Semigroup<any>, any>>>(
+	export function allProps<
+		TIors extends Record<string, Ior<Semigroup<any>, any>>,
+	>(
 		iors: TIors,
 	): Ior<
 		LeftT<TIors[keyof TIors]>,
 		{ -readonly [K in keyof TIors]: RightT<TIors[K]> }
 	> {
 		return go(
-			(function* (): Ior.Go<any, any> {
-				const results: Record<any, any> = {};
+			(function* (): Go<any, any> {
+				const results: Record<string, any> = {};
 				for (const [key, ior] of Object.entries(iors)) {
 					results[key] = yield* ior;
 				}

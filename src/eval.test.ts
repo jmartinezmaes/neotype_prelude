@@ -99,9 +99,9 @@ describe("Eval", () => {
 		});
 	});
 
-	describe("gather", () => {
+	describe("allProps", () => {
 		it("turns the record or the object literal of Eval elements inside out", () => {
-			const ev = Eval.gather({
+			const ev = Eval.allProps({
 				x: Eval.now<1>(1),
 				y: Eval.now<2>(2),
 			});

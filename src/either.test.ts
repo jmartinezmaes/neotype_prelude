@@ -141,9 +141,9 @@ describe("Either", () => {
 		});
 	});
 
-	describe("gather", () => {
+	describe("allProps", () => {
 		it("turns the record or the object literal of Either elements inside out", () => {
-			const either = Either.gather({
+			const either = Either.allProps({
 				x: Either.right<2, 1>(2),
 				y: Either.right<4, 3>(4),
 			});
