@@ -51,10 +51,6 @@ export function arbStr(): fc.Arbitrary<Str> {
 	return fc.string().map((val) => new Str(val));
 }
 
-export function tuple<TArgs extends unknown[]>(...args: TArgs): TArgs {
-	return args;
-}
-
 export function expectLawfulEq<T extends Eq<T>>(arb: fc.Arbitrary<T>): void {
 	fc.assert(
 		fc.property(arb, (x) => {

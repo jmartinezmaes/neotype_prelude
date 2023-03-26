@@ -22,7 +22,6 @@ import {
 	expectLawfulEq,
 	expectLawfulOrd,
 	expectLawfulSemigroup,
-	tuple,
 	type Num,
 	type Str,
 } from "./_test/utils.js";
@@ -106,26 +105,28 @@ describe("Maybe", () => {
 
 	describe("go", () => {
 		it("short-circuits on the first yielded Nothing", () => {
-			const maybe = Maybe.go(function* () {
+			function* f(): Maybe.Go<[1, 1, 2]> {
 				const x = yield* Maybe.just<1>(1);
 				const [y, z] = yield* nothing<[1, 2]>();
-				return tuple(x, y, z);
-			});
+				return [x, y, z];
+			}
+			const maybe = Maybe.go(f());
 			expect(maybe).to.equal(Maybe.nothing);
 		});
 
 		it("completes if all yielded values are Just", () => {
-			const maybe = Maybe.go(function* () {
+			function* f(): Maybe.Go<[1, 1, 2]> {
 				const x = yield* Maybe.just<1>(1);
 				const [y, z] = yield* Maybe.just<[1, 2]>([x, 2]);
-				return tuple(x, y, z);
-			});
+				return [x, y, z];
+			}
+			const maybe = Maybe.go(f());
 			expect(maybe).to.deep.equal(Maybe.just([1, 1, 2]));
 		});
 
 		it("executes the finally block if Nothing is yielded in the try block", () => {
 			const logs: string[] = [];
-			const maybe = Maybe.go(function* () {
+			function* f(): Maybe.Go<number[]> {
 				try {
 					const results = [];
 					const x = yield* nothing<1>();
@@ -134,21 +135,22 @@ describe("Maybe", () => {
 				} finally {
 					logs.push("finally");
 				}
-			});
+			}
+			const maybe = Maybe.go(f());
 			expect(maybe).to.equal(Maybe.nothing);
 			expect(logs).to.deep.equal(["finally"]);
 		});
-	});
 
-	describe("goFn", () => {
-		it("accesses the parameters of the generator function", () => {
-			const f = Maybe.goFn(function* <T>(w: T) {
-				const x = yield* Maybe.just<1>(1);
-				const [y, z] = yield* Maybe.just<[1, 2]>([x, 2]);
-				return tuple(w, x, y, z);
-			});
-			const maybe = f<0>(0);
-			expect(maybe).to.deep.equal(Maybe.just([0, 1, 1, 2]));
+		it("returns Nothing if Nothing is yielded in the finally block", () => {
+			function* f(): Maybe.Go<number[]> {
+				try {
+					return [1];
+				} finally {
+					yield* nothing<1>();
+				}
+			}
+			const maybe = Maybe.go(f());
+			expect(maybe).to.equal(Maybe.nothing);
 		});
 	});
 
@@ -182,51 +184,54 @@ describe("Maybe", () => {
 
 	describe("lift", () => {
 		it("lifts the function into the context of Maybe", () => {
-			const maybe = Maybe.lift(tuple<[1, 2]>)(
-				Maybe.just(1),
-				Maybe.just(2),
-			);
+			function f<A, B>(lhs: A, rhs: B): [A, B] {
+				return [lhs, rhs];
+			}
+			const maybe = Maybe.lift(f)(Maybe.just(1), Maybe.just(2));
 			expect(maybe).to.deep.equal(Maybe.just([1, 2]));
 		});
 	});
 
 	describe("goAsync", async () => {
 		it("short-circuits on the first yielded Nothing", async () => {
-			const maybe = await Maybe.goAsync(async function* () {
+			async function* f(): Maybe.GoAsync<[1, 1, 2]> {
 				const x = yield* await Promise.resolve(Maybe.just<1>(1));
 				const [y, z] = yield* await Promise.resolve(nothing<[1, 2]>());
-				return tuple(x, y, z);
-			});
+				return [x, y, z];
+			}
+			const maybe = await Maybe.goAsync(f());
 			expect(maybe).to.equal(Maybe.nothing);
 		});
 
 		it("completes if all yielded values are Just", async () => {
-			const maybe = await Maybe.goAsync(async function* () {
+			async function* f(): Maybe.GoAsync<[1, 1, 2]> {
 				const x = yield* await Promise.resolve(Maybe.just<1>(1));
 				const [y, z] = yield* await Promise.resolve(
 					Maybe.just<[1, 2]>([x, 2]),
 				);
-				return tuple(x, y, z);
-			});
+				return [x, y, z];
+			}
+			const maybe = await Maybe.goAsync(f());
 			expect(maybe).to.deep.equal(Maybe.just([1, 1, 2]));
 		});
 
 		it("unwraps Promises in Just variants and in return", async () => {
-			const maybe = await Maybe.goAsync(async function* () {
+			async function* f(): Maybe.GoAsync<[1, 1, 2]> {
 				const x = yield* await Promise.resolve(
 					Maybe.just(Promise.resolve<1>(1)),
 				);
 				const [y, z] = yield* await Promise.resolve(
 					Maybe.just(Promise.resolve<[1, 2]>([x, 2])),
 				);
-				return Promise.resolve(tuple(x, y, z));
-			});
+				return Promise.resolve([x, y, z]);
+			}
+			const maybe = await Maybe.goAsync(f());
 			expect(maybe).to.deep.equal(Maybe.just([1, 1, 2]));
 		});
 
 		it("executes the finally block if Nothing is yielded in the try block", async () => {
 			const logs: string[] = [];
-			const maybe = await Maybe.goAsync(async function* () {
+			async function* f(): Maybe.GoAsync<number[]> {
 				try {
 					const results = [];
 					const x = yield* await Promise.resolve(nothing<1>());
@@ -235,23 +240,22 @@ describe("Maybe", () => {
 				} finally {
 					logs.push("finally");
 				}
-			});
+			}
+			const maybe = await Maybe.goAsync(f());
 			expect(maybe).to.equal(Maybe.nothing);
 			expect(logs).to.deep.equal(["finally"]);
 		});
-	});
 
-	describe("goAsyncFn", () => {
-		it("accesses the parameters of the async generator function", async () => {
-			const f = Maybe.goAsyncFn(async function* <T>(w: T) {
-				const x = yield* await Promise.resolve(Maybe.just<1>(1));
-				const [y, z] = yield* await Promise.resolve(
-					Maybe.just<[1, 2]>([x, 2]),
-				);
-				return tuple(w, x, y, z);
-			});
-			const maybe = await f<0>(0);
-			expect(maybe).to.deep.equal(Maybe.just([0, 1, 1, 2]));
+		it("returns Nothing if Nothing is yielded in the finally block", async () => {
+			async function* f(): Maybe.GoAsync<number[]> {
+				try {
+					return [1];
+				} finally {
+					yield* nothing<1>();
+				}
+			}
+			const maybe = await Maybe.goAsync(f());
+			expect(maybe).to.equal(Maybe.nothing);
 		});
 	});
 
@@ -475,6 +479,24 @@ describe("Maybe", () => {
 		});
 	});
 
+	describe("#goMap", () => {
+		it("does not apply the continuation if the variant is Nothing", () => {
+			const maybe = nothing<1>().goMap(function* (x) {
+				const y = yield* Maybe.just<2>(2);
+				return [x, y] as [1, 2];
+			});
+			expect(maybe).to.equal(Maybe.nothing);
+		});
+
+		it("applies the continuation to the value if the variant is Just", () => {
+			const maybe = Maybe.just<1>(1).goMap(function* (x) {
+				const y = yield* Maybe.just<2>(2);
+				return [x, y] as [1, 2];
+			});
+			expect(maybe).to.deep.equal(Maybe.just([1, 2]));
+		});
+	});
+
 	describe("#mapNullish", () => {
 		it("does not apply the continuation if the variant is Nothing", () => {
 			const maybe = nothing<1>().mapNullish((x): [1, 2] | null => [x, 2]);
@@ -522,7 +544,10 @@ describe("Maybe", () => {
 
 	describe("#zipWith", () => {
 		it("applies the function to the values if both variants are Just", () => {
-			const maybe = Maybe.just<1>(1).zipWith(Maybe.just<2>(2), tuple);
+			const maybe = Maybe.just<1>(1).zipWith(
+				Maybe.just<2>(2),
+				(lhs, rhs): [1, 2] => [lhs, rhs],
+			);
 			expect(maybe).to.deep.equal(Maybe.just([1, 2]));
 		});
 	});
@@ -543,7 +568,7 @@ describe("Maybe", () => {
 
 	describe("#map", () => {
 		it("applies the function to the value if the variant is Just", () => {
-			const maybe = Maybe.just<1>(1).map((x): [1, 2] => tuple(x, 2));
+			const maybe = Maybe.just<1>(1).map((x): [1, 2] => [x, 2]);
 			expect(maybe).to.deep.equal(Maybe.just([1, 2]));
 		});
 	});

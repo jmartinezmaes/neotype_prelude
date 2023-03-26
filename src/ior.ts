@@ -150,31 +150,60 @@
  * the left-hand value is combined with any existing left-hand value, and the
  * result is returned in a `Left`.
  *
- * ### Generator comprehensions
+ * ## Generator comprehenshions
  *
  * Generator comprehensions provide an imperative syntax for chaining together
- * computations that return `Ior`. Instead of `flatMap`, a generator is used
- * to unwrap `Ior` values and apply functions to right-hand values.
+ * synchronous or asynchronous computations that return or resolve with `Ior`
+ * values.
  *
- * The `go` function evaluates a generator to return an `Ior`. Within the
- * generator, `Ior` values are yielded using the `yield*` keyword. If a yielded
- * `Ior` has a right-hand value, the value may be bound to a specified variable.
- * The left-hand values of `Both` variants accumulate using their behavior as a
- * semigroup. If any yielded `Ior` is a `Left`, the generator halts and the
- * left-hand value is combined with any existing left-hand value, and the result
- * is returned in a `Left`; otherwise, when the computation is complete, the
- * generator may return a final result and `go` returns the result as a
- * right-hand value.
+ * ### Writing comprehensions
  *
- * ## Async generator comprehensions
+ * Synchronus and asynchronous comprehensions are written using `function*` and
+ * `async function*` declarations, respectively.
  *
- * Async generator comprehensions provide `async`/`await` syntax to `Ior`
- * generator comprehensions, allowing promise-like computations that fulfill
- * with `Ior` to be chained together using the familiar generator syntax.
+ * Synchronous generator functions should use the `Ior.Go` type alias as a
+ * return type. A generator function that returns an `Ior.Go<A, T>` may `yield*`
+ * zero or more `Ior<A, any>` values and must return a result of type `T`.
+ * Synchronous comprehensions may also `yield*` other `Ior.Go` generators
+ * directly.
  *
- * The `goAsync` function evaluates an async generator to return a `Promise`
- * that fulfills with an `Ior`. The semantics of `yield*` and `return` within
- * async comprehensions are identical to their synchronous counterparts.
+ * Async generator functions should use the `Ior.GoAsync` type alias as a return
+ * type. An async generator function that returns an `Ior.GoAsync<A, T>` may
+ * `yield*` zero or more `Ior<A, any>` values and must return a result of type
+ * `T`. `PromiseLike` values that resolve with `Ior` should be awaited before
+ * yielding. Async comprehensions may also `yield*` other `Ior.Go` and
+ * `Ior.GoAsync` generators directly.
+ *
+ * Each `yield*` expression may bind a variable of the right-hand value type of
+ * the yielded `Ior`. Comprehensions should always use `yield*` instead of
+ * `yield`. Using `yield*` allows TypeScript to accurately infer the right-hand
+ * value type of the yielded `Ior` when binding the value of each `yield*`
+ * expression.
+ *
+ * Comprehensions require that the left-hand values of all yielded `Ior` values
+ * are implementors of the same `Semigroup` so the values may accumulate as the
+ * generator yields.
+ *
+ * ### Evaluating comprehensions
+ *
+ * `Ior.Go` and `Ior.GoAsync` generators must be evaluated before accessing
+ * their results.
+ *
+ * The `go` function evaluates an `Ior.Go<A, T>` generator to return an `Ior<A,
+ * T>`. If any yielded `Ior` is a `Left`, the generator halts and the left-hand
+ * value is combined with any existing left-hand value, and `go` returns the
+ * result in a `Left`; otherwise, when the generator returns, `go` returns the
+ * result as a right-hand value.
+ *
+ * The `goAsync` function evaluates an `Ior.GoAsync<A, T>` async generator to
+ * return a `Promise<Ior<A, T>>`. If any yielded `Ior` is a `Left`, the
+ * generator halts and the left-hand value is combined with any existing
+ * left-hand value, and `goAsync` resolves with the result in a `Left`;
+ * otherwise, when the generator returns, `goAsync` resolves with the result as
+ * a right-hand value. Thrown errors are captured as rejections.
+ *
+ * In both synchronous and asynchronous comprehensions, the left-hand values of
+ * yielded `Both` variants accumulate using their behavior as a semigroup.
  *
  * ## Collecting into `Ior`
  *
@@ -319,19 +348,6 @@
  * // input "0x2A: [["info: parse '0x2A' ok"],42]
  * ```
  *
- * We can refactor the `parseEvenInt` function to use a generator comprehension
- * instead:
- *
- * ```ts
- * function parseEvenInt(input: string): Ior<Log, number> {
- *     return Ior.go(function* () {
- *         const n = yield* parseInt(input);
- *         const even = yield* guardEven(n);
- *         return even;
- *     });
- * }
- * ```
- *
  * Suppose we want to parse an array of inputs and collect the successful
  * results, or fail on the first parse error. We may write the following:
  *
@@ -357,40 +373,8 @@
  * //   [["info: parse '+42' ok","info: parse '0x2A' ok"],[42,42]]
  * ```
  *
- * Perhaps we want to collect only distinct even numbers using a Set:
- *
- * ```ts
- * function parseEvenIntsUniq(inputs: string[]): Ior<Log, Set<number>> {
- *     return Ior.go(function* () {
- *         const results = new Set<number>();
- *         for (const input of inputs) {
- *             results.add(yield* parseEvenInt(input));
- *         }
- *         return results;
- *     });
- * }
- *
- * [
- *     ["a", "-4"],
- *     ["2", "-7"],
- *     ["+42", "0x2A"],
- * ].forEach((inputs) => {
- *     const result = JSON.stringify(
- *         parseEvenIntsUniq(inputs).map(Array.from).val,
- *     );
- *     console.log(`inputs ${JSON.stringify(inputs)}:\n  ${result}`);
- * });
- *
- * // inputs ["a","-4"]:
- * //   ["err: cannot parse 'a' as int"]
- * // inputs ["2","-7"]:
- * //   ["info: parse '2' ok","info: parse '-7' ok","err: -7 is not even"]
- * // inputs ["+42" "0x2A"]:
- * //   [["info: parse '+42' ok","info: parse '0x2A' ok"],[42]]
- * ```
- *
- * Or, perhaps we want to associate the original input strings with our
- * successful parses:
+ * Perhaps we want to associate the original input strings with our successful
+ * parses:
  *
  * ```ts
  * function parseEvenIntsKeyed(
@@ -512,11 +496,15 @@ export namespace Ior {
 		return vdn.unwrap(left, right);
 	}
 
-	function step<A extends Semigroup<A>, TReturn>(
-		gen: Generator<Ior<A, any>, TReturn | typeof halt, unknown>,
+	/**
+	 * Evaluate an `Ior.Go` generator to return an `Ior`.
+	 */
+	export function go<A extends Semigroup<A>, TReturn>(
+		gen: Go<A, TReturn>,
 	): Ior<A, TReturn> {
 		let nxt = gen.next();
 		let acc: A | undefined;
+		let isHalted = false;
 
 		while (!nxt.done) {
 			const ior = nxt.value;
@@ -535,114 +523,18 @@ export namespace Ior {
 				} else {
 					acc = cmb(acc, ior.val);
 				}
-				nxt = gen.return(halt);
+				isHalted = true;
+				nxt = gen.return(undefined as any);
 			}
 		}
 
-		const result = nxt.value;
-		if (result === halt) {
+		if (isHalted) {
 			return left(acc as A);
 		}
 		if (acc === undefined) {
-			return right(result);
+			return right(nxt.value);
 		}
-		return both(acc, result);
-	}
-
-	/**
-	 * Construct an `Ior` using a generator comprehension.
-	 *
-	 * @remarks
-	 *
-	 * The contract for generator comprehensions is as follows:
-	 *
-	 * -   The generator provided to `go` must only yield `Ior` values.
-	 * -   `Ior` values must only be yielded using the `yield*` keyword, and
-	 *     never `yield` (without the `*`). Omitting the `*` inhibits proper
-	 *     type inference and may cause undefined behavior.
-	 * -   A `yield*` statement may bind a variable provided by the caller. The
-	 *     variable inherits the type of the right-hand value of the yielded
-	 *     `Ior`.
-	 * -   If a yielded `Ior` has a right-hand value, the value is bound to a
-	 *     variable (if provided) and the generator advances.
-	 * -   If a yielded `Ior` is a `Both`, its left-hand value is combined with
-	 *     any existing left-hand value using its behavior as a semigroup.
-	 * -   If a yielded `Ior` is a `Left`, the generator halts and `go` combines
-	 *     the left-hand value with any existing left hand value, and returns
-	 *     the result in a `Left`.
-	 * -   The `return` statement of the generator may return a final result,
-	 *     which is returned from `go` as a right-hand value if no `Left`
-	 *     variants are encountered.
-	 * -   All syntax normally permitted in generators (statements, loops,
-	 *     declarations, etc.) is permitted within generator comprehensions.
-	 *
-	 * @example Basic yielding and returning
-	 *
-	 * Consider a comprehension that sums the right-hand of three `Ior` values,
-	 * and also combines strings using a user-defined semigroup:
-	 *
-	 * ```ts
-	 * import { Ior } from "@neotype/prelude/ior.js";
-	 * import { Semigroup } from "@neotype/prelude/semigroup.js";
-	 *
-	 * // A helper type that provides a semigroup for strings
-	 * class Str {
-	 *     constructor(readonly val: string) {}
-	 *
-	 *     [Semigroup.cmb](that: Str): Str {
-	 *         return new Str(this.val + that.val);
-	 *     }
-	 *
-	 *     toJSON() {
-	 *         return this.val;
-	 *     }
-	 * }
-	 *
-	 * const strIorOne: Ior<Str, number> = Ior.both(new Str("a"), 1);
-	 * const strIorTwo: Ior<Str, number> = Ior.right(2);
-	 * const strIorThree: Ior<Str, number> = Ior.both(new Str("b"), 3);
-	 *
-	 * const summed: Ior<Str, number> = Ior.go(function* () {
-	 *     const one = yield* strIorOne;
-	 *     const two = yield* strIorTwo;
-	 *     const three = yield* strIorThree;
-	 *
-	 *     return one + two + three;
-	 * });
-	 *
-	 * console.log(JSON.stringify(summed.val)); // ["ab",6]
-	 * ```
-	 *
-	 * Now, observe the change in behavior if one of the yielded arguments was
-	 * a `Left` variant of `Ior` instead. Replace the declaration of `strIorTwo`
-	 * with the following and re-run the program.
-	 *
-	 * ```ts
-	 * const strIorTwo: Ior<Str, number> = Ior.left(new Str("c"));
-	 * ```
-	 */
-	export function go<A extends Semigroup<A>, TReturn>(
-		f: () => Generator<Ior<A, any>, TReturn, unknown>,
-	): Ior<A, TReturn> {
-		return step(f());
-	}
-
-	/**
-	 * Construct a function that returns an `Ior` using a generator
-	 * comprehension.
-	 *
-	 * @remarks
-	 *
-	 * This is the higher-order function variant of `go`.
-	 */
-	export function goFn<
-		TArgs extends unknown[],
-		A extends Semigroup<A>,
-		TReturn,
-	>(
-		f: (...args: TArgs) => Generator<Ior<A, any>, TReturn, unknown>,
-	): (...args: TArgs) => Ior<A, TReturn> {
-		return (...args) => step(f(...args));
+		return both(acc, nxt.value);
 	}
 
 	/**
@@ -665,13 +557,15 @@ export namespace Ior {
 		accum: (acc: TAcc, val: T) => Ior<A, TAcc>,
 		initial: TAcc,
 	): Ior<A, TAcc> {
-		return go(function* () {
-			let acc = initial;
-			for (const val of vals) {
-				acc = yield* accum(acc, val);
-			}
-			return acc;
-		});
+		return go(
+			(function* () {
+				let acc = initial;
+				for (const val of vals) {
+					acc = yield* accum(acc, val);
+				}
+				return acc;
+			})(),
+		);
 	}
 
 	/**
@@ -700,16 +594,15 @@ export namespace Ior {
 		LeftT<TIors[number]>,
 		{ -readonly [K in keyof TIors]: RightT<TIors[K]> }
 	> {
-		return go(function* () {
-			const results = new Array(iors.length);
-			for (const [idx, ior] of iors.entries()) {
-				results[idx] = yield* ior;
-			}
-			return results;
-		}) as Ior<
-			LeftT<TIors[number]>,
-			{ [K in keyof TIors]: RightT<TIors[K]> }
-		>;
+		return go(
+			(function* (): Ior.Go<any, any> {
+				const results = new Array(iors.length);
+				for (const [idx, ior] of iors.entries()) {
+					results[idx] = yield* ior;
+				}
+				return results;
+			})(),
+		);
 	}
 
 	/**
@@ -736,16 +629,15 @@ export namespace Ior {
 		LeftT<TIors[keyof TIors]>,
 		{ -readonly [K in keyof TIors]: RightT<TIors[K]> }
 	> {
-		return Ior.go(function* () {
-			const results: Record<any, any> = {};
-			for (const [key, ior] of Object.entries(iors)) {
-				results[key] = yield* ior;
-			}
-			return results;
-		}) as Ior<
-			LeftT<TIors[keyof TIors]>,
-			{ [K in keyof TIors]: RightT<TIors[K]> }
-		>;
+		return go(
+			(function* (): Ior.Go<any, any> {
+				const results: Record<any, any> = {};
+				for (const [key, ior] of Object.entries(iors)) {
+					results[key] = yield* ior;
+				}
+				return results;
+			})(),
+		);
 	}
 
 	/**
@@ -771,11 +663,16 @@ export namespace Ior {
 			collect(iors).map((args) => f(...(args as TArgs))) as Ior<any, T>;
 	}
 
-	async function stepAsync<A extends Semigroup<A>, TReturn>(
-		gen: AsyncGenerator<Ior<A, any>, TReturn | typeof halt, unknown>,
+	/**
+	 * Evaluate an `Ior.GoAsync` async generator to return a `Promise` that
+	 * resolves with an `Ior`.
+	 */
+	export async function goAsync<A extends Semigroup<A>, TReturn>(
+		gen: GoAsync<A, TReturn>,
 	): Promise<Ior<A, TReturn>> {
 		let nxt = await gen.next();
 		let acc: A | undefined;
+		let isHalted = false;
 
 		while (!nxt.done) {
 			const ior = nxt.value;
@@ -794,77 +691,18 @@ export namespace Ior {
 				} else {
 					acc = cmb(acc, ior.val);
 				}
-				nxt = await gen.return(halt);
+				isHalted = true;
+				nxt = await gen.return(undefined as any);
 			}
 		}
 
-		const result = nxt.value;
-		if (result === halt) {
+		if (isHalted) {
 			return left(acc as A);
 		}
 		if (acc === undefined) {
-			return right(result);
+			return right(nxt.value);
 		}
-		return both(acc, result);
-	}
-
-	/**
-	 * Construct a `Promise` that fulfills with an `Ior` using an async
-	 * generator comprehension.
-	 *
-	 * @remarks
-	 *
-	 * The contract for async generator comprehensions is as follows:
-	 *
-	 * -   The async generator provided to `goAsync` must only yield `Ior`
-	 *     values.
-	 *     -   `Promise` values must never be yielded. If a `Promise` contains
-	 *         an `Ior`, the `Promise` must first be awaited to access and yield
-	 *         the `Ior`. This is done with a `yield* await` statement.
-	 * -   `Ior` values must only be yielded using the `yield*` keyword, and
-	 *     never `yield` (without the `*`). Omitting the `*` inhibits proper
-	 *     type inference and may cause undefined behavior.
-	 * -   A `yield*` statement may bind a variable provided by the caller. The
-	 *     variable inherits the type of the right-hand value of the yielded
-	 *     `Ior`.
-	 * -   If a yielded `Ior` has a right-hand value, the value is bound to a
-	 *     variable (if provided) and the generator advances.
-	 * -   If a yielded `Ior` is a `Both`, its left-hand value is combined with
-	 *     any existing left-hand value using its behavior as a semigroup.
-	 * -   If a yielded `Ior` is a `Left`, the generator halts and `goAsync`
-	 *     combines the left-hand value with any existing left-hand value, and
-	 *     fulfills with the result in a `Left`.
-	 * -   If a `Promise` rejects or an operation throws, the generator halts
-	 *     and `goAsync` rejects with the error.
-	 * -   The `return` statement of the generator may return a final result,
-	 *     and `goAsync` fulfills with the result as a right-hand value if no
-	 *     `Left` variants or errors are encountered.
-	 * -   All syntax normally permitted in async generators (the `await`
-	 *     keyword, statements, loops, declarations, etc.) is permitted within
-	 *     async generator comprehensions.
-	 */
-	export function goAsync<A extends Semigroup<A>, TReturn>(
-		f: () => AsyncGenerator<Ior<A, any>, TReturn, unknown>,
-	): Promise<Ior<A, TReturn>> {
-		return stepAsync(f());
-	}
-
-	/**
-	 * Construct a function that returns a `Promise` that fulfills with an `Ior`
-	 * using an async generator comprehension.
-	 *
-	 * @remarks
-	 *
-	 * This is the higher-order function variant of `goAsync`.
-	 */
-	export function goAsyncFn<
-		TArgs extends unknown[],
-		A extends Semigroup<A>,
-		TReturn,
-	>(
-		f: (...args: TArgs) => AsyncGenerator<Ior<A, any>, TReturn, unknown>,
-	): (...args: TArgs) => Promise<Ior<A, TReturn>> {
-		return (...args) => stepAsync(f(...args));
+		return both(acc, nxt.value);
 	}
 
 	/**
@@ -1033,6 +871,21 @@ export namespace Ior {
 		}
 
 		/**
+		 * If this `Ior` has a right-hand value, apply a generator comprehension
+		 * function to the value and evaluate the `Ior.Go` generator to return
+		 * another `Ior`. Accumulate the left-hand values of `Both` variants
+		 * using their behavior as a semigroup. If either `Ior` is a `Left`,
+		 * combine the left-hand value with any existing left-hand value and
+		 * return the result in a `Left`.
+		 */
+		goMap<A extends Semigroup<A>, B, B1>(
+			this: Ior<A, B>,
+			f: (val: B) => Go<A, B1>,
+		): Ior<A, B1> {
+			return this.flatMap((val) => go(f(val)));
+		}
+
+		/**
 		 * If this and that `Ior` have a right-hand value, apply a function to
 		 * the values and return the result as a right-hand value. Accumulate
 		 * the left-hand values of `Both` variants using their behavior as a
@@ -1135,13 +988,11 @@ export namespace Ior {
 		}
 
 		/**
-		 * Defining iterable behavior for `Ior` allows TypeScript to infer
-		 * right-hand value types when yielding `Ior` values in generator
-		 * comprehensions using `yield*`.
-		 *
-		 * @hidden
+		 * Return an `Ior.Go` generator that yields this `Ior` and returns its
+		 * right-hand value if one is present. This allows `Ior` values to be
+		 * yielded directly in `Ior` generator comprehensions using `yield*`.
 		 */
-		*[Symbol.iterator](): Iterator<Ior<A, never>, never, unknown> {
+		*[Symbol.iterator](): Generator<Ior<A, never>, never, unknown> {
 			return (yield this) as never;
 		}
 	}
@@ -1166,13 +1017,11 @@ export namespace Ior {
 		}
 
 		/**
-		 * Defining iterable behavior for `Ior` allows TypeScript to infer
-		 * right-hand value types when yielding `Ior` values in generator
-		 * comprehensions using `yield*`.
-		 *
-		 * @hidden
+		 * Return an `Ior.Go` generator that yields this `Ior` and returns its
+		 * right-hand value if one is present. This allows `Ior` values to be
+		 * yielded directly in `Ior` generator comprehensions using `yield*`.
 		 */
-		*[Symbol.iterator](): Iterator<Ior<never, B>, B, unknown> {
+		*[Symbol.iterator](): Generator<Ior<never, B>, B, unknown> {
 			return (yield this) as B;
 		}
 	}
@@ -1210,16 +1059,32 @@ export namespace Ior {
 		}
 
 		/**
-		 * Defining iterable behavior for `Ior` allows TypeScript to infer
-		 * right-hand value types when yielding `Ior` values in generator
-		 * comprehensions using `yield*`.
-		 *
-		 * @hidden
+		 * Return an `Ior.Go` generator that yields this `Ior` and returns its
+		 * right-hand value if one is present. This allows `Ior` values to be
+		 * yielded directly in `Ior` generator comprehensions using `yield*`.
 		 */
-		*[Symbol.iterator](): Iterator<Ior<A, B>, B, unknown> {
+		*[Symbol.iterator](): Generator<Ior<A, B>, B, unknown> {
 			return (yield this) as B;
 		}
 	}
+
+	/**
+	 * A generator that yields `Ior` values and may return a result.
+	 */
+	export type Go<A extends Semigroup<A>, TReturn> = Generator<
+		Ior<A, unknown>,
+		TReturn,
+		unknown
+	>;
+
+	/**
+	 * An async generator that yields `Ior` values and may return a result.
+	 */
+	export type GoAsync<A extends Semigroup<A>, TReturn> = AsyncGenerator<
+		Ior<A, unknown>,
+		TReturn,
+		unknown
+	>;
 
 	/**
 	 * Extract the left-hand value type `A` from the type `Ior<A, B>`.
@@ -1238,9 +1103,4 @@ export namespace Ior {
 	]
 		? B
 		: never;
-
-	// A unique symbol used by the `Ior` generator comprehension implementation
-	// to signal the underlying generator to return early. This ensures
-	// `try...finally` blocks can execute.
-	const halt = Symbol();
 }

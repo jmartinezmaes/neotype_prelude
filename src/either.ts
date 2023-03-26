@@ -132,6 +132,11 @@
  * -   `zipFst` keeps only the first success, and discards the second.
  * -   `zipSnd` keeps only the second success, and discards the first.
  *
+ * ## Recovering from `Left` variants
+ *
+ * If an `Either` fails, the `recover` method applies a function to its failure
+ * to return a fallback `Either`.
+ *
  * ## Chaining `Either`
  *
  * The `flatMap` method chains together computations that return `Either`. If an
@@ -139,33 +144,51 @@
  * `Either`. If an `Either` fails, the computation halts and the failed `Either`
  * is returned instead.
  *
- * ### Generator comprehenshions
+ * ## Generator comprehenshions
  *
  * Generator comprehensions provide an imperative syntax for chaining together
- * computations that return `Either`. Instead of `flatMap`, a generator is used
- * to unwrap successful `Either` values and apply functions to their successes.
+ * synchronous or asynchronous computations that return or resolve with `Either`
+ * values.
  *
- * The `go` function evaluates a generator to return an `Either`. Within the
- * generator, `Either` values are yielded using the `yield*` keyword. If a
- * yielded `Either` succeeds, its success may be bound to a specified variable.
- * If any yielded `Either` fails, the generator halts and `go` returns the
- * failed `Either`; otherwise, when the computation is complete, the generator
- * may return a final result and `go` returns the result as a success.
+ * ### Writing comprehensions
  *
- * ### Async generator comprehensions
+ * Synchronus and asynchronous comprehensions are written using `function*` and
+ * `async function*` declarations, respectively.
  *
- * Async generator comprehensions provide `async`/`await` syntax to `Either`
- * generator comprehensions, allowing promise-like computations that fulfill
- * with `Either` to be chained together using the familiar generator syntax.
+ * Synchronous generator functions should use the `Either.Go` type alias as a
+ * return type. A generator function that returns an `Either.Go<E, T>` may
+ * `yield*` zero or more `Either<E, any>` values and must return a result of
+ * type `T`. Synchronous comprehensions may also `yield*` other `Either.Go`
+ * generators directly.
  *
- * The `goAsync` function evaluates an async generator to return a `Promise`
- * that fulfills with an `Either`. The semantics of `yield*` and `return` within
- * async comprehensions are identical to their synchronous counterparts.
+ * Async generator functions should use the `Either.GoAsync` type alias as a
+ * return type. An async generator function that returns an `Either.GoAsync<E,
+ * T>` may `yield*` zero or more `Either<E, any>` values and must return a
+ * result of type `T`. `PromiseLike` values that resolve with `Either` should
+ * be awaited before yielding. Async comprehensions may also `yield*` other
+ * `Either.Go` and `Either.GoAsync` generators directly.
  *
- * ## Recovering from `Left` variants
+ * Each `yield*` expression may bind a variable of the success value type of the
+ * yielded `Either`. Comprehensions should always use `yield*` instead of
+ * `yield`. Using `yield*` allows TypeScript to accurately infer the success
+ * value type of the yielded `Either` when binding the value of each `yield*`
+ * expression.
  *
- * If an `Either` fails, the `recover` method applies a function to its failure
- * to return a fallback `Either`.
+ * ### Evaluating comprehensions
+ *
+ * `Either.Go` and `Either.GoAsync` generators must be evaluated before
+ * accessing their results.
+ *
+ * The `go` function evaluates an `Either.Go<E, T>` generator to return an
+ * `Either<E, T>`. If any yielded `Either` fails, the generator halts and `go`
+ * returns the failed `Either`; otherwise, when the generator returns, `go`
+ * returns the result as a success.
+ *
+ * The `goAsync` function evaluates an `Either.GoAsync<E, T>` async generator to
+ * return a `Promise<Either<E, T>>`. If any yielded `Either` fails, the
+ * generator halts and `goAsync` resolves with the failed `Either`; otherwise,
+ * when the generator returns, `goAsync` resolves with the result as a success.
+ * Thrown errors are captured as rejections.
  *
  * ## Collecting into `Either`
  *
@@ -268,19 +291,6 @@
  * // input "0x2A": 42
  * ```
  *
- * We can refactor the `parseEvenInt` function to use a generator comprehension
- * instead:
- *
- * ```ts
- * function parseEvenInt(input: string): Either<string, number> {
- *     return Either.go(function* () {
- *         const n = yield* parseInt(input);
- *         const even = yield* guardEven(n);
- *         return even;
- *     });
- * }
- * ```
- *
  * Suppose we want to parse an array of inputs and collect the successful
  * results, or fail on the first parse error. We may write the following:
  *
@@ -303,37 +313,8 @@
  * // inputs ["+42","0x2A"]: [42,42]
  * ```
  *
- * Perhaps we want to collect only distinct even numbers using a `Set`:
- *
- * ```ts
- * function parseEvenIntsUniq(inputs: string[]): Either<string, Set<number>> {
- *     return Either.go(function* () {
- *         const results = new Set<number>();
- *         for (const input of inputs) {
- *             results.add(yield* parseEvenInt(input));
- *         }
- *         return results;
- *     });
- * }
- *
- * [
- *     ["a", "-4"],
- *     ["2", "-7"],
- *     ["+42", "0x2A"],
- * ].forEach((inputs) => {
- *     const result = JSON.stringify(
- *         parseEvenIntsUniq(inputs).map(Array.from).val,
- *     );
- *     console.log(`inputs ${JSON.stringify(inputs)}: ${result}`);
- * });
- *
- * // inputs ["a","-4"]: "cannot parse 'a' as int"
- * // inputs ["2","-7"]: "-7 is not even"
- * // inputs ["+42","0x2A"]: [42]
- * ```
- *
- * Or, perhaps we want to associate the original input strings with our
- * successful parses:
+ * Perhaps we want to associate the original input strings with our successful
+ * parses:
  *
  * ```ts
  * function parseEvenIntsKeyed(
@@ -428,100 +409,24 @@ export namespace Either {
 		return vdn.unwrap(left, right);
 	}
 
-	function step<TYield extends Either<any, any>, TReturn>(
-		gen: Generator<TYield, TReturn | typeof halt, unknown>,
-	): Either<LeftT<TYield>, TReturn> {
+	/**
+	 * Evaluate an `Either.Go` generator to return an `Either`.
+	 */
+	export function go<E, TReturn>(gen: Go<E, TReturn>): Either<E, TReturn> {
 		let nxt = gen.next();
 		let err: any;
+		let isHalted = false;
 		while (!nxt.done) {
 			const either = nxt.value;
 			if (either.isRight()) {
 				nxt = gen.next(either.val);
 			} else {
 				err = either.val;
-				nxt = gen.return(halt);
+				isHalted = true;
+				nxt = gen.return(undefined as any);
 			}
 		}
-		const result = nxt.value;
-		return result === halt ? left(err) : right(result);
-	}
-
-	/**
-	 * Construct an `Either` using a generator comprehension.
-	 *
-	 * @remarks
-	 *
-	 * The contract for generator comprehensions is as follows:
-	 *
-	 * -   The generator provided to `go` must only yield `Either` values.
-	 * -   `Either` values must only be yielded using the `yield*` keyword, and
-	 *     never `yield` (without the `*`). Omitting the `*` inhibits proper
-	 *     type inference and may cause undefined behavior.
-	 * -   A `yield*` statement may bind a variable provided by the caller. The
-	 *     variable inherits the type of the success of the yielded `Either`.
-	 * -   If a yielded `Either` succeeds, its success is bound to a variable
-	 *     (if provided) and the generator advances.
-	 * -   If a yielded `Either` fails, the generator halts and `go` returns the
-	 *     failed `Either`.
-	 * -   The `return` statement of the generator may return a final result,
-	 *     which is returned from `go` as a success if all yielded `Either`
-	 *     values succeed.
-	 * -   All syntax normally permitted in generators (statements, loops,
-	 *     declarations, etc.) is permitted within generator comprehensions.
-	 *
-	 * @example Basic yielding and returning
-	 *
-	 * Consider a comprehension that sums the successes of three `Either`
-	 * values:
-	 *
-	 * ```ts
-	 * import { Either } from "@neotype/prelude/either.js";
-	 *
-	 * const errOrOne: Either<string, number> = Either.right(1);
-	 * const errOrTwo: Either<string, number> = Either.right(2);
-	 * const errOrThree: Either<string, number> = Either.right(3);
-	 *
-	 * const summed: Either<string, number> = Either.go(function* () {
-	 *     const one = yield* errOrOne;
-	 *     const two = yield* errOrTwo;
-	 *     const three = yield* errOrThree;
-	 *
-	 *     return one + two + three;
-	 * });
-	 *
-	 * console.log(summed.val); // 6
-	 * ```
-	 *
-	 * Now, observe the change in behavior if one of the yielded arguments was
-	 * a failed `Either` instead. Replace the declaration of `errOrTwo` with the
-	 * following and re-run the program.
-	 *
-	 * ```ts
-	 * const errOrTwo: Either<string, number> = Either.left("oops");
-	 * ```
-	 */
-	export function go<TYield extends Either<any, any>, TReturn>(
-		f: () => Generator<TYield, TReturn, unknown>,
-	): Either<LeftT<TYield>, TReturn> {
-		return step(f());
-	}
-
-	/**
-	 * Construct a function that returns an `Either` using a generator
-	 * comprehension.
-	 *
-	 * @remarks
-	 *
-	 * This is the higher-order function variant of `go`.
-	 */
-	export function goFn<
-		TArgs extends unknown[],
-		TYield extends Either<any, any>,
-		TReturn,
-	>(
-		f: (...args: TArgs) => Generator<TYield, TReturn, unknown>,
-	): (...args: TArgs) => Either<LeftT<TYield>, TReturn> {
-		return (...args) => step(f(...args));
+		return isHalted ? left(err) : right(nxt.value);
 	}
 
 	/**
@@ -541,13 +446,15 @@ export namespace Either {
 		accum: (acc: TAcc, val: T) => Either<E, TAcc>,
 		initial: TAcc,
 	): Either<E, TAcc> {
-		return go(function* () {
-			let acc = initial;
-			for (const val of vals) {
-				acc = yield* accum(acc, val);
-			}
-			return acc;
-		});
+		return go(
+			(function* () {
+				let acc = initial;
+				for (const val of vals) {
+					acc = yield* accum(acc, val);
+				}
+				return acc;
+			})(),
+		);
 	}
 
 	/**
@@ -571,13 +478,15 @@ export namespace Either {
 		LeftT<TEithers[number]>,
 		{ -readonly [K in keyof TEithers]: RightT<TEithers[K]> }
 	> {
-		return go(function* () {
-			const results = new Array(eithers.length);
-			for (const [idx, either] of eithers.entries()) {
-				results[idx] = yield* either;
-			}
-			return results as any;
-		});
+		return go(
+			(function* () {
+				const results = new Array(eithers.length);
+				for (const [idx, either] of eithers.entries()) {
+					results[idx] = yield* either;
+				}
+				return results as any;
+			})(),
+		);
 	}
 
 	/**
@@ -602,13 +511,15 @@ export namespace Either {
 		LeftT<TEithers[keyof TEithers]>,
 		{ -readonly [K in keyof TEithers]: RightT<TEithers[K]> }
 	> {
-		return go(function* () {
-			const results: Record<any, any> = {};
-			for (const [key, either] of Object.entries(eithers)) {
-				results[key] = yield* either;
-			}
-			return results as any;
-		});
+		return go(
+			(function* () {
+				const results: Record<any, any> = {};
+				for (const [key, either] of Object.entries(eithers)) {
+					results[key] = yield* either;
+				}
+				return results as any;
+			})(),
+		);
 	}
 
 	/**
@@ -631,77 +542,27 @@ export namespace Either {
 			collect(eithers).map((args) => f(...(args as TArgs)));
 	}
 
-	async function stepAsync<TYield extends Either<any, any>, TReturn>(
-		gen: AsyncGenerator<TYield, TReturn | typeof halt, unknown>,
-	): Promise<Either<LeftT<TYield>, TReturn>> {
+	/**
+	 * Evaluate an `Either.GoAsync` async generator to return a `Promise` that
+	 * resolves with an `Either`.
+	 */
+	export async function goAsync<E, TReturn>(
+		gen: GoAsync<E, TReturn>,
+	): Promise<Either<E, TReturn>> {
 		let nxt = await gen.next();
 		let err: any;
+		let isHalted = false;
 		while (!nxt.done) {
 			const either = nxt.value;
 			if (either.isRight()) {
 				nxt = await gen.next(either.val);
 			} else {
 				err = either.val;
-				nxt = await gen.return(halt);
+				isHalted = true;
+				nxt = await gen.return(undefined as any);
 			}
 		}
-		const result = nxt.value;
-		return result === halt ? left(err) : right(result);
-	}
-
-	/**
-	 * Construct a `Promise` that fulfills with an `Either` using an async
-	 * generator comprehension.
-	 *
-	 * @remarks
-	 *
-	 * The contract for async generator comprehensions is as follows:
-	 *
-	 * -   The async generator provided to `goAsync` must only yield `Either`
-	 *     values.
-	 *     -   `Promise` values must never be yielded. If a `Promise` contains
-	 *         an `Either`, the `Promise` must first be awaited to access and
-	 *         yield the `Either`. This is done with a `yield* await` statement.
-	 * -   `Either` values must only be yielded using the `yield*` keyword, and
-	 *     never `yield` (without the `*`). Omitting the `*` inhibits proper
-	 *     type inference and may cause undefined behavior.
-	 * -   A `yield*` statement may bind a variable provided by the caller. The
-	 *     variable inherits the type of the success of the yielded `Either`.
-	 * -   If a yielded `Either` succeeds, its success is bound to a variable
-	 *     (if provided) and the generator advances.
-	 * -   If a yielded `Either` fails, the generator halts and `goAsync`
-	 *     fulfills with the failed `Either`.
-	 * -   If a `Promise` rejects or an operation throws, the generator halts
-	 *     and `goAsync` rejects with the error.
-	 * -   The `return` statement of the generator may return a final result,
-	 *     and `goAsync` fulfills with the result as a success if all yielded
-	 *     `Either` values succeed and no errors are encountered.
-	 * -   All syntax normally permitted in async generators (the `await`
-	 *     keyword, statements, loops, declarations, etc.) is permitted within
-	 *     async generator comprehensions.
-	 */
-	export function goAsync<TYield extends Either<any, any>, TReturn>(
-		f: () => AsyncGenerator<TYield, TReturn, unknown>,
-	): Promise<Either<LeftT<TYield>, TReturn>> {
-		return stepAsync(f());
-	}
-
-	/**
-	 * Construct a function that returns a `Promise` that fulfills with an
-	 * `Either` using an async generator comprehension.
-	 *
-	 * @remarks
-	 *
-	 * This is the higher-order function variant of `goAsync`.
-	 */
-	export function goAsyncFn<
-		TArgs extends unknown[],
-		TYield extends Either<any, any>,
-		TReturn,
-	>(
-		f: (...args: TArgs) => AsyncGenerator<TYield, TReturn, unknown>,
-	): (...args: TArgs) => Promise<Either<LeftT<TYield>, TReturn>> {
-		return (...args) => stepAsync(f(...args));
+		return isHalted ? left(err) : right(nxt.value);
 	}
 
 	/**
@@ -801,6 +662,18 @@ export namespace Either {
 		}
 
 		/**
+		 * If this `Either`, suceeds, apply a generator comprehension function
+		 * to its success and evaluate the `Either.Go` generator to return
+		 * another `Either`; otherwise, return this `Either` as is.
+		 */
+		goMap<E, T, E1, T1>(
+			this: Either<E, T>,
+			f: (val: T) => Go<E1, T1>,
+		): Either<E | E1, T1> {
+			return this.flatMap((val) => go(f(val)));
+		}
+
+		/**
 		 * If this and that `Either` both succeed, apply a function to their
 		 * successes and succeed with the result; otherwise, return the first
 		 * failed `Either`.
@@ -883,13 +756,12 @@ export namespace Either {
 		}
 
 		/**
-		 * Defining iterable behavior for `Either` allows TypeScript to infer
-		 * right-sided value types when yielding `Either` values in generator
-		 * comprehensions using `yield*`.
-		 *
-		 * @hidden
+		 * Return an `Either.Go` generator that yields this `Either` and returns
+		 * its right-hand value if one is present. This allows `Either` values
+		 * to be yielded directly in `Either` generator comprehensions using
+		 * `yield*`.
 		 */
-		*[Symbol.iterator](): Iterator<Either<A, never>, never, unknown> {
+		*[Symbol.iterator](): Generator<Either<A, never>, never, unknown> {
 			return (yield this) as never;
 		}
 	}
@@ -914,16 +786,33 @@ export namespace Either {
 		}
 
 		/**
-		 * Defining iterable behavior for `Either` allows TypeScript to infer
-		 * right-sided value types when yielding `Either` values in generator
-		 * comprehensions using `yield*`.
-		 *
-		 * @hidden
+		 * Return an `Either.Go` generator that yields this `Either` and returns
+		 * its right-hand value if one is present. This allows `Either` values
+		 * to be yielded directly in `Either` generator comprehensions using
+		 * `yield*`.
 		 */
-		*[Symbol.iterator](): Iterator<Either<never, B>, B, unknown> {
+		*[Symbol.iterator](): Generator<Either<never, B>, B, unknown> {
 			return (yield this) as B;
 		}
 	}
+
+	/**
+	 * A generator that yields `Either` values and returns a result.
+	 */
+	export type Go<E, TReturn> = Generator<
+		Either<E, unknown>,
+		TReturn,
+		unknown
+	>;
+
+	/**
+	 * An async generator that yields `Either` values and returns a result.
+	 */
+	export type GoAsync<E, TReturn> = AsyncGenerator<
+		Either<E, any>,
+		TReturn,
+		unknown
+	>;
 
 	/**
 	 * Extract the left-sided value type `A` from the type `Either<A, B>`.
@@ -942,9 +831,4 @@ export namespace Either {
 	]
 		? B
 		: never;
-
-	// A unique symbol used by the `Either` generator comprehension
-	// implementation to signal the underlying generator to return early. This
-	// ensures `try...finally` blocks can execute.
-	const halt = Symbol();
 }

@@ -77,17 +77,28 @@
  * function is applied to the outcome of one `Eval` to return another `Eval`.
  * Composition with `flatMap` is stack safe, even for recursive programs.
  *
- * ### Generator comprehensions
+ * ## Generator comprehenshions
  *
  * Generator comprehensions provide an imperative syntax for chaining together
- * computations that return `Eval`. Instead of `flatMap`, a generator is used
- * to apply functions to the the outcomes of `Eval` values.
+ * synchronous computations that return `Eval` values.
  *
- * The `go` static method evaluates a generator to return an `Eval`. Within the
- * generator, `Eval` values are yielded using the `yield*` keyword, allowing
- * their outcomes to be bound to specified variables. When the computation is
- * complete, the generator may return a final result and `go` returns the result
- * in an `Eval`.
+ * ### Writing comprehensions
+ *
+ * Comprehensions are written using `function*` declarations. Generator
+ * functions should use the `Eval.Go` type alias as a return type. A generator
+ * function that returns an `Eval.Go<T>` may `yield*` zero or more `Eval<any>`
+ * values and must return a result of type `T`. Comprehensions may also `yield*`
+ * other `Eval.Go` generators directly.
+ *
+ * Each `yield*` expression may bind a variable of the outcome value type of the
+ * yielded `Eval`. Comprehensions should always use `yield*` instead of `yield`.
+ * Using `yield*` allows TypeScript to accurately infer the outcome value type
+ * of the yielded `Eval` when binding the value of each `yield*` expression.
+ *
+ * ### Evaluating comprehensions
+ *
+ * `Eval.Go` generators must be evaluated before accessing their results. The
+ * `go` function evaluates an `Eval.Go<T>` generator to return an `Eval<T>`.
  *
  * `Eval` is automatically deferred in its implementation of `go`. The body of
  * the provided generator does not execute until the `Eval` is evaluated using
@@ -189,28 +200,6 @@
  * // [1,2,3,4,5,6,7]
  * ```
  *
- * We can refactor the `foldTree` function to use a generator comprehension
- * instead:
- *
- * ```ts
- * function foldTree<T, TAcc>(
- *     tree: Tree<T>,
- *     ifEmpty: TAcc,
- *     foldBranch: (val: T, lhs: TAcc, rhs: TAcc) => TAcc
- * ): Eval<TAcc> {
- *     return Eval.go(function* () {
- *         if (tree.kind === "EMPTY") {
- *             return ifEmpty;
- *         }
- *         // Challenge for the reader: why is `defer` not needed here?
- *         // Hint: it pertains to the behavior of `go`.
- *         const lhs = yield* foldTree(tree.lst, ifEmpty, foldBranch);
- *         const rhs = yield* foldTree(tree.rst, ifEmpty, foldBranch);
- *         return foldBranch(tree.val, lhs, rhs);
- *     });
- * }
- * ```
- *
  * Suppose we wanted to traverse a tree in multiple ways and collect the results
  * of each traversal. We may write the following:
  *
@@ -269,26 +258,6 @@
  * // {"in":[1,2,3,4,5,6,7],"pre":[4,2,1,3,6,5,7],"post":[1,3,2,5,7,6,4]}
  * ```
  *
- * Or, perhaps we want to return a `Map` instead:
- *
- * ```ts
- * function traversalsMap(tree: Tree<T>): Eval<Map<string, T[]>> {
- *     return Eval.go(function* () {
- *         const results = new Map<string, T[]>();
- *
- *         results.set("in", yield* inOrder(tree));
- *         results.set("pre", yield* preOrder(tree));
- *         results.set("post", yield* postOrder(tree));
- *
- *         return results;
- *     });
- * }
- *
- * console.log(JSON.stringify(traversalsMap(oneToSeven).map(Array.from).run()));
- *
- * // [["in",[1,2,3,4,5,6,7]],["pre",[4,2,1,3,6,5,7]],["post",[1,3,2,5,7,6,4]]]
- * ```
- *
  * @module
  */
 
@@ -340,70 +309,10 @@ export class Eval<out T> {
 	}
 
 	/**
-	 * Construct an `Eval` using a generator comprehension.
-	 *
-	 * @remarks
-	 *
-	 * The contract for generator comprehensions is as follows:
-	 *
-	 * -   The generator provided to `go` must only yield `Eval` values.
-	 * -   `Eval` values must only be yielded using the `yield*` keyword, and
-	 *     never `yield` (without the `*`). Omitting the `*` inhibits proper
-	 *     type inference and may cause undefined behavior.
-	 * -   A `yield*` statement may bind a variable provided by the caller. The
-	 *     variable inherits the type of the outcome of the yielded `Eval`.
-	 * -   The `return` statement of the generator may return a final result,
-	 *     which is returned from `go` in an `Eval`.
-	 * -   All syntax normally permitted in generators (statements, loops,
-	 *     declarations, etc.) is permitted within generator comprehensions.
-	 *
-	 * @example Basic yielding and returning
-	 *
-	 * Consider a comprehension that sums the outcomes of three `Eval` values:
-	 *
-	 * ```ts
-	 * import { Eval } from "@neotype/prelude/eval.js";
-	 *
-	 * const evalOne: Eval<number> = Eval.now(1);
-	 * const evalTimeMs: Eval<number> = Eval.always(() => Date.now());
-	 * const evalRand: Eval<number> = Eval.always(() => Math.random());
-	 *
-	 * const summed: Eval<number> = Eval.go(function* () {
-	 *     const one = yield* evalOne;
-	 *     const timeMs = yield* evalTimeMs;
-	 *     const rand = yield* evalRand;
-	 *
-	 *     return one + timeMs + rand;
-	 * });
-	 *
-	 * console.log(summed.run());
-	 * ```
+	 * Evaluate an `Eval.Go` generator to return an `Eval`.
 	 */
-	static go<TReturn>(
-		f: () => Generator<Eval<any>, TReturn, unknown>,
-	): Eval<TReturn> {
-		return Eval.defer(() => {
-			const gen = f();
-			return Eval.#step(gen, gen.next());
-		});
-	}
-
-	/**
-	 * Construct a function that returns an `Eval` using a generator
-	 * comprehension.
-	 *
-	 * @remarks
-	 *
-	 * This is the higher-order function variant of `go`.
-	 */
-	static goFn<TArgs extends unknown[], TReturn>(
-		f: (...args: TArgs) => Generator<Eval<any>, TReturn, unknown>,
-	): (...args: TArgs) => Eval<TReturn> {
-		return (...args) =>
-			Eval.defer(() => {
-				const gen = f(...args);
-				return Eval.#step(gen, gen.next());
-			});
+	static go<TReturn>(gen: Eval.Go<TReturn>): Eval<TReturn> {
+		return Eval.defer(() => Eval.#step(gen, gen.next()));
 	}
 
 	/**
@@ -421,13 +330,15 @@ export class Eval<out T> {
 		accum: (acc: TAcc, val: T) => Eval<TAcc>,
 		initial: TAcc,
 	): Eval<TAcc> {
-		return Eval.go(function* () {
-			let acc = initial;
-			for (const val of vals) {
-				acc = yield* accum(acc, val);
-			}
-			return acc;
-		});
+		return Eval.go(
+			(function* () {
+				let acc = initial;
+				for (const val of vals) {
+					acc = yield* accum(acc, val);
+				}
+				return acc;
+			})(),
+		);
 	}
 
 	/**
@@ -447,13 +358,15 @@ export class Eval<out T> {
 	static collect<TEvals extends readonly Eval<any>[] | []>(
 		evals: TEvals,
 	): Eval<{ -readonly [K in keyof TEvals]: Eval.ResultT<TEvals[K]> }> {
-		return Eval.go(function* () {
-			const results = new Array(evals.length);
-			for (const [idx, ev] of evals.entries()) {
-				results[idx] = yield* ev;
-			}
-			return results as any;
-		});
+		return Eval.go(
+			(function* () {
+				const results = new Array(evals.length);
+				for (const [idx, ev] of evals.entries()) {
+					results[idx] = yield* ev;
+				}
+				return results as any;
+			})(),
+		);
 	}
 
 	/**
@@ -473,13 +386,15 @@ export class Eval<out T> {
 	static gather<TEvals extends Record<any, Eval<any>>>(
 		evals: TEvals,
 	): Eval<{ -readonly [K in keyof TEvals]: Eval.ResultT<TEvals[K]> }> {
-		return Eval.go(function* () {
-			const results: Record<any, any> = {};
-			for (const [key, ev] of Object.entries(evals)) {
-				results[key] = yield* ev;
-			}
-			return results as any;
-		});
+		return Eval.go(
+			(function* () {
+				const results: Record<any, any> = {};
+				for (const [key, ev] of Object.entries(evals)) {
+					results[key] = yield* ev;
+				}
+				return results as any;
+			})(),
+		);
 	}
 
 	/**
@@ -508,13 +423,11 @@ export class Eval<out T> {
 	}
 
 	/**
-	 * Defining iterable behavior for `Eval` allows TypeScript to infer outcome
-	 * types when yielding `Eval` values in generator comprehensions using
-	 * `yield*`.
-	 *
-	 * @hidden
+	 * Return an `Eval.Go` generator that yields this `Eval` and returns its
+	 * its outcome. This allows `Eval` values to be yielded directly in `Eval`
+	 * generator comprehensions using `yield*`.
 	 */
-	*[Symbol.iterator](): Iterator<Eval<T>, T, unknown> {
+	*[Symbol.iterator](): Generator<Eval<T>, T, unknown> {
 		return (yield this) as T;
 	}
 
@@ -534,6 +447,14 @@ export class Eval<out T> {
 	 */
 	flatMap<T1>(f: (val: T) => Eval<T1>): Eval<T1> {
 		return new Eval(Ixn.flatMap(this, f));
+	}
+
+	/**
+	 * Apply a generator comprehension function to the outcome of this `Eval`
+	 * and evaluate the `Eval.Go` generator to return another `Eval`.
+	 */
+	goMap<T1>(f: (val: T) => Eval.Go<T1>): Eval<T1> {
+		return this.flatMap((val) => Eval.go(f(val)));
 	}
 
 	/**
@@ -616,6 +537,11 @@ export class Eval<out T> {
  * The companion namespace for the `Eval` class.
  */
 export namespace Eval {
+	/**
+	 * A generator that yields `Eval` values and returns a result.
+	 */
+	export type Go<TReturn> = Generator<Eval<unknown>, TReturn, unknown>;
+
 	/**
 	 * Extract the outcome type `T` from the type `Eval<T>`.
 	 */

@@ -22,7 +22,6 @@ import {
 	expectLawfulEq,
 	expectLawfulOrd,
 	expectLawfulSemigroup,
-	tuple,
 } from "./_test/utils.js";
 import { cmb } from "./cmb.js";
 import { Ordering, cmp, eq } from "./cmp.js";
@@ -69,26 +68,28 @@ describe("Either", () => {
 
 	describe("go", () => {
 		it("short-cicruits on the first yielded Left", () => {
-			const either = Either.go(function* () {
+			function* f(): Either.Go<1 | [2, 3], [2, 4]> {
 				const x = yield* Either.right<2, 1>(2);
 				const y = yield* Either.left<[2, 3], 4>([x, 3]);
-				return tuple(x, y);
-			});
+				return [x, y];
+			}
+			const either = Either.go(f());
 			expect(either).to.deep.equal(Either.left([2, 3]));
 		});
 
 		it("completes if all yielded values are Right", () => {
-			const either = Either.go(function* () {
+			function* f(): Either.Go<1 | 3, [2, 2, 4]> {
 				const x = yield* Either.right<2, 1>(2);
 				const [y, z] = yield* Either.right<[2, 4], 3>([x, 4]);
-				return tuple(x, y, z);
-			});
+				return [x, y, z];
+			}
+			const either = Either.go(f());
 			expect(either).to.deep.equal(Either.right([2, 2, 4]));
 		});
 
 		it("executes the finally block if a Left is yielded in the try block", () => {
 			const logs: string[] = [];
-			const either = Either.go(function* () {
+			function* f(): Either.Go<1, number[]> {
 				try {
 					const results = [];
 					const x = yield* Either.left<1, 2>(1);
@@ -97,13 +98,14 @@ describe("Either", () => {
 				} finally {
 					logs.push("finally");
 				}
-			});
+			}
+			const either = Either.go(f());
 			expect(either).to.deep.equal(Either.left(1));
 			expect(logs).to.deep.equal(["finally"]);
 		});
 
 		it("keeps the most recent yielded Left when using try and finally blocks", () => {
-			const either = Either.go(function* () {
+			function* f(): Either.Go<1 | 3, number[]> {
 				try {
 					const results = [];
 					const x = yield* Either.left<1, 2>(1);
@@ -112,20 +114,9 @@ describe("Either", () => {
 				} finally {
 					yield* Either.left<3, 4>(3);
 				}
-			});
+			}
+			const either = Either.go(f());
 			expect(either).to.deep.equal(Either.left(3));
-		});
-	});
-
-	describe("goFn", () => {
-		it("accesses the parameters of the generator function", () => {
-			const f = Either.goFn(function* <T>(w: T) {
-				const x = yield* Either.right<2, 1>(2);
-				const [y, z] = yield* Either.right<[2, 4], 3>([x, 4]);
-				return tuple(w, x, y, z);
-			});
-			const either = f<0>(0);
-			expect(either).to.deep.equal(Either.right([0, 2, 2, 4]));
 		});
 	});
 
@@ -162,7 +153,10 @@ describe("Either", () => {
 
 	describe("lift", () => {
 		it("lifts the function into the context of Either", () => {
-			const either = Either.lift(tuple<[2, 4]>)(
+			function f<A, B>(lhs: A, rhs: B): [A, B] {
+				return [lhs, rhs];
+			}
+			const either = Either.lift(f<2, 4>)(
 				Either.right<2, 1>(2),
 				Either.right<4, 3>(4),
 			);
@@ -172,43 +166,46 @@ describe("Either", () => {
 
 	describe("goAsync", () => {
 		it("short-circuits on the first yielded Left", async () => {
-			const either = await Either.goAsync(async function* () {
+			async function* f(): Either.GoAsync<1 | [2, 3], [2, 4]> {
 				const x = yield* await Promise.resolve(Either.right<2, 1>(2));
 				const y = yield* await Promise.resolve(
 					Either.left<[2, 3], 4>([x, 3]),
 				);
-				return tuple(x, y);
-			});
+				return [x, y];
+			}
+			const either = await Either.goAsync(f());
 			expect(either).to.deep.equal(Either.left([2, 3]));
 		});
 
 		it("completes and returns if all yielded values are Right", async () => {
-			const either = await Either.goAsync(async function* () {
+			async function* f(): Either.GoAsync<1 | 3, [2, 2, 4]> {
 				const x = yield* await Promise.resolve(Either.right<2, 1>(2));
 				const [y, z] = yield* await Promise.resolve(
 					Either.right<[2, 4], 3>([x, 4]),
 				);
-				return tuple(x, y, z);
-			});
+				return [x, y, z];
+			}
+			const either = await Either.goAsync(f());
 			expect(either).to.deep.equal(Either.right([2, 2, 4]));
 		});
 
 		it("unwraps Promises in Right variants and in return", async () => {
-			const either = await Either.goAsync(async function* () {
+			async function* f(): Either.GoAsync<1 | 3, [2, 2, 4]> {
 				const x = yield* await Promise.resolve(
 					Either.right<Promise<2>, 1>(Promise.resolve(2)),
 				);
 				const [y, z] = yield* await Promise.resolve(
 					Either.right<Promise<[2, 4]>, 3>(Promise.resolve([x, 4])),
 				);
-				return Promise.resolve(tuple(x, y, z));
-			});
+				return Promise.resolve([x, y, z]);
+			}
+			const either = await Either.goAsync(f());
 			expect(either).to.deep.equal(Either.right([2, 2, 4]));
 		});
 
 		it("executes the finally block if a Left is yielded in the try block", async () => {
 			const logs: string[] = [];
-			const either = await Either.goAsync(async function* () {
+			async function* f(): Either.GoAsync<1, number[]> {
 				try {
 					const results = [];
 					const x = yield* await Promise.resolve(
@@ -219,13 +216,14 @@ describe("Either", () => {
 				} finally {
 					logs.push("finally");
 				}
-			});
+			}
+			const either = await Either.goAsync(f());
 			expect(either).to.deep.equal(Either.left(1));
 			expect(logs).to.deep.equal(["finally"]);
 		});
 
 		it("keeps the most recent yielded Left when using try and finally blocks", async () => {
-			const either = await Either.goAsync(async function* () {
+			async function* f(): Either.GoAsync<1 | 3, number[]> {
 				try {
 					const results = [];
 					const x = yield* await Promise.resolve(
@@ -236,22 +234,9 @@ describe("Either", () => {
 				} finally {
 					yield* await Promise.resolve(Either.left<3, 4>(3));
 				}
-			});
+			}
+			const either = await Either.goAsync(f());
 			expect(either).to.deep.equal(Either.left(3));
-		});
-	});
-
-	describe("goAsyncFn", () => {
-		it("accesses the parameters of the async generator function", async () => {
-			const f = Either.goAsyncFn(async function* <T>(w: T) {
-				const x = yield* await Promise.resolve(Either.right<2, 1>(2));
-				const [y, z] = yield* await Promise.resolve(
-					Either.right<[2, 4], 3>([x, 4]),
-				);
-				return tuple(w, x, y, z);
-			});
-			const either = await f<0>(0);
-			expect(either).to.deep.equal(Either.right([0, 2, 2, 4]));
 		});
 	});
 
@@ -429,11 +414,29 @@ describe("Either", () => {
 		});
 	});
 
+	describe("#goMap", () => {
+		it("does not apply the continuation if the variant is Left", () => {
+			const either = Either.left<1, 2>(1).goMap(function* (x) {
+				const y = yield* Either.right<4, 3>(4);
+				return [x, y] as [2, 4];
+			});
+			expect(either).to.deep.equal(Either.left(1));
+		});
+
+		it("applies the continuation to the success if the variant is Right", () => {
+			const either = Either.right<2, 1>(2).goMap(function* (x) {
+				const y = yield* Either.right<4, 3>(4);
+				return [x, y] as [2, 4];
+			});
+			expect(either).to.deep.equal(Either.right([2, 4]));
+		});
+	});
+
 	describe("#zipWith", () => {
 		it("applies the function to the successes if both variants are Right", () => {
 			const either = Either.right<2, 1>(2).zipWith(
 				Either.right<4, 3>(4),
-				tuple,
+				(lhs, rhs): [2, 4] => [lhs, rhs],
 			);
 			expect(either).to.deep.equal(Either.right([2, 4]));
 		});

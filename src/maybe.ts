@@ -150,33 +150,56 @@
  * `Maybe`. If a `Maybe` is absent, the computation halts and `Nothing` is
  * returned instead.
  *
- * ### Generator comprehensions
- *
- * Generator comprehensions provide an imperative syntax for chaining together
- * computations that return `Maybe`. Instead of `flatMap`, a generator is used
- * to unwrap present `Maybe` values and apply functions to their values.
- *
- * The `go` function evaluates a generator to return a `Maybe`. Within the
- * generator, `Maybe` values are yielded using the `yield*` keyword. If a
- * yielded `Maybe` is present, its value may be bound to a specified variable.
- * If any yielded `Maybe` is absent, the generator halts and `go` returns
- * `Nothing`; otherwise, when the computation is complete, the generator may
- * return a final result and `go` returns the result in a `Just`.
- *
- * ### Async generator comprehensions
- *
- * Async generator comprehensions provide `async`/`await` syntax to `Maybe`
- * generator comprehensions, allowing promise-like computations that fulfill
- * with `Maybe` to be chained together using the familiar generator syntax.
- *
- * The `goAsync` function evaluates an async generator to return a `Promise`
- * that fulfills with a `Maybe`. The semantics of `yield*` and `return` within
- * async comprehensions are identical to their synchronous counterparts.
- *
  * ## Recovering from `Nothing`
  *
  * The `recover` method evaluates a function to return a fallback `Maybe` if
  * absent, and does nothing if present.
+ *
+ * ## Generator comprehenshions
+ *
+ * Generator comprehensions provide an imperative syntax for chaining together
+ * synchronous or asynchronous computations that return or resolve with `Maybe`
+ * values.
+ *
+ * ### Writing comprehensions
+ *
+ * Synchronus and asynchronous comprehensions are written using `function*` and
+ * `async function*` declarations, respectively.
+ *
+ * Synchronous generator functions should use the `Maybe.Go` type alias as a
+ * return type. A generator function that returns a `Maybe.Go<T>` may `yield*`
+ * zero or more `Maybe<any>` values and must return a result of type `T`.
+ * Synchronous comprehensions may also `yield*` other `Maybe.Go` generators
+ * directly.
+ *
+ * Async generator functions should use the `Maybe.GoAsync` type alias as a
+ * return type. An async generator function that returns a `Maybe.GoAsync<T>`
+ * may `yield*` zero or more `Maybe<any>` values and must return a result of
+ * type `T`. `PromiseLike` values that resolve with `Maybe` should be awaited
+ * before yielding. Async comprehensions may also `yield*` other `Maybe.Go` and
+ * `Maybe.GoAsync` generators directly.
+ *
+ * Each `yield*` expression may bind a variable of the present value type of the
+ * yielded `Maybe`. Comprehensions should always use `yield*` instead of
+ * `yield`. Using `yield*` allows TypeScript to accurately infer the present
+ * value type of the yielded `Maybe` when binding the value of each `yield*`
+ * expression.
+ *
+ * ### Evaluating comprehensions
+ *
+ * `Maybe.Go` and `Maybe.GoAsync` generators must be evaluated before accessing
+ * their results.
+ *
+ * The `go` function evaluates a `Maybe.Go<T>` generator to return a `Maybe<T>`
+ * If any yielded `Maybe` is absent, the generator halts and `go` returns
+ * `Nothing`; otherwise, when the generator returns, `go` returns the result in
+ * a `Just`.
+ *
+ * The `goAsync` function evaluates a `Maybe.GoAsync<T>` async generator to
+ * return a `Promise<Maybe<T>>`. If any yielded `Maybe` is absent, the generator
+ * halts and `goAsync` resolves with the `Nothing`; otherwise, when the
+ * generator returns, `goAsync` resolves with the result in a `Just`. Thrown
+ * errors are captured as rejections.
  *
  * ## Collecting into `Maybe`
  *
@@ -276,19 +299,6 @@
  * // input: "0x2A": 18
  * ```
  *
- * We can refactor the `parseEvenInt` function to use a generator comprehension
- * instead:
- *
- * ```ts
- * function parseEvenInt(input: string): Maybe<number> {
- *     return Maybe.go(function* () {
- *         const n = yield* parseInt(input);
- *         const even = yield* guardEven(n);
- *         return even;
- *     });
- * }
- * ```
- *
  * Suppose we want to parse an array of inputs and collect the successful
  * results, or fail on the first parse error. We may write the following:
  *
@@ -313,37 +323,8 @@
  * // inputs ["+42","0x2A"]: [42,42]
  * ```
  *
- * Perhaps we want to collect only distinct even numbers using a Set:
- *
- * ```ts
- * function parseEvenIntsUniq(inputs: string[]): Maybe<Set<number>> {
- *     return Maybe.go(function* () {
- *         const results = new Set<number>();
- *         for (const input of inputs) {
- *             results.add(yield* parseEvenInt(input));
- *         }
- *         return results;
- *     });
- * }
- *
- * [
- *     ["a", "-4"],
- *     ["2", "-7"],
- *     ["+42", "0x2A"],
- * ].forEach((inputs) => {
- *     const result = JSON.stringify(
- *         parseEvenIntsUniq(inputs).map(Array.from).getOr("invalid input"),
- *     );
- *     console.log(`inputs ${JSON.stringify(inputs)}: ${result}`);
- * });
- *
- * // inputs ["a","-4"]: "invalid input"
- * // inputs ["2","-7"]: "invalid input"
- * // inputs ["+42","0x2A"]: [42]
- * ```
- *
- * Or, perhaps we want to associate the original input strings with our
- * successful parses:
+ * Perhaps we want to associate the original input strings with our successful
+ * parses:
  *
  * ```ts
  * function parseEvenIntsKeyed(
@@ -469,93 +450,22 @@ export namespace Maybe {
 		return (val) => (f(val) ? just(val) : nothing);
 	}
 
-	function step<TReturn>(
-		gen: Generator<Maybe<any>, TReturn | typeof halt, unknown>,
-	): Maybe<TReturn> {
+	/**
+	 * Evaluate a `Maybe.Go` generator to return a `Maybe.`
+	 */
+	export function go<TReturn>(gen: Go<TReturn>): Maybe<TReturn> {
 		let nxt = gen.next();
+		let isHalted = false;
 		while (!nxt.done) {
 			const maybe = nxt.value;
 			if (maybe.isJust()) {
 				nxt = gen.next(maybe.val);
 			} else {
-				nxt = gen.return(halt);
+				isHalted = true;
+				nxt = gen.return(undefined as any);
 			}
 		}
-		const result = nxt.value;
-		return result === halt ? nothing : just(result);
-	}
-
-	/**
-	 * Construct a `Maybe` using a generator comprehension.
-	 *
-	 * @remarks
-	 *
-	 * The contract for generator comprehensions is as follows:
-	 *
-	 * -   The generator provided to `go` must only yield `Maybe` values.
-	 * -   `Maybe` values must only be yielded using the `yield*` keyword, and
-	 *     never `yield` (without the `*`). Omitting the `*` inhibits proper
-	 *     type inference and may cause undefined behavior.
-	 * -   A `yield*` statement may bind a variable provided by the caller. The
-	 *     variable inherits the type of the value of the yielded `Maybe`.
-	 * -   If a yielded `Maybe` is present, its value is bound to a variable (if
-	 *     provided) and the generator advances.
-	 * -   If a yielded `Maybe` is absent, the generator halts and `go` returns
-	 *     `Nothing`.
-	 * -   The `return` statement of the generator may return a final result,
-	 *     which is returned from `go` in a `Just` if all yielded `Maybe` values
-	 *     are present.
-	 * -   All syntax normally permitted in generators (statements, loops,
-	 *     declarations, etc.) is permitted within generator comprehensions.
-	 *
-	 * @example Basic yielding and returning
-	 *
-	 * Consider a comprehension that sums the successes of three `Maybe` values:
-	 *
-	 * ```ts
-	 * import { Maybe } from "@neotype/prelude/maybe.js";
-	 *
-	 * const maybeOne: Maybe<number> = Maybe.just(1);
-	 * const maybeTwo: Maybe<number> = Maybe.just(2);
-	 * const maybeThree: Maybe<number> = Maybe.just(3);
-	 *
-	 * const summed: Maybe<number> = Maybe.go(function* () {
-	 *     const one = yield* maybeOne;
-	 *     const two = yield* maybeTwo;
-	 *     const three = yield* maybeThree;
-	 *
-	 *     return one + two + three;
-	 * });
-	 *
-	 * console.log(summed.getOr("Nothing")); // 6
-	 * ```
-	 *
-	 * Now, observe the change in behavior if one of the yielded arguments was
-	 * an absent `Maybe` instead. Replace the declaration of `maybeTwo` with the
-	 * following and re-run the program.
-	 *
-	 * ```ts
-	 * const maybeTwo: Maybe<number> = Maybe.nothing;
-	 * ```
-	 */
-	export function go<TReturn>(
-		f: () => Generator<Maybe<any>, TReturn, unknown>,
-	): Maybe<TReturn> {
-		return step(f());
-	}
-
-	/**
-	 * Construct a function that returns a `Maybe` using a generator
-	 * comprehension.
-	 *
-	 * @remarks
-	 *
-	 * This is the higher-order function variant of `go`.
-	 */
-	export function goFn<TArgs extends unknown[], TReturn>(
-		f: (...args: TArgs) => Generator<Maybe<any>, TReturn, unknown>,
-	): (...args: TArgs) => Maybe<TReturn> {
-		return (...args) => step(f(...args));
+		return isHalted ? nothing : just(nxt.value);
 	}
 
 	/**
@@ -574,13 +484,15 @@ export namespace Maybe {
 		accum: (acc: TAcc, val: T) => Maybe<TAcc>,
 		initial: TAcc,
 	): Maybe<TAcc> {
-		return go(function* () {
-			let acc = initial;
-			for (const val of vals) {
-				acc = yield* accum(acc, val);
-			}
-			return acc;
-		});
+		return go(
+			(function* () {
+				let acc = initial;
+				for (const val of vals) {
+					acc = yield* accum(acc, val);
+				}
+				return acc;
+			})(),
+		);
 	}
 
 	/**
@@ -601,13 +513,15 @@ export namespace Maybe {
 	export function collect<TMaybes extends readonly Maybe<any>[] | []>(
 		maybes: TMaybes,
 	): Maybe<{ -readonly [K in keyof TMaybes]: JustT<TMaybes[K]> }> {
-		return go(function* () {
-			const results = new Array(maybes.length);
-			for (const [idx, maybe] of maybes.entries()) {
-				results[idx] = yield* maybe;
-			}
-			return results as any;
-		});
+		return go(
+			(function* () {
+				const results = new Array(maybes.length);
+				for (const [idx, maybe] of maybes.entries()) {
+					results[idx] = yield* maybe;
+				}
+				return results as any;
+			})(),
+		);
 	}
 
 	/**
@@ -628,13 +542,15 @@ export namespace Maybe {
 	export function gather<TMaybes extends Record<any, Maybe<any>>>(
 		maybes: TMaybes,
 	): Maybe<{ -readonly [K in keyof TMaybes]: JustT<TMaybes[K]> }> {
-		return go(function* () {
-			const results: Record<any, any> = {};
-			for (const [key, maybe] of Object.entries(maybes)) {
-				results[key] = yield* maybe;
-			}
-			return results as any;
-		});
+		return go(
+			(function* () {
+				const results: Record<any, any> = {};
+				for (const [key, maybe] of Object.entries(maybes)) {
+					results[key] = yield* maybe;
+				}
+				return results as any;
+			})(),
+		);
 	}
 
 	/**
@@ -654,71 +570,25 @@ export namespace Maybe {
 		return (...maybes) => collect(maybes).map((args) => f(...args));
 	}
 
-	async function stepAsync<TReturn>(
-		gen: AsyncGenerator<Maybe<any>, TReturn | typeof halt, unknown>,
+	/**
+	 * Evaluate a `Maybe.GoAsync` async generator to return a `Promise` that
+	 * resolves with a `Maybe`.
+	 */
+	export async function goAsync<TReturn>(
+		gen: GoAsync<TReturn>,
 	): Promise<Maybe<TReturn>> {
 		let nxt = await gen.next();
+		let isHalted = false;
 		while (!nxt.done) {
 			const maybe = nxt.value;
 			if (maybe.isJust()) {
 				nxt = await gen.next(maybe.val);
 			} else {
-				nxt = await gen.return(halt);
+				isHalted = true;
+				nxt = await gen.return(undefined as any);
 			}
 		}
-		const result = nxt.value;
-		return result === halt ? nothing : just(result);
-	}
-
-	/**
-	 * Construct a `Promise` that fulfills with a `Maybe` using an async
-	 * generator comprehension.
-	 *
-	 * @remarks
-	 *
-	 * The contract for async generator comprehensions is as follows:
-	 *
-	 * -   The async generator provided to `goAsync` must only yield `Maybe`
-	 *     values.
-	 *     -   `Promise` values must never be yielded. If a `Promise` contains
-	 *         a `Maybe`, the `Promise` must first be awaited to access and
-	 *         yield the `Maybe`. This is done with a `yield* await` statement.
-	 * -   `Maybe` values must only be yielded using the `yield*` keyword, and
-	 *     never `yield` (without the `*`). Omitting the `*` inhibits proper
-	 *     type inference and may cause undefined behavior.
-	 * -   A `yield*` statement may bind a variable provided by the caller. The
-	 *     variable inherits the type of the value of the yielded `Maybe`.
-	 * -   If a yielded `Maybe` is present, its value is bound to a variable (if
-	 *     provided) and the generator advances.
-	 * -   If a yielded `Maybe` is absent, the generator halts and `goAsync`
-	 *     fulfills with `Nothing`.
-	 * -   If a `Promise` rejects or an operation throws, the generator halts
-	 *     and `goAsync` rejects with the error.
-	 * -   The `return` statement of the generator may return a final result,
-	 *     and `goAsync` fulfills with the result in a `Just` if all yielded
-	 *     `Maybe` values are present and no errors are encountered.
-	 * -   All syntax normally permitted in async generators (the `await`
-	 *     keyword, statements, loops, declarations, etc.) is permitted within
-	 *     async generator comprehensions.
-	 */
-	export function goAsync<TReturn>(
-		f: () => AsyncGenerator<Maybe<any>, TReturn, unknown>,
-	): Promise<Maybe<TReturn>> {
-		return stepAsync(f());
-	}
-
-	/**
-	 * Construct a function that returns a `Promise` that fulfills with a
-	 * `Maybe` using an async generator comprehension.
-	 *
-	 * @remarks
-	 *
-	 * This is the higher-order function variant of `goAsync`.
-	 */
-	export function goAsyncFn<TArgs extends unknown[], TReturn>(
-		f: (...args: TArgs) => AsyncGenerator<Maybe<any>, TReturn, unknown>,
-	): (...args: TArgs) => Promise<Maybe<TReturn>> {
-		return (...args) => stepAsync(f(...args));
+		return isHalted ? nothing : just(nxt.value);
 	}
 
 	/**
@@ -837,6 +707,15 @@ export namespace Maybe {
 		}
 
 		/**
+		 * If this `Maybe` is present, apply a generator comprehension function
+		 * to its value and evaluate the `Maybe.Go` generator to return another
+		 * `Maybe`; otherwise, return `Nothing`.
+		 */
+		goMap<T, T1>(this: Maybe<T>, f: (val: T) => Go<T1>): Maybe<T1> {
+			return this.flatMap((val) => go(f(val)));
+		}
+
+		/**
 		 * If this `Maybe` is present, apply a function to its value. If the
 		 * result is `null` or `undefined`, return `Nothing`; otherwise, return
 		 * the result in a `Just`. If this `Maybe` is absent, return `Nothing`.
@@ -934,13 +813,11 @@ export namespace Maybe {
 		}
 
 		/**
-		 * Defining iterable behavior for `Maybe` allows TypeScript to infer
-		 * `Just` types when yielding `Maybe` values in generator comprehensions
-		 * using `yield*`.
-		 *
-		 * @hidden
+		 * Return a `Maybe.Go` generator that yields this `Maybe` and returns
+		 * its value if one is present. This allows `Maybe` values to be yielded
+		 * directly in `Maybe` generator comprehensions using `yield*`.
 		 */
-		*[Symbol.iterator](): Iterator<Maybe<never>, never, unknown> {
+		*[Symbol.iterator](): Generator<Maybe<never>, never, unknown> {
 			return (yield this) as never;
 		}
 	}
@@ -965,13 +842,11 @@ export namespace Maybe {
 		}
 
 		/**
-		 * Defining iterable behavior for `Maybe` allows TypeScript to infer
-		 * `Just` types when yielding `Maybe` values in generator comprehensions
-		 * using `yield*`.
-		 *
-		 * @hidden
+		 * Return a `Maybe.Go` generator that yields this `Maybe` and returns
+		 * its value if one is present. This allows `Maybe` values to be yielded
+		 * directly in `Maybe` generator comprehensions using `yield*`.
 		 */
-		*[Symbol.iterator](): Iterator<Maybe<T>, T, unknown> {
+		*[Symbol.iterator](): Generator<Maybe<T>, T, unknown> {
 			return (yield this) as T;
 		}
 	}
@@ -982,14 +857,23 @@ export namespace Maybe {
 	export const nothing = Maybe.Nothing.singleton as Maybe<never>;
 
 	/**
+	 * A generator that yields `Maybe` values and returns a result.
+	 */
+	export type Go<TReturn> = Generator<Maybe<unknown>, TReturn, unknown>;
+
+	/**
+	 * An async generator that yields `Maybe` values and returns a result.
+	 */
+	export type GoAsync<TReturn> = AsyncGenerator<
+		Maybe<unknown>,
+		TReturn,
+		unknown
+	>;
+
+	/**
 	 * Extract the present value type `T` from the type `Maybe<T>`.
 	 */
 	export type JustT<TMaybe extends Maybe<any>> = TMaybe extends Maybe<infer T>
 		? T
 		: never;
-
-	// A unique symbol used by the `Maybe` generator comprehension
-	// implementation to signal the underlying generator to return early. This
-	// ensures `try...finally` blocks can properly execute.
-	const halt = Symbol();
 }
