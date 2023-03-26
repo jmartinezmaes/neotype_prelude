@@ -177,7 +177,7 @@
  * Each `yield*` expression may bind a variable of the right-hand value type of
  * the yielded `Ior`. Comprehensions should always use `yield*` instead of
  * `yield`. Using `yield*` allows TypeScript to accurately infer the right-hand
- * value type of each yielded `Ior` when binding the value of a `yield*`
+ * value type of the yielded `Ior` when binding the value of each `yield*`
  * expression.
  *
  * Comprehensions require that the left-hand values of all yielded `Ior` values

@@ -182,7 +182,7 @@
  * Each `yield*` expression may bind a variable of the present value type of the
  * yielded `Maybe`. Comprehensions should always use `yield*` instead of
  * `yield`. Using `yield*` allows TypeScript to accurately infer the present
- * value type of each yielded `Maybe` when binding the value of a `yield*`
+ * value type of the yielded `Maybe` when binding the value of each `yield*`
  * expression.
  *
  * ### Evaluating comprehensions

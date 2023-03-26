@@ -171,7 +171,7 @@
  * Each `yield*` expression may bind a variable of the success value type of the
  * yielded `Either`. Comprehensions should always use `yield*` instead of
  * `yield`. Using `yield*` allows TypeScript to accurately infer the success
- * value type of each yielded `Either` when binding the value of a `yield*`
+ * value type of the yielded `Either` when binding the value of each `yield*`
  * expression.
  *
  * ### Evaluating comprehensions

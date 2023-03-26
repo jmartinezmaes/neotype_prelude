@@ -93,7 +93,7 @@
  * Each `yield*` expression may bind a variable of the outcome value type of the
  * yielded `Eval`. Comprehensions should always use `yield*` instead of `yield`.
  * Using `yield*` allows TypeScript to accurately infer the outcome value type
- * of each yielded `Eval` when binding the value of a `yield*` expression.
+ * of the yielded `Eval` when binding the value of each `yield*` expression.
  *
  * ### Evaluating comprehensions
  *
