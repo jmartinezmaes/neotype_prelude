@@ -309,7 +309,7 @@ export class Eval<out T> {
 	}
 
 	/**
-	 * Interpret an `Eval.Go` generator to return an `Eval`.
+	 * Evaluate an `Eval.Go` generator to return an `Eval`.
 	 */
 	static go<TReturn>(gen: Eval.Go<TReturn>): Eval<TReturn> {
 		return Eval.defer(() => Eval.#step(gen, gen.next()));
@@ -451,7 +451,7 @@ export class Eval<out T> {
 
 	/**
 	 * Apply a generator comprehension function to the outcome of this `Eval`
-	 * and interpret the `Eval.Go` generator to return another `Eval`.
+	 * and evaluate the `Eval.Go` generator to return another `Eval`.
 	 */
 	goMap<T1>(f: (val: T) => Eval.Go<T1>): Eval<T1> {
 		return this.flatMap((val) => Eval.go(f(val)));

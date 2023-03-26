@@ -451,7 +451,7 @@ export namespace Maybe {
 	}
 
 	/**
-	 * Interpret a `Maybe.Go` generator to return a `Maybe.`
+	 * Evaluate a `Maybe.Go` generator to return a `Maybe.`
 	 */
 	export function go<TReturn>(gen: Go<TReturn>): Maybe<TReturn> {
 		let nxt = gen.next();
@@ -571,7 +571,7 @@ export namespace Maybe {
 	}
 
 	/**
-	 * Interpret a `Maybe.GoAsync` async generator to return a `Promise` that
+	 * Evaluate a `Maybe.GoAsync` async generator to return a `Promise` that
 	 * resolves with a `Maybe`.
 	 */
 	export async function goAsync<TReturn>(
@@ -708,7 +708,7 @@ export namespace Maybe {
 
 		/**
 		 * If this `Maybe` is present, apply a generator comprehension function
-		 * to its value and interpret the `Maybe.Go` generator to return another
+		 * to its value and evaluate the `Maybe.Go` generator to return another
 		 * `Maybe`; otherwise, return `Nothing`.
 		 */
 		goMap<T, T1>(this: Maybe<T>, f: (val: T) => Go<T1>): Maybe<T1> {

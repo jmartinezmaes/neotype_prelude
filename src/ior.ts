@@ -497,7 +497,7 @@ export namespace Ior {
 	}
 
 	/**
-	 * Interpret an `Ior.Go` generator to return an `Ior`.
+	 * Evaluate an `Ior.Go` generator to return an `Ior`.
 	 */
 	export function go<A extends Semigroup<A>, TReturn>(
 		gen: Go<A, TReturn>,
@@ -664,7 +664,7 @@ export namespace Ior {
 	}
 
 	/**
-	 * Interpret an `Ior.GoAsync` async generator to return a `Promise` that
+	 * Evaluate an `Ior.GoAsync` async generator to return a `Promise` that
 	 * resolves with an `Ior`.
 	 */
 	export async function goAsync<A extends Semigroup<A>, TReturn>(
@@ -872,7 +872,7 @@ export namespace Ior {
 
 		/**
 		 * If this `Ior` has a right-hand value, apply a generator comprehension
-		 * function to the value and interpret the `Ior.Go` generator to return
+		 * function to the value and evaluate the `Ior.Go` generator to return
 		 * another `Ior`. Accumulate the left-hand values of `Both` variants
 		 * using their behavior as a semigroup. If either `Ior` is a `Left`,
 		 * combine the left-hand value with any existing left-hand value and
