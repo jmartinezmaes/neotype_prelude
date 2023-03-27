@@ -421,8 +421,8 @@ export namespace Either {
 			if (either.isRight()) {
 				nxt = gen.next(either.val);
 			} else {
-				err = either.val;
 				isHalted = true;
+				err = either.val;
 				nxt = gen.return(undefined as any);
 			}
 		}
@@ -558,8 +558,8 @@ export namespace Either {
 			if (either.isRight()) {
 				nxt = await gen.next(either.val);
 			} else {
-				err = either.val;
 				isHalted = true;
+				err = either.val;
 				nxt = await gen.return(undefined as any);
 			}
 		}

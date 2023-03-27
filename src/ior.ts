@@ -518,12 +518,12 @@ export namespace Ior {
 				}
 				nxt = gen.next(ior.snd);
 			} else {
+				isHalted = true;
 				if (acc === undefined) {
 					acc = ior.val;
 				} else {
 					acc = cmb(acc, ior.val);
 				}
-				isHalted = true;
 				nxt = gen.return(undefined as any);
 			}
 		}
@@ -687,12 +687,12 @@ export namespace Ior {
 				}
 				nxt = await gen.next(ior.snd);
 			} else {
+				isHalted = true;
 				if (acc === undefined) {
 					acc = ior.val;
 				} else {
 					acc = cmb(acc, ior.val);
 				}
-				isHalted = true;
 				nxt = await gen.return(undefined as any);
 			}
 		}
