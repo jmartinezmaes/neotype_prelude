@@ -22,8 +22,8 @@ import { Semigroup, cmb } from "./cmb.js";
 describe("cmb", () => {
 	it("combines the two Semigroup values", () => {
 		fc.assert(
-			fc.property(arbStr(), arbStr(), (x, y) => {
-				expect(cmb(x, y)).to.deep.equal(x[Semigroup.cmb](y));
+			fc.property(arbStr(), arbStr(), (lhs, rhs) => {
+				expect(cmb(lhs, rhs)).to.deep.equal(lhs[Semigroup.cmb](rhs));
 			}),
 		);
 	});
