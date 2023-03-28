@@ -20,22 +20,24 @@ import { constant, id, negatePred, wrapCtor } from "./fn.js";
 
 describe("id", () => {
 	it("returns its argument", () => {
-		fc.assert(
-			fc.property(fc.anything(), (val) => {
-				expect(id(val)).to.deep.equal(val);
-			}),
-		);
+		const property = fc.property(fc.anything(), (val) => {
+			expect(id(val)).to.deep.equal(val);
+		});
+		fc.assert(property);
 	});
 });
 
 describe("constant", () => {
 	it("returns a function that returns the original argument regardless of the provided arguments", () => {
-		fc.assert(
-			fc.property(fc.anything(), fc.array(fc.anything()), (val, args) => {
+		const property = fc.property(
+			fc.anything(),
+			fc.array(fc.anything()),
+			(val, args) => {
 				const f = constant(val);
 				expect(f(...args)).to.deep.equal(val);
-			}),
+			},
 		);
+		fc.assert(property);
 	});
 });
 

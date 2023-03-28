@@ -257,29 +257,26 @@ describe("Maybe", () => {
 		});
 
 		it("compares Nothing and any Just as inequal", () => {
-			fc.assert(
-				fc.property(arbNum(), (rhs) => {
-					expect(eq(Maybe.nothing, Maybe.just(rhs))).to.be.false;
-				}),
-			);
+			const property = fc.property(arbNum(), (rhs) => {
+				expect(eq(Maybe.nothing, Maybe.just(rhs))).to.be.false;
+			});
+			fc.assert(property);
 		});
 
 		it("compares any Just and Nothing as inequal", () => {
-			fc.assert(
-				fc.property(arbNum(), (lhs) => {
-					expect(eq(Maybe.just(lhs), Maybe.nothing)).to.be.false;
-				}),
-			);
+			const property = fc.property(arbNum(), (lhs) => {
+				expect(eq(Maybe.just(lhs), Maybe.nothing)).to.be.false;
+			});
+			fc.assert(property);
 		});
 
 		it("compares the values if both variants are Just", () => {
-			fc.assert(
-				fc.property(arbNum(), arbNum(), (lhs, rhs) => {
-					expect(eq(Maybe.just(lhs), Maybe.just(rhs))).to.equal(
-						eq(lhs, rhs),
-					);
-				}),
-			);
+			const property = fc.property(arbNum(), arbNum(), (lhs, rhs) => {
+				expect(eq(Maybe.just(lhs), Maybe.just(rhs))).to.equal(
+					eq(lhs, rhs),
+				);
+			});
+			fc.assert(property);
 		});
 
 		it("implements a lawful equivalence relation", () => {
@@ -295,33 +292,30 @@ describe("Maybe", () => {
 		});
 
 		it("compares Nothing as less than any Just", () => {
-			fc.assert(
-				fc.property(arbNum(), (rhs) => {
-					expect(cmp(Maybe.nothing, Maybe.just(rhs))).to.equal(
-						Ordering.less,
-					);
-				}),
-			);
+			const property = fc.property(arbNum(), (rhs) => {
+				expect(cmp(Maybe.nothing, Maybe.just(rhs))).to.equal(
+					Ordering.less,
+				);
+			});
+			fc.assert(property);
 		});
 
 		it("compares any Just as greater than Nothing", () => {
-			fc.assert(
-				fc.property(arbNum(), (lhs) => {
-					expect(cmp(Maybe.just(lhs), Maybe.nothing)).to.equal(
-						Ordering.greater,
-					);
-				}),
-			);
+			const property = fc.property(arbNum(), (lhs) => {
+				expect(cmp(Maybe.just(lhs), Maybe.nothing)).to.equal(
+					Ordering.greater,
+				);
+			});
+			fc.assert(property);
 		});
 
 		it("compares the values if both variants are Just", () => {
-			fc.assert(
-				fc.property(arbNum(), arbNum(), (lhs, rhs) => {
-					expect(cmp(Maybe.just(lhs), Maybe.just(rhs))).to.equal(
-						cmp(lhs, rhs),
-					);
-				}),
-			);
+			const property = fc.property(arbNum(), arbNum(), (lhs, rhs) => {
+				expect(cmp(Maybe.just(lhs), Maybe.just(rhs))).to.equal(
+					cmp(lhs, rhs),
+				);
+			});
+			fc.assert(property);
 		});
 
 		it("implements a lawful total order", () => {
@@ -337,33 +331,30 @@ describe("Maybe", () => {
 		});
 
 		it("keeps the second Just if the first variant is Nothing", () => {
-			fc.assert(
-				fc.property(arbStr(), (rhs) => {
-					expect(cmb(Maybe.nothing, Maybe.just(rhs))).to.deep.equal(
-						Maybe.just(rhs),
-					);
-				}),
-			);
+			const property = fc.property(arbStr(), (rhs) => {
+				expect(cmb(Maybe.nothing, Maybe.just(rhs))).to.deep.equal(
+					Maybe.just(rhs),
+				);
+			});
+			fc.assert(property);
 		});
 
 		it("keeps the first Just if the second variant is Nothing", () => {
-			fc.assert(
-				fc.property(arbStr(), (lhs) => {
-					expect(cmb(Maybe.just(lhs), Maybe.nothing)).to.deep.equal(
-						Maybe.just(lhs),
-					);
-				}),
-			);
+			const property = fc.property(arbStr(), (lhs) => {
+				expect(cmb(Maybe.just(lhs), Maybe.nothing)).to.deep.equal(
+					Maybe.just(lhs),
+				);
+			});
+			fc.assert(property);
 		});
 
 		it("combines the values if both variants are Just", () => {
-			fc.assert(
-				fc.property(arbStr(), arbStr(), (lhs, rhs) => {
-					expect(cmb(Maybe.just(lhs), Maybe.just(rhs))).to.deep.equal(
-						Maybe.just(cmb(lhs, rhs)),
-					);
-				}),
-			);
+			const property = fc.property(arbStr(), arbStr(), (lhs, rhs) => {
+				expect(cmb(Maybe.just(lhs), Maybe.just(rhs))).to.deep.equal(
+					Maybe.just(cmb(lhs, rhs)),
+				);
+			});
+			fc.assert(property);
 		});
 
 		it("implements a lawful semigroup", () => {

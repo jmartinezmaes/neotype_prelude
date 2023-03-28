@@ -127,13 +127,12 @@ describe("Eval", () => {
 
 	describe("#[Semigroup.cmb]", () => {
 		it("combines the outcomes", () => {
-			fc.assert(
-				fc.property(arbStr(), arbStr(), (lhs, rhs) => {
-					expect(
-						cmb(Eval.now(lhs), Eval.now(rhs)).run(),
-					).to.deep.equal(cmb(lhs, rhs));
-				}),
-			);
+			const property = fc.property(arbStr(), arbStr(), (lhs, rhs) => {
+				expect(cmb(Eval.now(lhs), Eval.now(rhs)).run()).to.deep.equal(
+					cmb(lhs, rhs),
+				);
+			});
+			fc.assert(property);
 		});
 
 		it("implements a lawful semigroup", () => {

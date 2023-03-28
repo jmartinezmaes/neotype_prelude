@@ -379,111 +379,102 @@ describe("Ior", () => {
 
 	describe("#[Eq.eq]", () => {
 		it("compares the values if both variants are Left", () => {
-			fc.assert(
-				fc.property(arbNum(), arbNum(), (lhs0, rhs0) => {
-					expect(eq(Ior.left(lhs0), Ior.left(rhs0))).to.equal(
-						eq(lhs0, rhs0),
-					);
-				}),
-			);
+			const property = fc.property(arbNum(), arbNum(), (lhs0, rhs0) => {
+				expect(eq(Ior.left(lhs0), Ior.left(rhs0))).to.equal(
+					eq(lhs0, rhs0),
+				);
+			});
+			fc.assert(property);
 		});
 
 		it("compares any Left and any Right as inequal", () => {
-			fc.assert(
-				fc.property(arbNum(), arbNum(), (lhs0, rhs1) => {
-					expect(eq(Ior.left(lhs0), Ior.right(rhs1))).to.be.false;
-				}),
-			);
+			const property = fc.property(arbNum(), arbNum(), (lhs0, rhs1) => {
+				expect(eq(Ior.left(lhs0), Ior.right(rhs1))).to.be.false;
+			});
+			fc.assert(property);
 		});
 
 		it("compares any Left and any Both as inequal", () => {
-			fc.assert(
-				fc.property(
-					arbNum(),
-					arbNum(),
-					arbNum(),
-					(lhs0, rhs0, rhs1) => {
-						expect(eq(Ior.left(lhs0), Ior.both(rhs0, rhs1))).to.be
-							.false;
-					},
-				),
+			const property = fc.property(
+				arbNum(),
+				arbNum(),
+				arbNum(),
+				(lhs0, rhs0, rhs1) => {
+					expect(eq(Ior.left(lhs0), Ior.both(rhs0, rhs1))).to.be
+						.false;
+				},
 			);
+			fc.assert(property);
 		});
 
 		it("compares any Right and any Left as inequal", () => {
-			fc.assert(
-				fc.property(arbNum(), arbNum(), (lhs1, rhs0) => {
-					expect(eq(Ior.right(lhs1), Ior.left(rhs0))).to.be.false;
-				}),
-			);
+			const property = fc.property(arbNum(), arbNum(), (lhs1, rhs0) => {
+				expect(eq(Ior.right(lhs1), Ior.left(rhs0))).to.be.false;
+			});
+			fc.assert(property);
 		});
 
 		it("compares the values if both variants are Right", () => {
-			fc.assert(
-				fc.property(arbNum(), arbNum(), (lhs1, rhs1) => {
-					expect(eq(Ior.right(lhs1), Ior.right(rhs1))).to.equal(
-						eq(lhs1, rhs1),
-					);
-				}),
-			);
+			const property = fc.property(arbNum(), arbNum(), (lhs1, rhs1) => {
+				expect(eq(Ior.right(lhs1), Ior.right(rhs1))).to.equal(
+					eq(lhs1, rhs1),
+				);
+			});
+			fc.assert(property);
 		});
 
 		it("compares any Right and any Both as inequal", () => {
-			fc.assert(
-				fc.property(
-					arbNum(),
-					arbNum(),
-					arbNum(),
-					(lhs1, rhs0, rhs1) => {
-						expect(eq(Ior.right(lhs1), Ior.both(rhs0, rhs1))).to.be
-							.false;
-					},
-				),
+			const property = fc.property(
+				arbNum(),
+				arbNum(),
+				arbNum(),
+				(lhs1, rhs0, rhs1) => {
+					expect(eq(Ior.right(lhs1), Ior.both(rhs0, rhs1))).to.be
+						.false;
+				},
 			);
+			fc.assert(property);
 		});
 
 		it("compares any Both and any Left as inequal", () => {
-			fc.assert(
-				fc.property(
-					arbNum(),
-					arbNum(),
-					arbNum(),
-					(lhs0, lhs1, rhs0) => {
-						expect(eq(Ior.both(lhs0, lhs1), Ior.left(rhs0))).to.be
-							.false;
-					},
-				),
+			const property = fc.property(
+				arbNum(),
+				arbNum(),
+				arbNum(),
+				(lhs0, lhs1, rhs0) => {
+					expect(eq(Ior.both(lhs0, lhs1), Ior.left(rhs0))).to.be
+						.false;
+				},
 			);
+			fc.assert(property);
 		});
 
 		it("compares any Both and any Right as inequal", () => {
-			fc.assert(
-				fc.property(
-					arbNum(),
-					arbNum(),
-					arbNum(),
-					(lhs0, lhs1, rhs1) => {
-						expect(eq(Ior.both(lhs0, lhs1), Ior.right(rhs1))).to.be
-							.false;
-					},
-				),
+			const property = fc.property(
+				arbNum(),
+				arbNum(),
+				arbNum(),
+				(lhs0, lhs1, rhs1) => {
+					expect(eq(Ior.both(lhs0, lhs1), Ior.right(rhs1))).to.be
+						.false;
+				},
 			);
+			fc.assert(property);
 		});
 
 		it("compares the left-hand values and the right-hand values lexicographically if both variants are Both", () => {
-			fc.assert(
-				fc.property(
-					arbNum(),
-					arbNum(),
-					arbNum(),
-					arbNum(),
-					(lhs0, lhs1, rhs0, rhs1) => {
-						expect(
-							eq(Ior.both(lhs0, lhs1), Ior.both(rhs0, rhs1)),
-						).to.equal(eq(lhs0, rhs0) && eq(lhs1, rhs1));
-					},
-				),
+			const property = fc.property(
+				arbNum(),
+				arbNum(),
+				arbNum(),
+				arbNum(),
+				(lhs0, lhs1, rhs0, rhs1) => {
+					expect(
+						eq(Ior.both(lhs0, lhs1), Ior.both(rhs0, rhs1)),
+					).to.equal(eq(lhs0, rhs0) && eq(lhs1, rhs1));
+				},
 			);
+			fc.assert(property);
 		});
 
 		it("implements a lawful equivalence relation", () => {
@@ -493,119 +484,110 @@ describe("Ior", () => {
 
 	describe("#[Ord.cmp]", () => {
 		it("compares the values if both variants are Left", () => {
-			fc.assert(
-				fc.property(arbNum(), arbNum(), (lhs0, rhs0) => {
-					expect(cmp(Ior.left(lhs0), Ior.left(rhs0))).to.equal(
-						cmp(lhs0, rhs0),
-					);
-				}),
-			);
+			const property = fc.property(arbNum(), arbNum(), (lhs0, rhs0) => {
+				expect(cmp(Ior.left(lhs0), Ior.left(rhs0))).to.equal(
+					cmp(lhs0, rhs0),
+				);
+			});
+			fc.assert(property);
 		});
 
 		it("compares any Left as less than any Right", () => {
-			fc.assert(
-				fc.property(arbNum(), arbNum(), (lhs0, rhs1) => {
-					expect(cmp(Ior.left(lhs0), Ior.right(rhs1))).to.equal(
-						Ordering.less,
-					);
-				}),
-			);
+			const property = fc.property(arbNum(), arbNum(), (lhs0, rhs1) => {
+				expect(cmp(Ior.left(lhs0), Ior.right(rhs1))).to.equal(
+					Ordering.less,
+				);
+			});
+			fc.assert(property);
 		});
 
 		it("compares any Left as less than any Both", () => {
-			fc.assert(
-				fc.property(
-					arbNum(),
-					arbNum(),
-					arbNum(),
-					(lhs0, rhs0, rhs1) => {
-						expect(
-							cmp(Ior.left(lhs0), Ior.both(rhs0, rhs1)),
-						).to.equal(Ordering.less);
-					},
-				),
+			const property = fc.property(
+				arbNum(),
+				arbNum(),
+				arbNum(),
+				(lhs0, rhs0, rhs1) => {
+					expect(cmp(Ior.left(lhs0), Ior.both(rhs0, rhs1))).to.equal(
+						Ordering.less,
+					);
+				},
 			);
+			fc.assert(property);
 		});
 
 		it("compares any Right as greater than any Left", () => {
-			fc.assert(
-				fc.property(arbNum(), arbNum(), (lhs1, rhs0) => {
-					expect(cmp(Ior.right(lhs1), Ior.left(rhs0))).to.equal(
-						Ordering.greater,
-					);
-				}),
-			);
+			const property = fc.property(arbNum(), arbNum(), (lhs1, rhs0) => {
+				expect(cmp(Ior.right(lhs1), Ior.left(rhs0))).to.equal(
+					Ordering.greater,
+				);
+			});
+			fc.assert(property);
 		});
 
 		it("compares the values if both variants are Right", () => {
-			fc.assert(
-				fc.property(arbNum(), arbNum(), (lhs1, rhs1) => {
-					expect(cmp(Ior.right(lhs1), Ior.right(rhs1))).to.equal(
-						cmp(lhs1, rhs1),
-					);
-				}),
-			);
+			const property = fc.property(arbNum(), arbNum(), (lhs1, rhs1) => {
+				expect(cmp(Ior.right(lhs1), Ior.right(rhs1))).to.equal(
+					cmp(lhs1, rhs1),
+				);
+			});
+			fc.assert(property);
 		});
 
 		it("compares any Right as less than any Both", () => {
-			fc.assert(
-				fc.property(
-					arbNum(),
-					arbNum(),
-					arbNum(),
-					(lhs1, rhs0, rhs1) => {
-						expect(
-							cmp(Ior.right(lhs1), Ior.both(rhs0, rhs1)),
-						).to.equal(Ordering.less);
-					},
-				),
+			const property = fc.property(
+				arbNum(),
+				arbNum(),
+				arbNum(),
+				(lhs1, rhs0, rhs1) => {
+					expect(cmp(Ior.right(lhs1), Ior.both(rhs0, rhs1))).to.equal(
+						Ordering.less,
+					);
+				},
 			);
+			fc.assert(property);
 		});
 
 		it("compares any Both as greater than any Left", () => {
-			fc.assert(
-				fc.property(
-					arbNum(),
-					arbNum(),
-					arbNum(),
-					(lhs0, lhs1, rhs0) => {
-						expect(
-							cmp(Ior.both(lhs0, lhs1), Ior.left(rhs0)),
-						).to.equal(Ordering.greater);
-					},
-				),
+			const property = fc.property(
+				arbNum(),
+				arbNum(),
+				arbNum(),
+				(lhs0, lhs1, rhs0) => {
+					expect(cmp(Ior.both(lhs0, lhs1), Ior.left(rhs0))).to.equal(
+						Ordering.greater,
+					);
+				},
 			);
+			fc.assert(property);
 		});
 
 		it("compares any Both as greater than any Right", () => {
-			fc.assert(
-				fc.property(
-					arbNum(),
-					arbNum(),
-					arbNum(),
-					(lhs0, lhs1, rhs1) => {
-						expect(
-							cmp(Ior.both(lhs0, lhs1), Ior.right(rhs1)),
-						).to.equal(Ordering.greater);
-					},
-				),
+			const property = fc.property(
+				arbNum(),
+				arbNum(),
+				arbNum(),
+				(lhs0, lhs1, rhs1) => {
+					expect(cmp(Ior.both(lhs0, lhs1), Ior.right(rhs1))).to.equal(
+						Ordering.greater,
+					);
+				},
 			);
+			fc.assert(property);
 		});
 
 		it("compares the left-hand values and the right-hand values lexicographically if both variants are Both", () => {
-			fc.assert(
-				fc.property(
-					arbNum(),
-					arbNum(),
-					arbNum(),
-					arbNum(),
-					(lhs0, lhs1, rhs0, rhs1) => {
-						expect(
-							cmp(Ior.both(lhs0, lhs1), Ior.both(rhs0, rhs1)),
-						).to.equal(cmb(cmp(lhs0, rhs0), cmp(lhs1, rhs1)));
-					},
-				),
+			const property = fc.property(
+				arbNum(),
+				arbNum(),
+				arbNum(),
+				arbNum(),
+				(lhs0, lhs1, rhs0, rhs1) => {
+					expect(
+						cmp(Ior.both(lhs0, lhs1), Ior.both(rhs0, rhs1)),
+					).to.equal(cmb(cmp(lhs0, rhs0), cmp(lhs1, rhs1)));
+				},
 			);
+			fc.assert(property);
 		});
 
 		it("implements a lawful total order", () => {
@@ -615,121 +597,110 @@ describe("Ior", () => {
 
 	describe("#[Semigroup.cmb]", () => {
 		it("combines the values if both variants are Left", () => {
-			fc.assert(
-				fc.property(arbStr(), arbStr(), (lhs0, rhs0) => {
-					expect(cmb(Ior.left(lhs0), Ior.left(rhs0))).to.deep.equal(
-						Ior.left(cmb(lhs0, rhs0)),
-					);
-				}),
-			);
+			const property = fc.property(arbStr(), arbStr(), (lhs0, rhs0) => {
+				expect(cmb(Ior.left(lhs0), Ior.left(rhs0))).to.deep.equal(
+					Ior.left(cmb(lhs0, rhs0)),
+				);
+			});
+			fc.assert(property);
 		});
 
 		it("merges the values into a Both if the variants are Left and Right", () => {
-			fc.assert(
-				fc.property(arbStr(), arbStr(), (lhs0, rhs1) => {
-					expect(cmb(Ior.left(lhs0), Ior.right(rhs1))).to.deep.equal(
-						Ior.both(lhs0, rhs1),
-					);
-				}),
-			);
+			const property = fc.property(arbStr(), arbStr(), (lhs0, rhs1) => {
+				expect(cmb(Ior.left(lhs0), Ior.right(rhs1))).to.deep.equal(
+					Ior.both(lhs0, rhs1),
+				);
+			});
+			fc.assert(property);
 		});
 
 		it("combines the left-hand values and retains the right-hand value if the variants are Left and Both", () => {
-			fc.assert(
-				fc.property(
-					arbStr(),
-					arbStr(),
-					arbStr(),
-					(lhs0, rhs0, rhs1) => {
-						expect(
-							cmb(Ior.left(lhs0), Ior.both(rhs0, rhs1)),
-						).to.deep.equal(Ior.both(cmb(lhs0, rhs0), rhs1));
-					},
-				),
+			const property = fc.property(
+				arbStr(),
+				arbStr(),
+				arbStr(),
+				(lhs0, rhs0, rhs1) => {
+					expect(
+						cmb(Ior.left(lhs0), Ior.both(rhs0, rhs1)),
+					).to.deep.equal(Ior.both(cmb(lhs0, rhs0), rhs1));
+				},
 			);
+			fc.assert(property);
 		});
 
 		it("merges the values into a Both if the variants are Right and Left", () => {
-			fc.assert(
-				fc.property(arbStr(), arbStr(), (lhs1, rhs0) => {
-					expect(cmb(Ior.right(lhs1), Ior.left(rhs0))).to.deep.equal(
-						Ior.both(rhs0, lhs1),
-					);
-				}),
-			);
+			const property = fc.property(arbStr(), arbStr(), (lhs1, rhs0) => {
+				expect(cmb(Ior.right(lhs1), Ior.left(rhs0))).to.deep.equal(
+					Ior.both(rhs0, lhs1),
+				);
+			});
+			fc.assert(property);
 		});
 
 		it("combines the values if both variants are Right", () => {
-			fc.assert(
-				fc.property(arbStr(), arbStr(), (lhs1, rhs1) => {
-					expect(cmb(Ior.right(lhs1), Ior.right(rhs1))).to.deep.equal(
-						Ior.right(cmb(lhs1, rhs1)),
-					);
-				}),
-			);
+			const property = fc.property(arbStr(), arbStr(), (lhs1, rhs1) => {
+				expect(cmb(Ior.right(lhs1), Ior.right(rhs1))).to.deep.equal(
+					Ior.right(cmb(lhs1, rhs1)),
+				);
+			});
+			fc.assert(property);
 		});
 
 		it("retains the left-hand value and combines the right-hand values if the variants are Right and Both", () => {
-			fc.assert(
-				fc.property(
-					arbStr(),
-					arbStr(),
-					arbStr(),
-					(lhs1, rhs0, rhs1) => {
-						expect(
-							cmb(Ior.right(lhs1), Ior.both(rhs0, rhs1)),
-						).to.deep.equal(Ior.both(rhs0, cmb(lhs1, rhs1)));
-					},
-				),
+			const property = fc.property(
+				arbStr(),
+				arbStr(),
+				arbStr(),
+				(lhs1, rhs0, rhs1) => {
+					expect(
+						cmb(Ior.right(lhs1), Ior.both(rhs0, rhs1)),
+					).to.deep.equal(Ior.both(rhs0, cmb(lhs1, rhs1)));
+				},
 			);
+			fc.assert(property);
 		});
 
 		it("combines the left-hand values and retains the right-hand value if the variants are Both and Left", () => {
-			fc.assert(
-				fc.property(
-					arbStr(),
-					arbStr(),
-					arbStr(),
-					(lhs0, lhs1, rhs0) => {
-						expect(
-							cmb(Ior.both(lhs0, lhs1), Ior.left(rhs0)),
-						).to.deep.equal(Ior.both(cmb(lhs0, rhs0), lhs1));
-					},
-				),
+			const property = fc.property(
+				arbStr(),
+				arbStr(),
+				arbStr(),
+				(lhs0, lhs1, rhs0) => {
+					expect(
+						cmb(Ior.both(lhs0, lhs1), Ior.left(rhs0)),
+					).to.deep.equal(Ior.both(cmb(lhs0, rhs0), lhs1));
+				},
 			);
+			fc.assert(property);
 		});
 
 		it("retains the left-hand value and combines the right-hand values if the variants are Both and Right", () => {
-			fc.assert(
-				fc.property(
-					arbStr(),
-					arbStr(),
-					arbStr(),
-					(lhs0, lhs1, rhs1) => {
-						expect(
-							cmb(Ior.both(lhs0, lhs1), Ior.right(rhs1)),
-						).to.deep.equal(Ior.both(lhs0, cmb(lhs1, rhs1)));
-					},
-				),
+			const property = fc.property(
+				arbStr(),
+				arbStr(),
+				arbStr(),
+				(lhs0, lhs1, rhs1) => {
+					expect(
+						cmb(Ior.both(lhs0, lhs1), Ior.right(rhs1)),
+					).to.deep.equal(Ior.both(lhs0, cmb(lhs1, rhs1)));
+				},
 			);
+			fc.assert(property);
 		});
 
 		it("combines the left-hand values and the right-hand values pairwise if both variants are Both", () => {
-			fc.assert(
-				fc.property(
-					arbStr(),
-					arbStr(),
-					arbStr(),
-					arbStr(),
-					(lhs0, lhs1, rhs0, rhs1) => {
-						expect(
-							cmb(Ior.both(lhs0, lhs1), Ior.both(rhs0, rhs1)),
-						).to.deep.equal(
-							Ior.both(cmb(lhs0, rhs0), cmb(lhs1, rhs1)),
-						);
-					},
-				),
+			const property = fc.property(
+				arbStr(),
+				arbStr(),
+				arbStr(),
+				arbStr(),
+				(lhs0, lhs1, rhs0, rhs1) => {
+					expect(
+						cmb(Ior.both(lhs0, lhs1), Ior.both(rhs0, rhs1)),
+					).to.deep.equal(Ior.both(cmb(lhs0, rhs0), cmb(lhs1, rhs1)));
+				},
 			);
+			fc.assert(property);
 		});
 
 		it("implements a lawful semigroup", () => {

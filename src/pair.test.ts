@@ -54,19 +54,18 @@ describe("Pair", () => {
 
 	describe("#[Eq.eq]", () => {
 		it("compares the first values and the second values lexicographically", () => {
-			fc.assert(
-				fc.property(
-					arbNum(),
-					arbNum(),
-					arbNum(),
-					arbNum(),
-					(lhs0, lhs1, rhs0, rhs1) => {
-						expect(
-							eq(new Pair(lhs0, lhs1), new Pair(rhs0, rhs1)),
-						).to.equal(eq(lhs0, rhs0) && eq(lhs1, rhs1));
-					},
-				),
+			const property = fc.property(
+				arbNum(),
+				arbNum(),
+				arbNum(),
+				arbNum(),
+				(lhs0, lhs1, rhs0, rhs1) => {
+					expect(
+						eq(new Pair(lhs0, lhs1), new Pair(rhs0, rhs1)),
+					).to.equal(eq(lhs0, rhs0) && eq(lhs1, rhs1));
+				},
 			);
+			fc.assert(property);
 		});
 
 		it("implements a lawful equivalence relation", () => {
@@ -76,19 +75,18 @@ describe("Pair", () => {
 
 	describe("#[Ord.cmp]", () => {
 		it("compares the first values and the second values lexicographically", () => {
-			fc.assert(
-				fc.property(
-					arbNum(),
-					arbNum(),
-					arbNum(),
-					arbNum(),
-					(lhs0, lhs1, rhs0, rhs1) => {
-						expect(
-							cmp(new Pair(lhs0, lhs1), new Pair(rhs0, rhs1)),
-						).to.equal(cmb(cmp(lhs0, rhs0), cmp(lhs1, rhs1)));
-					},
-				),
+			const property = fc.property(
+				arbNum(),
+				arbNum(),
+				arbNum(),
+				arbNum(),
+				(lhs0, lhs1, rhs0, rhs1) => {
+					expect(
+						cmp(new Pair(lhs0, lhs1), new Pair(rhs0, rhs1)),
+					).to.equal(cmb(cmp(lhs0, rhs0), cmp(lhs1, rhs1)));
+				},
 			);
+			fc.assert(property);
 		});
 
 		it("implements a lawful total order", () => {
@@ -98,21 +96,18 @@ describe("Pair", () => {
 
 	describe("#[Semigroup.cmb]", () => {
 		it("combines the first values and the second values pairwise", () => {
-			fc.assert(
-				fc.property(
-					arbStr(),
-					arbStr(),
-					arbStr(),
-					arbStr(),
-					(lhs0, lhs1, rhs0, rhs1) => {
-						expect(
-							cmb(new Pair(lhs0, lhs1), new Pair(rhs0, rhs1)),
-						).to.deep.equal(
-							new Pair(cmb(lhs0, rhs0), cmb(lhs1, rhs1)),
-						);
-					},
-				),
+			const property = fc.property(
+				arbStr(),
+				arbStr(),
+				arbStr(),
+				arbStr(),
+				(lhs0, lhs1, rhs0, rhs1) => {
+					expect(
+						cmb(new Pair(lhs0, lhs1), new Pair(rhs0, rhs1)),
+					).to.deep.equal(new Pair(cmb(lhs0, rhs0), cmb(lhs1, rhs1)));
+				},
 			);
+			fc.assert(property);
 		});
 
 		it("implements a lawful semigroup", () => {
