@@ -32,7 +32,7 @@ describe("Pair", () => {
 		arbFst: fc.Arbitrary<A>,
 		arbSnd: fc.Arbitrary<B>,
 	): fc.Arbitrary<Pair<A, B>> {
-		return arbFst.chain((x) => arbSnd.map((y) => new Pair(x, y)));
+		return arbFst.chain((fst) => arbSnd.map((snd) => new Pair(fst, snd)));
 	}
 
 	describe("constructor", () => {
@@ -60,10 +60,10 @@ describe("Pair", () => {
 					arbNum(),
 					arbNum(),
 					arbNum(),
-					(a, x, b, y) => {
-						expect(eq(new Pair(a, x), new Pair(b, y))).to.equal(
-							eq(a, b) && eq(x, y),
-						);
+					(lhs0, lhs1, rhs0, rhs1) => {
+						expect(
+							eq(new Pair(lhs0, lhs1), new Pair(rhs0, rhs1)),
+						).to.equal(eq(lhs0, rhs0) && eq(lhs1, rhs1));
 					},
 				),
 			);
@@ -82,10 +82,10 @@ describe("Pair", () => {
 					arbNum(),
 					arbNum(),
 					arbNum(),
-					(a, x, b, y) => {
-						expect(cmp(new Pair(a, x), new Pair(b, y))).to.equal(
-							cmb(cmp(a, b), cmp(x, y)),
-						);
+					(lhs0, lhs1, rhs0, rhs1) => {
+						expect(
+							cmp(new Pair(lhs0, lhs1), new Pair(rhs0, rhs1)),
+						).to.equal(cmb(cmp(lhs0, rhs0), cmp(lhs1, rhs1)));
 					},
 				),
 			);
@@ -104,10 +104,12 @@ describe("Pair", () => {
 					arbStr(),
 					arbStr(),
 					arbStr(),
-					(a, x, b, y) => {
+					(lhs0, lhs1, rhs0, rhs1) => {
 						expect(
-							cmb(new Pair(a, x), new Pair(b, y)),
-						).to.deep.equal(new Pair(cmb(a, b), cmb(x, y)));
+							cmb(new Pair(lhs0, lhs1), new Pair(rhs0, rhs1)),
+						).to.deep.equal(
+							new Pair(cmb(lhs0, rhs0), cmb(lhs1, rhs1)),
+						);
 					},
 				),
 			);
@@ -120,9 +122,9 @@ describe("Pair", () => {
 
 	describe("#unwrap", () => {
 		it("applies the function to the first value and the second value", () => {
-			const result = new Pair<1, 2>(1, 2).unwrap((fst, snd): [1, 2] => [
-				fst,
-				snd,
+			const result = new Pair<1, 2>(1, 2).unwrap((one, two): [1, 2] => [
+				one,
+				two,
 			]);
 			expect(result).to.deep.equal([1, 2]);
 		});
@@ -130,14 +132,14 @@ describe("Pair", () => {
 
 	describe("#lmap", () => {
 		it("applies the function to the first value", () => {
-			const pair = new Pair<1, 2>(1, 2).lmap((x): [1, 3] => [x, 3]);
+			const pair = new Pair<1, 2>(1, 2).lmap((one): [1, 3] => [one, 3]);
 			expect(pair).to.deep.equal(new Pair([1, 3], 2));
 		});
 	});
 
 	describe("#map", () => {
 		it("applies the function to the second value", () => {
-			const pair = new Pair<1, 2>(1, 2).map((x): [2, 4] => [x, 4]);
+			const pair = new Pair<1, 2>(1, 2).map((two): [2, 4] => [two, 4]);
 			expect(pair).to.deep.equal(new Pair(1, [2, 4]));
 		});
 	});
