@@ -126,9 +126,9 @@ describe("Maybe", () => {
 
 		it("executes the finally block if Nothing is yielded in the try block", () => {
 			const logs: string[] = [];
-			function* f(): Maybe.Go<number> {
+			function* f(): Maybe.Go<1> {
 				try {
-					return yield* nothing<number>();
+					return yield* nothing<1>();
 				} finally {
 					logs.push("finally");
 				}
@@ -139,11 +139,11 @@ describe("Maybe", () => {
 		});
 
 		it("returns Nothing if Nothing is yielded in the finally block", () => {
-			function* f(): Maybe.Go<number> {
+			function* f(): Maybe.Go<1> {
 				try {
 					return 1;
 				} finally {
-					yield* nothing<number>();
+					yield* nothing<1>();
 				}
 			}
 			const maybe = Maybe.go(f());
@@ -226,9 +226,9 @@ describe("Maybe", () => {
 
 		it("executes the finally block if Nothing is yielded in the try block", async () => {
 			const logs: string[] = [];
-			async function* f(): Maybe.GoAsync<number> {
+			async function* f(): Maybe.GoAsync<1> {
 				try {
-					return yield* await Promise.resolve(nothing<number>());
+					return yield* await Promise.resolve(nothing<1>());
 				} finally {
 					logs.push("finally");
 				}
@@ -239,11 +239,11 @@ describe("Maybe", () => {
 		});
 
 		it("returns Nothing if Nothing is yielded in the finally block", async () => {
-			async function* f(): Maybe.GoAsync<number> {
+			async function* f(): Maybe.GoAsync<1> {
 				try {
 					return 1;
 				} finally {
-					yield* await Promise.resolve(nothing<number>());
+					yield* await Promise.resolve(nothing<1>());
 				}
 			}
 			const maybe = await Maybe.goAsync(f());
