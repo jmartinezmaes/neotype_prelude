@@ -82,10 +82,10 @@ describe("Validation", () => {
 	describe("allProps", () => {
 		it("turns the record or the object literal of Validation elements inside out", () => {
 			const vdn = Validation.allProps({
-				x: Validation.ok<2, Str>(2),
-				y: Validation.ok<4, Str>(4),
+				two: Validation.ok<2, Str>(2),
+				four: Validation.ok<4, Str>(4),
 			});
-			expect(vdn).to.deep.equal(Validation.ok({ x: 2, y: 4 }));
+			expect(vdn).to.deep.equal(Validation.ok({ two: 2, four: 4 }));
 		});
 	});
 
@@ -105,35 +105,37 @@ describe("Validation", () => {
 	describe("#[Eq.eq]", () => {
 		it("compares the failures if both variants are Err", () => {
 			fc.assert(
-				fc.property(arbNum(), arbNum(), (x, y) => {
-					expect(eq(Validation.err(x), Validation.err(y))).to.equal(
-						eq(x, y),
-					);
+				fc.property(arbNum(), arbNum(), (lhs, rhs) => {
+					expect(
+						eq(Validation.err(lhs), Validation.err(rhs)),
+					).to.equal(eq(lhs, rhs));
 				}),
 			);
 		});
 
 		it("compares any Err and any Ok as inequal", () => {
 			fc.assert(
-				fc.property(arbNum(), arbNum(), (x, y) => {
-					expect(eq(Validation.err(x), Validation.ok(y))).to.be.false;
+				fc.property(arbNum(), arbNum(), (lhs, rhs) => {
+					expect(eq(Validation.err(lhs), Validation.ok(rhs))).to.be
+						.false;
 				}),
 			);
 		});
 
 		it("compares any Ok and any Err as inequal", () => {
 			fc.assert(
-				fc.property(arbNum(), arbNum(), (x, y) => {
-					expect(eq(Validation.ok(x), Validation.err(y))).to.be.false;
+				fc.property(arbNum(), arbNum(), (lhs, rhs) => {
+					expect(eq(Validation.ok(lhs), Validation.err(rhs))).to.be
+						.false;
 				}),
 			);
 		});
 
 		it("compares the successes if both variants are Ok", () => {
 			fc.assert(
-				fc.property(arbNum(), arbNum(), (x, y) => {
-					expect(eq(Validation.ok(x), Validation.ok(y))).to.equal(
-						eq(x, y),
+				fc.property(arbNum(), arbNum(), (lhs, rhs) => {
+					expect(eq(Validation.ok(lhs), Validation.ok(rhs))).to.equal(
+						eq(lhs, rhs),
 					);
 				}),
 			);
@@ -147,40 +149,40 @@ describe("Validation", () => {
 	describe("#[Ord.cmp]", () => {
 		it("compares the failures if both variants are Err", () => {
 			fc.assert(
-				fc.property(arbNum(), arbNum(), (x, y) => {
-					expect(cmp(Validation.err(x), Validation.err(y))).to.equal(
-						cmp(x, y),
-					);
+				fc.property(arbNum(), arbNum(), (lhs, rhs) => {
+					expect(
+						cmp(Validation.err(lhs), Validation.err(rhs)),
+					).to.equal(cmp(lhs, rhs));
 				}),
 			);
 		});
 
 		it("compares any Err as less than any Ok", () => {
 			fc.assert(
-				fc.property(arbNum(), arbNum(), (x, y) => {
-					expect(cmp(Validation.err(x), Validation.ok(y))).to.equal(
-						Ordering.less,
-					);
+				fc.property(arbNum(), arbNum(), (lhs, rhs) => {
+					expect(
+						cmp(Validation.err(lhs), Validation.ok(rhs)),
+					).to.equal(Ordering.less);
 				}),
 			);
 		});
 
 		it("compares any Ok as greater than any Err", () => {
 			fc.assert(
-				fc.property(arbNum(), arbNum(), (x, y) => {
-					expect(cmp(Validation.ok(x), Validation.err(y))).to.equal(
-						Ordering.greater,
-					);
+				fc.property(arbNum(), arbNum(), (lhs, rhs) => {
+					expect(
+						cmp(Validation.ok(lhs), Validation.err(rhs)),
+					).to.equal(Ordering.greater);
 				}),
 			);
 		});
 
 		it("compares the successes if both variants are Ok", () => {
 			fc.assert(
-				fc.property(arbNum(), arbNum(), (x, y) => {
-					expect(cmp(Validation.ok(x), Validation.ok(y))).to.equal(
-						cmp(x, y),
-					);
+				fc.property(arbNum(), arbNum(), (lhs, rhs) => {
+					expect(
+						cmp(Validation.ok(lhs), Validation.ok(rhs)),
+					).to.equal(cmp(lhs, rhs));
 				}),
 			);
 		});
@@ -193,10 +195,10 @@ describe("Validation", () => {
 	describe("#[Semigroup.cmb]", () => {
 		it("combines the successes if both variants are Ok", () => {
 			fc.assert(
-				fc.property(arbStr(), arbStr(), (x, y) => {
+				fc.property(arbStr(), arbStr(), (lhs, rhs) => {
 					expect(
-						cmb(Validation.ok(x), Validation.ok(y)),
-					).to.deep.equal(Validation.ok(cmb(x, y)));
+						cmb(Validation.ok(lhs), Validation.ok(rhs)),
+					).to.deep.equal(Validation.ok(cmb(lhs, rhs)));
 				}),
 			);
 		});
@@ -229,16 +231,16 @@ describe("Validation", () => {
 	describe("#unwrap", () => {
 		it("applies the first function to the failure if the variant is Err", () => {
 			const result = Validation.err<1, 2>(1).unwrap(
-				(x): [1, 3] => [x, 3],
-				(x): [2, 4] => [x, 4],
+				(one): [1, 3] => [one, 3],
+				(two): [2, 4] => [two, 4],
 			);
 			expect(result).to.deep.equal([1, 3]);
 		});
 
 		it("applies the second function to the success if the variant is Ok", () => {
 			const result = Validation.ok<2, 1>(2).unwrap(
-				(x): [1, 3] => [x, 3],
-				(x): [2, 4] => [x, 4],
+				(one): [1, 3] => [one, 3],
+				(two): [2, 4] => [two, 4],
 			);
 			expect(result).to.deep.equal([2, 4]);
 		});
@@ -248,7 +250,7 @@ describe("Validation", () => {
 		it("combines the failures if both variants are Err", () => {
 			const vdn = Validation.err<Str, 2>(new Str("a")).zipWith(
 				Validation.err<Str, 4>(new Str("b")),
-				(lhs, rhs): [2, 4] => [lhs, rhs],
+				(two, four): [2, 4] => [two, four],
 			);
 			expect(vdn).to.deep.equal(Validation.err(new Str("ab")));
 		});
@@ -256,7 +258,7 @@ describe("Validation", () => {
 		it("returns the first Err if the second variant is Ok", () => {
 			const vdn = Validation.err<Str, 2>(new Str("a")).zipWith(
 				Validation.ok<4, Str>(4),
-				(lhs, rhs): [2, 4] => [lhs, rhs],
+				(two, four): [2, 4] => [two, four],
 			);
 			expect(vdn).to.deep.equal(Validation.err(new Str("a")));
 		});
@@ -264,7 +266,7 @@ describe("Validation", () => {
 		it("returns the second Err if the first variant is Ok", () => {
 			const vdn = Validation.ok<2, Str>(2).zipWith(
 				Validation.err<Str, 4>(new Str("b")),
-				(lhs, rhs): [2, 4] => [lhs, rhs],
+				(two, four): [2, 4] => [two, four],
 			);
 			expect(vdn).to.deep.equal(Validation.err(new Str("b")));
 		});
@@ -272,7 +274,7 @@ describe("Validation", () => {
 		it("applies the function to the successes if both variants are Ok", () => {
 			const vdn = Validation.ok<2, Str>(2).zipWith(
 				Validation.ok<4, Str>(4),
-				(lhs, rhs): [2, 4] => [lhs, rhs],
+				(two, four): [2, 4] => [two, four],
 			);
 			expect(vdn).to.deep.equal(Validation.ok([2, 4]));
 		});
@@ -298,24 +300,24 @@ describe("Validation", () => {
 
 	describe("#lmap", () => {
 		it("applies the function to the failure if the variant is Err", () => {
-			const vdn = Validation.err<1, 2>(1).lmap((x): [1, 3] => [x, 3]);
+			const vdn = Validation.err<1, 2>(1).lmap((one): [1, 3] => [one, 3]);
 			expect(vdn).to.deep.equal(Validation.err([1, 3]));
 		});
 
 		it("does not apply the function if the variant is Ok", () => {
-			const vdn = Validation.ok<2, 1>(2).lmap((x): [1, 3] => [x, 3]);
+			const vdn = Validation.ok<2, 1>(2).lmap((one): [1, 3] => [one, 3]);
 			expect(vdn).to.deep.equal(Validation.ok(2));
 		});
 	});
 
 	describe("#map", () => {
 		it("does not apply the function if the variant is Err", () => {
-			const vdn = Validation.err<1, 2>(1).map((x): [2, 4] => [x, 4]);
+			const vdn = Validation.err<1, 2>(1).map((two): [2, 4] => [two, 4]);
 			expect(vdn).to.deep.equal(Validation.err(1));
 		});
 
 		it("applies the function to the success if the variant is Ok", () => {
-			const vdn = Validation.ok<2, 1>(2).map((x): [2, 4] => [x, 4]);
+			const vdn = Validation.ok<2, 1>(2).map((two): [2, 4] => [two, 4]);
 			expect(vdn).to.deep.equal(Validation.ok([2, 4]));
 		});
 	});
