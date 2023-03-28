@@ -21,8 +21,8 @@ import { constant, id, negatePred, wrapCtor } from "./fn.js";
 describe("id", () => {
 	it("returns its argument", () => {
 		fc.assert(
-			fc.property(fc.anything(), (x) => {
-				expect(id(x)).to.deep.equal(x);
+			fc.property(fc.anything(), (val) => {
+				expect(id(val)).to.deep.equal(val);
 			}),
 		);
 	});
@@ -31,9 +31,9 @@ describe("id", () => {
 describe("constant", () => {
 	it("returns a function that returns the original argument regardless of the provided arguments", () => {
 		fc.assert(
-			fc.property(fc.anything(), fc.array(fc.anything()), (x, args) => {
-				const f = constant(x);
-				expect(f(...args)).to.deep.equal(x);
+			fc.property(fc.anything(), fc.array(fc.anything()), (val, args) => {
+				const f = constant(val);
+				expect(f(...args)).to.deep.equal(val);
 			}),
 		);
 	});
@@ -41,8 +41,8 @@ describe("constant", () => {
 
 describe("negatePred", () => {
 	it("adapts the predicate into an identical predicate that negates its result", () => {
-		function isOne(x: 1 | 2): boolean {
-			return x === 1;
+		function isOne(num: number): boolean {
+			return num === 1;
 		}
 		const isNotOne = negatePred(isOne);
 
