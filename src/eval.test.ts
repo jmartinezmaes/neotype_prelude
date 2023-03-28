@@ -72,20 +72,24 @@ describe("Eval", () => {
 
 	describe("go", () => {
 		it("constructs an Eval using the generator comprehension", () => {
-			function* f(): Eval.Go<[1, 1, 2]> {
-				const x = yield* Eval.now<1>(1);
-				const [y, z] = yield* Eval.now<[1, 2]>([x, 2]);
-				return [x, y, z];
+			function* f(): Eval.Go<[1, 2]> {
+				const one = yield* Eval.now<1>(1);
+				const two = yield* Eval.now<2>(2);
+				return [one, two];
 			}
 			const ev = Eval.go(f());
 			const outcome = ev.run();
-			expect(outcome).to.deep.equal([1, 1, 2]);
+			expect(outcome).to.deep.equal([1, 2]);
 		});
 	});
 
 	describe("reduce", () => {
 		it("reduces the finite iterable from left to right in the context of Eval", () => {
-			const ev = Eval.reduce(["x", "y"], (xs, x) => Eval.now(xs + x), "");
+			const ev = Eval.reduce(
+				["x", "y"],
+				(chars, char) => Eval.now(chars + char),
+				"",
+			);
 			const outcome = ev.run();
 			expect(outcome).to.equal("xy");
 		});
@@ -102,11 +106,11 @@ describe("Eval", () => {
 	describe("allProps", () => {
 		it("turns the record or the object literal of Eval elements inside out", () => {
 			const ev = Eval.allProps({
-				x: Eval.now<1>(1),
-				y: Eval.now<2>(2),
+				one: Eval.now<1>(1),
+				two: Eval.now<2>(2),
 			});
 			const outcome = ev.run();
-			expect(outcome).to.deep.equal({ x: 1, y: 2 });
+			expect(outcome).to.deep.equal({ one: 1, two: 2 });
 		});
 	});
 
@@ -124,10 +128,10 @@ describe("Eval", () => {
 	describe("#[Semigroup.cmb]", () => {
 		it("combines the outcomes", () => {
 			fc.assert(
-				fc.property(arbStr(), arbStr(), (x, y) => {
-					expect(cmb(Eval.now(x), Eval.now(y)).run()).to.deep.equal(
-						cmb(x, y),
-					);
+				fc.property(arbStr(), arbStr(), (lhs, rhs) => {
+					expect(
+						cmb(Eval.now(lhs), Eval.now(rhs)).run(),
+					).to.deep.equal(cmb(lhs, rhs));
 				}),
 			);
 		});
@@ -154,12 +158,12 @@ describe("Eval", () => {
 			function arbRunEval<T>(
 				arb: fc.Arbitrary<T>,
 			): fc.Arbitrary<RunEval<T>> {
-				return arb.chain((x) =>
+				return arb.chain((val) =>
 					fc
 						.oneof(
-							fc.constant(Eval.now(x)),
-							fc.constant(Eval.once(() => x)),
-							fc.constant(Eval.always(() => x)),
+							fc.constant(Eval.now(val)),
+							fc.constant(Eval.once(() => val)),
+							fc.constant(Eval.always(() => val)),
 						)
 						.map((ev) => new RunEval(ev)),
 				);
@@ -172,7 +176,7 @@ describe("Eval", () => {
 	describe("#flatMap", () => {
 		it("applies the continuation to the outcome", () => {
 			const ev = Eval.now<1>(1).flatMap(
-				(x): Eval<[1, 2]> => Eval.now([x, 2]),
+				(one): Eval<[1, 2]> => Eval.now([one, 2]),
 			);
 			const outcome = ev.run();
 			expect(outcome).to.deep.equal([1, 2]);
@@ -181,9 +185,9 @@ describe("Eval", () => {
 
 	describe("#goMap", () => {
 		it("applies the continuation to the outcome", () => {
-			const ev = Eval.now<1>(1).goMap(function* (x) {
-				const y = yield* Eval.now<2>(2);
-				return [x, y] as [1, 2];
+			const ev = Eval.now<1>(1).goMap(function* (one): Eval.Go<[1, 2]> {
+				const two = yield* Eval.now<2>(2);
+				return [one, two];
 			});
 			const outcome = ev.run();
 			expect(outcome).to.deep.equal([1, 2]);
@@ -194,7 +198,7 @@ describe("Eval", () => {
 		it("applies the function to the outcomes", () => {
 			const ev = Eval.now<1>(1).zipWith(
 				Eval.now<2>(2),
-				(lhs, rhs): [1, 2] => [lhs, rhs],
+				(one, two): [1, 2] => [one, two],
 			);
 			const outcome = ev.run();
 			expect(outcome).to.deep.equal([1, 2]);
@@ -219,7 +223,7 @@ describe("Eval", () => {
 
 	describe("#map", () => {
 		it("applies the function to the outcome", () => {
-			const ev = Eval.now<1>(1).map((x): [1, 2] => [x, 2]);
+			const ev = Eval.now<1>(1).map((one): [1, 2] => [one, 2]);
 			const outcome = ev.run();
 			expect(outcome).to.deep.equal([1, 2]);
 		});
