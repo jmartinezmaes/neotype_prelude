@@ -68,33 +68,30 @@ describe("Either", () => {
 
 	describe("go", () => {
 		it("short-cicruits on the first yielded Left", () => {
-			function* f(): Either.Go<1 | [2, 3], [2, 4]> {
-				const x = yield* Either.right<2, 1>(2);
-				const y = yield* Either.left<[2, 3], 4>([x, 3]);
-				return [x, y];
+			function* f(): Either.Go<1 | 3, [2, 4]> {
+				const two = yield* Either.right<2, 1>(2);
+				const four = yield* Either.left<3, 4>(3);
+				return [two, four];
 			}
 			const either = Either.go(f());
-			expect(either).to.deep.equal(Either.left([2, 3]));
+			expect(either).to.deep.equal(Either.left(3));
 		});
 
 		it("completes if all yielded values are Right", () => {
-			function* f(): Either.Go<1 | 3, [2, 2, 4]> {
-				const x = yield* Either.right<2, 1>(2);
-				const [y, z] = yield* Either.right<[2, 4], 3>([x, 4]);
-				return [x, y, z];
+			function* f(): Either.Go<1 | 3, [2, 4]> {
+				const two = yield* Either.right<2, 1>(2);
+				const four = yield* Either.right<4, 3>(4);
+				return [two, four];
 			}
 			const either = Either.go(f());
-			expect(either).to.deep.equal(Either.right([2, 2, 4]));
+			expect(either).to.deep.equal(Either.right([2, 4]));
 		});
 
 		it("executes the finally block if a Left is yielded in the try block", () => {
 			const logs: string[] = [];
-			function* f(): Either.Go<1, number[]> {
+			function* f(): Either.Go<1, 2> {
 				try {
-					const results = [];
-					const x = yield* Either.left<1, 2>(1);
-					results.push(x);
-					return results;
+					return yield* Either.left<1, 2>(1);
 				} finally {
 					logs.push("finally");
 				}
@@ -105,12 +102,9 @@ describe("Either", () => {
 		});
 
 		it("keeps the most recent yielded Left when using try and finally blocks", () => {
-			function* f(): Either.Go<1 | 3, number[]> {
+			function* f(): Either.Go<1 | 3, 2> {
 				try {
-					const results = [];
-					const x = yield* Either.left<1, 2>(1);
-					results.push(x);
-					return results;
+					return yield* Either.left<1, 2>(1);
 				} finally {
 					yield* Either.left<3, 4>(3);
 				}
@@ -124,7 +118,7 @@ describe("Either", () => {
 		it("reduces the finite iterable from left to right in the context of Either", () => {
 			const either = Either.reduce(
 				["x", "y"],
-				(xs, x) => Either.right<string, 1>(xs + x),
+				(chars, char) => Either.right<string, 1>(chars + char),
 				"",
 			);
 			expect(either).to.deep.equal(Either.right("xy"));
@@ -144,10 +138,10 @@ describe("Either", () => {
 	describe("allProps", () => {
 		it("turns the record or the object literal of Either elements inside out", () => {
 			const either = Either.allProps({
-				x: Either.right<2, 1>(2),
-				y: Either.right<4, 3>(4),
+				two: Either.right<2, 1>(2),
+				four: Either.right<4, 3>(4),
 			});
-			expect(either).to.deep.equal(Either.right({ x: 2, y: 4 }));
+			expect(either).to.deep.equal(Either.right({ two: 2, four: 4 }));
 		});
 	});
 
@@ -166,53 +160,46 @@ describe("Either", () => {
 
 	describe("goAsync", () => {
 		it("short-circuits on the first yielded Left", async () => {
-			async function* f(): Either.GoAsync<1 | [2, 3], [2, 4]> {
-				const x = yield* await Promise.resolve(Either.right<2, 1>(2));
-				const y = yield* await Promise.resolve(
-					Either.left<[2, 3], 4>([x, 3]),
-				);
-				return [x, y];
+			async function* f(): Either.GoAsync<1 | 3, [2, 4]> {
+				const two = yield* await Promise.resolve(Either.right<2, 1>(2));
+				const four = yield* await Promise.resolve(Either.left<3, 4>(3));
+				return [two, four];
 			}
 			const either = await Either.goAsync(f());
-			expect(either).to.deep.equal(Either.left([2, 3]));
+			expect(either).to.deep.equal(Either.left(3));
 		});
 
 		it("completes and returns if all yielded values are Right", async () => {
-			async function* f(): Either.GoAsync<1 | 3, [2, 2, 4]> {
-				const x = yield* await Promise.resolve(Either.right<2, 1>(2));
-				const [y, z] = yield* await Promise.resolve(
-					Either.right<[2, 4], 3>([x, 4]),
+			async function* f(): Either.GoAsync<1 | 3, [2, 4]> {
+				const two = yield* await Promise.resolve(Either.right<2, 1>(2));
+				const four = yield* await Promise.resolve(
+					Either.right<4, 3>(4),
 				);
-				return [x, y, z];
+				return [two, four];
 			}
 			const either = await Either.goAsync(f());
-			expect(either).to.deep.equal(Either.right([2, 2, 4]));
+			expect(either).to.deep.equal(Either.right([2, 4]));
 		});
 
 		it("unwraps Promises in Right variants and in return", async () => {
-			async function* f(): Either.GoAsync<1 | 3, [2, 2, 4]> {
-				const x = yield* await Promise.resolve(
+			async function* f(): Either.GoAsync<1 | 3, [2, 4]> {
+				const two = yield* await Promise.resolve(
 					Either.right<Promise<2>, 1>(Promise.resolve(2)),
 				);
-				const [y, z] = yield* await Promise.resolve(
-					Either.right<Promise<[2, 4]>, 3>(Promise.resolve([x, 4])),
+				const four = yield* await Promise.resolve(
+					Either.right<Promise<4>, 3>(Promise.resolve(4)),
 				);
-				return Promise.resolve([x, y, z]);
+				return Promise.resolve([two, four]);
 			}
 			const either = await Either.goAsync(f());
-			expect(either).to.deep.equal(Either.right([2, 2, 4]));
+			expect(either).to.deep.equal(Either.right([2, 4]));
 		});
 
 		it("executes the finally block if a Left is yielded in the try block", async () => {
 			const logs: string[] = [];
-			async function* f(): Either.GoAsync<1, number[]> {
+			async function* f(): Either.GoAsync<1, 2> {
 				try {
-					const results = [];
-					const x = yield* await Promise.resolve(
-						Either.left<1, 2>(1),
-					);
-					results.push(x);
-					return results;
+					return yield* await Promise.resolve(Either.left<1, 2>(1));
 				} finally {
 					logs.push("finally");
 				}
@@ -223,14 +210,9 @@ describe("Either", () => {
 		});
 
 		it("keeps the most recent yielded Left when using try and finally blocks", async () => {
-			async function* f(): Either.GoAsync<1 | 3, number[]> {
+			async function* f(): Either.GoAsync<1 | 3, 2> {
 				try {
-					const results = [];
-					const x = yield* await Promise.resolve(
-						Either.left<1, 2>(1),
-					);
-					results.push(x);
-					return results;
+					return yield* await Promise.resolve(Either.left<1, 2>(1));
 				} finally {
 					yield* await Promise.resolve(Either.left<3, 4>(3));
 				}
@@ -242,39 +224,35 @@ describe("Either", () => {
 
 	describe("#[Eq.eq]", () => {
 		it("compares the values if both variants are Left", () => {
-			fc.assert(
-				fc.property(arbNum(), arbNum(), (x, y) => {
-					expect(eq(Either.left(x), Either.left(y))).to.equal(
-						eq(x, y),
-					);
-				}),
-			);
+			const property = fc.property(arbNum(), arbNum(), (lhs, rhs) => {
+				expect(eq(Either.left(lhs), Either.left(rhs))).to.equal(
+					eq(lhs, rhs),
+				);
+			});
+			fc.assert(property);
 		});
 
 		it("compares any Left and any Right as inequal", () => {
-			fc.assert(
-				fc.property(arbNum(), arbNum(), (x, y) => {
-					expect(eq(Either.left(x), Either.right(y))).to.be.false;
-				}),
-			);
+			const property = fc.property(arbNum(), arbNum(), (lhs, rhs) => {
+				expect(eq(Either.left(lhs), Either.right(rhs))).to.be.false;
+			});
+			fc.assert(property);
 		});
 
 		it("compares any Right and any Left as inequal", () => {
-			fc.assert(
-				fc.property(arbNum(), arbNum(), (x, y) => {
-					expect(eq(Either.right(x), Either.left(y))).to.be.false;
-				}),
-			);
+			const property = fc.property(arbNum(), arbNum(), (lhs, rhs) => {
+				expect(eq(Either.right(lhs), Either.left(rhs))).to.be.false;
+			});
+			fc.assert(property);
 		});
 
 		it("compares the values if both variants are Right", () => {
-			fc.assert(
-				fc.property(arbNum(), arbNum(), (x, y) => {
-					expect(eq(Either.right(x), Either.right(y))).to.equal(
-						eq(x, y),
-					);
-				}),
-			);
+			const property = fc.property(arbNum(), arbNum(), (lhs, rhs) => {
+				expect(eq(Either.right(lhs), Either.right(rhs))).to.equal(
+					eq(lhs, rhs),
+				);
+			});
+			fc.assert(property);
 		});
 
 		it("implements a lawful equivalence relation", () => {
@@ -284,43 +262,39 @@ describe("Either", () => {
 
 	describe("#[Ord.cmp]", () => {
 		it("compares the values if both variants are Left", () => {
-			fc.assert(
-				fc.property(arbNum(), arbNum(), (x, y) => {
-					expect(cmp(Either.left(x), Either.left(y))).to.equal(
-						cmp(x, y),
-					);
-				}),
-			);
+			const property = fc.property(arbNum(), arbNum(), (lhs, rhs) => {
+				expect(cmp(Either.left(lhs), Either.left(rhs))).to.equal(
+					cmp(lhs, rhs),
+				);
+			});
+			fc.assert(property);
 		});
 
 		it("compares any Left as less than any Right", () => {
-			fc.assert(
-				fc.property(arbNum(), arbNum(), (x, y) => {
-					expect(cmp(Either.left(x), Either.right(y))).to.equal(
-						Ordering.less,
-					);
-				}),
-			);
+			const property = fc.property(arbNum(), arbNum(), (lhs, rhs) => {
+				expect(cmp(Either.left(lhs), Either.right(rhs))).to.equal(
+					Ordering.less,
+				);
+			});
+			fc.assert(property);
 		});
 
 		it("compares any Right as greater than any Left", () => {
-			fc.assert(
-				fc.property(arbNum(), arbNum(), (x, y) => {
-					expect(cmp(Either.right(x), Either.left(y))).to.equal(
-						Ordering.greater,
-					);
-				}),
-			);
+			const property = fc.property(arbNum(), arbNum(), (lhs, rhs) => {
+				expect(cmp(Either.right(lhs), Either.left(rhs))).to.equal(
+					Ordering.greater,
+				);
+			});
+			fc.assert(property);
 		});
 
 		it("compares the values if both variants are Right", () => {
-			fc.assert(
-				fc.property(arbNum(), arbNum(), (x, y) => {
-					expect(cmp(Either.right(x), Either.right(y))).to.equal(
-						cmp(x, y),
-					);
-				}),
-			);
+			const property = fc.property(arbNum(), arbNum(), (lhs, rhs) => {
+				expect(cmp(Either.right(lhs), Either.right(rhs))).to.equal(
+					cmp(lhs, rhs),
+				);
+			});
+			fc.assert(property);
 		});
 
 		it("implements a lawful total order", () => {
@@ -330,13 +304,12 @@ describe("Either", () => {
 
 	describe("#[Semigroup.cmb]", () => {
 		it("combines the values if both variants are Right", () => {
-			fc.assert(
-				fc.property(arbStr(), arbStr(), (x, y) => {
-					expect(cmb(Either.right(x), Either.right(y))).to.deep.equal(
-						Either.right(cmb(x, y)),
-					);
-				}),
-			);
+			const property = fc.property(arbStr(), arbStr(), (lhs, rhs) => {
+				expect(cmb(Either.right(lhs), Either.right(rhs))).to.deep.equal(
+					Either.right(cmb(lhs, rhs)),
+				);
+			});
+			fc.assert(property);
 		});
 
 		it("implements a lawful semigroup", () => {
@@ -367,16 +340,16 @@ describe("Either", () => {
 	describe("#unwrap", () => {
 		it("applies the first function to the value if the variant is Left", () => {
 			const result = Either.left<1, 2>(1).unwrap(
-				(x): [1, 3] => [x, 3],
-				(x): [2, 4] => [x, 4],
+				(one): [1, 3] => [one, 3],
+				(two): [2, 4] => [two, 4],
 			);
 			expect(result).to.deep.equal([1, 3]);
 		});
 
 		it("applies the second function to the value if the variant is Right", () => {
 			const result = Either.right<2, 1>(2).unwrap(
-				(x): [1, 3] => [x, 3],
-				(x): [2, 4] => [x, 4],
+				(one): [1, 3] => [one, 3],
+				(two): [2, 4] => [two, 4],
 			);
 			expect(result).to.deep.equal([2, 4]);
 		});
@@ -385,14 +358,14 @@ describe("Either", () => {
 	describe("#recover", () => {
 		it("applies the continuation to the failure if the variant is Left", () => {
 			const either = Either.left<1, 2>(1).recover(
-				(x): Either<[1, 3], 4> => Either.left([x, 3]),
+				(one): Either<[1, 3], 4> => Either.left([one, 3]),
 			);
 			expect(either).to.deep.equal(Either.left([1, 3]));
 		});
 
 		it("does not apply the continuation if the variant is Right", () => {
 			const either = Either.right<2, 1>(2).recover(
-				(x): Either<[1, 3], 4> => Either.left([x, 3]),
+				(one): Either<[1, 3], 4> => Either.left([one, 3]),
 			);
 			expect(either).to.deep.equal(Either.right(2));
 		});
@@ -401,14 +374,14 @@ describe("Either", () => {
 	describe("#flatMap", () => {
 		it("does not apply the continuation if the variant is Left", () => {
 			const either = Either.left<1, 2>(1).flatMap(
-				(x): Either<3, [2, 4]> => Either.right([x, 4]),
+				(two): Either<3, [2, 4]> => Either.right([two, 4]),
 			);
 			expect(either).to.deep.equal(Either.left(1));
 		});
 
 		it("applies the continuation to the success if the variant is Right", () => {
 			const either = Either.right<2, 1>(2).flatMap(
-				(x): Either<3, [2, 4]> => Either.right([x, 4]),
+				(two): Either<3, [2, 4]> => Either.right([two, 4]),
 			);
 			expect(either).to.deep.equal(Either.right([2, 4]));
 		});
@@ -416,17 +389,21 @@ describe("Either", () => {
 
 	describe("#goMap", () => {
 		it("does not apply the continuation if the variant is Left", () => {
-			const either = Either.left<1, 2>(1).goMap(function* (x) {
-				const y = yield* Either.right<4, 3>(4);
-				return [x, y] as [2, 4];
+			const either = Either.left<1, 2>(1).goMap(function* (
+				two,
+			): Either.Go<3, [2, 4]> {
+				const four = yield* Either.right<4, 3>(4);
+				return [two, four];
 			});
 			expect(either).to.deep.equal(Either.left(1));
 		});
 
 		it("applies the continuation to the success if the variant is Right", () => {
-			const either = Either.right<2, 1>(2).goMap(function* (x) {
-				const y = yield* Either.right<4, 3>(4);
-				return [x, y] as [2, 4];
+			const either = Either.right<2, 1>(2).goMap(function* (
+				two,
+			): Either.Go<3, [2, 4]> {
+				const four = yield* Either.right<4, 3>(4);
+				return [two, four];
 			});
 			expect(either).to.deep.equal(Either.right([2, 4]));
 		});
@@ -436,7 +413,7 @@ describe("Either", () => {
 		it("applies the function to the successes if both variants are Right", () => {
 			const either = Either.right<2, 1>(2).zipWith(
 				Either.right<4, 3>(4),
-				(lhs, rhs): [2, 4] => [lhs, rhs],
+				(two, four): [2, 4] => [two, four],
 			);
 			expect(either).to.deep.equal(Either.right([2, 4]));
 		});
@@ -458,14 +435,14 @@ describe("Either", () => {
 
 	describe("#lmap", () => {
 		it("applies the function to the value if the variant is Left", () => {
-			const either = Either.left<1, 2>(1).lmap((x): [1, 3] => [x, 3]);
+			const either = Either.left<1, 2>(1).lmap((one): [1, 3] => [one, 3]);
 			expect(either).to.deep.equal(Either.left([1, 3]));
 		});
 	});
 
 	describe("#map", () => {
 		it("applies the function to the value if the variant is Right", () => {
-			const either = Either.right<2, 1>(2).map((x): [2, 4] => [x, 4]);
+			const either = Either.right<2, 1>(2).map((two): [2, 4] => [two, 4]);
 			expect(either).to.deep.equal(Either.right([2, 4]));
 		});
 	});

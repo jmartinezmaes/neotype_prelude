@@ -38,7 +38,7 @@ describe("Ior", () => {
 		return fc.oneof(
 			arbLeft.map(Ior.left),
 			arbRight.map(Ior.right),
-			arbLeft.chain((x) => arbRight.map((y) => Ior.both(x, y))),
+			arbLeft.chain((fst) => arbRight.map((snd) => Ior.both(fst, snd))),
 		);
 	}
 
@@ -97,81 +97,70 @@ describe("Ior", () => {
 
 	describe("go", () => {
 		it("short-circuits on the first yielded Left", () => {
-			function* f(): Ior.Go<Str, [2, 2, 4]> {
-				const x = yield* Ior.right<2, Str>(2);
-				expect(x).to.equal(2);
-				const [y, z] = yield* Ior.left<Str, [2, 4]>(new Str("b"));
-				return [x, y, z];
+			function* f(): Ior.Go<Str, [2, 4]> {
+				const two = yield* Ior.right<2, Str>(2);
+				const four = yield* Ior.left<Str, 4>(new Str("b"));
+				return [two, four];
 			}
 			const ior = Ior.go(f());
 			expect(ior).to.deep.equal(Ior.left(new Str("b")));
 		});
 
 		it("completes if all yielded values are Right", () => {
-			function* f(): Ior.Go<Str, [2, 2, 4]> {
-				const x = yield* Ior.right<2, Str>(2);
-				const [y, z] = yield* Ior.right<[2, 4], Str>([x, 4]);
-				return [x, y, z];
+			function* f(): Ior.Go<Str, [2, 4]> {
+				const two = yield* Ior.right<2, Str>(2);
+				const four = yield* Ior.right<4, Str>(4);
+				return [two, four];
 			}
 			const ior = Ior.go(f());
-			expect(ior).to.deep.equal(Ior.right([2, 2, 4]));
+			expect(ior).to.deep.equal(Ior.right([2, 4]));
 		});
 
 		it("completes and retains the left-hand value if a Both is yielded after a Right", () => {
-			function* f(): Ior.Go<Str, [2, 2, 4]> {
-				const x = yield* Ior.right<2, Str>(2);
-				const [y, z] = yield* Ior.both<Str, [2, 4]>(new Str("b"), [
-					x,
-					4,
-				]);
-				return [x, y, z];
+			function* f(): Ior.Go<Str, [2, 4]> {
+				const two = yield* Ior.right<2, Str>(2);
+				const four = yield* Ior.both<Str, 4>(new Str("b"), 4);
+				return [two, four];
 			}
 			const ior = Ior.go(f());
-			expect(ior).to.deep.equal(Ior.both(new Str("b"), [2, 2, 4]));
+			expect(ior).to.deep.equal(Ior.both(new Str("b"), [2, 4]));
 		});
 
 		it("short-circuits and combines the left-hand values if a Left is yielded after a Both", () => {
-			function* f(): Ior.Go<Str, [2, 2, 4]> {
-				const x = yield* Ior.both<Str, 2>(new Str("a"), 2);
-				expect(x).to.equal(2);
-				const [y, z] = yield* Ior.left<Str, [2, 4]>(new Str("b"));
-				return [x, y, z];
+			function* f(): Ior.Go<Str, [2, 4]> {
+				const two = yield* Ior.both<Str, 2>(new Str("a"), 2);
+				const four = yield* Ior.left<Str, 4>(new Str("b"));
+				return [two, four];
 			}
 			const ior = Ior.go(f());
 			expect(ior).to.deep.equal(Ior.left(new Str("ab")));
 		});
 
 		it("completes and retains the left-hand value if a Right is yielded after a Both", () => {
-			function* f(): Ior.Go<Str, [2, 2, 4]> {
-				const x = yield* Ior.both<Str, 2>(new Str("a"), 2);
-				const [y, z] = yield* Ior.right<[2, 4], Str>([x, 4]);
-				return [x, y, z];
+			function* f(): Ior.Go<Str, [2, 4]> {
+				const two = yield* Ior.both<Str, 2>(new Str("a"), 2);
+				const four = yield* Ior.right<4, Str>(4);
+				return [two, four];
 			}
 			const ior = Ior.go(f());
-			expect(ior).to.deep.equal(Ior.both(new Str("a"), [2, 2, 4]));
+			expect(ior).to.deep.equal(Ior.both(new Str("a"), [2, 4]));
 		});
 
 		it("completes and combines the left-hand values if a Both is yielded after a Both", () => {
-			function* f(): Ior.Go<Str, [2, 2, 4]> {
-				const x = yield* Ior.both<Str, 2>(new Str("a"), 2);
-				const [y, z] = yield* Ior.both<Str, [2, 4]>(new Str("b"), [
-					x,
-					4,
-				]);
-				return [x, y, z];
+			function* f(): Ior.Go<Str, [2, 4]> {
+				const two = yield* Ior.both<Str, 2>(new Str("a"), 2);
+				const four = yield* Ior.both<Str, 4>(new Str("b"), 4);
+				return [two, four];
 			}
 			const ior = Ior.go(f());
-			expect(ior).to.deep.equal(Ior.both(new Str("ab"), [2, 2, 4]));
+			expect(ior).to.deep.equal(Ior.both(new Str("ab"), [2, 4]));
 		});
 
 		it("executes the finally block if a Left is yielded in the try block", () => {
 			const logs: string[] = [];
-			function* f(): Ior.Go<Str, number[]> {
+			function* f(): Ior.Go<Str, 2> {
 				try {
-					const results = [];
-					const x = yield* Ior.left<Str, 2>(new Str("a"));
-					results.push(x);
-					return results;
+					return yield* Ior.left<Str, 2>(new Str("a"));
 				} finally {
 					logs.push("finally");
 				}
@@ -182,12 +171,9 @@ describe("Ior", () => {
 		});
 
 		it("combines the left-hand values of two Left variants across the try...finally block", () => {
-			function* f(): Ior.Go<Str, number[]> {
+			function* f(): Ior.Go<Str, 2> {
 				try {
-					const results = [];
-					const x = yield* Ior.left<Str, 2>(new Str("a"));
-					results.push(x);
-					return results;
+					return yield* Ior.left<Str, 2>(new Str("a"));
 				} finally {
 					yield* Ior.left<Str, 4>(new Str("b"));
 				}
@@ -197,12 +183,9 @@ describe("Ior", () => {
 		});
 
 		it("combines the left-hand values of a Left variant and a Both variant across the try...finally block", () => {
-			function* f(): Ior.Go<Str, number[]> {
+			function* f(): Ior.Go<Str, 2> {
 				try {
-					const results = [];
-					const x = yield* Ior.left<Str, 2>(new Str("a"));
-					results.push(x);
-					return results;
+					return yield* Ior.left<Str, 2>(new Str("a"));
 				} finally {
 					yield* Ior.both<Str, 4>(new Str("b"), 4);
 				}
@@ -216,7 +199,7 @@ describe("Ior", () => {
 		it("reduces the finite iterable from left to right in the context of Ior", () => {
 			const ior = Ior.reduce(
 				["x", "y"],
-				(xs, x) => Ior.both(new Str("a"), xs + x),
+				(chars, char) => Ior.both(new Str("a"), chars + char),
 				"",
 			);
 			expect(ior).to.deep.equal(Ior.both(new Str("aa"), "xy"));
@@ -236,10 +219,12 @@ describe("Ior", () => {
 	describe("allProps", () => {
 		it("turns the record or the object literal of Ior elements inside out", () => {
 			const ior = Ior.allProps({
-				x: Ior.both<Str, 2>(new Str("a"), 2),
-				y: Ior.both<Str, 4>(new Str("b"), 4),
+				two: Ior.both<Str, 2>(new Str("a"), 2),
+				four: Ior.both<Str, 4>(new Str("b"), 4),
 			});
-			expect(ior).to.deep.equal(Ior.both(new Str("ab"), { x: 2, y: 4 }));
+			expect(ior).to.deep.equal(
+				Ior.both(new Str("ab"), { two: 2, four: 4 }),
+			);
 		});
 	});
 
@@ -258,109 +243,100 @@ describe("Ior", () => {
 
 	describe("goAsync", async () => {
 		it("short-circuits on the first yielded Left", async () => {
-			async function* f(): Ior.GoAsync<Str, [2, 2, 4]> {
-				const x = yield* await Promise.resolve(Ior.right<2, Str>(2));
-				expect(x).to.equal(2);
-				const [y, z] = yield* await Promise.resolve(
-					Ior.left<Str, [2, 4]>(new Str("b")),
+			async function* f(): Ior.GoAsync<Str, [2, 4]> {
+				const two = yield* await Promise.resolve(Ior.right<2, Str>(2));
+				const four = yield* await Promise.resolve(
+					Ior.left<Str, 4>(new Str("b")),
 				);
-				return [x, y, z];
+				return [two, four];
 			}
 			const ior = await Ior.goAsync(f());
 			expect(ior).to.deep.equal(Ior.left(new Str("b")));
 		});
 
 		it("completes if all yielded values are Right", async () => {
-			async function* f(): Ior.GoAsync<Str, [2, 2, 4]> {
-				const x = yield* await Promise.resolve(Ior.right<2, Str>(2));
-				const [y, z] = yield* await Promise.resolve(
-					Ior.right<[2, 4], Str>([x, 4]),
-				);
-				return [x, y, z];
+			async function* f(): Ior.GoAsync<Str, [2, 4]> {
+				const two = yield* await Promise.resolve(Ior.right<2, Str>(2));
+				const four = yield* await Promise.resolve(Ior.right<4, Str>(4));
+				return [two, four];
 			}
 			const ior = await Ior.goAsync(f());
-			expect(ior).to.deep.equal(Ior.right([2, 2, 4]));
+			expect(ior).to.deep.equal(Ior.right([2, 4]));
 		});
 
 		it("completes and retains the left-hand value if a Both is yielded after a Right", async () => {
-			async function* f(): Ior.GoAsync<Str, [2, 2, 4]> {
-				const x = yield* await Promise.resolve(Ior.right<2, Str>(2));
-				const [y, z] = yield* await Promise.resolve(
-					Ior.both<Str, [2, 4]>(new Str("b"), [x, 4]),
+			async function* f(): Ior.GoAsync<Str, [2, 4]> {
+				const two = yield* await Promise.resolve(Ior.right<2, Str>(2));
+				const four = yield* await Promise.resolve(
+					Ior.both<Str, 4>(new Str("b"), 4),
 				);
-				return [x, y, z];
+				return [two, four];
 			}
 			const ior = await Ior.goAsync(f());
-			expect(ior).to.deep.equal(Ior.both(new Str("b"), [2, 2, 4]));
+			expect(ior).to.deep.equal(Ior.both(new Str("b"), [2, 4]));
 		});
 
 		it("short-circuits and combines the left-hand values if a Left is yielded after a Both", async () => {
-			async function* f(): Ior.GoAsync<Str, [2, 2, 4]> {
-				const x = yield* await Promise.resolve(
+			async function* f(): Ior.GoAsync<Str, [2, 4]> {
+				const two = yield* await Promise.resolve(
 					Ior.both<Str, 2>(new Str("a"), 2),
 				);
-				expect(x).to.equal(2);
-				const [y, z] = yield* await Promise.resolve(
-					Ior.left<Str, [2, 4]>(new Str("b")),
+				const four = yield* await Promise.resolve(
+					Ior.left<Str, 4>(new Str("b")),
 				);
-				return [x, y, z];
+				return [two, four];
 			}
 			const ior = await Ior.goAsync(f());
 			expect(ior).to.deep.equal(Ior.left(new Str("ab")));
 		});
 
 		it("completes and retains the left-hand value if a Right is yielded after a Both", async () => {
-			async function* f(): Ior.GoAsync<Str, [2, 2, 4]> {
-				const x = yield* await Promise.resolve(
+			async function* f(): Ior.GoAsync<Str, [2, 4]> {
+				const two = yield* await Promise.resolve(
 					Ior.both<Str, 2>(new Str("a"), 2),
 				);
-				const [y, z] = yield* await Promise.resolve(
-					Ior.right<[2, 4], Str>([x, 4]),
-				);
-				return [x, y, z];
+				const four = yield* await Promise.resolve(Ior.right<4, Str>(4));
+				return [two, four];
 			}
 			const ior = await Ior.goAsync(f());
-			expect(ior).to.deep.equal(Ior.both(new Str("a"), [2, 2, 4]));
+			expect(ior).to.deep.equal(Ior.both(new Str("a"), [2, 4]));
 		});
 
 		it("completes and combines the left-hand values if a Both is yielded after", async () => {
-			async function* f(): Ior.GoAsync<Str, [2, 2, 4]> {
-				const x = yield* await Promise.resolve(
+			async function* f(): Ior.GoAsync<Str, [2, 4]> {
+				const two = yield* await Promise.resolve(
 					Ior.both<Str, 2>(new Str("a"), 2),
 				);
-				const [y, z] = yield* await Promise.resolve(
-					Ior.both<Str, [2, 4]>(new Str("b"), [x, 4]),
+				const four = yield* await Promise.resolve(
+					Ior.both<Str, 4>(new Str("b"), 4),
 				);
-				return [x, y, z];
+				return [two, four];
 			}
 			const ior = await Ior.goAsync(f());
-			expect(ior).to.deep.equal(Ior.both(new Str("ab"), [2, 2, 4]));
+			expect(ior).to.deep.equal(Ior.both(new Str("ab"), [2, 4]));
 		});
 
 		it("unwraps Promises in right-hand channels and in return", async () => {
-			async function* f(): Ior.GoAsync<Str, [2, 2, 4]> {
-				const x = yield* await Promise.resolve(
-					Ior.both<Str, Promise<2>>(new Str("a"), Promise.resolve(2)),
+			async function* f(): Ior.GoAsync<Str, [2, 4]> {
+				const two = yield* await Promise.resolve(
+					Ior.both(new Str("a"), Promise.resolve<2>(2)),
 				);
-				const [y, z] = yield* await Promise.resolve(
-					Ior.both(new Str("b"), Promise.resolve<[2, 4]>([x, 4])),
+				const four = yield* await Promise.resolve(
+					Ior.both(new Str("b"), Promise.resolve<4>(4)),
 				);
-				return Promise.resolve([x, y, z]);
+				return Promise.resolve([two, four]);
 			}
 			const ior = await Ior.goAsync(f());
-			expect(ior).to.deep.equal(Ior.both(new Str("ab"), [2, 2, 4]));
+			expect(ior).to.deep.equal(Ior.both(new Str("ab"), [2, 4]));
 		});
 
 		it("executes the finally block if a Left is yielded in the try block", async () => {
 			const logs: string[] = [];
-			async function* f(): Ior.GoAsync<Str, number[]> {
+			async function* f(): Ior.GoAsync<Str, 2> {
 				try {
-					const results = [];
-					const x = yield* await Promise.resolve(
+					return yield* await Promise.resolve(
 						Ior.left<Str, 2>(new Str("a")),
 					);
-					results.push(x);
-					return results;
 				} finally {
 					logs.push("finally");
 				}
@@ -371,14 +347,11 @@ describe("Ior", () => {
 		});
 
 		it("combines the left-hand values of two Left variants across the try...finally block", async () => {
-			async function* f(): Ior.GoAsync<Str, number[]> {
+			async function* f(): Ior.GoAsync<Str, 2> {
 				try {
-					const results = [];
-					const x = yield* await Promise.resolve(
+					return yield* await Promise.resolve(
 						Ior.left<Str, 2>(new Str("a")),
 					);
-					results.push(x);
-					return results;
 				} finally {
 					yield* Ior.left<Str, 4>(new Str("b"));
 				}
@@ -388,14 +361,11 @@ describe("Ior", () => {
 		});
 
 		it("combines the left-hand values of a Left variant and a Both variant across the try...finally block", async () => {
-			async function* f(): Ior.GoAsync<Str, number[]> {
+			async function* f(): Ior.GoAsync<Str, 2> {
 				try {
-					const results = [];
-					const x = yield* await Promise.resolve(
+					return yield* await Promise.resolve(
 						Ior.left<Str, 2>(new Str("a")),
 					);
-					results.push(x);
-					return results;
 				} finally {
 					yield* await Promise.resolve(
 						Ior.both<Str, 4>(new Str("b"), 4),
@@ -409,83 +379,102 @@ describe("Ior", () => {
 
 	describe("#[Eq.eq]", () => {
 		it("compares the values if both variants are Left", () => {
-			fc.assert(
-				fc.property(arbNum(), arbNum(), (a, b) => {
-					expect(eq(Ior.left(a), Ior.left(b))).to.equal(eq(a, b));
-				}),
-			);
+			const property = fc.property(arbNum(), arbNum(), (lhs0, rhs0) => {
+				expect(eq(Ior.left(lhs0), Ior.left(rhs0))).to.equal(
+					eq(lhs0, rhs0),
+				);
+			});
+			fc.assert(property);
 		});
 
 		it("compares any Left and any Right as inequal", () => {
-			fc.assert(
-				fc.property(arbNum(), arbNum(), (a, y) => {
-					expect(eq(Ior.left(a), Ior.right(y))).to.be.false;
-				}),
-			);
+			const property = fc.property(arbNum(), arbNum(), (lhs0, rhs1) => {
+				expect(eq(Ior.left(lhs0), Ior.right(rhs1))).to.be.false;
+			});
+			fc.assert(property);
 		});
 
 		it("compares any Left and any Both as inequal", () => {
-			fc.assert(
-				fc.property(arbNum(), arbNum(), arbNum(), (a, b, y) => {
-					expect(eq(Ior.left(a), Ior.both(b, y))).to.be.false;
-				}),
+			const property = fc.property(
+				arbNum(),
+				arbNum(),
+				arbNum(),
+				(lhs0, rhs0, rhs1) => {
+					expect(eq(Ior.left(lhs0), Ior.both(rhs0, rhs1))).to.be
+						.false;
+				},
 			);
+			fc.assert(property);
 		});
 
 		it("compares any Right and any Left as inequal", () => {
-			fc.assert(
-				fc.property(arbNum(), arbNum(), (x, b) => {
-					expect(eq(Ior.right(x), Ior.left(b))).to.be.false;
-				}),
-			);
+			const property = fc.property(arbNum(), arbNum(), (lhs1, rhs0) => {
+				expect(eq(Ior.right(lhs1), Ior.left(rhs0))).to.be.false;
+			});
+			fc.assert(property);
 		});
 
 		it("compares the values if both variants are Right", () => {
-			fc.assert(
-				fc.property(arbNum(), arbNum(), (x, y) => {
-					expect(eq(Ior.right(x), Ior.right(y))).to.equal(eq(x, y));
-				}),
-			);
+			const property = fc.property(arbNum(), arbNum(), (lhs1, rhs1) => {
+				expect(eq(Ior.right(lhs1), Ior.right(rhs1))).to.equal(
+					eq(lhs1, rhs1),
+				);
+			});
+			fc.assert(property);
 		});
 
 		it("compares any Right and any Both as inequal", () => {
-			fc.assert(
-				fc.property(arbNum(), arbNum(), arbNum(), (x, b, y) => {
-					expect(eq(Ior.right(x), Ior.both(b, y))).to.be.false;
-				}),
+			const property = fc.property(
+				arbNum(),
+				arbNum(),
+				arbNum(),
+				(lhs1, rhs0, rhs1) => {
+					expect(eq(Ior.right(lhs1), Ior.both(rhs0, rhs1))).to.be
+						.false;
+				},
 			);
+			fc.assert(property);
 		});
 
 		it("compares any Both and any Left as inequal", () => {
-			fc.assert(
-				fc.property(arbNum(), arbNum(), arbNum(), (a, x, b) => {
-					expect(eq(Ior.both(a, x), Ior.left(b))).to.be.false;
-				}),
+			const property = fc.property(
+				arbNum(),
+				arbNum(),
+				arbNum(),
+				(lhs0, lhs1, rhs0) => {
+					expect(eq(Ior.both(lhs0, lhs1), Ior.left(rhs0))).to.be
+						.false;
+				},
 			);
+			fc.assert(property);
 		});
 
 		it("compares any Both and any Right as inequal", () => {
-			fc.assert(
-				fc.property(arbNum(), arbNum(), arbNum(), (a, x, y) => {
-					expect(eq(Ior.both(a, x), Ior.right(y))).to.be.false;
-				}),
+			const property = fc.property(
+				arbNum(),
+				arbNum(),
+				arbNum(),
+				(lhs0, lhs1, rhs1) => {
+					expect(eq(Ior.both(lhs0, lhs1), Ior.right(rhs1))).to.be
+						.false;
+				},
 			);
+			fc.assert(property);
 		});
 
 		it("compares the left-hand values and the right-hand values lexicographically if both variants are Both", () => {
-			fc.assert(
-				fc.property(
-					arbNum(),
-					arbNum(),
-					arbNum(),
-					arbNum(),
-					(a, x, b, y) => {
-						expect(eq(Ior.both(a, x), Ior.both(b, y))).to.equal(
-							eq(a, b) && eq(x, y),
-						);
-					},
-				),
+			const property = fc.property(
+				arbNum(),
+				arbNum(),
+				arbNum(),
+				arbNum(),
+				(lhs0, lhs1, rhs0, rhs1) => {
+					expect(
+						eq(Ior.both(lhs0, lhs1), Ior.both(rhs0, rhs1)),
+					).to.equal(eq(lhs0, rhs0) && eq(lhs1, rhs1));
+				},
 			);
+			fc.assert(property);
 		});
 
 		it("implements a lawful equivalence relation", () => {
@@ -495,95 +484,110 @@ describe("Ior", () => {
 
 	describe("#[Ord.cmp]", () => {
 		it("compares the values if both variants are Left", () => {
-			fc.assert(
-				fc.property(arbNum(), arbNum(), (a, b) => {
-					expect(cmp(Ior.left(a), Ior.left(b))).to.equal(cmp(a, b));
-				}),
-			);
+			const property = fc.property(arbNum(), arbNum(), (lhs0, rhs0) => {
+				expect(cmp(Ior.left(lhs0), Ior.left(rhs0))).to.equal(
+					cmp(lhs0, rhs0),
+				);
+			});
+			fc.assert(property);
 		});
 
 		it("compares any Left as less than any Right", () => {
-			fc.assert(
-				fc.property(arbNum(), arbNum(), (a, y) => {
-					expect(cmp(Ior.left(a), Ior.right(y))).to.equal(
-						Ordering.less,
-					);
-				}),
-			);
+			const property = fc.property(arbNum(), arbNum(), (lhs0, rhs1) => {
+				expect(cmp(Ior.left(lhs0), Ior.right(rhs1))).to.equal(
+					Ordering.less,
+				);
+			});
+			fc.assert(property);
 		});
 
 		it("compares any Left as less than any Both", () => {
-			fc.assert(
-				fc.property(arbNum(), arbNum(), arbNum(), (a, b, y) => {
-					expect(cmp(Ior.left(a), Ior.both(b, y))).to.equal(
+			const property = fc.property(
+				arbNum(),
+				arbNum(),
+				arbNum(),
+				(lhs0, rhs0, rhs1) => {
+					expect(cmp(Ior.left(lhs0), Ior.both(rhs0, rhs1))).to.equal(
 						Ordering.less,
 					);
-				}),
+				},
 			);
+			fc.assert(property);
 		});
 
 		it("compares any Right as greater than any Left", () => {
-			fc.assert(
-				fc.property(arbNum(), arbNum(), (x, b) => {
-					expect(cmp(Ior.right(x), Ior.left(b))).to.equal(
-						Ordering.greater,
-					);
-				}),
-			);
+			const property = fc.property(arbNum(), arbNum(), (lhs1, rhs0) => {
+				expect(cmp(Ior.right(lhs1), Ior.left(rhs0))).to.equal(
+					Ordering.greater,
+				);
+			});
+			fc.assert(property);
 		});
 
 		it("compares the values if both variants are Right", () => {
-			fc.assert(
-				fc.property(arbNum(), arbNum(), (x, y) => {
-					expect(cmp(Ior.right(x), Ior.right(y))).to.equal(cmp(x, y));
-				}),
-			);
+			const property = fc.property(arbNum(), arbNum(), (lhs1, rhs1) => {
+				expect(cmp(Ior.right(lhs1), Ior.right(rhs1))).to.equal(
+					cmp(lhs1, rhs1),
+				);
+			});
+			fc.assert(property);
 		});
 
 		it("compares any Right as less than any Both", () => {
-			fc.assert(
-				fc.property(arbNum(), arbNum(), arbNum(), (x, b, y) => {
-					expect(cmp(Ior.right(x), Ior.both(b, y))).to.equal(
+			const property = fc.property(
+				arbNum(),
+				arbNum(),
+				arbNum(),
+				(lhs1, rhs0, rhs1) => {
+					expect(cmp(Ior.right(lhs1), Ior.both(rhs0, rhs1))).to.equal(
 						Ordering.less,
 					);
-				}),
+				},
 			);
+			fc.assert(property);
 		});
 
 		it("compares any Both as greater than any Left", () => {
-			fc.assert(
-				fc.property(arbNum(), arbNum(), arbNum(), (a, x, b) => {
-					expect(cmp(Ior.both(a, x), Ior.left(b))).to.equal(
+			const property = fc.property(
+				arbNum(),
+				arbNum(),
+				arbNum(),
+				(lhs0, lhs1, rhs0) => {
+					expect(cmp(Ior.both(lhs0, lhs1), Ior.left(rhs0))).to.equal(
 						Ordering.greater,
 					);
-				}),
+				},
 			);
+			fc.assert(property);
 		});
 
 		it("compares any Both as greater than any Right", () => {
-			fc.assert(
-				fc.property(arbNum(), arbNum(), arbNum(), (a, x, y) => {
-					expect(cmp(Ior.both(a, x), Ior.right(y))).to.equal(
+			const property = fc.property(
+				arbNum(),
+				arbNum(),
+				arbNum(),
+				(lhs0, lhs1, rhs1) => {
+					expect(cmp(Ior.both(lhs0, lhs1), Ior.right(rhs1))).to.equal(
 						Ordering.greater,
 					);
-				}),
+				},
 			);
+			fc.assert(property);
 		});
 
 		it("compares the left-hand values and the right-hand values lexicographically if both variants are Both", () => {
-			fc.assert(
-				fc.property(
-					arbNum(),
-					arbNum(),
-					arbNum(),
-					arbNum(),
-					(a, x, b, y) => {
-						expect(cmp(Ior.both(a, x), Ior.both(b, y))).to.equal(
-							cmb(cmp(a, b), cmp(x, y)),
-						);
-					},
-				),
+			const property = fc.property(
+				arbNum(),
+				arbNum(),
+				arbNum(),
+				arbNum(),
+				(lhs0, lhs1, rhs0, rhs1) => {
+					expect(
+						cmp(Ior.both(lhs0, lhs1), Ior.both(rhs0, rhs1)),
+					).to.equal(cmb(cmp(lhs0, rhs0), cmp(lhs1, rhs1)));
+				},
 			);
+			fc.assert(property);
 		});
 
 		it("implements a lawful total order", () => {
@@ -593,99 +597,110 @@ describe("Ior", () => {
 
 	describe("#[Semigroup.cmb]", () => {
 		it("combines the values if both variants are Left", () => {
-			fc.assert(
-				fc.property(arbStr(), arbStr(), (a, b) => {
-					expect(cmb(Ior.left(a), Ior.left(b))).to.deep.equal(
-						Ior.left(cmb(a, b)),
-					);
-				}),
-			);
+			const property = fc.property(arbStr(), arbStr(), (lhs0, rhs0) => {
+				expect(cmb(Ior.left(lhs0), Ior.left(rhs0))).to.deep.equal(
+					Ior.left(cmb(lhs0, rhs0)),
+				);
+			});
+			fc.assert(property);
 		});
 
 		it("merges the values into a Both if the variants are Left and Right", () => {
-			fc.assert(
-				fc.property(arbStr(), arbStr(), (a, y) => {
-					expect(cmb(Ior.left(a), Ior.right(y))).to.deep.equal(
-						Ior.both(a, y),
-					);
-				}),
-			);
+			const property = fc.property(arbStr(), arbStr(), (lhs0, rhs1) => {
+				expect(cmb(Ior.left(lhs0), Ior.right(rhs1))).to.deep.equal(
+					Ior.both(lhs0, rhs1),
+				);
+			});
+			fc.assert(property);
 		});
 
 		it("combines the left-hand values and retains the right-hand value if the variants are Left and Both", () => {
-			fc.assert(
-				fc.property(arbStr(), arbStr(), arbStr(), (a, b, y) => {
-					expect(cmb(Ior.left(a), Ior.both(b, y))).to.deep.equal(
-						Ior.both(cmb(a, b), y),
-					);
-				}),
+			const property = fc.property(
+				arbStr(),
+				arbStr(),
+				arbStr(),
+				(lhs0, rhs0, rhs1) => {
+					expect(
+						cmb(Ior.left(lhs0), Ior.both(rhs0, rhs1)),
+					).to.deep.equal(Ior.both(cmb(lhs0, rhs0), rhs1));
+				},
 			);
+			fc.assert(property);
 		});
 
 		it("merges the values into a Both if the variants are Right and Left", () => {
-			fc.assert(
-				fc.property(arbStr(), arbStr(), (x, b) => {
-					expect(cmb(Ior.right(x), Ior.left(b))).to.deep.equal(
-						Ior.both(b, x),
-					);
-				}),
-			);
+			const property = fc.property(arbStr(), arbStr(), (lhs1, rhs0) => {
+				expect(cmb(Ior.right(lhs1), Ior.left(rhs0))).to.deep.equal(
+					Ior.both(rhs0, lhs1),
+				);
+			});
+			fc.assert(property);
 		});
 
 		it("combines the values if both variants are Right", () => {
-			fc.assert(
-				fc.property(arbStr(), arbStr(), (x, y) => {
-					expect(cmb(Ior.right(x), Ior.right(y))).to.deep.equal(
-						Ior.right(cmb(x, y)),
-					);
-				}),
-			);
+			const property = fc.property(arbStr(), arbStr(), (lhs1, rhs1) => {
+				expect(cmb(Ior.right(lhs1), Ior.right(rhs1))).to.deep.equal(
+					Ior.right(cmb(lhs1, rhs1)),
+				);
+			});
+			fc.assert(property);
 		});
 
 		it("retains the left-hand value and combines the right-hand values if the variants are Right and Both", () => {
-			fc.assert(
-				fc.property(arbStr(), arbStr(), arbStr(), (x, b, y) => {
-					expect(cmb(Ior.right(x), Ior.both(b, y))).to.deep.equal(
-						Ior.both(b, cmb(x, y)),
-					);
-				}),
+			const property = fc.property(
+				arbStr(),
+				arbStr(),
+				arbStr(),
+				(lhs1, rhs0, rhs1) => {
+					expect(
+						cmb(Ior.right(lhs1), Ior.both(rhs0, rhs1)),
+					).to.deep.equal(Ior.both(rhs0, cmb(lhs1, rhs1)));
+				},
 			);
+			fc.assert(property);
 		});
 
 		it("combines the left-hand values and retains the right-hand value if the variants are Both and Left", () => {
-			fc.assert(
-				fc.property(arbStr(), arbStr(), arbStr(), (a, x, b) => {
-					expect(cmb(Ior.both(a, x), Ior.left(b))).to.deep.equal(
-						Ior.both(cmb(a, b), x),
-					);
-				}),
+			const property = fc.property(
+				arbStr(),
+				arbStr(),
+				arbStr(),
+				(lhs0, lhs1, rhs0) => {
+					expect(
+						cmb(Ior.both(lhs0, lhs1), Ior.left(rhs0)),
+					).to.deep.equal(Ior.both(cmb(lhs0, rhs0), lhs1));
+				},
 			);
+			fc.assert(property);
 		});
 
 		it("retains the left-hand value and combines the right-hand values if the variants are Both and Right", () => {
-			fc.assert(
-				fc.property(arbStr(), arbStr(), arbStr(), (a, x, y) => {
-					expect(cmb(Ior.both(a, x), Ior.right(y))).to.deep.equal(
-						Ior.both(a, cmb(x, y)),
-					);
-				}),
+			const property = fc.property(
+				arbStr(),
+				arbStr(),
+				arbStr(),
+				(lhs0, lhs1, rhs1) => {
+					expect(
+						cmb(Ior.both(lhs0, lhs1), Ior.right(rhs1)),
+					).to.deep.equal(Ior.both(lhs0, cmb(lhs1, rhs1)));
+				},
 			);
+			fc.assert(property);
 		});
 
 		it("combines the left-hand values and the right-hand values pairwise if both variants are Both", () => {
-			fc.assert(
-				fc.property(
-					arbStr(),
-					arbStr(),
-					arbStr(),
-					arbStr(),
-					(a, x, b, y) => {
-						expect(
-							cmb(Ior.both(a, x), Ior.both(b, y)),
-						).to.deep.equal(Ior.both(cmb(a, b), cmb(x, y)));
-					},
-				),
+			const property = fc.property(
+				arbStr(),
+				arbStr(),
+				arbStr(),
+				arbStr(),
+				(lhs0, lhs1, rhs0, rhs1) => {
+					expect(
+						cmb(Ior.both(lhs0, lhs1), Ior.both(rhs0, rhs1)),
+					).to.deep.equal(Ior.both(cmb(lhs0, rhs0), cmb(lhs1, rhs1)));
+				},
 			);
+			fc.assert(property);
 		});
 
 		it("implements a lawful semigroup", () => {
@@ -696,27 +711,27 @@ describe("Ior", () => {
 	describe("#unwrap", () => {
 		it("applies the first function to the value if the variant is Left", () => {
 			const result = Ior.left<1, 2>(1).unwrap(
-				(x): [1, 3] => [x, 3],
-				(x): [2, 4] => [x, 4],
-				(fst, snd): [1, 2] => [fst, snd],
+				(one): [1, 3] => [one, 3],
+				(two): [2, 4] => [two, 4],
+				(one, two): [1, 2] => [one, two],
 			);
 			expect(result).to.deep.equal([1, 3]);
 		});
 
 		it("applies the second function to the value if the variant is Right", () => {
 			const result = Ior.right<2, 1>(2).unwrap(
-				(x): [1, 3] => [x, 3],
-				(x): [2, 4] => [x, 4],
-				(fst, snd): [1, 2] => [fst, snd],
+				(one): [1, 3] => [one, 3],
+				(two): [2, 4] => [two, 4],
+				(one, two): [1, 2] => [one, two],
 			);
 			expect(result).to.deep.equal([2, 4]);
 		});
 
 		it("applies the third function to the left-hand value and the right-hand value if the variant is Both", () => {
 			const result = Ior.both<1, 2>(1, 2).unwrap(
-				(x): [1, 3] => [x, 3],
-				(x): [2, 4] => [x, 4],
-				(fst, snd): [1, 2] => [fst, snd],
+				(one): [1, 3] => [one, 3],
+				(two): [2, 4] => [two, 4],
+				(one, two): [1, 2] => [one, two],
 			);
 			expect(result).to.deep.equal([1, 2]);
 		});
@@ -767,45 +782,42 @@ describe("Ior", () => {
 	describe("#flatMap", () => {
 		it("does not apply the continuation if the variant is Left", () => {
 			const ior = Ior.left<Str, 2>(new Str("a")).flatMap(
-				(x): Ior<Str, [2, 4]> => Ior.both(new Str("b"), [x, 4]),
+				(two): Ior<Str, [2, 4]> => Ior.both(new Str("b"), [two, 4]),
 			);
 			expect(ior).to.deep.equal(Ior.left(new Str("a")));
 		});
 
 		it("applies the continuation to the value if the variant is Right", () => {
 			const ior = Ior.right<2, Str>(2).flatMap(
-				(x): Ior<Str, [2, 4]> => Ior.right([x, 4]),
+				(two): Ior<Str, [2, 4]> => Ior.right([two, 4]),
 			);
 			expect(ior).to.deep.equal(Ior.right([2, 4]));
 		});
 
 		it("retains the left-hand value if the continuation on a Right returns a Both", () => {
 			const ior = Ior.right<2, Str>(2).flatMap(
-				(x): Ior<Str, [2, 4]> => Ior.both(new Str("b"), [x, 4]),
+				(two): Ior<Str, [2, 4]> => Ior.both(new Str("b"), [two, 4]),
 			);
 			expect(ior).to.deep.equal(Ior.both(new Str("b"), [2, 4]));
 		});
 
 		it("combines the left-hand values if the continuation on a Both returns a Left", () => {
 			const ior = Ior.both<Str, 2>(new Str("a"), 2).flatMap(
-				(x): Ior<Str, [2, 4]> => {
-					expect(x).to.equal(2);
-					return Ior.left(new Str("b"));
-				},
+				(): Ior<Str, [2, 4]> => Ior.left(new Str("b")),
 			);
 			expect(ior).to.deep.equal(Ior.left(new Str("ab")));
 		});
 
 		it("retains the left-hand value if the continuation on a Both returns a Right", () => {
-			const ior = Ior.both<Str, 2>(new Str("a"), 2).flatMap((x) =>
-				Ior.right<[2, 4], Str>([x, 4]),
+			const ior = Ior.both<Str, 2>(new Str("a"), 2).flatMap(
+				(two): Ior<Str, [2, 4]> => Ior.right([two, 4]),
 			);
 			expect(ior).to.deep.equal(Ior.both(new Str("a"), [2, 4]));
 		});
 
 		it("combines the left-hand values if the continuation on a Both returns a Both", () => {
 			const ior = Ior.both<Str, 2>(new Str("a"), 2).flatMap(
-				(x): Ior<Str, [2, 4]> => Ior.both(new Str("b"), [x, 4]),
+				(two): Ior<Str, [2, 4]> => Ior.both(new Str("b"), [two, 4]),
 			);
 			expect(ior).to.deep.equal(Ior.both(new Str("ab"), [2, 4]));
 		});
@@ -813,50 +825,61 @@ describe("Ior", () => {
 
 	describe("#goMap", () => {
 		it("does not apply the continuation if the variant is Left", () => {
-			const ior = Ior.left<Str, 2>(new Str("a")).goMap(function* (x) {
-				const y = yield* Ior.both<Str, 4>(new Str("b"), 4);
-				return [x, y] as [2, 4];
+			const ior = Ior.left<Str, 2>(new Str("a")).goMap(function* (
+				two,
+			): Ior.Go<Str, [2, 4]> {
+				const four = yield* Ior.both<Str, 4>(new Str("b"), 4);
+				return [two, four];
 			});
 			expect(ior).to.deep.equal(Ior.left(new Str("a")));
 		});
 
 		it("applies the continuation to the value if the variant is Right", () => {
-			const ior = Ior.right<2, Str>(2).goMap(function* (x) {
-				const y = yield* Ior.right<4, Str>(4);
-				return [x, y] as [2, 4];
+			const ior = Ior.right<2, Str>(2).goMap(function* (
+				two,
+			): Ior.Go<Str, [2, 4]> {
+				const four = yield* Ior.right<4, Str>(4);
+				return [two, four];
 			});
 			expect(ior).to.deep.equal(Ior.right([2, 4]));
 		});
 
 		it("retains the left-hand value if the continuation on a Right returns a Both", () => {
-			const ior = Ior.right<2, Str>(2).goMap(function* (x) {
-				const y = yield* Ior.both<Str, 4>(new Str("b"), 4);
-				return [x, y] as [2, 4];
+			const ior = Ior.right<2, Str>(2).goMap(function* (
+				two,
+			): Ior.Go<Str, [2, 4]> {
+				const four = yield* Ior.both<Str, 4>(new Str("b"), 4);
+				return [two, four];
 			});
 			expect(ior).to.deep.equal(Ior.both(new Str("b"), [2, 4]));
 		});
 
 		it("combines the left-hand values if the continuation on a Both returns a Left", () => {
-			const ior = Ior.both<Str, 2>(new Str("a"), 2).goMap(function* (x) {
-				expect(x).to.equal(2);
-				const y = yield* Ior.left<Str, 4>(new Str("b"));
-				return [x, y] as [2, 4];
+			const ior = Ior.both<Str, 2>(new Str("a"), 2).goMap(function* (
+				two,
+			): Ior.Go<Str, [2, 4]> {
+				const four = yield* Ior.left<Str, 4>(new Str("b"));
+				return [two, four];
 			});
 			expect(ior).to.deep.equal(Ior.left(new Str("ab")));
 		});
 
 		it("retains the left-hand value if the continuation on a Both returns a Right", () => {
-			const ior = Ior.both<Str, 2>(new Str("a"), 2).goMap(function* (x) {
-				const y = yield* Ior.right<4, Str>(4);
-				return [x, y] as [2, 4];
+			const ior = Ior.both<Str, 2>(new Str("a"), 2).goMap(function* (
+				two,
+			): Ior.Go<Str, [2, 4]> {
+				const four = yield* Ior.right<4, Str>(4);
+				return [two, four];
 			});
 			expect(ior).to.deep.equal(Ior.both(new Str("a"), [2, 4]));
 		});
 
 		it("combines the left-hand values if the continuation on a Both returns a Both", () => {
-			const ior = Ior.both<Str, 2>(new Str("a"), 2).goMap(function* (x) {
-				const y = yield* Ior.both<Str, 4>(new Str("b"), 4);
-				return [x, y] as [2, 4];
+			const ior = Ior.both<Str, 2>(new Str("a"), 2).goMap(function* (
+				two,
+			): Ior.Go<Str, [2, 4]> {
+				const four = yield* Ior.both<Str, 4>(new Str("b"), 4);
+				return [two, four];
 			});
 			expect(ior).to.deep.equal(Ior.both(new Str("ab"), [2, 4]));
 		});
@@ -866,7 +889,7 @@ describe("Ior", () => {
 		it("applies the function to the right-hand values if both variants have right-hand values", () => {
 			const ior = Ior.both<Str, 2>(new Str("a"), 2).zipWith(
 				Ior.both<Str, 4>(new Str("b"), 4),
-				(lhs, rhs): [2, 4] => [lhs, rhs],
+				(two, four): [2, 4] => [two, four],
 			);
 			expect(ior).to.deep.equal(Ior.both(new Str("ab"), [2, 4]));
 		});
@@ -892,34 +915,34 @@ describe("Ior", () => {
 
 	describe("#lmap", () => {
 		it("applies the function to the value if the variant is Left", () => {
-			const ior = Ior.left<1, 2>(1).lmap((x): [1, 3] => [x, 3]);
+			const ior = Ior.left<1, 2>(1).lmap((one): [1, 3] => [one, 3]);
 			expect(ior).to.deep.equal(Ior.left([1, 3]));
 		});
 
 		it("does not apply the function if the variant is Right", () => {
-			const ior = Ior.right<2, 1>(2).lmap((x): [1, 3] => [x, 3]);
+			const ior = Ior.right<2, 1>(2).lmap((one): [1, 3] => [one, 3]);
 			expect(ior).to.deep.equal(Ior.right(2));
 		});
 
 		it("applies the function to the left-hand value if the variant is Both", () => {
-			const ior = Ior.both<1, 2>(1, 2).lmap((x): [1, 3] => [x, 3]);
+			const ior = Ior.both<1, 2>(1, 2).lmap((one): [1, 3] => [one, 3]);
 			expect(ior).to.deep.equal(Ior.both([1, 3], 2));
 		});
 	});
 
 	describe("#map", () => {
 		it("does not apply the function if the variant is Left", () => {
-			const ior = Ior.left<1, 2>(1).map((x): [2, 4] => [x, 4]);
+			const ior = Ior.left<1, 2>(1).map((two): [2, 4] => [two, 4]);
 			expect(ior).to.deep.equal(Ior.left(1));
 		});
 
 		it("applies the function to the value if the variant is Right", () => {
-			const ior = Ior.right<2, 1>(2).map((x): [2, 4] => [x, 4]);
+			const ior = Ior.right<2, 1>(2).map((two): [2, 4] => [two, 4]);
 			expect(ior).to.deep.equal(Ior.right([2, 4]));
 		});
 
 		it("applies the function to the right-hand value if the variant is Both", () => {
-			const ior = Ior.both<1, 2>(1, 2).map((x): [2, 4] => [x, 4]);
+			const ior = Ior.both<1, 2>(1, 2).map((two): [2, 4] => [two, 4]);
 			expect(ior).to.deep.equal(Ior.both(1, [2, 4]));
 		});
 	});

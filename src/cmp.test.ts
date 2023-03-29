@@ -46,27 +46,25 @@ import {
 
 describe("eq", () => {
 	it("tests whether the two Eq values are equal", () => {
-		fc.assert(
-			fc.property(arbNum(), arbNum(), (x, y) => {
-				expect(eq(x, y)).to.equal(x[Eq.eq](y));
-			}),
-		);
+		const property = fc.property(arbNum(), arbNum(), (lhs, rhs) => {
+			expect(eq(lhs, rhs)).to.equal(lhs[Eq.eq](rhs));
+		});
+		fc.assert(property);
 	});
 });
 
 describe("ne", () => {
 	it("tests whether the two Eq values are inequal", () => {
-		fc.assert(
-			fc.property(arbNum(), arbNum(), (x, y) => {
-				expect(ne(x, y)).to.equal(!x[Eq.eq](y));
-			}),
-		);
+		const property = fc.property(arbNum(), arbNum(), (lhs, rhs) => {
+			expect(ne(lhs, rhs)).to.equal(!lhs[Eq.eq](rhs));
+		});
+		fc.assert(property);
 	});
 });
 
 describe("ieqBy", () => {
-	function comparer(x: number, y: number): boolean {
-		return x === y;
+	function comparer(lhs: number, rhs: number): boolean {
+		return lhs === rhs;
 	}
 
 	it("compares any two empty iterables as equal", () => {
@@ -74,93 +72,88 @@ describe("ieqBy", () => {
 	});
 
 	it("compares any non-empty iterable and any empty iterable as inequal", () => {
-		fc.assert(
-			fc.property(fc.float({ noNaN: true }), (a) => {
-				expect(ieqBy([a], [], comparer)).to.be.false;
-			}),
-		);
+		const property = fc.property(fc.float({ noNaN: true }), (lhs0) => {
+			expect(ieqBy([lhs0], [], comparer)).to.be.false;
+		});
+		fc.assert(property);
 	});
 
 	it("compares any empty iterable and any non-empty iterable as inequal", () => {
-		fc.assert(
-			fc.property(fc.float({ noNaN: true }), (b) => {
-				expect(ieqBy([], [b], comparer)).to.be.false;
-			}),
-		);
+		const property = fc.property(fc.float({ noNaN: true }), (rhs0) => {
+			expect(ieqBy([], [rhs0], comparer)).to.be.false;
+		});
+		fc.assert(property);
 	});
 
 	it("compares any longer iterable any the shorter iterable as inequal", () => {
-		fc.assert(
-			fc.property(
-				fc.float({ noNaN: true }),
-				fc.float({ noNaN: true }),
-				fc.float({ noNaN: true }),
-				(a, x, b) => {
-					expect(ieqBy([a, x], [b], comparer)).to.be.false;
-				},
-			),
+		const property = fc.property(
+			fc.float({ noNaN: true }),
+			fc.float({ noNaN: true }),
+			fc.float({ noNaN: true }),
+			(lhs0, lhs1, rhs0) => {
+				expect(ieqBy([lhs0, lhs1], [rhs0], comparer)).to.be.false;
+			},
 		);
+		fc.assert(property);
 	});
 
 	it("compares any shorter iterable and any longer iterable as inequal", () => {
-		fc.assert(
-			fc.property(
-				fc.float({ noNaN: true }),
-				fc.float({ noNaN: true }),
-				fc.float({ noNaN: true }),
-				(a, b, y) => {
-					expect(ieqBy([a], [b, y], comparer)).to.be.false;
-				},
-			),
+		const property = fc.property(
+			fc.float({ noNaN: true }),
+			fc.float({ noNaN: true }),
+			fc.float({ noNaN: true }),
+			(lhs0, rhs0, rhs1) => {
+				expect(ieqBy([lhs0], [rhs0, rhs1], comparer)).to.be.false;
+			},
 		);
+		fc.assert(property);
 	});
 
 	it("compares any two same-length iterables lexicographically", () => {
-		fc.assert(
-			fc.property(
-				fc.float({ noNaN: true }),
-				fc.float({ noNaN: true }),
-				fc.float({ noNaN: true }),
-				fc.float({ noNaN: true }),
-				(a, x, b, y) => {
-					expect(ieqBy([a, x], [b, y], comparer)).to.equal(
-						comparer(a, b) && comparer(x, y),
-					);
-				},
-			),
+		const property = fc.property(
+			fc.float({ noNaN: true }),
+			fc.float({ noNaN: true }),
+			fc.float({ noNaN: true }),
+			fc.float({ noNaN: true }),
+			(lhs0, lhs1, rhs0, rhs1) => {
+				expect(ieqBy([lhs0, lhs1], [rhs0, rhs1], comparer)).to.equal(
+					comparer(lhs0, rhs0) && comparer(lhs1, rhs1),
+				);
+			},
 		);
+		fc.assert(property);
 	});
 });
 
 describe("ieq", () => {
 	it("compares any two iterables of Eq elements lexicographically", () => {
-		fc.assert(
-			fc.property(
-				arbNum(),
-				arbNum(),
-				arbNum(),
-				arbNum(),
-				(a, x, b, y) => {
-					expect(ieq([a, x], [b, y])).to.equal(eq(a, b) && eq(x, y));
-				},
-			),
+		const property = fc.property(
+			arbNum(),
+			arbNum(),
+			arbNum(),
+			arbNum(),
+			(lhs0, lhs1, rhs0, rhs1) => {
+				expect(ieq([lhs0, lhs1], [rhs0, rhs1])).to.equal(
+					eq(lhs0, rhs0) && eq(lhs1, rhs1),
+				);
+			},
 		);
+		fc.assert(property);
 	});
 });
 
 describe("cmp", () => {
 	it("compares the first Ord value to the second", () => {
-		fc.assert(
-			fc.property(arbNum(), arbNum(), (x, y) => {
-				expect(cmp(x, y)).to.equal(x[Ord.cmp](y));
-			}),
-		);
+		const property = fc.property(arbNum(), arbNum(), (lhs, rhs) => {
+			expect(cmp(lhs, rhs)).to.equal(lhs[Ord.cmp](rhs));
+		});
+		fc.assert(property);
 	});
 });
 
 describe("icmpBy", () => {
-	function comparer(x: number, y: number): Ordering {
-		return Ordering.fromNumber(x - y);
+	function comparer(lhs: number, rhs: number): Ordering {
+		return Ordering.fromNumber(lhs - rhs);
 	}
 
 	it("compares any two empty iterables as equal", () => {
@@ -168,153 +161,145 @@ describe("icmpBy", () => {
 	});
 
 	it("compares any non-empty iterable as greater than any empty iterable", () => {
-		fc.assert(
-			fc.property(fc.float({ noNaN: true }), (a) => {
-				expect(icmpBy([a], [], comparer)).to.equal(Ordering.greater);
-			}),
-		);
+		const property = fc.property(fc.float({ noNaN: true }), (lhs0) => {
+			expect(icmpBy([lhs0], [], comparer)).to.equal(Ordering.greater);
+		});
+		fc.assert(property);
 	});
 
 	it("compares any empty iterable as less than any non-empty iterable", () => {
-		fc.assert(
-			fc.property(fc.float({ noNaN: true }), (b) => {
-				expect(icmpBy([], [b], comparer)).to.equal(Ordering.less);
-			}),
-		);
+		const property = fc.property(fc.float({ noNaN: true }), (rhs0) => {
+			expect(icmpBy([], [rhs0], comparer)).to.equal(Ordering.less);
+		});
+		fc.assert(property);
 	});
 
 	it("compares any longer iterable to any shorter iterable lexicographically", () => {
-		fc.assert(
-			fc.property(
-				fc.float({ noNaN: true }),
-				fc.float({ noNaN: true }),
-				fc.float({ noNaN: true }),
-				(a, x, b) => {
-					expect(icmpBy([a, x], [b], comparer)).to.equal(
-						cmb(comparer(a, b), Ordering.greater),
-					);
-				},
-			),
+		const property = fc.property(
+			fc.float({ noNaN: true }),
+			fc.float({ noNaN: true }),
+			fc.float({ noNaN: true }),
+			(lhs0, lhs1, rhs0) => {
+				expect(icmpBy([lhs0, lhs1], [rhs0], comparer)).to.equal(
+					cmb(comparer(lhs0, rhs0), Ordering.greater),
+				);
+			},
 		);
+		fc.assert(property);
 	});
 
 	it("compares any shorter iterable to any longer iterable lexicographically", () => {
-		fc.assert(
-			fc.property(
-				fc.float({ noNaN: true }),
-				fc.float({ noNaN: true }),
-				fc.float({ noNaN: true }),
-				(a, b, y) => {
-					expect(icmpBy([a], [b, y], comparer)).to.equal(
-						cmb(comparer(a, b), Ordering.less),
-					);
-				},
-			),
+		const property = fc.property(
+			fc.float({ noNaN: true }),
+			fc.float({ noNaN: true }),
+			fc.float({ noNaN: true }),
+			(lhs0, rhs0, rhs1) => {
+				expect(icmpBy([lhs0], [rhs0, rhs1], comparer)).to.equal(
+					cmb(comparer(lhs0, rhs0), Ordering.less),
+				);
+			},
 		);
+		fc.assert(property);
 	});
 
 	it("compares any two same-length iterables lexicographically", () => {
-		fc.assert(
-			fc.property(
-				fc.float({ noNaN: true }),
-				fc.float({ noNaN: true }),
-				fc.float({ noNaN: true }),
-				fc.float({ noNaN: true }),
-				(a, x, b, y) => {
-					expect(icmpBy([a, x], [b, y], comparer)).to.equal(
-						cmb(comparer(a, b), comparer(x, y)),
-					);
-				},
-			),
+		const property = fc.property(
+			fc.float({ noNaN: true }),
+			fc.float({ noNaN: true }),
+			fc.float({ noNaN: true }),
+			fc.float({ noNaN: true }),
+			(lhs0, lhs1, rhs0, rhs1) => {
+				expect(icmpBy([lhs0, lhs1], [rhs0, rhs1], comparer)).to.equal(
+					cmb(comparer(lhs0, rhs0), comparer(lhs1, rhs1)),
+				);
+			},
 		);
+		fc.assert(property);
 	});
 });
 
 describe("icmp", () => {
 	it("compares any two iterables of Ord elements lexicographically", () => {
-		fc.assert(
-			fc.property(
-				arbNum(),
-				arbNum(),
-				arbNum(),
-				arbNum(),
-				(a, x, b, y) => {
-					expect(icmp([a, x], [b, y])).to.equal(
-						cmb(cmp(a, b), cmp(x, y)),
-					);
-				},
-			),
+		const property = fc.property(
+			arbNum(),
+			arbNum(),
+			arbNum(),
+			arbNum(),
+			(lhs0, lhs1, rhs0, rhs1) => {
+				expect(icmp([lhs0, lhs1], [rhs0, rhs1])).to.equal(
+					cmb(cmp(lhs0, rhs0), cmp(lhs1, rhs1)),
+				);
+			},
 		);
+		fc.assert(property);
 	});
 });
 
 describe("lt", () => {
 	it("tests whether the first Ord value is less than the second", () => {
-		fc.assert(
-			fc.property(arbNum(), arbNum(), (x, y) => {
-				expect(lt(x, y)).to.equal(cmp(x, y).isLt());
-			}),
-		);
+		const property = fc.property(arbNum(), arbNum(), (lhs, rhs) => {
+			expect(lt(lhs, rhs)).to.equal(cmp(lhs, rhs).isLt());
+		});
+		fc.assert(property);
 	});
 });
 
 describe("gt", () => {
 	it("tests whether the first Ord value is greater than the second", () => {
-		fc.assert(
-			fc.property(arbNum(), arbNum(), (x, y) => {
-				expect(gt(x, y)).to.equal(cmp(x, y).isGt());
-			}),
-		);
+		const property = fc.property(arbNum(), arbNum(), (lhs, rhs) => {
+			expect(gt(lhs, rhs)).to.equal(cmp(lhs, rhs).isGt());
+		});
+		fc.assert(property);
 	});
 });
 
 describe("le", () => {
 	it("tests whether the first Ord value is less than or equal to the second", () => {
-		fc.assert(
-			fc.property(arbNum(), arbNum(), (x, y) => {
-				expect(le(x, y)).to.equal(cmp(x, y).isLe());
-			}),
-		);
+		const property = fc.property(arbNum(), arbNum(), (lhs, rhs) => {
+			expect(le(lhs, rhs)).to.equal(cmp(lhs, rhs).isLe());
+		});
+		fc.assert(property);
 	});
 });
 
 describe("ge", () => {
 	it("tests whether the first Ord value is greater than or equal to the second", () => {
-		fc.assert(
-			fc.property(arbNum(), arbNum(), (x, y) => {
-				expect(ge(x, y)).to.equal(cmp(x, y).isGe());
-			}),
-		);
+		const property = fc.property(arbNum(), arbNum(), (lhs, rhs) => {
+			expect(ge(lhs, rhs)).to.equal(cmp(lhs, rhs).isGe());
+		});
+		fc.assert(property);
 	});
 });
 
 describe("min", () => {
 	it("returns the lesser of the two Ord values", () => {
-		fc.assert(
-			fc.property(arbNum(), arbNum(), (x, y) => {
-				expect(min(x, y)).to.equal(le(x, y) ? x : y);
-			}),
-		);
+		const property = fc.property(arbNum(), arbNum(), (lhs, rhs) => {
+			expect(min(lhs, rhs)).to.equal(le(lhs, rhs) ? lhs : rhs);
+		});
+		fc.assert(property);
 	});
 });
 
 describe("max", () => {
 	it("returns the greater of the two Ord values", () => {
-		fc.assert(
-			fc.property(arbNum(), arbNum(), (x, y) => {
-				expect(max(x, y)).to.equal(ge(x, y) ? x : y);
-			}),
-		);
+		const property = fc.property(arbNum(), arbNum(), (lhs, rhs) => {
+			expect(max(lhs, rhs)).to.equal(ge(lhs, rhs) ? lhs : rhs);
+		});
+		fc.assert(property);
 	});
 });
 
 describe("clamp", () => {
 	it("restricts the Ord value to an inclusive bounds", () => {
-		fc.assert(
-			fc.property(arbNum(), arbNum(), arbNum(), (x, y, z) => {
-				expect(clamp(x, y, z)).to.equal(min(max(x, y), z));
-			}),
+		const property = fc.property(
+			arbNum(),
+			arbNum(),
+			arbNum(),
+			(val, lo, hi) => {
+				expect(clamp(val, lo, hi)).to.equal(min(max(val, lo), hi));
+			},
 		);
+		fc.assert(property);
 	});
 });
 
@@ -329,27 +314,31 @@ describe("Ordering", () => {
 
 	describe("fromNumber", () => {
 		it("returns Less if the argument is less than 0", () => {
-			fc.assert(
-				fc.property(
-					fc.float({ min: -Infinity, max: -1, noNaN: true }),
-					(x) => {
-						expect(Ordering.fromNumber(x)).to.equal(Ordering.less);
-					},
+			const property = fc.property(
+				fc.oneof(
+					fc.float({ max: -1, noNaN: true }),
+					fc.bigInt({ max: -1n }),
 				),
+				(input) => {
+					expect(Ordering.fromNumber(input)).to.equal(Ordering.less);
+				},
 			);
+			fc.assert(property);
 		});
 
 		it("returns Greater if the argument is greater than 0", () => {
-			fc.assert(
-				fc.property(
-					fc.float({ min: 1, max: Infinity, noNaN: true }),
-					(x) => {
-						expect(Ordering.fromNumber(x)).to.equal(
-							Ordering.greater,
-						);
-					},
+			const property = fc.property(
+				fc.oneof(
+					fc.float({ min: 1, noNaN: true }),
+					fc.bigInt({ min: 1n }),
 				),
+				(input) => {
+					expect(Ordering.fromNumber(input)).to.equal(
+						Ordering.greater,
+					);
+				},
 			);
+			fc.assert(property);
 		});
 
 		it("returns Equal if the argument is 0", () => {
@@ -629,15 +618,14 @@ describe("Reverse", () => {
 
 	describe("#[Eq.eq]", () => {
 		it("compares the underlying values", () => {
-			fc.assert(
-				fc.property(
-					arbReverse(arbNum()),
-					arbReverse(arbNum()),
-					(x, y) => {
-						expect(eq(x, y)).to.equal(eq(x.val, y.val));
-					},
-				),
+			const property = fc.property(
+				arbReverse(arbNum()),
+				arbReverse(arbNum()),
+				(lhs, rhs) => {
+					expect(eq(lhs, rhs)).to.equal(eq(lhs.val, rhs.val));
+				},
 			);
+			fc.assert(property);
 		});
 
 		it("implements a lawful equivalence relation", () => {
@@ -647,15 +635,16 @@ describe("Reverse", () => {
 
 	describe("#[Ord.cmp]", () => {
 		it("reverses the Ordering of the underlying values", () => {
-			fc.assert(
-				fc.property(
-					arbReverse(arbNum()),
-					arbReverse(arbNum()),
-					(x, y) => {
-						expect(cmp(x, y)).to.equal(cmp(x.val, y.val).reverse());
-					},
-				),
+			const property = fc.property(
+				arbReverse(arbNum()),
+				arbReverse(arbNum()),
+				(lhs, rhs) => {
+					expect(cmp(lhs, rhs)).to.equal(
+						cmp(lhs.val, rhs.val).reverse(),
+					);
+				},
 			);
+			fc.assert(property);
 		});
 
 		it("implements a lawful total order", () => {
