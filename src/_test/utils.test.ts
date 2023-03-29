@@ -30,8 +30,8 @@ import {
 describe("Num", () => {
 	describe("#[Eq.eq]", () => {
 		it("compares the values strictly", () => {
-			const property = fc.property(arbNum(), arbNum(), (x, y) => {
-				expect(eq(x, y)).to.equal(x.val === y.val);
+			const property = fc.property(arbNum(), arbNum(), (lhs, rhs) => {
+				expect(eq(lhs, rhs)).to.equal(lhs.val === rhs.val);
 			});
 			fc.assert(property);
 		});
@@ -43,8 +43,10 @@ describe("Num", () => {
 
 	describe("#[Ord.cmp]", () => {
 		it("compares the values as ordered from least to greatest", () => {
-			const property = fc.property(arbNum(), arbNum(), (x, y) => {
-				expect(cmp(x, y)).to.equal(Ordering.fromNumber(x.val - y.val));
+			const property = fc.property(arbNum(), arbNum(), (lhs, rhs) => {
+				expect(cmp(lhs, rhs)).to.equal(
+					Ordering.fromNumber(lhs.val - rhs.val),
+				);
 			});
 			fc.assert(property);
 		});
@@ -58,8 +60,8 @@ describe("Num", () => {
 describe("Str", () => {
 	describe("#[Eq.eq]", () => {
 		it("compares the values strictly", () => {
-			const property = fc.property(arbStr(), arbStr(), (x, y) => {
-				expect(eq(x, y)).to.equal(x.val === y.val);
+			const property = fc.property(arbStr(), arbStr(), (lhs, rhs) => {
+				expect(eq(lhs, rhs)).to.equal(lhs.val === rhs.val);
 			});
 			fc.assert(property);
 		});
@@ -71,8 +73,8 @@ describe("Str", () => {
 
 	describe("#[Semigroup.cmb]", () => {
 		it("concatenates the values", () => {
-			const property = fc.property(arbStr(), arbStr(), (x, y) => {
-				expect(cmb(x, y)).to.deep.equal(new Str(x.val + y.val));
+			const property = fc.property(arbStr(), arbStr(), (lhs, rhs) => {
+				expect(cmb(lhs, rhs)).to.deep.equal(new Str(lhs.val + rhs.val));
 			});
 			fc.assert(property);
 		});
