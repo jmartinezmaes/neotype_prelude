@@ -859,11 +859,28 @@ export namespace Maybe {
 
 	/**
 	 * A generator that yields `Maybe` values and returns a result.
+	 *
+	 * @remarks
+	 *
+	 * Synchronous `Maybe` generator comprehensions should use this type alias
+	 * as their return type. A generator function that returns a `Maybe.Go<T>`
+	 * may `yield*` zero or more `Maybe<any>` values and must return a result of
+	 * type `T`. Synchronous comprehensions may also `yield*` other `Maybe.Go`
+	 * generators directly.
 	 */
 	export type Go<TReturn> = Generator<Maybe<unknown>, TReturn, unknown>;
 
 	/**
 	 * An async generator that yields `Maybe` values and returns a result.
+	 *
+	 * @remarks
+	 *
+	 * Async `Maybe` generator comprehensions should use this type alias as
+	 * their return type. An async generator function that returns a
+	 * `Maybe.GoAsync<T>` may `yield*` zero or more `Maybe<any>` values and must
+	 * return a result of type `T`. `PromiseLike` values that resolve with
+	 * `Maybe` should be awaited before yielding. Async comprehensions may also
+	 * `yield*` other `Maybe.Go` and `Maybe.GoAsync` generators directly.
 	 */
 	export type GoAsync<TReturn> = AsyncGenerator<
 		Maybe<unknown>,

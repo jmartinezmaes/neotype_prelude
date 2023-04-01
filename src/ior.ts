@@ -161,17 +161,17 @@
  * Synchronus and asynchronous comprehensions are written using `function*` and
  * `async function*` declarations, respectively.
  *
- * Synchronous generator functions should use the `Ior.Go` type alias as a
+ * Synchronous generator functions should use the `Ior.Go` type alias as their
  * return type. A generator function that returns an `Ior.Go<A, T>` may `yield*`
  * zero or more `Ior<A, any>` values and must return a result of type `T`.
  * Synchronous comprehensions may also `yield*` other `Ior.Go` generators
  * directly.
  *
- * Async generator functions should use the `Ior.GoAsync` type alias as a return
- * type. An async generator function that returns an `Ior.GoAsync<A, T>` may
- * `yield*` zero or more `Ior<A, any>` values and must return a result of type
- * `T`. `PromiseLike` values that resolve with `Ior` should be awaited before
- * yielding. Async comprehensions may also `yield*` other `Ior.Go` and
+ * Async generator functions should use the `Ior.GoAsync` type alias as their
+ * return type. An async generator function that returns an `Ior.GoAsync<A, T>`
+ * may `yield*` zero or more `Ior<A, any>` values and must return a result of
+ * type `T`. `PromiseLike` values that resolve with `Ior` should be awaited
+ * before yielding. Async comprehensions may also `yield*` other `Ior.Go` and
  * `Ior.GoAsync` generators directly.
  *
  * Each `yield*` expression may bind a variable of the right-hand value type of
@@ -498,6 +498,14 @@ export namespace Ior {
 
 	/**
 	 * Evaluate an `Ior.Go` generator to return an `Ior`.
+	 *
+	 * @remarks
+	 *
+	 * If any yielded `Ior` is a `Left`, combine the left-hand value with any
+	 * existing left-hand value and return the result in a `Left`; otherwise,
+	 * when the generator returns, return the result as a right-hand value.
+	 * Accumulate the left-hand values of yielded `Both` variants using their
+	 * behavior as a semigroup.
 	 */
 	export function go<A extends Semigroup<A>, TReturn>(
 		gen: Go<A, TReturn>,
@@ -667,6 +675,15 @@ export namespace Ior {
 	/**
 	 * Evaluate an `Ior.GoAsync` async generator to return a `Promise` that
 	 * resolves with an `Ior`.
+	 *
+	 * @remarks
+	 *
+	 * If any yielded `Ior` is a `Left`, combine the left-hand value with any
+	 * existing left-hand value and resolve with the result in a `Left`;
+	 * otherwise, when the generator returns, resolve with the result as a
+	 * right-hand value. Accumulate the left-hand values of yielded `Both`
+	 * variants using their behavior as a semigroup. If an error is thrown,
+	 * reject with the error.
 	 */
 	export async function goAsync<A extends Semigroup<A>, TReturn>(
 		gen: GoAsync<A, TReturn>,
@@ -1071,6 +1088,18 @@ export namespace Ior {
 
 	/**
 	 * A generator that yields `Ior` values and returns a result.
+	 *
+	 * @remarks
+	 *
+	 * Synchronous `Ior` generator comprehensions should use this type alias as
+	 * their return type. A generator function that returns an `Ior.Go<A, T>`
+	 * may `yield*` zero or more `Ior<A, any>` values and must return a result
+	 * of type `T`. Synchronous comprehensions may also `yield*` other `Ior.Go`
+	 * generators directly.
+	 *
+	 * Comprehensions require that the left-hand values of all yielded `Ior`
+	 * values are implementors of the same `Semigroup` so the values may
+	 * accumulate as the generator yields.
 	 */
 	export type Go<A extends Semigroup<A>, TReturn> = Generator<
 		Ior<A, unknown>,
@@ -1080,6 +1109,19 @@ export namespace Ior {
 
 	/**
 	 * An async generator that yields `Ior` values and returns a result.
+	 *
+	 * @remarks
+	 *
+	 * Async `Ior` generator comprehensions should use this type alias as their
+	 * return type. An async generator function that returns an `Ior.GoAsync<A,
+	 * T>` may `yield*` zero or more `Ior<A, any>` values and must return a
+	 * result of type `T`. `PromiseLike` values that resolve with `Ior` should
+	 * be awaited before yielding. Async comprehensions may also `yield*` other
+	 * `Ior.Go` and `Ior.GoAsync` generators directly.
+	 *
+	 * Comprehensions require that the left-hand values of all yielded `Ior`
+	 * values are implementors of the same `Semigroup` so the values may
+	 * accumulate as the generator yields.
 	 */
 	export type GoAsync<A extends Semigroup<A>, TReturn> = AsyncGenerator<
 		Ior<A, unknown>,

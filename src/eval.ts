@@ -85,10 +85,10 @@
  * ### Writing comprehensions
  *
  * Comprehensions are written using `function*` declarations. Generator
- * functions should use the `Eval.Go` type alias as a return type. A generator
- * function that returns an `Eval.Go<T>` may `yield*` zero or more `Eval<any>`
- * values and must return a result of type `T`. Comprehensions may also `yield*`
- * other `Eval.Go` generators directly.
+ * functions should use the `Eval.Go` type alias as their return type. A
+ * generator function that returns an `Eval.Go<T>` may `yield*` zero or more
+ * `Eval<any>` values and must return a result of type `T`. Comprehensions may
+ * also `yield*` other `Eval.Go` generators directly.
  *
  * Each `yield*` expression may bind a variable of the outcome value type of the
  * yielded `Eval`. Comprehensions should always use `yield*` instead of `yield`.
@@ -99,11 +99,6 @@
  *
  * `Eval.Go` generators must be evaluated before accessing their results. The
  * `go` function evaluates an `Eval.Go<T>` generator to return an `Eval<T>`.
- *
- * `Eval` is automatically deferred in its implementation of `go`. The body of
- * the provided generator does not execute until the `Eval` is evaluated using
- * `run`. This behavior helps ensure stack safety, especially for recursive
- * programs.
  *
  * ## Collecting into `Eval`
  *
@@ -540,6 +535,14 @@ export class Eval<out T> {
 export namespace Eval {
 	/**
 	 * A generator that yields `Eval` values and returns a result.
+	 *
+	 * @remarks
+	 *
+	 * `Eval` generator comprehensions should use this type alias as their
+	 * return type. A generator function that returns an `Eval.Go<T>` may
+	 * `yield*` zero or more `Eval<any>` values and must return a result of type
+	 * `T`. Comprehensions may also `yield*` other `Eval.Go` generators
+	 * directly.
 	 */
 	export type Go<TReturn> = Generator<Eval<unknown>, TReturn, unknown>;
 
