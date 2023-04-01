@@ -1,4 +1,4 @@
-name: Run Tests
+name: Build and Test
 
 on:
   pull_request:
@@ -8,8 +8,26 @@ on:
   workflow_dispatch:
 
 jobs:
+  build_package:
+    name: Build Package
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: volta-cli/action@v4
+      - run: npm ci
+      - run: npm run build
+
+  build_docsite:
+    name: Build Documentation Site
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: volta-cli/action@v4
+      - run: npm ci
+      - run: npm run docs
+
   test_style:
-    name: Code Style
+    name: Test Code Style
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -18,7 +36,7 @@ jobs:
       - run: npm run style
 
   test_node:
-    name: Node.js @${{ matrix.node-version }}
+    name: Test Node.js @${{ matrix.node-version }}
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -33,10 +51,9 @@ jobs:
       - run: npm ci
       - run: npm test
 
-  test_ts:
-    name: TypeScript @${{ matrix.ts-version }}
+  test_typescript:
+    name: Test TypeScript @${{ matrix.ts-version }}
     runs-on: ubuntu-latest
-    continue-on-error: false
     strategy:
       matrix:
         ts-version:
