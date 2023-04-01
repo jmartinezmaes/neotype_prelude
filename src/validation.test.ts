@@ -269,20 +269,9 @@ describe("Validation", () => {
 		});
 	});
 
-	describe("#zipFst", () => {
-		it("keeps only the first success if both variants are Ok", () => {
-			const vdn = Validation.ok<2, Str>(2).zipFst(
-				Validation.ok<4, Str>(4),
-			);
-			expect(vdn).to.deep.equal(Validation.ok(2));
-		});
-	});
-
-	describe("#zipSnd", () => {
+	describe("#and", () => {
 		it("keeps only the second success if both variants are Ok", () => {
-			const vdn = Validation.ok<2, Str>(2).zipSnd(
-				Validation.ok<4, Str>(4),
-			);
+			const vdn = Validation.ok<2, Str>(2).and(Validation.ok<4, Str>(4));
 			expect(vdn).to.deep.equal(Validation.ok(4));
 		});
 	});

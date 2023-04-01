@@ -140,8 +140,7 @@
  * or short-circuit on the first absent `Maybe`:
  *
  * -   `zipWith` applies a function to their values.
- * -   `zipFst` keeps only the first value, and discards the second.
- * -   `zipSnd` keeps only the second value, and discards the first.
+ * -   `and` keeps only the second value, and discards the first.
  *
  * ## Chaining `Maybe`
  *
@@ -758,19 +757,10 @@ export namespace Maybe {
 		}
 
 		/**
-		 * If this and that `Maybe` are both present, return only the first
-		 * value in a `Just` and discard the second; otherwise, return
+		 * If this `Maybe` is present, return that `Maybe`; otherwise, return
 		 * `Nothing`.
 		 */
-		zipFst<T>(this: Maybe<T>, that: Maybe<any>): Maybe<T> {
-			return this.zipWith(that, id);
-		}
-
-		/**
-		 * If this and that `Maybe` are both present, return only the second
-		 * value in a `Just` and discard the first; otherwise, return `Nothing`.
-		 */
-		zipSnd<T1>(this: Maybe<any>, that: Maybe<T1>): Maybe<T1> {
+		and<T1>(this: Maybe<any>, that: Maybe<T1>): Maybe<T1> {
 			return this.flatMap(() => that);
 		}
 

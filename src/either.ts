@@ -129,8 +129,7 @@
  * short-circuit on the first failed `Either`:
  *
  * -   `zipWith` applies a function to their successes.
- * -   `zipFst` keeps only the first success, and discards the second.
- * -   `zipSnd` keeps only the second success, and discards the first.
+ * -   `and` keeps only the second success, and discards the first.
  *
  * ## Recovering from `Left` variants
  *
@@ -371,7 +370,6 @@
 
 import { Semigroup, cmb } from "./cmb.js";
 import { Eq, Ord, Ordering, cmp, eq } from "./cmp.js";
-import { id } from "./fn.js";
 import type { Validation } from "./validation.js";
 
 /**
@@ -699,23 +697,10 @@ export namespace Either {
 		}
 
 		/**
-		 * If this and that `Either` both succeed, succeed with only the first
-		 * success and discard the second; otherwise, return the first failed
-		 * `Either`.
+		 * If this `Either` succeeds, return that `Either`; otherwise, return
+		 * this `Either` as is.
 		 */
-		zipFst<E, T, E1>(
-			this: Either<E, T>,
-			that: Either<E1, any>,
-		): Either<E | E1, T> {
-			return this.zipWith(that, id);
-		}
-
-		/**
-		 * If this and that `Either` both succeed, succeed with only the second
-		 * success and discard the first; otherwise, return the first failed
-		 * `Either`.
-		 */
-		zipSnd<E, E1, T1>(
+		and<E, E1, T1>(
 			this: Either<E, any>,
 			that: Either<E1, T1>,
 		): Either<E | E1, T1> {

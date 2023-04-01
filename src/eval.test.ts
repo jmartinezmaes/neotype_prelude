@@ -204,17 +204,9 @@ describe("Eval", () => {
 		});
 	});
 
-	describe("#zipFst", () => {
-		it("keeps only the first outcome", () => {
-			const ev = Eval.now<1>(1).zipFst(Eval.now<2>(2));
-			const outcome = ev.run();
-			expect(outcome).to.equal(1);
-		});
-	});
-
-	describe("#zipSnd", () => {
+	describe("#and", () => {
 		it("keeps only the second outcome", () => {
-			const ev = Eval.now<1>(1).zipSnd(Eval.now<2>(2));
+			const ev = Eval.now<1>(1).and(Eval.now<2>(2));
 			const outcome = ev.run();
 			expect(outcome).to.equal(2);
 		});
