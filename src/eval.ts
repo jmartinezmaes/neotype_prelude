@@ -68,8 +68,7 @@
  * in an `Eval`:
  *
  * -   `zipWith` applies a function to their outcomes.
- * -   `zipFst` keeps only the first outcome, and discards the second.
- * -   `zipSnd` keeps only the second outcome, and discards the first.
+ * -   `and` keeps only the second outcome, and discards the first.
  *
  * ## Chaining `Eval`
  *
@@ -257,7 +256,6 @@
  */
 
 import { Semigroup, cmb } from "./cmb.js";
-import { id } from "./fn.js";
 
 /**
  * A type that models a synchronous computation.
@@ -462,18 +460,10 @@ export class Eval<out T> {
 	}
 
 	/**
-	 * Keep only the first outcome of this and that `Eval`, and return it in an
-	 * `Eval`.
-	 */
-	zipFst(that: Eval<any>): Eval<T> {
-		return this.zipWith(that, id);
-	}
-
-	/**
 	 * Keep only the second outcome of this and that `Eval`, and return it in an
 	 * `Eval`.
 	 */
-	zipSnd<T1>(that: Eval<T1>): Eval<T1> {
+	and<T1>(that: Eval<T1>): Eval<T1> {
 		return this.flatMap(() => that);
 	}
 

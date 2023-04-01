@@ -542,16 +542,9 @@ describe("Maybe", () => {
 		});
 	});
 
-	describe("#zipFst", () => {
-		it("keeps only the first value if both variants are Just", () => {
-			const maybe = Maybe.just<1>(1).zipFst(Maybe.just<2>(2));
-			expect(maybe).to.deep.equal(Maybe.just(1));
-		});
-	});
-
-	describe("#zipSnd", () => {
+	describe("#and", () => {
 		it("keeps only the second value if both variants are Just", () => {
-			const maybe = Maybe.just<1>(1).zipSnd(Maybe.just<2>(2));
+			const maybe = Maybe.just<1>(1).and(Maybe.just<2>(2));
 			expect(maybe).to.deep.equal(Maybe.just(2));
 		});
 	});

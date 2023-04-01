@@ -138,8 +138,7 @@
  * variants, or short-circuit on the first `Left`:
  *
  * -   `zipWith` applies a function to their right-hand values.
- * -   `zipFst` keeps only the first right-hand value, and discards the second.
- * -   `zipSnd` keeps only the second right-hand value, and discards the first.
+ * -   `and` keeps only the second right-hand value, and discards the first.
  *
  * ## Chaining `Ior`
  *
@@ -438,7 +437,6 @@
 import { Semigroup, cmb } from "./cmb.js";
 import { Eq, Ord, Ordering, cmp, eq } from "./cmp.js";
 import type { Either } from "./either.js";
-import { id } from "./fn.js";
 import type { Validation } from "./validation.js";
 
 /**
@@ -919,27 +917,13 @@ export namespace Ior {
 		}
 
 		/**
-		 * If this and that `Ior` have a right-hand value, keep only the first
-		 * value as a right-hand value and discard the second. Accumulate the
-		 * left-hand values of `Both` variants using their behavior as a
-		 * semigroup. If either `Ior` is a `Left`, combine the left-hand value
-		 * with any existing left-hand value and return the result in a `Left`.
+		 * If this and that `Ior` have a right-hand value, return that `Ior`.
+		 * Accumulate the left-hand values of `Both` variants using their
+		 * behavior as a semigroup. If either `Ior` is a `Left`, combine the
+		 * left-hand value with any existing left-hand value and return the
+		 * result in a `Left`.
 		 */
-		zipFst<A extends Semigroup<A>, B>(
-			this: Ior<A, B>,
-			that: Ior<A, any>,
-		): Ior<A, B> {
-			return this.zipWith(that, id);
-		}
-
-		/**
-		 * If this and that `Ior` have a right-hand value, keep only the second
-		 * value as a right-hand value and discard the first. Accumulate the
-		 * left-hand values of `Both` variants using their behavior as a
-		 * semigroup. If either `Ior` is a `Left`, combine the left-hand value
-		 * with any existing left-hand value and return the result in a `Left`.
-		 */
-		zipSnd<A extends Semigroup<A>, B1>(
+		and<A extends Semigroup<A>, B1>(
 			this: Ior<A, any>,
 			that: Ior<A, B1>,
 		): Ior<A, B1> {

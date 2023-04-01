@@ -127,8 +127,7 @@
  * begin accumulating failures on any failed `Validation`:
  *
  * -   `zipWith` applies a function to their successes.
- * -   `zipFst` keeps only the first success, and discards the second.
- * -   `zipSnd` keeps only the second success, and discards the first.
+ * -   `and` keeps only the second success, and discards the first.
  *
  * ## Collecting into `Validation`
  *
@@ -211,8 +210,8 @@
  *
  * function validateEmail(input: string): Validation<List<string>, string> {
  *     return requireNonEmpty(input)
- *         .zipFst(requireAtSign(input))
- *         .zipFst(requirePeriod(input));
+ *         .and(requireAtSign(input))
+ *         .and(requirePeriod(input));
  * }
  *
  * ["", "neo", "neogmail.com", "neo@gmailcom", "neo@gmail.com"].forEach(
@@ -377,7 +376,6 @@
 import { Semigroup, cmb } from "./cmb.js";
 import { Eq, Ord, Ordering, cmp, eq } from "./cmp.js";
 import type { Either } from "./either.js";
-import { id } from "./fn.js";
 
 /**
  * A type that represents either accumulating failure (`Err`) or success (`Ok`).
@@ -598,23 +596,10 @@ export namespace Validation {
 		}
 
 		/**
-		 * If this and that `Validation` both succeed, succeed with only the
-		 * first success and discard the second; otherwise, begin accumulating
-		 * failures on the first failed `Validation`.
+		 * If this `Validation` succeeds, return that `Validation`; otherwise,
+		 * begin accumulating failures on this `Validation`.
 		 */
-		zipFst<E extends Semigroup<E>, T>(
-			this: Validation<E, T>,
-			that: Validation<E, any>,
-		): Validation<E, T> {
-			return this.zipWith(that, id);
-		}
-
-		/**
-		 * If this and that `Validation` both succeed, succeed with only the
-		 * second success and discard the first; otherwise, begin accumulating
-		 * failures on the first failed `Validation`.
-		 */
-		zipSnd<E extends Semigroup<E>, T1>(
+		and<E extends Semigroup<E>, T1>(
 			this: Validation<E, any>,
 			that: Validation<E, T1>,
 		): Validation<E, T1> {

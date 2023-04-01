@@ -419,16 +419,9 @@ describe("Either", () => {
 		});
 	});
 
-	describe("#zipFst", () => {
-		it("keeps only the first success if both variants are Right", () => {
-			const either = Either.right<2, 1>(2).zipFst(Either.right<4, 3>(4));
-			expect(either).to.deep.equal(Either.right(2));
-		});
-	});
-
-	describe("#zipSnd", () => {
+	describe("#and", () => {
 		it("keeps only the second success if both variants are Right", () => {
-			const either = Either.right<2, 1>(2).zipSnd(Either.right<4, 3>(4));
+			const either = Either.right<2, 1>(2).and(Either.right<4, 3>(4));
 			expect(either).to.deep.equal(Either.right(4));
 		});
 	});

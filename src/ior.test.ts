@@ -895,18 +895,9 @@ describe("Ior", () => {
 		});
 	});
 
-	describe("#zipFst", () => {
-		it("keeps only the first right-hand value if both variants have right-hand values", () => {
-			const ior = Ior.both<Str, 2>(new Str("a"), 2).zipFst(
-				Ior.both<Str, 4>(new Str("b"), 4),
-			);
-			expect(ior).to.deep.equal(Ior.both(new Str("ab"), 2));
-		});
-	});
-
-	describe("#zipSnd", () => {
+	describe("#and", () => {
 		it("keeps only the second right-hand value if both variants have right-hand values", () => {
-			const ior = Ior.both<Str, 2>(new Str("a"), 2).zipSnd(
+			const ior = Ior.both<Str, 2>(new Str("a"), 2).and(
 				Ior.both<Str, 4>(new Str("b"), 4),
 			);
 			expect(ior).to.deep.equal(Ior.both(new Str("ab"), 4));
