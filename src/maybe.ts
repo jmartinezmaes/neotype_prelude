@@ -136,23 +136,23 @@
  * -   `filter` keeps the value if it satisfies a predicate, or returns
  *     `Nothing` otherwise.
  *
- * These methods combine the values of two `Maybe` values if both are present,
- * or short-circuit on the first absent `Maybe`:
+ * ## Recovering from `Nothing`
  *
- * -   `zipWith` applies a function to their values.
- * -   `and` keeps only the second value, and discards the first.
+ * These methods act on an absent `Maybe` to produce a fallback `Maybe`:
+ *
+ * -   `orElse` evaluates a function to return a fallback `Maybe`.
+ * -   `or` returns a fallback `Maybe`.
  *
  * ## Chaining `Maybe`
  *
- * The `flatMap` method chains together computations that return `Maybe`. If a
- * `Maybe` is present, a function is applied to its value to return another
- * `Maybe`. If a `Maybe` is absent, the computation halts and `Nothing` is
- * returned instead.
+ * These methods act on a present `Maybe` to produce another `Maybe`:
  *
- * ## Recovering from `Nothing`
- *
- * The `recover` method evaluates a function to return a fallback `Maybe` if
- * absent, and does nothing if present.
+ * -   `andThen` applies a function to the value to return another `Maybe`.
+ * -   `andThenGo` applies a synchronous generator comprehension function to the
+ *     value and evaluates the generator to return another `Maybe`.
+ * -   `and` ignores the value and returns another `Maybe`.
+ * -   `zipWith` evaluates another `Maybe`, and if present, applies a function
+ *     to both values.
  *
  * ## Generator comprehenshions
  *
@@ -280,7 +280,7 @@
  * }
  *
  * function parseEvenInt(input: string): Maybe<number> {
- *     return parseInt(input).flatMap(guardEven);
+ *     return parseInt(input).andThen(guardEven);
  * }
  *
  * ["a", "1", "2", "-4", "+42", "0x2A"].forEach((input) => {
@@ -694,15 +694,23 @@ export namespace Maybe {
 		 * If this `Maybe` is absent, evaluate a function to return a fallback
 		 * `Maybe`; otherwise, return this `Maybe` as is.
 		 */
-		recover<T, T1>(this: Maybe<T>, f: () => Maybe<T1>): Maybe<T | T1> {
+		orElse<T, T1>(this: Maybe<T>, f: () => Maybe<T1>): Maybe<T | T1> {
 			return this.isNothing() ? f() : this;
+		}
+
+		/**
+		 * If this `Maybe` is absent, return that `Maybe`; otherwise, return
+		 * this `Maybe` as is.
+		 */
+		or<T, T1>(this: Maybe<T>, that: Maybe<T1>): Maybe<T | T1> {
+			return this.orElse(() => that);
 		}
 
 		/**
 		 * If this `Maybe` is present, apply a function to its value to return
 		 * another `Maybe`; otherwise, return `Nothing`.
 		 */
-		flatMap<T, T1>(this: Maybe<T>, f: (val: T) => Maybe<T1>): Maybe<T1> {
+		andThen<T, T1>(this: Maybe<T>, f: (val: T) => Maybe<T1>): Maybe<T1> {
 			return this.isNothing() ? this : f(this.val);
 		}
 
@@ -711,8 +719,16 @@ export namespace Maybe {
 		 * to its value and evaluate the `Maybe.Go` generator to return another
 		 * `Maybe`; otherwise, return `Nothing`.
 		 */
-		goMap<T, T1>(this: Maybe<T>, f: (val: T) => Go<T1>): Maybe<T1> {
-			return this.flatMap((val) => go(f(val)));
+		andThenGo<T, T1>(this: Maybe<T>, f: (val: T) => Go<T1>): Maybe<T1> {
+			return this.andThen((val) => go(f(val)));
+		}
+
+		/**
+		 * If this `Maybe` is present, return that `Maybe`; otherwise, return
+		 * `Nothing`.
+		 */
+		and<T1>(this: Maybe<any>, that: Maybe<T1>): Maybe<T1> {
+			return this.andThen(() => that);
 		}
 
 		/**
@@ -724,7 +740,7 @@ export namespace Maybe {
 			this: Maybe<T>,
 			f: (val: T) => T1 | null | undefined,
 		): Maybe<T1> {
-			return this.flatMap((val) => fromNullish(f(val)));
+			return this.andThen((val) => fromNullish(f(val)));
 		}
 
 		/**
@@ -740,7 +756,7 @@ export namespace Maybe {
 		filter<T>(this: Maybe<T>, f: (val: T) => boolean): Maybe<T>;
 
 		filter<T>(this: Maybe<T>, f: (val: T) => boolean): Maybe<T> {
-			return this.flatMap((val) => (f(val) ? just(val) : nothing));
+			return this.andThen((val) => (f(val) ? just(val) : nothing));
 		}
 
 		/**
@@ -753,15 +769,7 @@ export namespace Maybe {
 			that: Maybe<T1>,
 			f: (lhs: T, rhs: T1) => T2,
 		): Maybe<T2> {
-			return this.flatMap((lhs) => that.map((rhs) => f(lhs, rhs)));
-		}
-
-		/**
-		 * If this `Maybe` is present, return that `Maybe`; otherwise, return
-		 * `Nothing`.
-		 */
-		and<T1>(this: Maybe<any>, that: Maybe<T1>): Maybe<T1> {
-			return this.flatMap(() => that);
+			return this.andThen((lhs) => that.map((rhs) => f(lhs, rhs)));
 		}
 
 		/**
@@ -769,7 +777,7 @@ export namespace Maybe {
 		 * the result in a `Just`; otherwise, return `Nothing`.
 		 */
 		map<T, T1>(this: Maybe<T>, f: (val: T) => T1): Maybe<T1> {
-			return this.flatMap((val) => just(f(val)));
+			return this.andThen((val) => just(f(val)));
 		}
 	}
 

@@ -64,17 +64,16 @@
  * The `map` method applies a function to outcome of an `Eval` and returns the
  * result in an `Eval`.
  *
- * These methods combine the outcomes of two `Eval` values and return the result
- * in an `Eval`:
- *
- * -   `zipWith` applies a function to their outcomes.
- * -   `and` keeps only the second outcome, and discards the first.
- *
  * ## Chaining `Eval`
  *
- * The `flatMap` method chains together computations that return `Eval`. A
- * function is applied to the outcome of one `Eval` to return another `Eval`.
- * Composition with `flatMap` is stack safe, even for recursive programs.
+ * These methods act on the outcome of an `Eval` to produce another `Eval`:
+ *
+ * -   `andThen` applies a function to the outcome to return another `Eval`.
+ * -   `andThenGo` applies a synchronous generator comprehension function to the
+ *     outcome and evaluates the generator to return another `Eval`.
+ * -   `and` ignores the outcome and returns another `Eval`.
+ * -   `zipWith` evaluates another `Eval` and applies a function to both
+ *     outcomes.
  *
  * ## Generator comprehenshions
  *
@@ -167,7 +166,7 @@
  *     // Challenge for the reader: why is `defer` needed here?
  *     // Hint: it pertains to stack safety and eager evaluation.
  *     return Eval.defer(() =>
- *         foldTree(tree.lst, ifEmpty, foldBranch).flatMap((lhs) =>
+ *         foldTree(tree.lst, ifEmpty, foldBranch).andThen((lhs) =>
  *             foldTree(tree.rst, ifEmpty, foldBranch).map((rhs) =>
  *                 foldBranch(tree.val, lhs, rhs),
  *             ),
@@ -288,7 +287,7 @@ export class Eval<out T> {
 	 * Construct an `Eval` from a function that returns another `Eval`.
 	 */
 	static defer<T>(f: () => Eval<T>): Eval<T> {
-		return Eval.now(undefined).flatMap(f);
+		return Eval.now(undefined).andThen(f);
 	}
 
 	static #step<TReturn>(
@@ -298,7 +297,7 @@ export class Eval<out T> {
 		if (nxt.done) {
 			return Eval.now(nxt.value);
 		}
-		return nxt.value.flatMap((val) => Eval.#step(gen, gen.next(val)));
+		return nxt.value.andThen((val) => Eval.#step(gen, gen.next(val)));
 	}
 
 	/**
@@ -439,24 +438,16 @@ export class Eval<out T> {
 	/**
 	 * Apply a function to the outcome of this `Eval` to return another `Eval`.
 	 */
-	flatMap<T1>(f: (val: T) => Eval<T1>): Eval<T1> {
-		return new Eval(Ixn.flatMap(this, f));
+	andThen<T1>(f: (val: T) => Eval<T1>): Eval<T1> {
+		return new Eval(Ixn.andThen(this, f));
 	}
 
 	/**
 	 * Apply a generator comprehension function to the outcome of this `Eval`
 	 * and evaluate the `Eval.Go` generator to return another `Eval`.
 	 */
-	goMap<T1>(f: (val: T) => Eval.Go<T1>): Eval<T1> {
-		return this.flatMap((val) => Eval.go(f(val)));
-	}
-
-	/**
-	 * Apply a function to the outcomes of this and that `Eval` and return the
-	 * result in an `Eval`.
-	 */
-	zipWith<T1, T2>(that: Eval<T1>, f: (lhs: T, rhs: T1) => T2): Eval<T2> {
-		return this.flatMap((lhs) => that.map((rhs) => f(lhs, rhs)));
+	andThenGo<T1>(f: (val: T) => Eval.Go<T1>): Eval<T1> {
+		return this.andThen((val) => Eval.go(f(val)));
 	}
 
 	/**
@@ -464,7 +455,15 @@ export class Eval<out T> {
 	 * `Eval`.
 	 */
 	and<T1>(that: Eval<T1>): Eval<T1> {
-		return this.flatMap(() => that);
+		return this.andThen(() => that);
+	}
+
+	/**
+	 * Apply a function to the outcomes of this and that `Eval` and return the
+	 * result in an `Eval`.
+	 */
+	zipWith<T1, T2>(that: Eval<T1>, f: (lhs: T, rhs: T1) => T2): Eval<T2> {
+		return this.andThen((lhs) => that.map((rhs) => f(lhs, rhs)));
 	}
 
 	/**
@@ -472,7 +471,7 @@ export class Eval<out T> {
 	 * in an `Eval`.
 	 */
 	map<T1>(f: (val: T) => T1): Eval<T1> {
-		return this.flatMap((val) => Eval.now(f(val)));
+		return this.andThen((val) => Eval.now(f(val)));
 	}
 
 	/**
@@ -497,7 +496,7 @@ export class Eval<out T> {
 					break;
 				}
 
-				case Ixn.Kind.FLAT_MAP:
+				case Ixn.Kind.AND_THEN:
 					stack = [currentEval.#ixn.cont, stack];
 					currentEval = currentEval.#ixn.ev;
 					break;
@@ -544,12 +543,12 @@ export namespace Eval {
 		: never;
 }
 
-type Ixn = Ixn.Now | Ixn.FlatMap | Ixn.Once | Ixn.Always;
+type Ixn = Ixn.Now | Ixn.AndThen | Ixn.Once | Ixn.Always;
 
 namespace Ixn {
 	export const enum Kind {
 		NOW,
-		FLAT_MAP,
+		AND_THEN,
 		ONCE,
 		ALWAYS,
 	}
@@ -559,8 +558,8 @@ namespace Ixn {
 		readonly val: any;
 	}
 
-	export interface FlatMap {
-		readonly kind: Kind.FLAT_MAP;
+	export interface AndThen {
+		readonly kind: Kind.AND_THEN;
 		readonly ev: Eval<any>;
 		readonly cont: (val: any) => Eval<any>;
 	}
@@ -581,11 +580,11 @@ namespace Ixn {
 		return { kind: Kind.NOW, val };
 	}
 
-	export function flatMap<T, T1>(
+	export function andThen<T, T1>(
 		ev: Eval<T>,
 		cont: (val: T) => Eval<T1>,
-	): FlatMap {
-		return { kind: Kind.FLAT_MAP, ev, cont };
+	): AndThen {
+		return { kind: Kind.AND_THEN, ev, cont };
 	}
 
 	export function once<T>(f: () => T): Once {

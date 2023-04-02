@@ -436,37 +436,51 @@ describe("Maybe", () => {
 		});
 	});
 
-	describe("#recover", () => {
+	describe("#orElse", () => {
 		it("evaluates the function if the variant is Nothing", () => {
-			const maybe = nothing<1>().recover(() => Maybe.just<2>(2));
+			const maybe = nothing<1>().orElse(() => Maybe.just<2>(2));
 			expect(maybe).to.deep.equal(Maybe.just(2));
 		});
 
 		it("does not evaluate the function if the variant is Just", () => {
-			const maybe = Maybe.just<1>(1).recover(() => Maybe.just<2>(2));
+			const maybe = Maybe.just<1>(1).orElse(() => Maybe.just<2>(2));
 			expect(maybe).to.deep.equal(Maybe.just(1));
 		});
 	});
 
-	describe("#flatMap", () => {
+	describe("#or", () => {
+		it("returns the other Maybe if the variant is Nothing", () => {
+			const maybe = nothing<1>().or(Maybe.just<2>(2));
+			expect(maybe).to.deep.equal(Maybe.just(2));
+		});
+
+		it("returns the original Maybe if the variant is Just", () => {
+			const maybe = Maybe.just<1>(1).or(Maybe.just<2>(2));
+			expect(maybe).to.deep.equal(Maybe.just(1));
+		});
+	});
+
+	describe("#andThen", () => {
 		it("does not apply the continuation if the variant is Nothing", () => {
-			const maybe = nothing<1>().flatMap(
+			const maybe = nothing<1>().andThen(
 				(one): Maybe<[1, 2]> => Maybe.just([one, 2]),
 			);
 			expect(maybe).to.equal(Maybe.nothing);
 		});
 
 		it("applies the continuation to the value if the variant is Just", () => {
-			const maybe = Maybe.just<1>(1).flatMap(
+			const maybe = Maybe.just<1>(1).andThen(
 				(one): Maybe<[1, 2]> => Maybe.just([one, 2]),
 			);
 			expect(maybe).to.deep.equal(Maybe.just([1, 2]));
 		});
 	});
 
-	describe("#goMap", () => {
+	describe("#andThenGo", () => {
 		it("does not apply the continuation if the variant is Nothing", () => {
-			const maybe = nothing<1>().goMap(function* (one): Maybe.Go<[1, 2]> {
+			const maybe = nothing<1>().andThenGo(function* (
+				one,
+			): Maybe.Go<[1, 2]> {
 				const two = yield* Maybe.just<2>(2);
 				return [one, two];
 			});
@@ -474,13 +488,25 @@ describe("Maybe", () => {
 		});
 
 		it("applies the continuation to the value if the variant is Just", () => {
-			const maybe = Maybe.just<1>(1).goMap(function* (
+			const maybe = Maybe.just<1>(1).andThenGo(function* (
 				one,
 			): Maybe.Go<[1, 2]> {
 				const two = yield* Maybe.just<2>(2);
 				return [one, two];
 			});
 			expect(maybe).to.deep.equal(Maybe.just([1, 2]));
+		});
+	});
+
+	describe("#and", () => {
+		it("returns the original Maybe if the variant is Nothing", () => {
+			const maybe = nothing<1>().and(Maybe.just<2>(2));
+			expect(maybe).to.deep.equal(Maybe.nothing);
+		});
+
+		it("returns the other Maybe if the variant is Just", () => {
+			const maybe = Maybe.just<1>(1).and(Maybe.just<2>(2));
+			expect(maybe).to.deep.equal(Maybe.just(2));
 		});
 	});
 
@@ -539,13 +565,6 @@ describe("Maybe", () => {
 				(one, two): [1, 2] => [one, two],
 			);
 			expect(maybe).to.deep.equal(Maybe.just([1, 2]));
-		});
-	});
-
-	describe("#and", () => {
-		it("keeps only the second value if both variants are Just", () => {
-			const maybe = Maybe.just<1>(1).and(Maybe.just<2>(2));
-			expect(maybe).to.deep.equal(Maybe.just(2));
 		});
 	});
 

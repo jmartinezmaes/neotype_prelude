@@ -125,23 +125,23 @@
  * -   `lmap` applies a function to the value in a left-sided `Either`.
  * -   `map` applies a function to the value in a right-sided `Either`.
  *
- * These methods combine the successes of two successful `Eithers`, or
- * short-circuit on the first failed `Either`:
- *
- * -   `zipWith` applies a function to their successes.
- * -   `and` keeps only the second success, and discards the first.
- *
  * ## Recovering from `Left` variants
  *
- * If an `Either` fails, the `recover` method applies a function to its failure
- * to return a fallback `Either`.
+ * These methods act on a failed `Either` to produce a fallback `Either`:
+ *
+ * -   `orElse` applies a function to the failure to return a fallback `Either`.
+ * -   `or` ignores the failure and returns a fallback `Either`.
  *
  * ## Chaining `Either`
  *
- * The `flatMap` method chains together computations that return `Either`. If an
- * `Either` succeeds, a function is applied to its success to return another
- * `Either`. If an `Either` fails, the computation halts and the failed `Either`
- * is returned instead.
+ * These methods act on a successful `Either` to produce another `Either`:
+ *
+ * -   `andThen` applies a function to the success to return another `Either`.
+ * -   `andThenGo` applies a synchronous generator comprehension function to the
+ *     success and evaluates the generator to return another `Either`.
+ * -   `and` ignores the success and returns another `Either`.
+ * -   `zipWith` evaluates another `Either`, and if successful, applies a
+ *     function to both successes.
  *
  * ## Generator comprehenshions
  *
@@ -274,7 +274,7 @@
  * }
  *
  * function parseEvenInt(input: string): Either<string, number> {
- *     return parseInt(input).flatMap(guardEven);
+ *     return parseInt(input).andThen(guardEven);
  * }
  *
  * ["a", "1", "2", "-4", "+42", "0x2A"].forEach((input) => {
@@ -653,7 +653,7 @@ export namespace Either {
 		 * If this `Either` fails, apply a function to its failure to return
 		 * another `Either`; otherwise, return this `Either` as is.
 		 */
-		recover<E, T, E1, T1>(
+		orElse<E, T, E1, T1>(
 			this: Either<E, T>,
 			f: (val: E) => Either<E1, T1>,
 		): Either<E1, T | T1> {
@@ -661,10 +661,21 @@ export namespace Either {
 		}
 
 		/**
+		 * If this `Either` fails, ignore the failure and return that `Either`;
+		 * otherwise, return this `Either` as is.
+		 */
+		or<T, E1, T1>(
+			this: Either<any, T>,
+			that: Either<E1, T1>,
+		): Either<E1, T | T1> {
+			return this.orElse(() => that);
+		}
+
+		/**
 		 * If this `Either` succeeds, apply a function to its success to return
 		 * another `Either`; otherwise, return this `Either` as is.
 		 */
-		flatMap<E, T, E1, T1>(
+		andThen<E, T, E1, T1>(
 			this: Either<E, T>,
 			f: (val: T) => Either<E1, T1>,
 		): Either<E | E1, T1> {
@@ -676,11 +687,22 @@ export namespace Either {
 		 * to its success and evaluate the `Either.Go` generator to return
 		 * another `Either`; otherwise, return this `Either` as is.
 		 */
-		goMap<E, T, E1, T1>(
+		andThenGo<E, T, E1, T1>(
 			this: Either<E, T>,
 			f: (val: T) => Go<E1, T1>,
 		): Either<E | E1, T1> {
-			return this.flatMap((val) => go(f(val)));
+			return this.andThen((val) => go(f(val)));
+		}
+
+		/**
+		 * If this `Either` succeeds, ignore the success and return that
+		 * `Either`; otherwise, return this `Either` as is.
+		 */
+		and<E, E1, T1>(
+			this: Either<E, any>,
+			that: Either<E1, T1>,
+		): Either<E | E1, T1> {
+			return this.andThen(() => that);
 		}
 
 		/**
@@ -693,18 +715,7 @@ export namespace Either {
 			that: Either<E1, T1>,
 			f: (lhs: T, rhs: T1) => T2,
 		): Either<E | E1, T2> {
-			return this.flatMap((lhs) => that.map((rhs) => f(lhs, rhs)));
-		}
-
-		/**
-		 * If this `Either` succeeds, return that `Either`; otherwise, return
-		 * this `Either` as is.
-		 */
-		and<E, E1, T1>(
-			this: Either<E, any>,
-			that: Either<E1, T1>,
-		): Either<E | E1, T1> {
-			return this.flatMap(() => that);
+			return this.andThen((lhs) => that.map((rhs) => f(lhs, rhs)));
 		}
 
 		/**
@@ -712,7 +723,7 @@ export namespace Either {
 		 * return the result in a `Left`; otherwise, return this `Either` as is.
 		 */
 		lmap<A, B, A1>(this: Either<A, B>, f: (val: A) => A1): Either<A1, B> {
-			return this.recover((val) => left(f(val)));
+			return this.orElse((val) => left(f(val)));
 		}
 
 		/**
@@ -721,7 +732,7 @@ export namespace Either {
 		 * is.
 		 */
 		map<A, B, B1>(this: Either<A, B>, f: (val: B) => B1): Either<A, B1> {
-			return this.flatMap((val) => right(f(val)));
+			return this.andThen((val) => right(f(val)));
 		}
 	}
 

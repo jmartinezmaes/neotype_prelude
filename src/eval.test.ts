@@ -172,9 +172,9 @@ describe("Eval", () => {
 		});
 	});
 
-	describe("#flatMap", () => {
+	describe("#andThen", () => {
 		it("applies the continuation to the outcome", () => {
-			const ev = Eval.now<1>(1).flatMap(
+			const ev = Eval.now<1>(1).andThen(
 				(one): Eval<[1, 2]> => Eval.now([one, 2]),
 			);
 			const outcome = ev.run();
@@ -182,14 +182,24 @@ describe("Eval", () => {
 		});
 	});
 
-	describe("#goMap", () => {
+	describe("#andThenGo", () => {
 		it("applies the continuation to the outcome", () => {
-			const ev = Eval.now<1>(1).goMap(function* (one): Eval.Go<[1, 2]> {
+			const ev = Eval.now<1>(1).andThenGo(function* (
+				one,
+			): Eval.Go<[1, 2]> {
 				const two = yield* Eval.now<2>(2);
 				return [one, two];
 			});
 			const outcome = ev.run();
 			expect(outcome).to.deep.equal([1, 2]);
+		});
+	});
+
+	describe("#and", () => {
+		it("returns the other Eval", () => {
+			const ev = Eval.now<1>(1).and(Eval.now<2>(2));
+			const outcome = ev.run();
+			expect(outcome).to.equal(2);
 		});
 	});
 
@@ -201,14 +211,6 @@ describe("Eval", () => {
 			);
 			const outcome = ev.run();
 			expect(outcome).to.deep.equal([1, 2]);
-		});
-	});
-
-	describe("#and", () => {
-		it("keeps only the second outcome", () => {
-			const ev = Eval.now<1>(1).and(Eval.now<2>(2));
-			const outcome = ev.run();
-			expect(outcome).to.equal(2);
 		});
 	});
 

@@ -355,41 +355,53 @@ describe("Either", () => {
 		});
 	});
 
-	describe("#recover", () => {
+	describe("#orElse", () => {
 		it("applies the continuation to the failure if the variant is Left", () => {
-			const either = Either.left<1, 2>(1).recover(
+			const either = Either.left<1, 2>(1).orElse(
 				(one): Either<[1, 3], 4> => Either.left([one, 3]),
 			);
 			expect(either).to.deep.equal(Either.left([1, 3]));
 		});
 
 		it("does not apply the continuation if the variant is Right", () => {
-			const either = Either.right<2, 1>(2).recover(
+			const either = Either.right<2, 1>(2).orElse(
 				(one): Either<[1, 3], 4> => Either.left([one, 3]),
 			);
 			expect(either).to.deep.equal(Either.right(2));
 		});
 	});
 
-	describe("#flatMap", () => {
+	describe("#or", () => {
+		it("returns the fallback Either if the variant is Left", () => {
+			const either = Either.left<1, 2>(1).or(Either.right<4, 3>(4));
+			expect(either).to.deep.equal(Either.right(4));
+		});
+
+		it("returns the original Either if the variant is Right", () => {
+			const either = Either.right<2, 1>(2).or(Either.right<4, 3>(4));
+			expect(either).to.deep.equal(Either.right(2));
+		});
+	});
+
+	describe("#andThen", () => {
 		it("does not apply the continuation if the variant is Left", () => {
-			const either = Either.left<1, 2>(1).flatMap(
+			const either = Either.left<1, 2>(1).andThen(
 				(two): Either<3, [2, 4]> => Either.right([two, 4]),
 			);
 			expect(either).to.deep.equal(Either.left(1));
 		});
 
 		it("applies the continuation to the success if the variant is Right", () => {
-			const either = Either.right<2, 1>(2).flatMap(
+			const either = Either.right<2, 1>(2).andThen(
 				(two): Either<3, [2, 4]> => Either.right([two, 4]),
 			);
 			expect(either).to.deep.equal(Either.right([2, 4]));
 		});
 	});
 
-	describe("#goMap", () => {
+	describe("#andThenGo", () => {
 		it("does not apply the continuation if the variant is Left", () => {
-			const either = Either.left<1, 2>(1).goMap(function* (
+			const either = Either.left<1, 2>(1).andThenGo(function* (
 				two,
 			): Either.Go<3, [2, 4]> {
 				const four = yield* Either.right<4, 3>(4);
@@ -399,13 +411,25 @@ describe("Either", () => {
 		});
 
 		it("applies the continuation to the success if the variant is Right", () => {
-			const either = Either.right<2, 1>(2).goMap(function* (
+			const either = Either.right<2, 1>(2).andThenGo(function* (
 				two,
 			): Either.Go<3, [2, 4]> {
 				const four = yield* Either.right<4, 3>(4);
 				return [two, four];
 			});
 			expect(either).to.deep.equal(Either.right([2, 4]));
+		});
+	});
+
+	describe("#and", () => {
+		it("returns the original Either if the variant is Left", () => {
+			const either = Either.left<1, 2>(1).and(Either.right<4, 3>(4));
+			expect(either).to.deep.equal(Either.left(1));
+		});
+
+		it("returns the other Either if the variant is Right", () => {
+			const either = Either.right<2, 1>(2).and(Either.right<4, 3>(4));
+			expect(either).to.deep.equal(Either.right(4));
 		});
 	});
 
@@ -416,13 +440,6 @@ describe("Either", () => {
 				(two, four): [2, 4] => [two, four],
 			);
 			expect(either).to.deep.equal(Either.right([2, 4]));
-		});
-	});
-
-	describe("#and", () => {
-		it("keeps only the second success if both variants are Right", () => {
-			const either = Either.right<2, 1>(2).and(Either.right<4, 3>(4));
-			expect(either).to.deep.equal(Either.right(4));
 		});
 	});
 
