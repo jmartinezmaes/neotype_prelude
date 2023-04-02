@@ -76,6 +76,7 @@
  * -   `both` constructs a `Both` variant.
  * -   `fromEither` constructs an `Ior` from an `Either`.
  * -   `fromValidation` constructs an `Ior` from a `Validation`.
+ * -   `fromTuple` constructs an `Ior` from a 2-tuple of values.
  *
  * ## Querying and narrowing the variant
  *
@@ -490,6 +491,18 @@ export namespace Ior {
 	 */
 	export function fromValidation<E, T>(vdn: Validation<E, T>): Ior<E, T> {
 		return vdn.unwrap(left, right);
+	}
+
+	/**
+	 * Construct an `Ior` from a 2-tuple of values.
+	 *
+	 * @remarks
+	 *
+	 * This will always construct a `Both` variant from the first value and
+	 * second value of the tuple.
+	 */
+	export function fromTuple<A, B>(tuple: readonly [A, B]): Ior<A, B> {
+		return both(tuple[0], tuple[1]);
 	}
 
 	/**

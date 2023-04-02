@@ -95,6 +95,13 @@ describe("Ior", () => {
 		});
 	});
 
+	describe("fromTuple", () => {
+		it("constructs a Both from a 2-tuple of values", () => {
+			const ior = Ior.fromTuple([1, 2] as [1, 2]);
+			expect(ior).to.deep.equal(Ior.both(1, 2));
+		});
+	});
+
 	describe("go", () => {
 		it("short-circuits on the first yielded Left", () => {
 			function* f(): Ior.Go<Str, [2, 4]> {
