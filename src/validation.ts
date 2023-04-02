@@ -123,11 +123,14 @@
  * -   `lmap` applies a function to the failure.
  * -   `map` applies a function to the success.
  *
- * These methods combine the successes of two successful `Validation` values, or
- * begin accumulating failures on any failed `Validation`:
+ * ## Chaining `Validation`
  *
- * -   `zipWith` applies a function to their successes.
- * -   `and` keeps only the second success, and discards the first.
+ * These methods act on a successful `Validation` to produce another
+ * `Validation`:
+ *
+ * -   `and` ignores the success and returns another `Validation`.
+ * -   `zipWith` evaluates another `Validation`, and if successful, applies a
+ *     function to both successes.
  *
  * ## Collecting into `Validation`
  *
@@ -580,6 +583,17 @@ export namespace Validation {
 		}
 
 		/**
+		 * If this `Validation` succeeds, return that `Validation`; otherwise,
+		 * begin accumulating failures on this `Validation`.
+		 */
+		and<E extends Semigroup<E>, T1>(
+			this: Validation<E, any>,
+			that: Validation<E, T1>,
+		): Validation<E, T1> {
+			return this.zipWith(that, (_, rhs) => rhs);
+		}
+
+		/**
 		 * If this and that `Validation` both succeed, apply a function to their
 		 * successes and succeed with the result; otherwise, begin accumulating
 		 * failures on the first failed `Validation`.
@@ -593,17 +607,6 @@ export namespace Validation {
 				return that.isErr() ? err(cmb(this.val, that.val)) : this;
 			}
 			return that.isErr() ? that : ok(f(this.val, that.val));
-		}
-
-		/**
-		 * If this `Validation` succeeds, return that `Validation`; otherwise,
-		 * begin accumulating failures on this `Validation`.
-		 */
-		and<E extends Semigroup<E>, T1>(
-			this: Validation<E, any>,
-			that: Validation<E, T1>,
-		): Validation<E, T1> {
-			return this.zipWith(that, (_, rhs) => rhs);
 		}
 
 		/**

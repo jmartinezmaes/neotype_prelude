@@ -134,20 +134,18 @@
  * -   `lmap` applies a function to the left-hand value.
  * -   `map` applies a function to the right-hand value.
  *
- * These methods combine the right-hand values of two `Right` and/or `Both`
- * variants, or short-circuit on the first `Left`:
- *
- * -   `zipWith` applies a function to their right-hand values.
- * -   `and` keeps only the second right-hand value, and discards the first.
- *
  * ## Chaining `Ior`
  *
- * The `flatMap` method chains together computations that return `Ior`. If an
- * `Ior` has a right-hand value, a function is applied the value to return
- * another `Ior`. The left-hand values of `Both` variants accumulate using their
- * behavior as a semigroup. If an `Ior` is a `Left`, the computation halts and
- * the left-hand value is combined with any existing left-hand value, and the
- * result is returned in a `Left`.
+ * These methods act on an `Ior` with a right-hand value to produce another
+ * `Ior`:
+ *
+ * -   `andThen` applies a function to the right-hand value to return another
+ *     `Ior`.
+ * -   `andThenGo` applies a synchronous generator comprehension function to the
+ *     right-hand value and evaluates the generator to return another `Ior`.
+ * -   `and` ignores the right-hand value and returns another `Ior`.
+ * -   `zipWith` evaluates another `Ior`, and if it has a right-hand value,
+ *     applies a function to both right-hand values.
  *
  * ## Generator comprehenshions
  *
@@ -331,7 +329,7 @@
  * }
  *
  * function parseEvenInt(input: string): Ior<Log, number> {
- *     return parseInt(input).flatMap(guardEven);
+ *     return parseInt(input).andThen(guardEven);
  * }
  *
  * ["a", "1", "2", "-4", "+42", "0x2A"].forEach((input) => {
@@ -866,7 +864,7 @@ export namespace Ior {
 		 * `Left`, combine the left-hand value with any existing left-hand value
 		 * and return the result in a `Left`.
 		 */
-		flatMap<A extends Semigroup<A>, B, B1>(
+		andThen<A extends Semigroup<A>, B, B1>(
 			this: Ior<A, B>,
 			f: (val: B) => Ior<A, B1>,
 		): Ior<A, B1> {
@@ -894,11 +892,25 @@ export namespace Ior {
 		 * combine the left-hand value with any existing left-hand value and
 		 * return the result in a `Left`.
 		 */
-		goMap<A extends Semigroup<A>, B, B1>(
+		andThenGo<A extends Semigroup<A>, B, B1>(
 			this: Ior<A, B>,
 			f: (val: B) => Go<A, B1>,
 		): Ior<A, B1> {
-			return this.flatMap((val) => go(f(val)));
+			return this.andThen((val) => go(f(val)));
+		}
+
+		/**
+		 * If this and that `Ior` have a right-hand value, return that `Ior`.
+		 * Accumulate the left-hand values of `Both` variants using their
+		 * behavior as a semigroup. If either `Ior` is a `Left`, combine the
+		 * left-hand value with any existing left-hand value and return the
+		 * result in a `Left`.
+		 */
+		and<A extends Semigroup<A>, B1>(
+			this: Ior<A, any>,
+			that: Ior<A, B1>,
+		): Ior<A, B1> {
+			return this.andThen(() => that);
 		}
 
 		/**
@@ -913,21 +925,7 @@ export namespace Ior {
 			that: Ior<A, B1>,
 			f: (lhs: B, rhs: B1) => B2,
 		): Ior<A, B2> {
-			return this.flatMap((lhs) => that.map((rhs) => f(lhs, rhs)));
-		}
-
-		/**
-		 * If this and that `Ior` have a right-hand value, return that `Ior`.
-		 * Accumulate the left-hand values of `Both` variants using their
-		 * behavior as a semigroup. If either `Ior` is a `Left`, combine the
-		 * left-hand value with any existing left-hand value and return the
-		 * result in a `Left`.
-		 */
-		and<A extends Semigroup<A>, B1>(
-			this: Ior<A, any>,
-			that: Ior<A, B1>,
-		): Ior<A, B1> {
-			return this.flatMap(() => that);
+			return this.andThen((lhs) => that.map((rhs) => f(lhs, rhs)));
 		}
 
 		/**

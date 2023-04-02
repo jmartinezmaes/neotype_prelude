@@ -779,53 +779,53 @@ describe("Ior", () => {
 		});
 	});
 
-	describe("#flatMap", () => {
+	describe("#andThen", () => {
 		it("does not apply the continuation if the variant is Left", () => {
-			const ior = Ior.left<Str, 2>(new Str("a")).flatMap(
+			const ior = Ior.left<Str, 2>(new Str("a")).andThen(
 				(two): Ior<Str, [2, 4]> => Ior.both(new Str("b"), [two, 4]),
 			);
 			expect(ior).to.deep.equal(Ior.left(new Str("a")));
 		});
 
 		it("applies the continuation to the value if the variant is Right", () => {
-			const ior = Ior.right<2, Str>(2).flatMap(
+			const ior = Ior.right<2, Str>(2).andThen(
 				(two): Ior<Str, [2, 4]> => Ior.right([two, 4]),
 			);
 			expect(ior).to.deep.equal(Ior.right([2, 4]));
 		});
 
 		it("retains the left-hand value if the continuation on a Right returns a Both", () => {
-			const ior = Ior.right<2, Str>(2).flatMap(
+			const ior = Ior.right<2, Str>(2).andThen(
 				(two): Ior<Str, [2, 4]> => Ior.both(new Str("b"), [two, 4]),
 			);
 			expect(ior).to.deep.equal(Ior.both(new Str("b"), [2, 4]));
 		});
 
 		it("combines the left-hand values if the continuation on a Both returns a Left", () => {
-			const ior = Ior.both<Str, 2>(new Str("a"), 2).flatMap(
+			const ior = Ior.both<Str, 2>(new Str("a"), 2).andThen(
 				(): Ior<Str, [2, 4]> => Ior.left(new Str("b")),
 			);
 			expect(ior).to.deep.equal(Ior.left(new Str("ab")));
 		});
 
 		it("retains the left-hand value if the continuation on a Both returns a Right", () => {
-			const ior = Ior.both<Str, 2>(new Str("a"), 2).flatMap(
+			const ior = Ior.both<Str, 2>(new Str("a"), 2).andThen(
 				(two): Ior<Str, [2, 4]> => Ior.right([two, 4]),
 			);
 			expect(ior).to.deep.equal(Ior.both(new Str("a"), [2, 4]));
 		});
 
 		it("combines the left-hand values if the continuation on a Both returns a Both", () => {
-			const ior = Ior.both<Str, 2>(new Str("a"), 2).flatMap(
+			const ior = Ior.both<Str, 2>(new Str("a"), 2).andThen(
 				(two): Ior<Str, [2, 4]> => Ior.both(new Str("b"), [two, 4]),
 			);
 			expect(ior).to.deep.equal(Ior.both(new Str("ab"), [2, 4]));
 		});
 	});
 
-	describe("#goMap", () => {
+	describe("#andThenGo", () => {
 		it("does not apply the continuation if the variant is Left", () => {
-			const ior = Ior.left<Str, 2>(new Str("a")).goMap(function* (
+			const ior = Ior.left<Str, 2>(new Str("a")).andThenGo(function* (
 				two,
 			): Ior.Go<Str, [2, 4]> {
 				const four = yield* Ior.both<Str, 4>(new Str("b"), 4);
@@ -835,7 +835,7 @@ describe("Ior", () => {
 		});
 
 		it("applies the continuation to the value if the variant is Right", () => {
-			const ior = Ior.right<2, Str>(2).goMap(function* (
+			const ior = Ior.right<2, Str>(2).andThenGo(function* (
 				two,
 			): Ior.Go<Str, [2, 4]> {
 				const four = yield* Ior.right<4, Str>(4);
@@ -845,7 +845,7 @@ describe("Ior", () => {
 		});
 
 		it("retains the left-hand value if the continuation on a Right returns a Both", () => {
-			const ior = Ior.right<2, Str>(2).goMap(function* (
+			const ior = Ior.right<2, Str>(2).andThenGo(function* (
 				two,
 			): Ior.Go<Str, [2, 4]> {
 				const four = yield* Ior.both<Str, 4>(new Str("b"), 4);
@@ -855,7 +855,7 @@ describe("Ior", () => {
 		});
 
 		it("combines the left-hand values if the continuation on a Both returns a Left", () => {
-			const ior = Ior.both<Str, 2>(new Str("a"), 2).goMap(function* (
+			const ior = Ior.both<Str, 2>(new Str("a"), 2).andThenGo(function* (
 				two,
 			): Ior.Go<Str, [2, 4]> {
 				const four = yield* Ior.left<Str, 4>(new Str("b"));
@@ -865,7 +865,7 @@ describe("Ior", () => {
 		});
 
 		it("retains the left-hand value if the continuation on a Both returns a Right", () => {
-			const ior = Ior.both<Str, 2>(new Str("a"), 2).goMap(function* (
+			const ior = Ior.both<Str, 2>(new Str("a"), 2).andThenGo(function* (
 				two,
 			): Ior.Go<Str, [2, 4]> {
 				const four = yield* Ior.right<4, Str>(4);
@@ -875,22 +875,12 @@ describe("Ior", () => {
 		});
 
 		it("combines the left-hand values if the continuation on a Both returns a Both", () => {
-			const ior = Ior.both<Str, 2>(new Str("a"), 2).goMap(function* (
+			const ior = Ior.both<Str, 2>(new Str("a"), 2).andThenGo(function* (
 				two,
 			): Ior.Go<Str, [2, 4]> {
 				const four = yield* Ior.both<Str, 4>(new Str("b"), 4);
 				return [two, four];
 			});
-			expect(ior).to.deep.equal(Ior.both(new Str("ab"), [2, 4]));
-		});
-	});
-
-	describe("#zipWith", () => {
-		it("applies the function to the right-hand values if both variants have right-hand values", () => {
-			const ior = Ior.both<Str, 2>(new Str("a"), 2).zipWith(
-				Ior.both<Str, 4>(new Str("b"), 4),
-				(two, four): [2, 4] => [two, four],
-			);
 			expect(ior).to.deep.equal(Ior.both(new Str("ab"), [2, 4]));
 		});
 	});
@@ -901,6 +891,16 @@ describe("Ior", () => {
 				Ior.both<Str, 4>(new Str("b"), 4),
 			);
 			expect(ior).to.deep.equal(Ior.both(new Str("ab"), 4));
+		});
+	});
+
+	describe("#zipWith", () => {
+		it("applies the function to the right-hand values if both variants have right-hand values", () => {
+			const ior = Ior.both<Str, 2>(new Str("a"), 2).zipWith(
+				Ior.both<Str, 4>(new Str("b"), 4),
+				(two, four): [2, 4] => [two, four],
+			);
+			expect(ior).to.deep.equal(Ior.both(new Str("ab"), [2, 4]));
 		});
 	});
 

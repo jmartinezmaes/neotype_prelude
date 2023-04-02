@@ -235,6 +235,13 @@ describe("Validation", () => {
 		});
 	});
 
+	describe("#and", () => {
+		it("returns the other Validation if the variant is Ok", () => {
+			const vdn = Validation.ok<2, Str>(2).and(Validation.ok<4, Str>(4));
+			expect(vdn).to.deep.equal(Validation.ok(4));
+		});
+	});
+
 	describe("#zipWith", () => {
 		it("combines the failures if both variants are Err", () => {
 			const vdn = Validation.err<Str, 2>(new Str("a")).zipWith(
@@ -266,13 +273,6 @@ describe("Validation", () => {
 				(two, four): [2, 4] => [two, four],
 			);
 			expect(vdn).to.deep.equal(Validation.ok([2, 4]));
-		});
-	});
-
-	describe("#and", () => {
-		it("keeps only the second success if both variants are Ok", () => {
-			const vdn = Validation.ok<2, Str>(2).and(Validation.ok<4, Str>(4));
-			expect(vdn).to.deep.equal(Validation.ok(4));
 		});
 	});
 
