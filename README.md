@@ -49,3 +49,14 @@ exports.
 
 [es6 modules]:
 	https://exploringjs.com/es6/ch_modules.html#sec_basics-of-es6-modules
+
+## Inspiration
+
+This library takes inspiration from many existing functional programming
+languages and libraries, including:
+
+-   [Haskell](https://www.haskell.org)
+-   [Scala](https://scala-lang.org) and [Cats](https://typelevel.org/cats/)
+-   [Rust](https://www.rust-lang.org/)
+-   [fp-ts](https://github.com/gcanti/fp-ts)
+-   [true-myth](https://github.com/true-myth/true-myth)
