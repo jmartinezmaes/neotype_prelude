@@ -100,29 +100,19 @@
  *
  * ## Collecting into `Eval`
  *
- * These static methods turn a container of `Eval` elements "inside out" into an
- * `Eval` that contains an equivalent container of outcomes:
+ * These static methods turn a container of `Eval` elements "inside out":
  *
  * -   `all` turns an array or a tuple literal of `Eval` elements inside out.
- *     For example:
- *     -   `Eval<T>[]` becomes `Eval<T[]>`
- *     -   `[Eval<T1>, Eval<T2>]` becomes `Eval<[T1, T2]>`
  * -   `allProps` turns a string-keyed record or object literal of `Eval`
- *     elements inside out. For example:
- *     -   `Record<string, Eval<T>>` becomes `Eval<Record<string, T>>`
- *     -   `{ x: Eval<T1>, y: Eval<T2> }` becomes `Eval<{ x: T1, y: T2 }>`
+ *     elements inside out.
  *
  * The `reduce` static method reduces a finite iterable from left to right in
- * the context of `Eval`. This is useful for mapping, filtering, and
- * accumulating values using `Eval`.
+ * the context of `Eval`.
  *
- * ## Lifting functions to work with `Eval`
+ * ## Lifting functions into the context of `Eval`
  *
- * The `lift` static method receives a function that accepts arbitrary
- * arguments, and returns an adapted function that accepts `Eval` values as
- * arguments instead. The arguments are evaluated from left to right, and then
- * the original function is applied to their outcomes and the result is returned
- * in an `Eval`.
+ * The `lift` static method adapts a synchronous function to accept `Eval`
+ * values as arguments and return an `Eval`.
  *
  * @example Recursive folds with `Eval`
  *
@@ -309,13 +299,6 @@ export class Eval<out T> {
 
 	/**
 	 * Reduce a finite iterable from left to right in the context of `Eval`.
-	 *
-	 * @remarks
-	 *
-	 * Start with an initial accumulator and reduce the elements of an iterable
-	 * using a reducer function that returns an `Eval`. Use the outcome of the
-	 * returned `Eval` as the new accumulator until there are no elements
-	 * remaining, and then return the final accumulator in an `Eval`.
 	 */
 	static reduce<T, TAcc>(
 		vals: Iterable<T>,
@@ -337,10 +320,6 @@ export class Eval<out T> {
 	 * Turn an array or a tuple literal of `Eval` elements "inside out".
 	 *
 	 * @remarks
-	 *
-	 * Evaluate the `Eval` elements in an array or a tuple literal from left to
-	 * right. Collect their outcomes in an array or a tuple literal,
-	 * respectively, and return the result in an `Eval`.
 	 *
 	 * For example:
 	 *
@@ -367,9 +346,8 @@ export class Eval<out T> {
 	 *
 	 * @remarks
 	 *
-	 * Enumerate an object's own enumerable, string-keyed property key-`Eval`
-	 * pairs. Return an `Eval` that contains an object of the keys and their
-	 * associated outcomes.
+	 * This method only enumerates the object's own enumerable, string-keyed
+	 * property key-value pairs.
 	 *
 	 * For example:
 	 *
@@ -391,14 +369,7 @@ export class Eval<out T> {
 	}
 
 	/**
-	 * Lift a function into the context of `Eval`.
-	 *
-	 * @remarks
-	 *
-	 * Given a function that accepts arbitrary arguments, return an adapted
-	 * function that accepts `Eval` values as arguments. When applied, evaluate
-	 * the arguments from left to right, and then apply the original function to
-	 * their outcomes and return the result in an `Eval`.
+	 * Lift a function into the context of `Eval` values.
 	 */
 	static lift<TArgs extends unknown[], T>(
 		f: (...args: TArgs) => T,

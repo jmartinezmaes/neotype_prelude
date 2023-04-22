@@ -115,7 +115,7 @@ describe("Eval", () => {
 	});
 
 	describe("lift", () => {
-		it("lifts the function into the context of Eval", () => {
+		it("lifts the function into the context of Eval values", () => {
 			function f<A, B>(lhs: A, rhs: B): [A, B] {
 				return [lhs, rhs];
 			}

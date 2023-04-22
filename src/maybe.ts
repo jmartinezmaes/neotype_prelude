@@ -202,32 +202,32 @@
  *
  * ## Collecting into `Maybe`
  *
- * These functions turn a container of `Maybe` elements "inside out". If the
- * elements are all present, their values are collected into an equivalent
- * container and returned in a `Just`. If any element is absent, `Nothing` is
- * returned instead.
+ * These functions turn a container of `Maybe` elements "inside out":
  *
  * -   `all` turns an array or a tuple literal of `Maybe` elements inside out.
- *     For example:
- *     -   `Maybe<T>[]` becomes `Maybe<T[]>`
- *     -   `[Maybe<T1>, Maybe<T2>]` becomes `Maybe<[T1, T2]>`
  * -   `allProps` turns a string-keyed record or object literal of `Maybe`
- *     elements inside out. For example:
- *     -   `Record<string, Maybe<T>>` becomes `Maybe<Record<string, T>>`
- *     -   `{ x: Maybe<T1>, y: Maybe<T2> }` becomes `Maybe<{ x: T1, y: T2 }>`
+ *     elements inside out.
+ *
+ * These functions concurrently turn a container of promise-like `Maybe`
+ * elements "inside out":
+ *
+ * -   `allAsync` turns an array or a tuple literal of promise-like `Maybe`
+ *     elements inside out.
+ * -   `allPropsAsync` turns a string-keyed record or object literal of
+ *     promise-like `Maybe` elements inside out.
  *
  * The `reduce` function reduces a finite iterable from left to right in the
- * context of `Maybe`. This is useful for mapping, filtering, and accumulating
- * values using `Maybe`.
+ * context of `Maybe`.
  *
- * ## Lifting functions to work with `Maybe`
+ * ## Lifting functions into the context of `Maybe`
  *
- * The `lift` function receives a function that accepts arbitrary arguments,
- * and returns an adapted function that accepts `Maybe` values as arguments
- * instead. The arguments are evaluated from left to right, and if they are all
- * present, the original function is applied to their values and the result is
- * returned in a `Just`. If any argument is absent, `Nothing` is returned
- * instead.
+ * These functions adapt a function to work with `Maybe` values:
+ *
+ * -   `lift` adapts a synchronous function to accept `Maybe` values as
+ *     arguments and return an `Maybe`.
+ * -   `liftAsync` adapts a synchronous or an asynchronous function to accept
+ *     promise-like `Maybe` values as arguments and return a `Promise` that
+ *     resolves with an `Maybe`.
  *
  * @example Basic matching and unwrapping
  *
@@ -451,6 +451,11 @@ export namespace Maybe {
 
 	/**
 	 * Evaluate a `Maybe.Go` generator to return a `Maybe.`
+	 *
+	 * @remarks
+	 *
+	 * If any yielded `Maybe` is absent, return `Nothing`; otherwise, when the
+	 * generator returns, return the the result in a `Just`.
 	 */
 	export function go<TReturn>(gen: Go<TReturn>): Maybe<TReturn> {
 		let nxt = gen.next();
@@ -469,14 +474,6 @@ export namespace Maybe {
 
 	/**
 	 * Reduce a finite iterable from left to right in the context of `Maybe`.
-	 *
-	 * @remarks
-	 *
-	 * Start with an initial accumulator and reduce the elements of an iterable
-	 * using a reducer function that returns a `Maybe`. While the function
-	 * returns a present `Maybe`, continue the reduction using the value as the
-	 * new accumulator until there are no elements remaining, and then return
-	 * the final accumulator in a `Just`; otherwise, return `Nothing`.
 	 */
 	export function reduce<T, TAcc>(
 		vals: Iterable<T>,
@@ -498,11 +495,6 @@ export namespace Maybe {
 	 * Turn an array or a tuple literal of `Maybe` elements "inside out".
 	 *
 	 * @remarks
-	 *
-	 * Evaluate the `Maybe` elements in an array or a tuple literal from left to
-	 * right. If they are all present, collect their values in an array or a
-	 * tuple literal, respectively, and return the result in a `Just`;
-	 * otherwise, return `Nothing`.
 	 *
 	 * For example:
 	 *
@@ -529,10 +521,8 @@ export namespace Maybe {
 	 *
 	 * @remarks
 	 *
-	 * Enumerate an object's own enumerable, string-keyed property key-`Maybe`
-	 * pairs. If all `Maybe` values are present, return a `Just` that contains
-	 * an object of the keys and their associated present values; otherwise,
-	 * return `Nothing`.
+	 * This function enumerates only the object's own enumerable, string-keyed
+	 * property key-value pairs.
 	 *
 	 * For example:
 	 *
@@ -554,15 +544,8 @@ export namespace Maybe {
 	}
 
 	/**
-	 * Lift a function into the context of `Maybe`.
-	 *
-	 * @remarks
-	 *
-	 * Given a function that accepts arbitrary arguments, return an adapted
-	 * function that accepts `Maybe` values as arguments. When applied, evaluate
-	 * the arguments from left to right. If they are all present, apply the
-	 * original function to their values and return the result in a `Just`;
-	 * otherwise, return `Nothing`.
+	 * Adapt a synchronous function to accept `Maybe` values as arguments and
+	 * return a `Maybe`.
 	 */
 	export function lift<TArgs extends unknown[], T>(
 		f: (...args: TArgs) => T,
@@ -573,6 +556,12 @@ export namespace Maybe {
 	/**
 	 * Evaluate a `Maybe.GoAsync` async generator to return a `Promise` that
 	 * resolves with a `Maybe`.
+	 *
+	 * @remarks
+	 *
+	 * If any yielded `Maybe` is absent, resolve with `Nothing`; otherwise, when
+	 * the generator returns, resolve with the the result in a `Just`. If an
+	 * error is thrown, reject with the error.
 	 */
 	export async function goAsync<TReturn>(
 		gen: GoAsync<TReturn>,
@@ -589,6 +578,109 @@ export namespace Maybe {
 			}
 		}
 		return isHalted ? nothing : just(nxt.value);
+	}
+
+	/**
+	 * Concurrently turn an array or a tuple literal of promise-like `Maybe`
+	 * elements "inside out".
+	 *
+	 * @remarks
+	 *
+	 * For example:
+	 *
+	 * -   `Promise<Maybe<T>>[]` becomes `Promise<Maybe<T[]>>`
+	 * -   `[Promise<Maybe<T1>>, Promise<Maybe<T2>>]` becomes
+	 *     `Promise<Maybe<[T1, T2]>>`
+	 */
+	export function allAsync<
+		TElems extends readonly (Maybe<any> | PromiseLike<Maybe<any>>)[] | [],
+	>(
+		elems: TElems,
+	): Promise<Maybe<{ [K in keyof TElems]: JustT<Awaited<TElems[K]>> }>> {
+		return new Promise((resolve, reject) => {
+			const results = new Array(elems.length);
+			let remaining = elems.length;
+			for (const [idx, elem] of elems.entries()) {
+				Promise.resolve(elem).then((maybe) => {
+					if (maybe.isNothing()) {
+						resolve(maybe);
+						return;
+					}
+					results[idx] = maybe.val;
+					remaining--;
+					if (remaining === 0) {
+						resolve(just(results as any));
+						return;
+					}
+				}, reject);
+			}
+		});
+	}
+
+	/**
+	 * Concurrently turn a string-keyed record or object literal of promise-like
+	 * `Maybe` elements "inside out".
+	 *
+	 * @remarks
+	 *
+	 * This function enumerates only the object's own enumerable, string-keyed
+	 * property key-value pairs.
+	 *
+	 * For example:
+	 *
+	 * -   `Record<string, Promise<Maybe<T>>>` becomes
+	 *     `Promise<Maybe<Record<string, T>>>`
+	 * -   `{ x: Promise<Maybe<T1>>, y: Promise<Maybe<T2>> }` becomes
+	 *     `Promise<Maybe<{ x: T1, y: T2 }>>`
+	 */
+	export function allPropsAsync<
+		TElems extends Record<string, Maybe<any> | PromiseLike<Maybe<any>>>,
+	>(
+		elems: TElems,
+	): Promise<Maybe<{ [K in keyof TElems]: JustT<Awaited<TElems[K]>> }>> {
+		return new Promise((resolve, reject) => {
+			const entries = Object.entries(elems);
+			const results: Record<string, any> = {};
+			let remaining = entries.length;
+			for (const [key, elem] of entries) {
+				Promise.resolve(elem).then((maybe) => {
+					if (maybe.isNothing()) {
+						resolve(maybe);
+						return;
+					}
+					results[key] = maybe.val;
+					remaining--;
+					if (remaining === 0) {
+						resolve(just(results as any));
+						return;
+					}
+				}, reject);
+			}
+		});
+	}
+
+	/**
+	 * Adapt a synchronous or an asynchronous function to accept promise-like
+	 * `Maybe` values as arguments and return a `Promise` that resolves with a
+	 * `Maybe`.
+	 *
+	 * @remarks
+	 *
+	 * The lifted function's arguments are evaluated concurrently.
+	 */
+	export function liftAsync<TArgs extends unknown[], T>(
+		f: (...args: TArgs) => T | PromiseLike<T>,
+	): (
+		...elems: {
+			[K in keyof TArgs]: Maybe<TArgs[K]> | PromiseLike<Maybe<TArgs[K]>>;
+		}
+	) => Promise<Maybe<T>> {
+		return (...elems) =>
+			goAsync(
+				(async function* () {
+					return f(...(yield* await allAsync(elems)));
+				})(),
+			);
 	}
 
 	/**

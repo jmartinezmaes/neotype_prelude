@@ -19,6 +19,7 @@ import { describe, expect, it } from "vitest";
 import {
 	arbNum,
 	arbStr,
+	delay,
 	expectLawfulEq,
 	expectLawfulOrd,
 	expectLawfulSemigroup,
@@ -146,7 +147,7 @@ describe("Either", () => {
 	});
 
 	describe("lift", () => {
-		it("lifts the function into the context of Either", () => {
+		it("lifts the function into the context of Either values", () => {
 			function f<A, B>(lhs: A, rhs: B): [A, B] {
 				return [lhs, rhs];
 			}
@@ -219,6 +220,82 @@ describe("Either", () => {
 			}
 			const either = await Either.goAsync(f());
 			expect(either).to.deep.equal(Either.left(3));
+		});
+	});
+
+	describe("allAsync", () => {
+		it("short-circuits on the first Left", async () => {
+			const either = await Either.allAsync([
+				delay(10, Either.right<2, 1>(2)),
+				delay(5, Either.left<3, 4>(3)),
+			]);
+			expect(either).to.deep.equal(Either.left(3));
+		});
+
+		it("extracts the successes if all variants are Right", async () => {
+			const either = await Either.allAsync([
+				delay(10, Either.right<2, 1>(2)),
+				delay(5, Either.right<4, 3>(4)),
+			]);
+			expect(either).to.deep.equal(Either.right([2, 4]));
+		});
+
+		it("accepts plain Either values", async () => {
+			const either = await Either.allAsync([
+				Either.right<2, 1>(2),
+				Either.right<4, 3>(4),
+			]);
+			expect(either).to.deep.equal(Either.right([2, 4]));
+		});
+	});
+
+	describe("allPropsAsync", () => {
+		it("short-circuits on the first Left", async () => {
+			const either = await Either.allPropsAsync({
+				two: delay(10, Either.right<2, 1>(2)),
+				four: delay(5, Either.left<3, 4>(3)),
+			});
+			expect(either).to.deep.equal(Either.left(3));
+		});
+
+		it("extracts the successes if all variants are Right", async () => {
+			const either = await Either.allPropsAsync({
+				two: delay(10, Either.right<2, 1>(2)),
+				four: delay(5, Either.right<4, 3>(4)),
+			});
+			expect(either).to.deep.equal(Either.right({ two: 2, four: 4 }));
+		});
+
+		it("accepts plain Either values", async () => {
+			const either = await Either.allPropsAsync({
+				two: Either.right<2, 1>(2),
+				four: Either.right<4, 3>(4),
+			});
+			expect(either).to.deep.equal(Either.right({ two: 2, four: 4 }));
+		});
+	});
+
+	describe("liftAsync", () => {
+		it("lifts the function into the async context of Either", async () => {
+			function f<A, B>(lhs: A, rhs: B): [A, B] {
+				return [lhs, rhs];
+			}
+			const either = await Either.liftAsync(f<2, 4>)(
+				delay(10, Either.right<2, 1>(2)),
+				delay(5, Either.right<4, 3>(4)),
+			);
+			expect(either).to.deep.equal(Either.right([2, 4]));
+		});
+
+		it("lifts the async function into the async context of Either", async () => {
+			async function f<A, B>(lhs: A, rhs: B): Promise<[A, B]> {
+				return [lhs, rhs];
+			}
+			const either = await Either.liftAsync(f<2, 4>)(
+				delay(10, Either.right<2, 1>(2)),
+				delay(5, Either.right<4, 3>(4)),
+			);
+			expect(either).to.deep.equal(Either.right([2, 4]));
 		});
 	});
 

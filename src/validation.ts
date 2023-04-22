@@ -134,31 +134,30 @@
  *
  * ## Collecting into `Validation`
  *
- * These methods turn a container of `Validation` elements "inside out". If the
- * elements all succeed, their successes are collected into an equivalent
- * container and returned as a success. If any element fails, the collection
- * halts and failures begin accumulating instead.
+ * These functions turn a container of `Validation` elements "inside out":
  *
  * -   `all` turns an array or a tuple literal of `Validation` elements inside
- *     out. For example:
- *     -   `Validation<E, T>[]` becomes `Validation<E, T[]>`
- *     -   `[Validation<E, T1>, Validation<E, T2>]` becomes `Validation<E, [T1,
- *         T2]>`
+ *     out.
  * -   `allProps` turns a string-keyed record or object literal of `Validation`
- *     elements inside out. For example:
- *     -   `Record<string, Validation<E, T>>` becomes `Validation<E,
- *         Record<string, T>>`
- *     -   `{ x: Validation<E, T1>, y: Validation<E, T2> }` becomes
- *         `Validation<E, { x: T1, y: T2 }>`
+ *     elements inside out.
  *
- * ## Lifting functions to work with `Validation`
+ * These functions concurrently turn a container of promise-like `Validation`
+ * elements "inside out":
  *
- * The `lift` function receives a function that accepts arbitrary arguments, and
- * returns an adapted function that accepts `Validation` values as arguments
- * instead. The arguments are evaluated from left to right, and if they all
- * succeed, the original function is applied to their successes and the result
- * is returned as a success. If any `Validation` fails, failures begin
- * accumulating instead.
+ * -   `allAsync` turns an array or a tuple literal of promise-like `Validation`
+ *     elements inside out.
+ * -   `allPropsAsync` turns a string-keyed record or object literal of
+ *     promise-like`Validation` elements inside out.
+ *
+ * ## Lifting functions into the context of `Validation`
+ *
+ * These functions adapt a function to work with `Validation` values:
+ *
+ * -   `lift` adapts a synchronous function to accept `Validation` values as
+ *     arguments and return a `Validation`.
+ * -   `liftAsync` adapts a synchronous or an asynchronous function to accept
+ *     promise-like `Validation` values as arguments and return a `Promise` that
+ *     resolves with a `Validation`.
  *
  * @example Validating a single property
  *
@@ -420,11 +419,6 @@ export namespace Validation {
 	 *
 	 * @remarks
 	 *
-	 * Evaluate the `Validation` elements in an array or a tuple literal from
-	 * left to right. If they all succeed, collect their successes in an array
-	 * or a tuple literal, respectively, and succeed with the result; otherwise,
-	 * begin accumulating failures on the first failed `Validation`.
-	 *
 	 * For example:
 	 *
 	 * -   `Validation<E, T>[]` becomes `Validation<E, T[]>`
@@ -455,10 +449,8 @@ export namespace Validation {
 	 *
 	 * @remarks
 	 *
-	 * Enumerate an object's own enumerable, string-keyed property
-	 * key-`Validation` pairs. If all `Validation` values succeed, succeed with
-	 * an object that contains the keys and their associated successes;
-	 * otherwise, begin accumulating failures on the first failed `Validation`.
+	 * This function enumerates only the object's own enumerable string-keyed
+	 * property key-value pairs.
 	 *
 	 * For example:
 	 *
@@ -486,15 +478,8 @@ export namespace Validation {
 	}
 
 	/**
-	 * Lift a function into the context of `Validation`.
-	 *
-	 * @remarks
-	 *
-	 * Given a function that accepts arbitrary arguments, return an adapted
-	 * function that accepts `Validation` values as arguments. When applied,
-	 * evaluate the arguments from left to right. If they all succeed, apply the
-	 * original function to their successes and succeed with the result;
-	 * otherwise, begin accumulating failures on the first failed `Validation`.
+	 * Adapt a synchronous function to accept `Validation` values as arguments
+	 * and return a `Validation`.
 	 */
 	export function lift<TArgs extends unknown[], T>(
 		f: (...args: TArgs) => T,
@@ -506,6 +491,164 @@ export namespace Validation {
 				any,
 				T
 			>;
+	}
+
+	/**
+	 * Concurrently turn an array or a tuple literal of promise-like
+	 * `Validation` elements "inside out".
+	 *
+	 * @remarks
+	 *
+	 * For example:
+	 *
+	 * -   `Promise<Validation<E, T>>[]` becomes `Promise<Validation<E, T[]>>`
+	 * -   `[Promise<Validation<E, T1L>, Promise<Validation<E, T2>>]` becomes
+	 *     `Promise<Validation<E, [T1, T2]>>`
+	 *
+	 * Failures are combined in the order the promise-like elements resolve.
+	 */
+	export function allAsync<
+		TElems extends
+			| readonly (
+					| Validation<Semigroup<any>, any>
+					| PromiseLike<Validation<Semigroup<any>, any>>
+			  )[]
+			| [],
+	>(
+		elems: TElems,
+	): Promise<
+		Validation<
+			ErrT<{ [K in keyof TElems]: Awaited<TElems[K]> }[number]>,
+			{ [K in keyof TElems]: OkT<Awaited<TElems[K]>> }
+		>
+	> {
+		return new Promise((resolve, reject) => {
+			const results = new Array(elems.length);
+			let remaining = elems.length;
+			let acc: Semigroup<any> | undefined;
+			let isFailing = false;
+
+			for (const [idx, elem] of elems.entries()) {
+				Promise.resolve(elem).then((vdn) => {
+					if (vdn.isErr()) {
+						isFailing = true;
+						if (acc === undefined) {
+							acc = vdn.val;
+						} else {
+							acc = cmb(acc, vdn.val);
+						}
+					} else if (!isFailing) {
+						results[idx] = vdn.val;
+					}
+
+					remaining--;
+					if (remaining === 0) {
+						if (acc === undefined) {
+							resolve(ok(results as any));
+						} else {
+							resolve(err(acc as any));
+						}
+						return;
+					}
+				}, reject);
+			}
+		});
+	}
+
+	/**
+	 * Concurrently turn a string-keyed record or object literal of promise-like
+	 * `Validation` elements "inside out".
+	 *
+	 * @remarks
+	 *
+	 * This function enumerates only the object's own enumerable string-keyed
+	 * property key-value pairs.
+	 *
+	 * For example:
+	 *
+	 * -   `Record<string, Validation<E, T>>` becomes `Validation<E,
+	 *     Record<string, T>>`
+	 * -   `{ x: Validation<E, T1>, y: Validation<E, T2> }` becomes
+	 *     `Validation<E, { x: T1, y: T2 }>`
+	 *
+	 * Failures are combined in the order the promise-like elements resolve.
+	 */
+	export function allPropsAsync<
+		TElems extends Record<
+			string,
+			| Validation<Semigroup<any>, any>
+			| PromiseLike<Validation<Semigroup<any>, any>>
+		>,
+	>(
+		elems: TElems,
+	): Promise<
+		Validation<
+			ErrT<{ [K in keyof TElems]: Awaited<TElems[K]> }[keyof TElems]>,
+			{ [K in keyof TElems]: OkT<Awaited<TElems[K]>> }
+		>
+	> {
+		return new Promise((resolve, reject) => {
+			const entries = Object.entries(elems);
+			const results: Record<string, any> = {};
+			let remaining = entries.length;
+			let acc: Semigroup<any> | undefined;
+			let isFailing = false;
+
+			for (const [key, elem] of entries) {
+				Promise.resolve(elem).then((vdn) => {
+					if (vdn.isErr()) {
+						isFailing = true;
+						if (acc === undefined) {
+							acc = vdn.val;
+						} else {
+							acc = cmb(acc, vdn.val);
+						}
+					} else if (!isFailing) {
+						results[key] = vdn.val;
+					}
+
+					remaining--;
+					if (remaining === 0) {
+						if (acc === undefined) {
+							resolve(ok(results as any));
+						} else {
+							resolve(err(acc as any));
+						}
+						return;
+					}
+				}, reject);
+			}
+		});
+	}
+
+	/**
+	 * Adapt a synchronous or an asynchronous function to accept promise-like
+	 * `Validation` values as arguments and return a `Promise` that resolves
+	 * with a `Validation`.
+	 *
+	 * @remarks
+	 *
+	 * The lifted function's arguments are evaluated concurrently. Failures are
+	 * combined in the order the arguments resolve.
+	 */
+	export function liftAsync<TArgs extends unknown[], T>(
+		f: (...args: TArgs) => T | PromiseLike<T>,
+	): <E extends Semigroup<E>>(
+		...elems: {
+			[K in keyof TArgs]:
+				| Validation<E, TArgs[K]>
+				| PromiseLike<Validation<E, TArgs[K]>>;
+		}
+	) => Promise<Validation<E, T>> {
+		return async (...elems) => {
+			const result = (await allAsync(elems)).map((args) =>
+				f(...(args as TArgs)),
+			);
+			if (result.isErr()) {
+				return result;
+			}
+			return ok(await result.val) as Validation<any, any>;
+		};
 	}
 
 	/**
