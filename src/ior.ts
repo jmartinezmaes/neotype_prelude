@@ -207,14 +207,14 @@
  *
  * These functions turn a container of `Ior` elements "inside out".
  *
- * -   `all` turns an array or a tuple literal of `Ior` elements inside out.
+ * -   `all` turns an iterable or a tuple literal of `Ior` elements inside out.
  * -   `allProps` turns a string-keyed record or object literal of `Ior`
  *     elements inside out.
  *
  * These functions concurrently turn a container of promise-like `Ior` elements
  * "inside out":
  *
- * -   `allAsync` turns an array or a tuple literal of promise-like `Ior`
+ * -   `allAsync` turns an iterable or a tuple literal of promise-like `Ior`
  *     elements inside out.
  * -   `allPropsAsync` turns a string-keyed record or object literal of
  *     promise-like `Ior` elements inside out.
@@ -584,12 +584,27 @@ export namespace Ior {
 	): Ior<
 		LeftT<TIors[number]>,
 		{ -readonly [K in keyof TIors]: RightT<TIors[K]> }
-	> {
+	>;
+
+	/**
+	 * Turn an iterable of `Ior` elements "inside out" using an array.
+	 *
+	 * @remarks
+	 *
+	 * For example, `Iterable<Ior<A, B>>` becomes `Ior<A, B[]>`.
+	 */
+	export function all<A extends Semigroup<A>, B>(
+		iors: Iterable<Ior<A, B>>,
+	): Ior<A, B[]>;
+
+	export function all<A extends Semigroup<A>, B>(
+		iors: Iterable<Ior<A, B>>,
+	): Ior<A, B[]> {
 		return go(
-			(function* (): Go<any, any> {
-				const results = new Array(iors.length);
-				for (const [idx, ior] of iors.entries()) {
-					results[idx] = yield* ior;
+			(function* () {
+				const results = [];
+				for (const ior of iors) {
+					results.push(yield* ior);
 				}
 				return results;
 			})(),
@@ -722,19 +737,41 @@ export namespace Ior {
 			LeftT<{ [K in keyof TElems]: Awaited<TElems[K]> }[number]>,
 			{ [K in keyof TElems]: RightT<Awaited<TElems[K]>> }
 		>
-	> {
-		return new Promise((resolve, reject) => {
-			const results = new Array(elems.length);
-			let remaining = elems.length;
-			let acc: Semigroup<any> | undefined;
+	>;
 
-			for (const [idx, elem] of elems.entries()) {
+	/**
+	 * Concurrently turn an iterable of promise-like `Ior` elements "inside
+	 * out" using an array.
+	 *
+	 * @remarks
+	 *
+	 * For example, `Iterable<Promise<Ior<A, B>>>` becomes `Promise<Ior<A,
+	 * B[]>>`.
+	 *
+	 * Left-hand values are combined in the order the promise-like elements
+	 * resolve.
+	 */
+	export function allAsync<A extends Semigroup<A>, B>(
+		elems: Iterable<Ior<A, B> | PromiseLike<Ior<A, B>>>,
+	): Promise<Ior<A, B[]>>;
+
+	export function allAsync<A extends Semigroup<A>, B>(
+		elems: Iterable<Ior<A, B> | PromiseLike<Ior<A, B>>>,
+	): Promise<Ior<A, B[]>> {
+		return new Promise((resolve, reject) => {
+			const results: B[] = [];
+			let remaining = 0;
+			let acc: A | undefined;
+
+			for (const elem of elems) {
+				const idx = remaining;
+				remaining++;
 				Promise.resolve(elem).then((ior) => {
 					if (ior.isLeft()) {
 						if (acc === undefined) {
-							resolve(ior as Left<any>);
+							resolve(ior);
 						} else {
-							resolve(left(cmb(acc, ior.val) as any));
+							resolve(left(cmb(acc, ior.val)));
 						}
 						return;
 					}
@@ -753,9 +790,9 @@ export namespace Ior {
 					remaining--;
 					if (remaining === 0) {
 						if (acc === undefined) {
-							resolve(right(results as any));
+							resolve(right(results));
 						} else {
-							resolve(both(acc as any, results as any));
+							resolve(both(acc, results));
 						}
 						return;
 					}
