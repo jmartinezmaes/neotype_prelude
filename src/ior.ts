@@ -205,36 +205,32 @@
  *
  * ## Collecting into `Ior`
  *
- * These methods turn a container of `Ior` elements "inside out". If all
- * elements have right-hand values, the values are collected into an equivalent
- * container and returned as a right-hand value. The left-hand values of `Both`
- * variants accumulate using their behavior as a semigroup. If any element is a
- * `Left`, the collection halts and the left-hand value is combined with any
- * existing left-hand value, and the result is returned in a `Left`.
+ * These functions turn a container of `Ior` elements "inside out".
  *
- * -   `all` turns an array or a tuple literal of `Ior` elements inside out. For
- *     example:
- *     -   `Ior<A, B>[]` becomes `Ior<A, B[]>`
- *     -   `[Ior<A, B1>, Ior<A, B2>]` becomes `Ior<A, [B1, B2]>`
+ * -   `all` turns an array or a tuple literal of `Ior` elements inside out.
  * -   `allProps` turns a string-keyed record or object literal of `Ior`
- *     elements inside out. For example:
- *     -   `Record<string, Ior<A, B>>` becomes `Ior<A, Record<string, B>>`
- *     -   `{ x: Ior<A, B1>, y: Ior<A, B2> }` becomes `Ior<A, { x: B1, y: B2 }>`
+ *     elements inside out.
+ *
+ * These functions concurrently turn a container of promise-like `Ior` elements
+ * "inside out":
+ *
+ * -   `allAsync` turns an array or a tuple literal of promise-like `Ior`
+ *     elements inside out.
+ * -   `allPropsAsync` turns a string-keyed record or object literal of
+ *     promise-like `Ior` elements inside out.
  *
  * The `reduce` function reduces a finite iterable from left to right in the
- * context of `Ior`. This is useful for mapping, filtering, and accumulating
- * values using `Ior`.
+ * context of `Ior`.
  *
- * ## Lifting functions to work with `Ior`
+ * ## Lifting functions into the context of `Ior`
  *
- * The `lift` function receives a function that accepts arbitrary arguments,
- * and returns an adapted function that accepts `Ior` values as arguments
- * instead. The arguments are evaluated from left to right, and if they all
- * have right-hand values, the original function is applied to the values and
- * the result is returned as a right-hand value. The left-hand values of `Both`
- * variants accumulate using their behavior as a semigroup. If any argument is a
- * `Left`, the operation halts and the left-hand value is combined with any
- * existing left-hand value, and the result is returned in a `Left`.
+ * These functions adapt a function to accept and return `Ior` values:
+ *
+ * -   `lift` adapts a synchronous function to accept `Ior` values as arguments
+ *     and return an `Ior`.
+ * -   `liftAsync` adapts a synchronous or an asynchronous function to accept
+ *     promise-like `Ior` values as arguments and return a `Promise` that
+ *     resolves with an `Ior`.
  *
  * @example Basic matching and unwrapping
  *
@@ -556,18 +552,6 @@ export namespace Ior {
 
 	/**
 	 * Reduce a finite iterable from left to right in the context of `Ior`.
-	 *
-	 * @remarks
-	 *
-	 * Start with an initial accumulator and reduce the elements of an iterable
-	 * using a reducer function that returns an `Ior`. While the function
-	 * returns an `Ior` that has a right-hand value, continue the reduction
-	 * using the value as the new accumulator until there are no elements
-	 * remaining, and then return final accumulator as a right-hand value.
-	 * Accumulate the left-hand values of `Both` variants using their behavior
-	 * as a semigroup. If any `Ior` is a `Left`, halt the reduction and combine
-	 * the left-hand value with any existing left-hand value, and return the
-	 * result in a `Left`.
 	 */
 	export function reduce<T, TAcc, A extends Semigroup<A>>(
 		vals: Iterable<T>,
@@ -589,14 +573,6 @@ export namespace Ior {
 	 * Turn an array or a tuple literal of `Ior` elements "inside out".
 	 *
 	 * @remarks
-	 *
-	 * Evaluate the `Ior` elements in an array or a tuple literal from left to
-	 * right. If they all have right-hand values, collect the values in an array
-	 * or a tuple literal, respectively, and return the result as a right-hand
-	 * value. Accumulate the left-hand values of `Both` variants using their
-	 * behavior as a semigroup. If any element is a `Left`, halt the collection
-	 * and combine the left-hand value with any existing left-hand value, and
-	 * return the result in a `Left`.
 	 *
 	 * For example:
 	 *
@@ -626,13 +602,8 @@ export namespace Ior {
 	 *
 	 * @remarks
 	 *
-	 * Enumerate an object's own enumerable, string-keyed property key-`Ior`
-	 * pairs. If all `Ior` values have right-hand values, return an object as a
-	 * right-hand value that contains the keys and their associated right-hand
-	 * values. Accumulate the left-hand values of `Both` variants using their
-	 * behavior as a semigroup. If any value is a `Left`, halt the collection
-	 * and combine the left-hand value with any existing left-hand value, and
-	 * return the result in a `Left`.
+	 * This function enumerates only the object's own enumerable, string-keyed
+	 * property key-value pairs.
 	 *
 	 * For example:
 	 *
@@ -659,18 +630,8 @@ export namespace Ior {
 	}
 
 	/**
-	 * Lift a function into the context of `Ior`.
-	 *
-	 * @remarks
-	 *
-	 * Given a function that accepts arbitrary arguments, return an adapted
-	 * function that accepts `Ior` values as arguments. When applied, evaluate
-	 * evaluate the arguments from left to right. If they all have right-hand
-	 * values, apply the original function to the values and return the result
-	 * as a right-hand value. Accumulate the left-hand values of `Both` variants
-	 * using their behavior as a semigroup. If any argument is a `Left`, halt
-	 * the operation and combine the left-hand value with any existing left-hand
-	 * value, and return the result in a `Left`.
+	 * Adapt a synchronous function to accept `Ior` values as arguments and
+	 * return an `Ior`.
 	 */
 	export function lift<TArgs extends unknown[], T>(
 		f: (...args: TArgs) => T,
@@ -730,6 +691,180 @@ export namespace Ior {
 			return right(nxt.value);
 		}
 		return both(acc, nxt.value);
+	}
+
+	/**
+	 * Concurrently turn an array or a tuple literal of promise-like `Ior`
+	 * elements "inside out".
+	 *
+	 * @remarks
+	 *
+	 * For example:
+	 *
+	 * -   `Promise<Ior<A, B>>[]` becomes `Promise<Ior<A, B[]>>`
+	 * -   `[Promise<Ior<A, B1>>, Promise<Ior<A, B2>>]` becomes `Promise<Ior<A,
+	 *     [B1, B2]>>`
+	 *
+	 * Left-hand values are combined in the order the promise-like elements
+	 * resolve.
+	 */
+	export function allAsync<
+		TElems extends
+			| readonly (
+					| Ior<Semigroup<any>, any>
+					| PromiseLike<Ior<Semigroup<any>, any>>
+			  )[]
+			| [],
+	>(
+		elems: TElems,
+	): Promise<
+		Ior<
+			LeftT<{ [K in keyof TElems]: Awaited<TElems[K]> }[number]>,
+			{ [K in keyof TElems]: RightT<Awaited<TElems[K]>> }
+		>
+	> {
+		return new Promise((resolve, reject) => {
+			const results = new Array(elems.length);
+			let remaining = elems.length;
+			let acc: Semigroup<any> | undefined;
+
+			for (const [idx, elem] of elems.entries()) {
+				Promise.resolve(elem).then((ior) => {
+					if (ior.isLeft()) {
+						if (acc === undefined) {
+							resolve(ior as Left<any>);
+						} else {
+							resolve(left(cmb(acc, ior.val) as any));
+						}
+						return;
+					}
+
+					if (ior.isRight()) {
+						results[idx] = ior.val;
+					} else {
+						if (acc === undefined) {
+							acc = ior.fst;
+						} else {
+							acc = cmb(acc, ior.fst);
+						}
+						results[idx] = ior.snd;
+					}
+
+					remaining--;
+					if (remaining === 0) {
+						if (acc === undefined) {
+							resolve(right(results as any));
+						} else {
+							resolve(both(acc as any, results as any));
+						}
+						return;
+					}
+				}, reject);
+			}
+		});
+	}
+
+	/**
+	 * Concurrently turn a string-keyed record or object literal of promise-like
+	 * `Ior` elements "inside out".
+	 *
+	 * @remarks
+	 *
+	 * This function enumerates only the object's own enumerable, string-keyed
+	 * property key-value pairs.
+	 *
+	 * For example:
+	 *
+	 * -   `Record<string, Promise<Ior<A, B>>>` becomes `Promise<Ior<A,
+	 *     Record<string, B>>>`
+	 * -   `{ x: Promise<Ior<A, B1>>, y: Promise<Ior<A, B2>> }` becomes
+	 *     `Promise<Ior<A, { x: B1, y: B2 }>>`
+	 *
+	 * Left-hand values are combined in the order the promise-like elements
+	 * resolve.
+	 */
+	export function allPropsAsync<
+		TElems extends Record<
+			string,
+			Ior<Semigroup<any>, any> | PromiseLike<Ior<Semigroup<any>, any>>
+		>,
+	>(
+		elems: TElems,
+	): Promise<
+		Ior<
+			LeftT<{ [K in keyof TElems]: Awaited<TElems[K]> }[keyof TElems]>,
+			{ [K in keyof TElems]: RightT<Awaited<TElems[K]>> }
+		>
+	> {
+		return new Promise((resolve, reject) => {
+			const entries = Object.entries(elems);
+			const results: Record<string, any> = {};
+			let remaining = entries.length;
+			let acc: Semigroup<any> | undefined;
+
+			for (const [key, elem] of entries) {
+				Promise.resolve(elem).then((ior) => {
+					if (ior.isLeft()) {
+						if (acc === undefined) {
+							resolve(ior as Left<any>);
+						} else {
+							resolve(left(cmb(acc, ior.val)) as Left<any>);
+						}
+						return;
+					}
+
+					if (ior.isRight()) {
+						results[key] = ior.val;
+					} else {
+						if (acc === undefined) {
+							acc = ior.fst;
+						} else {
+							acc = cmb(acc, ior.fst);
+						}
+						results[key] = ior.snd;
+					}
+
+					remaining--;
+					if (remaining === 0) {
+						if (acc === undefined) {
+							resolve(right(results as any));
+						} else {
+							resolve(both(acc as any, results as any));
+						}
+						return;
+					}
+				}, reject);
+			}
+		});
+	}
+
+	/**
+	 * Adapt a synchronous or an asynchronous function to accept promise-like
+	 * `Ior` values as arguments and return a `Promise` that resolves with an
+	 * `Ior`.
+	 *
+	 * @remarks
+	 *
+	 * The lifted function's arguments are evaluated concurrently. Left-hand
+	 * values are combined in the order the arguments resolve.
+	 */
+	export function liftAsync<TArgs extends unknown[], T>(
+		f: (...args: TArgs) => T | PromiseLike<T>,
+	): <A extends Semigroup<A>>(
+		...elems: {
+			[K in keyof TArgs]:
+				| Ior<A, TArgs[K]>
+				| PromiseLike<Ior<A, TArgs[K]>>;
+		}
+	) => Promise<Ior<A, T>> {
+		return (...elems) =>
+			goAsync(
+				(async function* (): Ior.GoAsync<any, T> {
+					return f(
+						...((yield* await allAsync(elems)) as TArgs),
+					) as Awaited<T>;
+				})(),
+			);
 	}
 
 	/**

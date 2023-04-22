@@ -191,33 +191,32 @@
  *
  * ## Collecting into `Either`
  *
- * These functions turn a container of `Either` elements "inside out". If the
- * elements all succeed, their successes are collected into an equivalent
- * container and returned as a success. If any element fails, the failed
- * `Either` is returned instead.
+ * These functions turn a container of `Either` elements "inside out":
  *
  * -   `all` turns an array or a tuple literal of `Either` elements inside out.
- *     For example:
- *     -   `Either<E, T>[]` becomes `Either<E, T[]>`
- *     -   `[Either<E, T1>, Either<E, T2>]` becomes `Either<E, [T1, T2]>`
  * -   `allProps` turns a string-keyed record or object literal of `Either`
- *     elements inside out. For example:
- *     -   `Record<string, Either<E, T>>` becomes `Either<E, Record<string, T>>`
- *     -   `{ x: Either<E, T1>, y: Either<E, T2> }` becomes `Either<E, { x: T1,
- *         y: T2 }>`
+ *     elements inside out.
+ *
+ * These functions concurrently turn a container of promise-like `Either`
+ * elements "inside out":
+ *
+ * -   `allAsync` turns an array or a tuple literal of promise-like `Either`
+ *     elements inside out.
+ * -   `allPropsAsync` turns a string-keyed record or object literal of
+ *     promise-like `Either` elements inside out.
  *
  * The `reduce` function reduces a finite iterable from left to right in the
- * context of `Either`. This is useful for mapping, filtering, and accumulating
- * values using `Either`.
+ * context of `Either`.
  *
- * ## Lifting functions to work with `Either`
+ * ## Lifting functions into the context of `Either`
  *
- * The `lift` function receives a function that accepts arbitrary arguments,
- * and returns an adapted function that accepts `Either` values as arguments
- * instead. The arguments are evaluated from left to right, and if they all
- * succeed, the original function is applied to their successes and the result
- * is returned as a success. If any argument fails, the failed `Either` is
- * returned instead.
+ * These functions adapt a function to work with `Either` values:
+ *
+ * -   `lift` adapts a synchronous function to accept `Either` values as
+ *     arguments and return an `Either`.
+ * -   `liftAsync` adapts a synchronous or an asynchronous function to accept
+ *     promise-like `Either` values as arguments and return a `Promise` that
+ *     resolves with an `Either`.
  *
  * @example Basic matching and unwrapping
  *
@@ -434,15 +433,6 @@ export namespace Either {
 
 	/**
 	 * Reduce a finite iterable from left to right in the context of `Either`.
-	 *
-	 * @remarks
-	 *
-	 * Start with an initial accumulator and reduce the elements of an iterable
-	 * using a reducer function that returns an `Either`. While the function
-	 * returns a successful `Either`, continue the reduction using the success
-	 * as the new accumulator until there are no elements remaining, and then
-	 * succeed with the final accumulator; otherwise, return the first failed
-	 * `Either`.
 	 */
 	export function reduce<T, TAcc, E>(
 		vals: Iterable<T>,
@@ -464,11 +454,6 @@ export namespace Either {
 	 * Turn an array or a tuple literal of `Either` elements "inside out".
 	 *
 	 * @remarks
-	 *
-	 * Evaluate the `Either` elements in an array or a tuple literal from left
-	 * to right. If they all succeed, collect their successes in an array or a
-	 * tuple literal, respectively, and succeed with the result; otherwise,
-	 * return the first failed `Either`.
 	 *
 	 * For example:
 	 *
@@ -498,10 +483,8 @@ export namespace Either {
 	 *
 	 * @remarks
 	 *
-	 * Enumerate an object's own enumerable, string-keyed property key-`Either`
-	 * pairs. If all `Either` values succeed, succeed with an object that
-	 * contains the keys and their associated successes; otherwise, return the
-	 * first failed `Either`.
+	 * This function enumerates only the object's own enumerable, string-keyed
+	 * property key-value pairs.
 	 *
 	 * For example:
 	 *
@@ -527,15 +510,8 @@ export namespace Either {
 	}
 
 	/**
-	 * Lift a function into the context of `Either`.
-	 *
-	 * @remarks
-	 *
-	 * Given a function that accepts arbitrary arguments, return an adapted
-	 * function that accepts `Either` values as arguments. When applied,
-	 * evaluate the arguments from left to right. If they all succeed, apply the
-	 * original function to their successes and succeed with the result;
-	 * otherwise, return the first failed `Either`.
+	 * Adapt a synchronous function to accept `Either` values as arguments and
+	 * return an `Either`.
 	 */
 	export function lift<TArgs extends unknown[], T>(
 		f: (...args: TArgs) => T,
@@ -573,6 +549,130 @@ export namespace Either {
 			}
 		}
 		return isHalted ? left(err) : right(nxt.value);
+	}
+
+	/**
+	 * Concurrently turn an array or a tuple literal of promise-like `Either`
+	 * elements "inside out".
+	 *
+	 * @remarks
+	 *
+	 * For example:
+	 *
+	 * -   `Promise<Either<E, T>>[]` becomes `Promise<Either<E, T[]>>`
+	 * -   `[Promise<Either<E, T1>>, Promise<Either<E, T2>>]` becomes
+	 *     `Promise<Either<E, [T1, T2]>>`
+	 */
+	export function allAsync<
+		TElems extends
+			| readonly (Either<any, any> | PromiseLike<Either<any, any>>)[]
+			| [],
+	>(
+		elems: TElems,
+	): Promise<
+		Either<
+			LeftT<{ [K in keyof TElems]: Awaited<TElems[K]> }[number]>,
+			{ [K in keyof TElems]: RightT<Awaited<TElems[K]>> }
+		>
+	> {
+		return new Promise((resolve, reject) => {
+			const results = new Array(elems.length);
+			let remaining = elems.length;
+			for (const [idx, elem] of elems.entries()) {
+				Promise.resolve(elem).then((either) => {
+					if (either.isLeft()) {
+						resolve(either);
+						return;
+					}
+					results[idx] = either.val;
+					remaining--;
+					if (remaining === 0) {
+						resolve(right(results as any));
+						return;
+					}
+				}, reject);
+			}
+		});
+	}
+
+	/**
+	 * Concurrently turn a string-keyed record or object literal of promise-like
+	 * `Either` elements "inside out".
+	 *
+	 * @remarks
+	 *
+	 * This function enumerates only the object's own enumerable, string-keyed
+	 * property key-value pairs.
+	 *
+	 * For example:
+	 *
+	 * -   `Record<string, Promise<Either<E, T>>>` becomes `Promise<Either<E,
+	 *     Record<string, T>>>`
+	 * -   `{ x: Promise<Either<E, T1>>, y: Promise<Either<E, T2>> }` becomes
+	 *     `Promise<Either<E, { x: T1, y: T2 }>>`
+	 */
+	export function allPropsAsync<
+		TElems extends Record<
+			string,
+			Either<any, any> | PromiseLike<Either<any, any>>
+		>,
+	>(
+		elems: TElems,
+	): Promise<
+		Either<
+			LeftT<{ [K in keyof TElems]: Awaited<TElems[K]> }[keyof TElems]>,
+			{ [K in keyof TElems]: RightT<Awaited<TElems[K]>> }
+		>
+	> {
+		return new Promise((resolve, reject) => {
+			const entries = Object.entries(elems);
+			const results: Record<string, any> = {};
+			let remaining = entries.length;
+			for (const [key, elem] of entries) {
+				Promise.resolve(elem).then((either) => {
+					if (either.isLeft()) {
+						resolve(either);
+						return;
+					}
+					results[key] = either.val;
+					remaining--;
+					if (remaining === 0) {
+						resolve(right(results as any));
+						return;
+					}
+				}, reject);
+			}
+		});
+	}
+
+	/**
+	 * Adapt a synchronous or an asynchronous function to accept promise-like
+	 * `Either` values as arguments and return a `Promise` that resolves with an
+	 * `Either`.
+	 *
+	 * @remarks
+	 *
+	 * The lifted function's arguments are evaluated concurrently.
+	 */
+	export function liftAsync<TArgs extends unknown[], T>(
+		f: (...args: TArgs) => T | PromiseLike<T>,
+	): <
+		TElems extends {
+			[K in keyof TArgs]:
+				| Either<any, TArgs[K]>
+				| PromiseLike<Either<any, TArgs[K]>>;
+		},
+	>(
+		...elems: TElems
+	) => Promise<
+		Either<LeftT<{ [K in keyof TElems]: Awaited<TElems[K]> }[number]>, T>
+	> {
+		return (...elems) =>
+			goAsync(
+				(async function* () {
+					return f(...((yield* await allAsync(elems)) as TArgs));
+				})(),
+			);
 	}
 
 	/**

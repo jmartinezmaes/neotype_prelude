@@ -20,6 +20,7 @@ import {
 	Str,
 	arbNum,
 	arbStr,
+	delay,
 	expectLawfulEq,
 	expectLawfulOrd,
 	expectLawfulSemigroup,
@@ -90,13 +91,100 @@ describe("Validation", () => {
 	});
 
 	describe("lift", () => {
-		it("lifts the function into the context of Validation", () => {
+		it("lifts the function into the context of Validation values", () => {
 			function f<A, B>(lhs: A, rhs: B): [A, B] {
 				return [lhs, rhs];
 			}
 			const vdn = Validation.lift(f<2, 4>)(
 				Validation.ok(2),
 				Validation.ok(4),
+			);
+			expect(vdn).to.deep.equal(Validation.ok([2, 4]));
+		});
+	});
+
+	describe("allAsync", () => {
+		it("collects failures in the order the Promises resolve", async () => {
+			const vdn = await Validation.allAsync([
+				delay(10, Validation.err<Str, 2>(new Str("a"))),
+				delay(5, Validation.err<Str, 4>(new Str("b"))),
+			]);
+			expect(vdn).to.deep.equal(Validation.err(new Str("ba")));
+		});
+
+		it("extracts the successes if all variants are Ok", async () => {
+			const vdn = await Validation.allAsync([
+				Promise.resolve(Validation.ok<2, Str>(2)),
+				Promise.resolve(Validation.ok<4, Str>(4)),
+			]);
+			expect(vdn).to.deep.equal(Validation.ok([2, 4]));
+		});
+
+		it("accepts plain Validation values", async () => {
+			const vdn = await Validation.allAsync([
+				Validation.ok<2, Str>(2),
+				Validation.ok<4, Str>(4),
+			]);
+			expect(vdn).to.deep.equal(Validation.ok([2, 4]));
+		});
+	});
+
+	describe("allPropsAsync", () => {
+		it("collects failures in the order the Promises resolve", async () => {
+			const vdn = await Validation.allPropsAsync({
+				two: delay(10, Validation.err<Str, 2>(new Str("a"))),
+				four: delay(5, Validation.err<Str, 4>(new Str("b"))),
+			});
+			expect(vdn).to.deep.equal(Validation.err(new Str("ba")));
+		});
+
+		it("extracts the successes if all variants are Ok", async () => {
+			const vdn = await Validation.allPropsAsync({
+				two: delay(10, Validation.ok<2, Str>(2)),
+				four: delay(5, Validation.ok<4, Str>(4)),
+			});
+			expect(vdn).to.deep.equal(Validation.ok({ two: 2, four: 4 }));
+		});
+
+		it("accepts plain Validation values", async () => {
+			const vdn = await Validation.allPropsAsync({
+				two: Validation.ok<2, Str>(2),
+				four: Validation.ok<4, Str>(4),
+			});
+			expect(vdn).to.deep.equal(Validation.ok({ two: 2, four: 4 }));
+		});
+	});
+
+	describe("liftAsync", () => {
+		it("does not apply the function if any Validation fails", async () => {
+			function f<A, B>(lhs: A, rhs: B): [A, B] {
+				return [lhs, rhs];
+			}
+			const vdn = await Validation.liftAsync(f<2, 4>)(
+				delay(10, Validation.err<Str, 2>(new Str("a"))),
+				delay(5, Validation.ok<4, Str>(4)),
+			);
+			expect(vdn).to.deep.equal(Validation.err(new Str("a")));
+		});
+
+		it("lifts the function into the async context of Validation", async () => {
+			function f<A, B>(lhs: A, rhs: B): [A, B] {
+				return [lhs, rhs];
+			}
+			const vdn = await Validation.liftAsync(f<2, 4>)(
+				delay(10, Validation.ok<2, Str>(2)),
+				delay(5, Validation.ok<4, Str>(4)),
+			);
+			expect(vdn).to.deep.equal(Validation.ok([2, 4]));
+		});
+
+		it("lifts the async function into the async context of Validation", async () => {
+			async function f<A, B>(lhs: A, rhs: B): Promise<[A, B]> {
+				return [lhs, rhs];
+			}
+			const vdn = await Validation.liftAsync(f<2, 4>)(
+				delay(10, Validation.ok<2, Str>(2)),
+				delay(5, Validation.ok<4, Str>(4)),
 			);
 			expect(vdn).to.deep.equal(Validation.ok([2, 4]));
 		});

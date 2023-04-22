@@ -19,6 +19,10 @@ import { expect } from "vitest";
 import { Semigroup, cmb } from "../cmb.js";
 import { Eq, Ord, Ordering, eq, le } from "../cmp.js";
 
+export function delay<T>(ms: number, val: T | PromiseLike<T>): Promise<T> {
+	return new Promise((resolve) => setTimeout(() => resolve(val), ms));
+}
+
 export class Num implements Ord<Num> {
 	constructor(readonly val: number) {}
 
