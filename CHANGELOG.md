@@ -3,6 +3,54 @@
 All notable changes to this project will be documented in this file. This
 project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## Version 0.9.0 - 2023-04-22
+
+### What's Changed
+
+#### 💥 Breaking Changes
+
+-   Refactor generator comprehensions by
+    [@jm4rtinez](https://github.com/jm4rtinez) in
+    [#93](https://github.com/jm4rtinez/neotype_prelude/pull/93)
+-   Rename the `collect` combinators to `all` by
+    [@jm4rtinez](https://github.com/jm4rtinez) in
+    [#94](https://github.com/jm4rtinez/neotype_prelude/pull/94)
+-   Rename the `gather` combinators to `allProps` by
+    [@jm4rtinez](https://github.com/jm4rtinez) in
+    [#95](https://github.com/jm4rtinez/neotype_prelude/pull/95)
+-   Remove `zipFst` methods; rename `zipSnd` methods to `and` by
+    [@jm4rtinez](https://github.com/jm4rtinez) in
+    [#97](https://github.com/jm4rtinez/neotype_prelude/pull/97)
+-   Refactor methods for chaining and recovery by
+    [@jm4rtinez](https://github.com/jm4rtinez) in
+    [#99](https://github.com/jm4rtinez/neotype_prelude/pull/99)
+-   Remove the `eval` module by [@jm4rtinez](https://github.com/jm4rtinez) in
+    [#103](https://github.com/jm4rtinez/neotype_prelude/pull/103)
+
+#### 🚀 Enhancements
+
+-   Introduce support for TypeScript 5.0 by
+    [@jm4rtinez](https://github.com/jm4rtinez) in
+    [#91](https://github.com/jm4rtinez/neotype_prelude/pull/91)
+-   For `Ior`, introduce the `fromTuple` function by
+    [@jm4rtinez](https://github.com/jm4rtinez) in
+    [#100](https://github.com/jm4rtinez/neotype_prelude/pull/100)
+-   Introduce asynchronous combinators for collecting into data types by
+    [@jm4rtinez](https://github.com/jm4rtinez) in
+    [#101](https://github.com/jm4rtinez/neotype_prelude/pull/101)
+-   Allow `all` and `allAsync` to accept any iterable by
+    [@jm4rtinez](https://github.com/jm4rtinez) in
+    [#102](https://github.com/jm4rtinez/neotype_prelude/pull/102)
+
+#### 🐛 Bug Fixes
+
+-   Always return non-readonly types from `collect` and `gather` functions by
+    [@jm4rtinez](https://github.com/jm4rtinez) in
+    [#90](https://github.com/jm4rtinez/neotype_prelude/pull/90)
+
+**Full Changelog**:
+https://github.com/jm4rtinez/neotype_prelude/compare/v0.8.1...v0.9.0
+
 ## Version 0.8.1 - 2023-03-13
 
 ### What's Changed
