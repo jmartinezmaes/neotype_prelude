@@ -16,7 +16,6 @@ _Functional programming essentials for TypeScript_
     -   Model optional values with `Maybe`.
     -   Handle failures with `Either`.
     -   Validate forms and user input with `Validation`.
-    -   Implement stack-safe recursion with `Eval`.
     -   Get creative with more types like `Ior` and `Pair`.
 -   **Generator comprehensions**: chain computations together by writing
     imperative style code blocks using a coroutine syntax.

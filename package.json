@@ -38,7 +38,6 @@
 		"./cmb.js": "./dist/cmb.js",
 		"./cmp.js": "./dist/cmp.js",
 		"./either.js": "./dist/either.js",
-		"./eval.js": "./dist/eval.js",
 		"./fn.js": "./dist/fn.js",
 		"./ior.js": "./dist/ior.js",
 		"./maybe.js": "./dist/maybe.js",
