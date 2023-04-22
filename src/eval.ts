@@ -102,7 +102,7 @@
  *
  * These static methods turn a container of `Eval` elements "inside out":
  *
- * -   `all` turns an array or a tuple literal of `Eval` elements inside out.
+ * -   `all` turns an iterable or a tuple literal of `Eval` elements inside out.
  * -   `allProps` turns a string-keyed record or object literal of `Eval`
  *     elements inside out.
  *
@@ -328,14 +328,25 @@ export class Eval<out T> {
 	 */
 	static all<TEvals extends readonly Eval<any>[] | []>(
 		evals: TEvals,
-	): Eval<{ -readonly [K in keyof TEvals]: Eval.ResultT<TEvals[K]> }> {
+	): Eval<{ -readonly [K in keyof TEvals]: Eval.ResultT<TEvals[K]> }>;
+
+	/**
+	 * Turn an iterable of `Eval` elements "inside out" using an array.
+	 *
+	 * @remarks
+	 *
+	 * For example, `Iterable<Eval<T>>` becomes `Eval<T[]>`.
+	 */
+	static all<T>(evals: Iterable<Eval<T>>): Eval<T[]>;
+
+	static all<T>(evals: Iterable<Eval<T>>): Eval<T[]> {
 		return Eval.go(
 			(function* () {
-				const results = new Array(evals.length);
-				for (const [idx, ev] of evals.entries()) {
-					results[idx] = yield* ev;
+				const results = [];
+				for (const ev of evals) {
+					results.push(yield* ev);
 				}
-				return results as any;
+				return results;
 			})(),
 		);
 	}

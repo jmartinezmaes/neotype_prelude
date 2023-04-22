@@ -136,16 +136,16 @@
  *
  * These functions turn a container of `Validation` elements "inside out":
  *
- * -   `all` turns an array or a tuple literal of `Validation` elements inside
- *     out.
+ * -   `all` turns an iterable or a tuple literal of `Validation` elements
+ *     inside out.
  * -   `allProps` turns a string-keyed record or object literal of `Validation`
  *     elements inside out.
  *
  * These functions concurrently turn a container of promise-like `Validation`
  * elements "inside out":
  *
- * -   `allAsync` turns an array or a tuple literal of promise-like `Validation`
- *     elements inside out.
+ * -   `allAsync` turns an iterable or a tuple literal of promise-like
+ *     `Validation` elements inside out.
  * -   `allPropsAsync` turns a string-keyed record or object literal of
  *     promise-like`Validation` elements inside out.
  *
@@ -432,11 +432,26 @@ export namespace Validation {
 	): Validation<
 		ErrT<TVdns[number]>,
 		{ -readonly [K in keyof TVdns]: OkT<TVdns[K]> }
-	> {
-		let acc = ok<any, any>(new Array(vdns.length));
-		for (const [idx, vdn] of vdns.entries()) {
+	>;
+
+	/**
+	 * Turn an iterable of `Validation` elements "inside out" using an array.
+	 *
+	 * @remarks
+	 *
+	 * For example, `Iterable<Validation<E, T>>` becomes `Validation<E, T[]>`.
+	 */
+	export function all<E extends Semigroup<E>, T>(
+		vdns: Iterable<Validation<E, T>>,
+	): Validation<E, T[]>;
+
+	export function all<E extends Semigroup<E>, T>(
+		vdns: Iterable<Validation<E, T>>,
+	): Validation<E, T[]> {
+		let acc = ok<T[], E>([]);
+		for (const vdn of vdns) {
 			acc = acc.zipWith(vdn, (results, val) => {
-				results[idx] = val;
+				results.push(val);
 				return results;
 			});
 		}
@@ -521,32 +536,51 @@ export namespace Validation {
 			ErrT<{ [K in keyof TElems]: Awaited<TElems[K]> }[number]>,
 			{ [K in keyof TElems]: OkT<Awaited<TElems[K]>> }
 		>
-	> {
-		return new Promise((resolve, reject) => {
-			const results = new Array(elems.length);
-			let remaining = elems.length;
-			let acc: Semigroup<any> | undefined;
-			let isFailing = false;
+	>;
 
-			for (const [idx, elem] of elems.entries()) {
+	/**
+	 * Concurrently turn an iterable of promise-like `Validation` elements
+	 * "inside out" using an array.
+	 *
+	 * @remarks
+	 *
+	 * For example, `Iterable<Promise<Validation<E, T>>>` becomes
+	 * `Promise<Validation<E, T[]>>`.
+	 *
+	 * Failures are combined in the order the promise-like elements resolve.
+	 */
+	export function allAsync<E extends Semigroup<E>, T>(
+		elems: Iterable<Validation<E, T> | PromiseLike<Validation<E, T>>>,
+	): Promise<Validation<E, T[]>>;
+
+	export function allAsync<E extends Semigroup<E>, T>(
+		elems: Iterable<Validation<E, T> | PromiseLike<Validation<E, T>>>,
+	): Promise<Validation<E, T[]>> {
+		return new Promise((resolve, reject) => {
+			const results: T[] = [];
+			let remaining = 0;
+			let acc: E | undefined;
+
+			for (const elem of elems) {
+				const idx = remaining;
+				remaining++;
 				Promise.resolve(elem).then((vdn) => {
 					if (vdn.isErr()) {
-						isFailing = true;
 						if (acc === undefined) {
 							acc = vdn.val;
 						} else {
 							acc = cmb(acc, vdn.val);
 						}
-					} else if (!isFailing) {
+					} else if (acc === undefined) {
 						results[idx] = vdn.val;
 					}
 
 					remaining--;
 					if (remaining === 0) {
 						if (acc === undefined) {
-							resolve(ok(results as any));
+							resolve(ok(results));
 						} else {
-							resolve(err(acc as any));
+							resolve(err(acc));
 						}
 						return;
 					}
@@ -592,18 +626,16 @@ export namespace Validation {
 			const results: Record<string, any> = {};
 			let remaining = entries.length;
 			let acc: Semigroup<any> | undefined;
-			let isFailing = false;
 
 			for (const [key, elem] of entries) {
 				Promise.resolve(elem).then((vdn) => {
 					if (vdn.isErr()) {
-						isFailing = true;
 						if (acc === undefined) {
 							acc = vdn.val;
 						} else {
 							acc = cmb(acc, vdn.val);
 						}
-					} else if (!isFailing) {
+					} else if (acc === undefined) {
 						results[key] = vdn.val;
 					}
 

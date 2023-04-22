@@ -193,14 +193,15 @@
  *
  * These functions turn a container of `Either` elements "inside out":
  *
- * -   `all` turns an array or a tuple literal of `Either` elements inside out.
+ * -   `all` turns an iterable or a tuple literal of `Either` elements inside
+ *     out.
  * -   `allProps` turns a string-keyed record or object literal of `Either`
  *     elements inside out.
  *
  * These functions concurrently turn a container of promise-like `Either`
  * elements "inside out":
  *
- * -   `allAsync` turns an array or a tuple literal of promise-like `Either`
+ * -   `allAsync` turns an iterable or a tuple literal of promise-like `Either`
  *     elements inside out.
  * -   `allPropsAsync` turns a string-keyed record or object literal of
  *     promise-like `Either` elements inside out.
@@ -465,14 +466,25 @@ export namespace Either {
 	): Either<
 		LeftT<TEithers[number]>,
 		{ -readonly [K in keyof TEithers]: RightT<TEithers[K]> }
-	> {
+	>;
+
+	/**
+	 * Turn an iterable of `Either` elements "inside out" using an array.
+	 *
+	 * @remarks
+	 *
+	 * For example, `Iterable<Either<E, T>>` becomes `Either<E, T[]>`.
+	 */
+	export function all<E, T>(eithers: Iterable<Either<E, T>>): Either<E, T[]>;
+
+	export function all<E, T>(eithers: Iterable<Either<E, T>>): Either<E, T[]> {
 		return go(
 			(function* () {
-				const results = new Array(eithers.length);
-				for (const [idx, either] of eithers.entries()) {
-					results[idx] = yield* either;
+				const results = [];
+				for (const either of eithers) {
+					results.push(yield* either);
 				}
-				return results as any;
+				return results;
 			})(),
 		);
 	}
@@ -574,11 +586,30 @@ export namespace Either {
 			LeftT<{ [K in keyof TElems]: Awaited<TElems[K]> }[number]>,
 			{ [K in keyof TElems]: RightT<Awaited<TElems[K]>> }
 		>
-	> {
+	>;
+
+	/**
+	 * Concurrently turn an iterable of promise-like `Either` elements "inside
+	 * out" using an array.
+	 *
+	 * @remarks
+	 *
+	 * For example, `Iterable<Promise<Either<E, T>>>` becomes `Promise<Either<E,
+	 * T[]>>.
+	 */
+	export function allAsync<E, T>(
+		elems: Iterable<Either<E, T> | PromiseLike<Either<E, T>>>,
+	): Promise<Either<E, T[]>>;
+
+	export function allAsync<E, T>(
+		elems: Iterable<Either<E, T> | PromiseLike<Either<E, T>>>,
+	): Promise<Either<E, T[]>> {
 		return new Promise((resolve, reject) => {
-			const results = new Array(elems.length);
-			let remaining = elems.length;
-			for (const [idx, elem] of elems.entries()) {
+			const results: T[] = [];
+			let remaining = 0;
+			for (const elem of elems) {
+				const idx = remaining;
+				remaining++;
 				Promise.resolve(elem).then((either) => {
 					if (either.isLeft()) {
 						resolve(either);
@@ -587,7 +618,7 @@ export namespace Either {
 					results[idx] = either.val;
 					remaining--;
 					if (remaining === 0) {
-						resolve(right(results as any));
+						resolve(right(results));
 						return;
 					}
 				}, reject);

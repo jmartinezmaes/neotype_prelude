@@ -204,14 +204,15 @@
  *
  * These functions turn a container of `Maybe` elements "inside out":
  *
- * -   `all` turns an array or a tuple literal of `Maybe` elements inside out.
+ * -   `all` turns an iterable or a tuple literal of `Maybe` elements inside
+ *     out.
  * -   `allProps` turns a string-keyed record or object literal of `Maybe`
  *     elements inside out.
  *
  * These functions concurrently turn a container of promise-like `Maybe`
  * elements "inside out":
  *
- * -   `allAsync` turns an array or a tuple literal of promise-like `Maybe`
+ * -   `allAsync` turns an iterable or a tuple literal of promise-like `Maybe`
  *     elements inside out.
  * -   `allPropsAsync` turns a string-keyed record or object literal of
  *     promise-like `Maybe` elements inside out.
@@ -503,14 +504,25 @@ export namespace Maybe {
 	 */
 	export function all<TMaybes extends readonly Maybe<any>[] | []>(
 		maybes: TMaybes,
-	): Maybe<{ -readonly [K in keyof TMaybes]: JustT<TMaybes[K]> }> {
+	): Maybe<{ -readonly [K in keyof TMaybes]: JustT<TMaybes[K]> }>;
+
+	/**
+	 * Turn an iterable of `Maybe` elements "inside out" using an array.
+	 *
+	 * @remarks
+	 *
+	 * For example, `Iterable<Maybe<T>>` becomes `Maybe<T[]>`.
+	 */
+	export function all<T>(maybes: Iterable<Maybe<T>>): Maybe<T[]>;
+
+	export function all<T>(maybes: Iterable<Maybe<T>>): Maybe<T[]> {
 		return go(
 			(function* () {
-				const results = new Array(maybes.length);
-				for (const [idx, maybe] of maybes.entries()) {
-					results[idx] = yield* maybe;
+				const results = [];
+				for (const maybe of maybes) {
+					results.push(yield* maybe);
 				}
-				return results as any;
+				return results;
 			})(),
 		);
 	}
@@ -596,11 +608,29 @@ export namespace Maybe {
 		TElems extends readonly (Maybe<any> | PromiseLike<Maybe<any>>)[] | [],
 	>(
 		elems: TElems,
-	): Promise<Maybe<{ [K in keyof TElems]: JustT<Awaited<TElems[K]>> }>> {
+	): Promise<Maybe<{ [K in keyof TElems]: JustT<Awaited<TElems[K]>> }>>;
+
+	/**
+	 * Concurrently turn an iterable of promise-like `Maybe` elements "inside
+	 * out" using an array.
+	 *
+	 * @remarks
+	 *
+	 * For example, `Iterable<Promise<Maybe<T>>>` becomes `Promise<Maybe<T[]>>`.
+	 */
+	export function allAsync<T>(
+		elems: Iterable<Maybe<T> | PromiseLike<Maybe<T>>>,
+	): Promise<Maybe<T[]>>;
+
+	export function allAsync<T>(
+		elems: Iterable<Maybe<T> | PromiseLike<Maybe<T>>>,
+	): Promise<Maybe<T[]>> {
 		return new Promise((resolve, reject) => {
-			const results = new Array(elems.length);
-			let remaining = elems.length;
-			for (const [idx, elem] of elems.entries()) {
+			const results: T[] = [];
+			let remaining = 0;
+			for (const elem of elems) {
+				const idx = remaining;
+				remaining++;
 				Promise.resolve(elem).then((maybe) => {
 					if (maybe.isNothing()) {
 						resolve(maybe);
@@ -609,7 +639,7 @@ export namespace Maybe {
 					results[idx] = maybe.val;
 					remaining--;
 					if (remaining === 0) {
-						resolve(just(results as any));
+						resolve(just(results));
 						return;
 					}
 				}, reject);
