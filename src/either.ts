@@ -937,6 +937,14 @@ export namespace Either {
 
 	/**
 	 * A generator that yields `Either` values and returns a result.
+	 *
+	 * @remarks
+	 *
+	 * Synchronous `Either` generator comprehensions should use this type alias
+	 * as their return type. A generator function that returns an `Either.Go<E,
+	 * T>` may `yield*` zero or more `Either<E, any>` values and must return a
+	 * result of type `T`. Synchronous comprehensions may also `yield*` other
+	 * `Either.Go` generators directly.
 	 */
 	export type Go<E, TReturn> = Generator<
 		Either<E, unknown>,
@@ -949,11 +957,12 @@ export namespace Either {
 	 *
 	 * @remarks
 	 *
-	 * Synchronous `Either` generator comprehensions should use this type alias
-	 * as their return type. A generator function that returns an `Either.Go<E,
-	 * T>` may `yield*` zero or more `Either<E, any>` values and must return a
-	 * result of type `T`. Synchronous comprehensions may also `yield*` other
-	 * `Either.Go` generators directly.
+	 * Async `Either` generator comprehensions should use this type alias as
+	 * their return type. An async generator function that returns an
+	 * `Either.GoAsync<E, T>` may `yield*` zero or more `Either<E, any>` values
+	 * and must return a result of type `T`. `PromiseLike` values that resolve
+	 * with `Either` should be awaited before yielding. Async comprehensions may
+	 * also `yield*` other `Either.Go` and `Either.GoAsync` generators directly.
 	 */
 	export type GoAsync<E, TReturn> = AsyncGenerator<
 		Either<E, any>,
@@ -963,15 +972,6 @@ export namespace Either {
 
 	/**
 	 * Extract the left-sided value type `A` from the type `Either<A, B>`.
-	 *
-	 * @remarks
-	 *
-	 * Async `Either` generator comprehensions should use this type alias as
-	 * their return type. An async generator function that returns an
-	 * `Either.GoAsync<E, T>` may `yield*` zero or more `Either<E, any>` values
-	 * and must return a result of type `T`. `PromiseLike` values that resolve
-	 * with `Either` should be awaited before yielding. Async comprehensions may
-	 * also `yield*` other `Either.Go` and `Either.GoAsync` generators directly.
 	 */
 	export type LeftT<TEither extends Either<any, any>> = [TEither] extends [
 		Either<infer A, any>,
