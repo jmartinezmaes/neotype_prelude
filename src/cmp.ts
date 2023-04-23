@@ -940,9 +940,23 @@ export namespace Ordering {
 	}
 
 	/**
+	 * An enumeration that discriminates `Ordering`.
+	 */
+	export enum Kind {
+		LESS,
+		EQUAL,
+		GREATER,
+	}
+
+	/**
 	 * The fluent syntax for `Ordering`.
 	 */
 	export abstract class Syntax {
+		/**
+		 * The property that discriminates `Ordering`.
+		 */
+		abstract readonly kind: Kind;
+
 		/**
 		 * If this and that `Ordering` are the same variant, return `true`;
 		 * otherwise, return `false`.
@@ -1054,15 +1068,6 @@ export namespace Ordering {
 	}
 
 	/**
-	 * An enumeration that discriminates `Ordering`.
-	 */
-	export enum Kind {
-		LESS,
-		EQUAL,
-		GREATER,
-	}
-
-	/**
 	 * An `Ordering` that indicates a "less than" comparison result.
 	 */
 	export class Less extends Syntax {
@@ -1075,9 +1080,6 @@ export namespace Ordering {
 		 */
 		static readonly singleton = new Less();
 
-		/**
-		 * The property that discriminates `Ordering`.
-		 */
 		readonly kind = Kind.LESS;
 
 		private constructor() {
@@ -1098,9 +1100,6 @@ export namespace Ordering {
 		 */
 		static readonly singleton = new Equal();
 
-		/**
-		 * The property that discriminates `Ordering`.
-		 */
 		readonly kind = Kind.EQUAL;
 
 		private constructor() {
@@ -1121,9 +1120,6 @@ export namespace Ordering {
 		 */
 		static readonly singleton = new Greater();
 
-		/**
-		 * The property that discriminates `Ordering`.
-		 */
 		readonly kind = Kind.GREATER;
 
 		private constructor() {
