@@ -707,9 +707,22 @@ export namespace Either {
 	}
 
 	/**
+	 * An enumeration that discriminates `Either`.
+	 */
+	export enum Kind {
+		LEFT,
+		RIGHT,
+	}
+
+	/**
 	 * The fluent syntax for `Either`.
 	 */
 	export abstract class Syntax {
+		/**
+		 * The property that discriminates `Either`.
+		 */
+		abstract readonly kind: Kind;
+
 		/**
 		 * If this and that `Either` are the same variant and their values are
 		 * equal, return `true`; otherwise, return `false`.
@@ -868,20 +881,9 @@ export namespace Either {
 	}
 
 	/**
-	 * An enumeration that discriminates `Either`.
-	 */
-	export enum Kind {
-		LEFT,
-		RIGHT,
-	}
-
-	/**
 	 * A left-sided Either.
 	 */
 	export class Left<out A> extends Syntax {
-		/**
-		 * The property that discriminates `Either`.
-		 */
 		readonly kind = Kind.LEFT;
 
 		/**
@@ -909,9 +911,6 @@ export namespace Either {
 	 * A right-sided Either.
 	 */
 	export class Right<out B> extends Syntax {
-		/**
-		 * The property that discriminates `Either`.
-		 */
 		readonly kind = Kind.RIGHT;
 
 		/**

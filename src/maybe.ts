@@ -714,9 +714,22 @@ export namespace Maybe {
 	}
 
 	/**
+	 * An enumeration that discriminates `Maybe`.
+	 */
+	export enum Kind {
+		NOTHING,
+		JUST,
+	}
+
+	/**
 	 * The fluent syntax for `Maybe`.
 	 */
 	export abstract class Syntax {
+		/**
+		 * The property that discriminates `Maybe`.
+		 */
+		abstract readonly kind: Kind;
+
 		/**
 		 * If this and that `Maybe` are both absent, or they are both present
 		 * and their values are equal, return `true`; otherwise, return `false`.
@@ -904,14 +917,6 @@ export namespace Maybe {
 	}
 
 	/**
-	 * An enumeration that discriminates `Maybe`.
-	 */
-	export enum Kind {
-		NOTHING,
-		JUST,
-	}
-
-	/**
 	 * An absent `Maybe`.
 	 */
 	export class Nothing extends Syntax {
@@ -924,9 +929,6 @@ export namespace Maybe {
 		 */
 		static readonly singleton = new Nothing();
 
-		/**
-		 * The property that discriminates Maybe.
-		 */
 		readonly kind = Kind.NOTHING;
 
 		private constructor() {
@@ -947,9 +949,6 @@ export namespace Maybe {
 	 * A present `Maybe`.
 	 */
 	export class Just<out T> extends Syntax {
-		/**
-		 * The property that discriminates `Maybe`.
-		 */
 		readonly kind = Kind.JUST;
 
 		/**

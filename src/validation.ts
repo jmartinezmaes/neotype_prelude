@@ -684,9 +684,22 @@ export namespace Validation {
 	}
 
 	/**
+	 * An enumeration that discriminates `Validation`.
+	 */
+	export enum Kind {
+		ERR,
+		OK,
+	}
+
+	/**
 	 * The fluent syntax for `Validation`.
 	 */
 	export abstract class Syntax {
+		/**
+		 * The property that discriminates `Validation`.
+		 */
+		abstract readonly kind: Kind;
+
 		/**
 		 * If this and that `Validation` are the same variant and their values
 		 * are equal, return `true`; otherwise, return `false`.
@@ -808,20 +821,9 @@ export namespace Validation {
 	}
 
 	/**
-	 * An enumeration that discriminates `Validation`.
-	 */
-	export enum Kind {
-		ERR,
-		OK,
-	}
-
-	/**
 	 * A failed `Validation`.
 	 */
 	export class Err<out E> extends Syntax {
-		/**
-		 * The property that discriminates `Validation`.
-		 */
 		readonly kind = Kind.ERR;
 
 		/**
@@ -839,9 +841,6 @@ export namespace Validation {
 	 * A successful `Validation`.
 	 */
 	export class Ok<out T> extends Syntax {
-		/**
-		 * The property that discriminates `Validation`.
-		 */
 		readonly kind = Kind.OK;
 
 		/**

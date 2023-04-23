@@ -905,9 +905,23 @@ export namespace Ior {
 	}
 
 	/**
+	 * An enumeration that discriminates `Ior`.
+	 */
+	export enum Kind {
+		LEFT,
+		RIGHT,
+		BOTH,
+	}
+
+	/**
 	 * The fluent syntax for `Ior`.
 	 */
 	export abstract class Syntax {
+		/**
+		 * The property that discriminates `Ior`.
+		 */
+		abstract readonly kind: Kind;
+
 		/**
 		 * If this and that `Ior` are the same variant and their values are
 		 * equal, return `true`; otherwise, return `false`.
@@ -1145,21 +1159,9 @@ export namespace Ior {
 	}
 
 	/**
-	 * An enumeration that discriminates `Ior`.
-	 */
-	export enum Kind {
-		LEFT,
-		RIGHT,
-		BOTH,
-	}
-
-	/**
 	 * An `Ior` with a left-hand value.
 	 */
 	export class Left<out A> extends Syntax {
-		/**
-		 * The property that discriminates `Ior`.
-		 */
 		readonly kind = Kind.LEFT;
 
 		/**
@@ -1186,9 +1188,6 @@ export namespace Ior {
 	 * An `Ior` with a right-hand value.
 	 */
 	export class Right<out B> extends Syntax {
-		/**
-		 * The property that discriminates `Ior`.
-		 */
 		readonly kind = Kind.RIGHT;
 
 		/**
@@ -1215,9 +1214,6 @@ export namespace Ior {
 	 * An `Ior` with a left-hand and a right-hand value.
 	 */
 	export class Both<out A, out B> extends Syntax {
-		/**
-		 * The property that discriminates `Ior`.
-		 */
 		readonly kind = Kind.BOTH;
 
 		/**
