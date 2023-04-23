@@ -1,6 +1,9 @@
 # Neotype Prelude
 
-_Functional programming essentials for TypeScript_
+Functional programming essentials for TypeScript
+
+[![Build and Test](https://github.com/jm4rtinez/neotype_prelude/actions/workflows/build_and_test.yml/badge.svg)](https://github.com/jm4rtinez/neotype_prelude/actions/workflows/build_and_test.yml)
+[![NPM Version](https://img.shields.io/npm/v/@neotype/prelude?color=33cd56&logo=npm)](https://www.npmjs.com/package/@neotype/prelude)
 
 ## Quick links
 
