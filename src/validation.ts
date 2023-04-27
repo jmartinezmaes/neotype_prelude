@@ -375,7 +375,12 @@
  * @module
  */
 
-import { ArrayBuilder, IndexableBuilder, NoOpBuilder } from "./_utils.js";
+import {
+	ArrayIdxBuilder,
+	ArrayPushBuilder,
+	NoOpBuilder,
+	RecordBuilder,
+} from "./_utils.js";
 import type { Builder } from "./builder.js";
 import { Semigroup, cmb } from "./cmb.js";
 import { Eq, Ord, Ordering, cmp, eq } from "./cmp.js";
@@ -447,7 +452,7 @@ export namespace Validation {
 		elems: Iterable<T>,
 		f: (elem: T, idx: number) => Validation<E, T1>,
 	): Validation<E, T1[]> {
-		return traverseInto(elems, f, new ArrayBuilder());
+		return traverseInto(elems, f, new ArrayPushBuilder());
 	}
 
 	/**
@@ -504,7 +509,7 @@ export namespace Validation {
 	export function all<E extends Semigroup<E>, T>(
 		vdns: Iterable<Validation<E, T>>,
 	): Validation<E, T[]> {
-		return collectInto(vdns, new ArrayBuilder());
+		return collectInto(vdns, new ArrayPushBuilder());
 	}
 
 	/**
@@ -538,7 +543,7 @@ export namespace Validation {
 		return traverseInto(
 			Object.entries(vdns),
 			([key, vdn]) => vdn.map((val): [string, T] => [key, val]),
-			new IndexableBuilder<Record<string, T>>({}),
+			new RecordBuilder(),
 		);
 	}
 
@@ -617,7 +622,7 @@ export namespace Validation {
 				Promise.resolve(f(elem, idx)).then((vdn) =>
 					vdn.map((val): [number, T1] => [idx, val]),
 				),
-			new IndexableBuilder<T1[]>([]),
+			new ArrayIdxBuilder(),
 		);
 	}
 
@@ -698,7 +703,7 @@ export namespace Validation {
 				Promise.resolve(elem).then((vdn) =>
 					vdn.map((val): [number, T] => [idx, val]),
 				),
-			new IndexableBuilder<T[]>([]),
+			new ArrayIdxBuilder(),
 		);
 	}
 
@@ -744,7 +749,7 @@ export namespace Validation {
 				Promise.resolve(elem).then((vdn) =>
 					vdn.map((val): [string, T] => [key, val]),
 				),
-			new IndexableBuilder<Record<string, T>>({}),
+			new RecordBuilder(),
 		);
 	}
 

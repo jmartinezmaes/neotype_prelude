@@ -429,7 +429,12 @@
  * @module
  */
 
-import { ArrayBuilder, IndexableBuilder, NoOpBuilder } from "./_utils.js";
+import {
+	ArrayIdxBuilder,
+	ArrayPushBuilder,
+	NoOpBuilder,
+	RecordBuilder,
+} from "./_utils.js";
 import type { Builder } from "./builder.js";
 import { Semigroup, cmb } from "./cmb.js";
 import { Eq, Ord, Ordering, cmp, eq } from "./cmp.js";
@@ -599,7 +604,7 @@ export namespace Ior {
 		elems: Iterable<T>,
 		f: (elem: T, idx: number) => Ior<A, T1>,
 	): Ior<A, T1[]> {
-		return traverseInto(elems, f, new ArrayBuilder());
+		return traverseInto(elems, f, new ArrayPushBuilder());
 	}
 
 	/**
@@ -653,7 +658,7 @@ export namespace Ior {
 	export function all<A extends Semigroup<A>, B>(
 		iors: Iterable<Ior<A, B>>,
 	): Ior<A, B[]> {
-		return collectInto(iors, new ArrayBuilder());
+		return collectInto(iors, new ArrayPushBuilder());
 	}
 
 	/**
@@ -685,7 +690,7 @@ export namespace Ior {
 		return traverseInto(
 			Object.entries(iors),
 			([key, ior]) => ior.map((val): [string, B] => [key, val]),
-			new IndexableBuilder<Record<string, B>>({}),
+			new RecordBuilder(),
 		);
 	}
 
@@ -816,7 +821,7 @@ export namespace Ior {
 				Promise.resolve(f(elem, idx)).then((ior) =>
 					ior.map((val): [number, B] => [idx, val]),
 				),
-			new IndexableBuilder<B[]>([]),
+			new ArrayIdxBuilder(),
 		);
 	}
 
@@ -896,7 +901,7 @@ export namespace Ior {
 				Promise.resolve(elem).then((ior) =>
 					ior.map((val): [number, B] => [idx, val]),
 				),
-			new IndexableBuilder<B[]>([]),
+			new ArrayIdxBuilder(),
 		);
 	}
 
@@ -942,7 +947,7 @@ export namespace Ior {
 				Promise.resolve(elem).then((ior) =>
 					ior.map((val): [string, B] => [key, val]),
 				),
-			new IndexableBuilder<Record<string, B>>({}),
+			new RecordBuilder(),
 		);
 	}
 

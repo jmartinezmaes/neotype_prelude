@@ -16,11 +16,11 @@
 
 import type { Builder } from "./builder.js";
 
-export class ArrayBuilder<in out T> implements Builder<T, T[]> {
+export class ArrayPushBuilder<in out T> implements Builder<T, T[]> {
 	elems: T[] = [];
 
-	add(val: T): void {
-		this.elems.push(val);
+	add(elem: T): void {
+		this.elems.push(elem);
 	}
 
 	finish(): T[] {
@@ -28,21 +28,30 @@ export class ArrayBuilder<in out T> implements Builder<T, T[]> {
 	}
 }
 
-export class IndexableBuilder<
-	in out T extends { [key: string | number | symbol]: any },
-> implements Builder<readonly [keyof T, T[keyof T]], T>
+export class ArrayIdxBuilder<in out T>
+	implements Builder<readonly [number, T], T[]>
 {
-	elems: T;
+	elems: T[] = [];
 
-	constructor(initial: T) {
-		this.elems = initial;
+	add([idx, elem]: readonly [number, T]): void {
+		this.elems[idx] = elem;
 	}
 
-	add([key, val]: readonly [keyof T, T[keyof T]]): void {
-		this.elems[key] = val;
+	finish(): T[] {
+		return this.elems;
+	}
+}
+
+export class RecordBuilder<in out T>
+	implements Builder<readonly [string, T], Record<string, T>>
+{
+	elems: Record<string, T> = {};
+
+	add([key, elem]: readonly [string, T]): void {
+		this.elems[key] = elem;
 	}
 
-	finish(): T {
+	finish(): Record<string, T> {
 		return this.elems;
 	}
 }

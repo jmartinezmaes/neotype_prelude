@@ -383,7 +383,12 @@
  * @module
  */
 
-import { ArrayBuilder, IndexableBuilder, NoOpBuilder } from "./_utils.js";
+import {
+	ArrayIdxBuilder,
+	ArrayPushBuilder,
+	NoOpBuilder,
+	RecordBuilder,
+} from "./_utils.js";
 import type { Builder } from "./builder.js";
 import { Semigroup, cmb } from "./cmb.js";
 import { Eq, Ord, Ordering, cmp, eq } from "./cmp.js";
@@ -521,7 +526,7 @@ export namespace Maybe {
 		elems: Iterable<T>,
 		f: (elem: T, idx: number) => Maybe<T1>,
 	): Maybe<T1[]> {
-		return traverseInto(elems, f, new ArrayBuilder());
+		return traverseInto(elems, f, new ArrayPushBuilder());
 	}
 
 	/**
@@ -568,7 +573,7 @@ export namespace Maybe {
 	export function all<T>(maybes: Iterable<Maybe<T>>): Maybe<T[]>;
 
 	export function all<T>(maybes: Iterable<Maybe<T>>): Maybe<T[]> {
-		return collectInto(maybes, new ArrayBuilder());
+		return collectInto(maybes, new ArrayPushBuilder());
 	}
 
 	/**
@@ -595,7 +600,7 @@ export namespace Maybe {
 		return traverseInto(
 			Object.entries(maybes),
 			([key, maybe]) => maybe.map((val): [string, T] => [key, val]),
-			new IndexableBuilder<Record<string, T>>({}),
+			new RecordBuilder(),
 		);
 	}
 
@@ -678,7 +683,7 @@ export namespace Maybe {
 				Promise.resolve(f(elem, idx)).then((maybe) =>
 					maybe.map((val): [number, T1] => [idx, val]),
 				),
-			new IndexableBuilder<T1[]>([]),
+			new ArrayIdxBuilder(),
 		);
 	}
 
@@ -741,7 +746,7 @@ export namespace Maybe {
 				Promise.resolve(elem).then((maybe) =>
 					maybe.map((val): [number, T] => [idx, val]),
 				),
-			new IndexableBuilder<T[]>([]),
+			new ArrayIdxBuilder(),
 		);
 	}
 
@@ -776,7 +781,7 @@ export namespace Maybe {
 				Promise.resolve(elem).then((maybe) =>
 					maybe.map((val): [string, T] => [key, val]),
 				),
-			new IndexableBuilder<Record<string, T>>({}),
+			new RecordBuilder(),
 		);
 	}
 

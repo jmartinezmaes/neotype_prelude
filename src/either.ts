@@ -368,7 +368,12 @@
  * @module
  */
 
-import { ArrayBuilder, IndexableBuilder, NoOpBuilder } from "./_utils.js";
+import {
+	ArrayIdxBuilder,
+	ArrayPushBuilder,
+	NoOpBuilder,
+	RecordBuilder,
+} from "./_utils.js";
 import type { Builder } from "./builder.js";
 import { Semigroup, cmb } from "./cmb.js";
 import { Eq, Ord, Ordering, cmp, eq } from "./cmp.js";
@@ -481,7 +486,7 @@ export namespace Either {
 		elems: Iterable<T>,
 		f: (elem: T, idx: number) => Either<E, T1>,
 	): Either<E, T1[]> {
-		return traverseInto(elems, f, new ArrayBuilder());
+		return traverseInto(elems, f, new ArrayPushBuilder());
 	}
 
 	/**
@@ -531,7 +536,7 @@ export namespace Either {
 	export function all<E, T>(eithers: Iterable<Either<E, T>>): Either<E, T[]>;
 
 	export function all<E, T>(eithers: Iterable<Either<E, T>>): Either<E, T[]> {
-		return collectInto(eithers, new ArrayBuilder());
+		return collectInto(eithers, new ArrayPushBuilder());
 	}
 
 	/**
@@ -562,7 +567,7 @@ export namespace Either {
 		return traverseInto(
 			Object.entries(eithers),
 			([key, either]) => either.map((val): [string, T] => [key, val]),
-			new IndexableBuilder<Record<string, T>>({}),
+			new RecordBuilder(),
 		);
 	}
 
@@ -653,7 +658,7 @@ export namespace Either {
 				Promise.resolve(f(elem, idx)).then((either) =>
 					either.map((val): [number, T1] => [idx, val]),
 				),
-			new IndexableBuilder<T1[]>([]),
+			new ArrayIdxBuilder(),
 		);
 	}
 
@@ -727,7 +732,7 @@ export namespace Either {
 				Promise.resolve(elem).then((either) =>
 					either.map((val): [number, T] => [idx, val]),
 				),
-			new IndexableBuilder<T[]>([]),
+			new ArrayIdxBuilder(),
 		);
 	}
 
@@ -770,7 +775,7 @@ export namespace Either {
 				Promise.resolve(elem).then((either) =>
 					either.map((val): [string, T] => [key, val]),
 				),
-			new IndexableBuilder<Record<string, T>>({}),
+			new RecordBuilder(),
 		);
 	}
 
