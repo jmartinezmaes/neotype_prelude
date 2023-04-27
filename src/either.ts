@@ -368,7 +368,7 @@
  * @module
  */
 
-import { ArrayBuilder, IndexableBuilder } from "./_utils.js";
+import { ArrayBuilder, IndexableBuilder, NoOpBuilder } from "./_utils.js";
 import type { Builder } from "./builder.js";
 import { Semigroup, cmb } from "./cmb.js";
 import { Eq, Ord, Ordering, cmp, eq } from "./cmp.js";
@@ -482,6 +482,16 @@ export namespace Either {
 		f: (elem: T, idx: number) => Either<E, T1>,
 	): Either<E, T1[]> {
 		return traverseInto(elems, f, new ArrayBuilder());
+	}
+
+	/**
+	 *
+	 */
+	export function forEach<T, E>(
+		elems: Iterable<T>,
+		f: (elem: T, idx: number) => Either<E, any>,
+	): Either<E, void> {
+		return traverseInto(elems, f, new NoOpBuilder());
 	}
 
 	/**
@@ -645,6 +655,19 @@ export namespace Either {
 				),
 			new IndexableBuilder<T1[]>([]),
 		);
+	}
+
+	/**
+	 *
+	 */
+	export function forEachAsync<T, E>(
+		elems: Iterable<T>,
+		f: (
+			elem: T,
+			idx: number,
+		) => Either<E, any> | PromiseLike<Either<E, any>>,
+	): Promise<Either<E, void>> {
+		return traverseIntoAsync(elems, f, new NoOpBuilder());
 	}
 
 	/**

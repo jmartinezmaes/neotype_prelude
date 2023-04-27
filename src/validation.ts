@@ -375,7 +375,7 @@
  * @module
  */
 
-import { ArrayBuilder, IndexableBuilder } from "./_utils.js";
+import { ArrayBuilder, IndexableBuilder, NoOpBuilder } from "./_utils.js";
 import type { Builder } from "./builder.js";
 import { Semigroup, cmb } from "./cmb.js";
 import { Eq, Ord, Ordering, cmp, eq } from "./cmp.js";
@@ -448,6 +448,16 @@ export namespace Validation {
 		f: (elem: T, idx: number) => Validation<E, T1>,
 	): Validation<E, T1[]> {
 		return traverseInto(elems, f, new ArrayBuilder());
+	}
+
+	/**
+	 *
+	 */
+	export function forEach<T, E extends Semigroup<E>>(
+		elems: Iterable<T>,
+		f: (elem: T, idx: number) => Validation<E, any>,
+	): Validation<E, void> {
+		return traverseInto(elems, f, new NoOpBuilder());
 	}
 
 	/**
@@ -609,6 +619,19 @@ export namespace Validation {
 				),
 			new IndexableBuilder<T1[]>([]),
 		);
+	}
+
+	/**
+	 *
+	 */
+	export function forEachAsync<T, E extends Semigroup<E>>(
+		elems: Iterable<T>,
+		f: (
+			elem: T,
+			idx: number,
+		) => Validation<E, any> | PromiseLike<Validation<E, any>>,
+	): Promise<Validation<E, void>> {
+		return traverseIntoAsync(elems, f, new NoOpBuilder());
 	}
 
 	/**

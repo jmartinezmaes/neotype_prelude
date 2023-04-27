@@ -46,3 +46,13 @@ export class IndexableBuilder<
 		return this.elems;
 	}
 }
+
+export class NoOpBuilder implements Builder<unknown, void> {
+	add(): void {
+		return;
+	}
+
+	finish(): void {
+		return;
+	}
+}

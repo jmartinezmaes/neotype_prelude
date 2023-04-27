@@ -383,7 +383,7 @@
  * @module
  */
 
-import { ArrayBuilder, IndexableBuilder } from "./_utils.js";
+import { ArrayBuilder, IndexableBuilder, NoOpBuilder } from "./_utils.js";
 import type { Builder } from "./builder.js";
 import { Semigroup, cmb } from "./cmb.js";
 import { Eq, Ord, Ordering, cmp, eq } from "./cmp.js";
@@ -522,6 +522,16 @@ export namespace Maybe {
 		f: (elem: T, idx: number) => Maybe<T1>,
 	): Maybe<T1[]> {
 		return traverseInto(elems, f, new ArrayBuilder());
+	}
+
+	/**
+	 *
+	 */
+	export function forEach<T>(
+		elems: Iterable<T>,
+		f: (elem: T, idx: number) => Maybe<any>,
+	): Maybe<void> {
+		return traverseInto(elems, f, new NoOpBuilder());
 	}
 
 	/**
@@ -670,6 +680,16 @@ export namespace Maybe {
 				),
 			new IndexableBuilder<T1[]>([]),
 		);
+	}
+
+	/**
+	 *
+	 */
+	export function forEachAsync<T>(
+		elems: Iterable<T>,
+		f: (elem: T, idx: number) => Maybe<any> | PromiseLike<Maybe<any>>,
+	): Promise<Maybe<void>> {
+		return traverseIntoAsync(elems, f, new NoOpBuilder());
 	}
 
 	/**
