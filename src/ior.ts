@@ -429,9 +429,12 @@
  * @module
  */
 
+import { ArrayBuilder, IndexableBuilder } from "./_utils.js";
+import type { Builder } from "./builder.js";
 import { Semigroup, cmb } from "./cmb.js";
 import { Eq, Ord, Ordering, cmp, eq } from "./cmp.js";
 import type { Either } from "./either.js";
+import { id } from "./fn.js";
 import type { Validation } from "./validation.js";
 
 /**
@@ -554,19 +557,59 @@ export namespace Ior {
 	 * Reduce a finite iterable from left to right in the context of `Ior`.
 	 */
 	export function reduce<T, TAcc, A extends Semigroup<A>>(
-		vals: Iterable<T>,
+		elems: Iterable<T>,
 		accum: (acc: TAcc, val: T) => Ior<A, TAcc>,
 		initial: TAcc,
 	): Ior<A, TAcc> {
 		return go(
 			(function* () {
 				let acc = initial;
-				for (const val of vals) {
-					acc = yield* accum(acc, val);
+				for (const elem of elems) {
+					acc = yield* accum(acc, elem);
 				}
 				return acc;
 			})(),
 		);
+	}
+
+	/**
+	 *
+	 */
+	export function traverseInto<T, A extends Semigroup<A>, TIn, TOut>(
+		elems: Iterable<T>,
+		f: (elem: T, idx: number) => Ior<A, TIn>,
+		builder: Builder<TIn, TOut>,
+	): Ior<A, TOut> {
+		return go(
+			(function* () {
+				let idx = 0;
+				for (const elem of elems) {
+					builder.add(yield* f(elem, idx));
+					idx++;
+				}
+				return builder.finish();
+			})(),
+		);
+	}
+
+	/**
+	 *
+	 */
+	export function traverse<T, A extends Semigroup<A>, T1>(
+		elems: Iterable<T>,
+		f: (elem: T, idx: number) => Ior<A, T1>,
+	): Ior<A, T1[]> {
+		return traverseInto(elems, f, new ArrayBuilder());
+	}
+
+	/**
+	 *
+	 */
+	export function collectInto<A extends Semigroup<A>, TIn, TOut>(
+		iors: Iterable<Ior<A, TIn>>,
+		builder: Builder<TIn, TOut>,
+	): Ior<A, TOut> {
+		return traverseInto(iors, id, builder);
 	}
 
 	/**
@@ -600,15 +643,7 @@ export namespace Ior {
 	export function all<A extends Semigroup<A>, B>(
 		iors: Iterable<Ior<A, B>>,
 	): Ior<A, B[]> {
-		return go(
-			(function* () {
-				const results = [];
-				for (const ior of iors) {
-					results.push(yield* ior);
-				}
-				return results;
-			})(),
-		);
+		return collectInto(iors, new ArrayBuilder());
 	}
 
 	/**
@@ -632,15 +667,15 @@ export namespace Ior {
 	): Ior<
 		LeftT<TIors[keyof TIors]>,
 		{ -readonly [K in keyof TIors]: RightT<TIors[K]> }
-	> {
-		return go(
-			(function* (): Go<any, any> {
-				const results: Record<string, any> = {};
-				for (const [key, ior] of Object.entries(iors)) {
-					results[key] = yield* ior;
-				}
-				return results;
-			})(),
+	>;
+
+	export function allProps<A extends Semigroup<A>, B>(
+		iors: Record<string, Ior<A, B>>,
+	): Ior<A, Record<string, B>> {
+		return traverseInto(
+			Object.entries(iors),
+			([key, ior]) => ior.map((val): [string, B] => [key, val]),
+			new IndexableBuilder<Record<string, B>>({}),
 		);
 	}
 
@@ -709,6 +744,83 @@ export namespace Ior {
 	}
 
 	/**
+	 *
+	 */
+	export function traverseIntoAsync<T, A extends Semigroup<A>, TIn, TOut>(
+		elems: Iterable<T>,
+		f: (elem: T, idx: number) => Ior<A, TIn> | PromiseLike<Ior<A, TIn>>,
+		builder: Builder<TIn, TOut>,
+	): Promise<Ior<A, TOut>> {
+		return new Promise((resolve, reject) => {
+			let remaining = 0;
+			let acc: A | undefined;
+
+			for (const elem of elems) {
+				const idx = remaining;
+				remaining++;
+				Promise.resolve(f(elem, idx)).then((ior) => {
+					if (ior.isLeft()) {
+						if (acc === undefined) {
+							resolve(ior);
+						} else {
+							resolve(left(cmb(acc, ior.val)));
+						}
+						return;
+					}
+
+					if (ior.isRight()) {
+						builder.add(ior.val);
+					} else {
+						if (acc === undefined) {
+							acc = ior.fst;
+						} else {
+							acc = cmb(acc, ior.fst);
+						}
+						builder.add(ior.snd);
+					}
+
+					remaining--;
+					if (remaining === 0) {
+						if (acc === undefined) {
+							resolve(right(builder.finish()));
+						} else {
+							resolve(both(acc, builder.finish()));
+						}
+						return;
+					}
+				}, reject);
+			}
+		});
+	}
+
+	/**
+	 *
+	 */
+	export function traverseAsync<T, A extends Semigroup<A>, B>(
+		elems: Iterable<T>,
+		f: (elem: T, idx: number) => Ior<A, B> | PromiseLike<Ior<A, B>>,
+	): Promise<Ior<A, B[]>> {
+		return traverseIntoAsync(
+			elems,
+			(elem, idx) =>
+				Promise.resolve(f(elem, idx)).then((ior) =>
+					ior.map((val): [number, B] => [idx, val]),
+				),
+			new IndexableBuilder<B[]>([]),
+		);
+	}
+
+	/**
+	 *
+	 */
+	export function collectIntoAsync<A extends Semigroup<A>, TIn, TOut>(
+		elems: Iterable<Ior<A, TIn> | PromiseLike<Ior<A, TIn>>>,
+		builder: Builder<TIn, TOut>,
+	): Promise<Ior<A, TOut>> {
+		return traverseIntoAsync(elems, id, builder);
+	}
+
+	/**
 	 * Concurrently turn an array or a tuple literal of promise-like `Ior`
 	 * elements "inside out".
 	 *
@@ -758,47 +870,14 @@ export namespace Ior {
 	export function allAsync<A extends Semigroup<A>, B>(
 		elems: Iterable<Ior<A, B> | PromiseLike<Ior<A, B>>>,
 	): Promise<Ior<A, B[]>> {
-		return new Promise((resolve, reject) => {
-			const results: B[] = [];
-			let remaining = 0;
-			let acc: A | undefined;
-
-			for (const elem of elems) {
-				const idx = remaining;
-				remaining++;
-				Promise.resolve(elem).then((ior) => {
-					if (ior.isLeft()) {
-						if (acc === undefined) {
-							resolve(ior);
-						} else {
-							resolve(left(cmb(acc, ior.val)));
-						}
-						return;
-					}
-
-					if (ior.isRight()) {
-						results[idx] = ior.val;
-					} else {
-						if (acc === undefined) {
-							acc = ior.fst;
-						} else {
-							acc = cmb(acc, ior.fst);
-						}
-						results[idx] = ior.snd;
-					}
-
-					remaining--;
-					if (remaining === 0) {
-						if (acc === undefined) {
-							resolve(right(results));
-						} else {
-							resolve(both(acc, results));
-						}
-						return;
-					}
-				}, reject);
-			}
-		});
+		return traverseIntoAsync(
+			elems,
+			(elem, idx) =>
+				Promise.resolve(elem).then((ior) =>
+					ior.map((val): [number, B] => [idx, val]),
+				),
+			new IndexableBuilder<B[]>([]),
+		);
 	}
 
 	/**
@@ -832,47 +911,19 @@ export namespace Ior {
 			LeftT<{ [K in keyof TElems]: Awaited<TElems[K]> }[keyof TElems]>,
 			{ [K in keyof TElems]: RightT<Awaited<TElems[K]>> }
 		>
-	> {
-		return new Promise((resolve, reject) => {
-			const entries = Object.entries(elems);
-			const results: Record<string, any> = {};
-			let remaining = entries.length;
-			let acc: Semigroup<any> | undefined;
+	>;
 
-			for (const [key, elem] of entries) {
-				Promise.resolve(elem).then((ior) => {
-					if (ior.isLeft()) {
-						if (acc === undefined) {
-							resolve(ior as Left<any>);
-						} else {
-							resolve(left(cmb(acc, ior.val)) as Left<any>);
-						}
-						return;
-					}
-
-					if (ior.isRight()) {
-						results[key] = ior.val;
-					} else {
-						if (acc === undefined) {
-							acc = ior.fst;
-						} else {
-							acc = cmb(acc, ior.fst);
-						}
-						results[key] = ior.snd;
-					}
-
-					remaining--;
-					if (remaining === 0) {
-						if (acc === undefined) {
-							resolve(right(results as any));
-						} else {
-							resolve(both(acc as any, results as any));
-						}
-						return;
-					}
-				}, reject);
-			}
-		});
+	export function allPropsAsync<A extends Semigroup<A>, B>(
+		elems: Record<string, Ior<A, B> | PromiseLike<Ior<A, B>>>,
+	): Promise<Ior<A, Record<string, B>>> {
+		return traverseIntoAsync(
+			Object.entries(elems),
+			([key, elem]) =>
+				Promise.resolve(elem).then((ior) =>
+					ior.map((val): [string, B] => [key, val]),
+				),
+			new IndexableBuilder<Record<string, B>>({}),
+		);
 	}
 
 	/**

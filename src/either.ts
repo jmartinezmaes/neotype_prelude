@@ -368,8 +368,11 @@
  * @module
  */
 
+import { ArrayBuilder, IndexableBuilder } from "./_utils.js";
+import type { Builder } from "./builder.js";
 import { Semigroup, cmb } from "./cmb.js";
 import { Eq, Ord, Ordering, cmp, eq } from "./cmp.js";
+import { id } from "./fn.js";
 import type { Validation } from "./validation.js";
 
 /**
@@ -436,19 +439,59 @@ export namespace Either {
 	 * Reduce a finite iterable from left to right in the context of `Either`.
 	 */
 	export function reduce<T, TAcc, E>(
-		vals: Iterable<T>,
+		elems: Iterable<T>,
 		accum: (acc: TAcc, val: T) => Either<E, TAcc>,
 		initial: TAcc,
 	): Either<E, TAcc> {
 		return go(
 			(function* () {
 				let acc = initial;
-				for (const val of vals) {
-					acc = yield* accum(acc, val);
+				for (const elem of elems) {
+					acc = yield* accum(acc, elem);
 				}
 				return acc;
 			})(),
 		);
+	}
+
+	/**
+	 *
+	 */
+	export function traverseInto<T, E, TIn, TOut>(
+		elems: Iterable<T>,
+		f: (elem: T, idx: number) => Either<E, TIn>,
+		builder: Builder<TIn, TOut>,
+	): Either<E, TOut> {
+		return go(
+			(function* () {
+				let idx = 0;
+				for (const elem of elems) {
+					builder.add(yield* f(elem, idx));
+					idx++;
+				}
+				return builder.finish();
+			})(),
+		);
+	}
+
+	/**
+	 *
+	 */
+	export function traverse<T, E, T1>(
+		elems: Iterable<T>,
+		f: (elem: T, idx: number) => Either<E, T1>,
+	): Either<E, T1[]> {
+		return traverseInto(elems, f, new ArrayBuilder());
+	}
+
+	/**
+	 *
+	 */
+	export function collectInto<E, TIn, TOut>(
+		eithers: Iterable<Either<E, TIn>>,
+		builder: Builder<TIn, TOut>,
+	): Either<E, TOut> {
+		return traverseInto(eithers, id, builder);
 	}
 
 	/**
@@ -478,15 +521,7 @@ export namespace Either {
 	export function all<E, T>(eithers: Iterable<Either<E, T>>): Either<E, T[]>;
 
 	export function all<E, T>(eithers: Iterable<Either<E, T>>): Either<E, T[]> {
-		return go(
-			(function* () {
-				const results = [];
-				for (const either of eithers) {
-					results.push(yield* either);
-				}
-				return results;
-			})(),
-		);
+		return collectInto(eithers, new ArrayBuilder());
 	}
 
 	/**
@@ -509,15 +544,15 @@ export namespace Either {
 	): Either<
 		LeftT<TEithers[keyof TEithers]>,
 		{ -readonly [K in keyof TEithers]: RightT<TEithers[K]> }
-	> {
-		return go(
-			(function* () {
-				const results: Record<string, any> = {};
-				for (const [key, either] of Object.entries(eithers)) {
-					results[key] = yield* either;
-				}
-				return results as any;
-			})(),
+	>;
+
+	export function allProps<E, T>(
+		eithers: Record<string, Either<E, T>>,
+	): Either<E, Record<string, T>> {
+		return traverseInto(
+			Object.entries(eithers),
+			([key, either]) => either.map((val): [string, T] => [key, val]),
+			new IndexableBuilder<Record<string, T>>({}),
 		);
 	}
 
@@ -564,6 +599,65 @@ export namespace Either {
 	}
 
 	/**
+	 *
+	 */
+	export function traverseIntoAsync<T, E, TIn, TOut>(
+		elems: Iterable<T>,
+		f: (
+			elem: T,
+			idx: number,
+		) => Either<E, TIn> | PromiseLike<Either<E, TIn>>,
+		builder: Builder<TIn, TOut>,
+	): Promise<Either<E, TOut>> {
+		return new Promise((resolve, reject) => {
+			let remaining = 0;
+			for (const elem of elems) {
+				const idx = remaining;
+				remaining++;
+				Promise.resolve(f(elem, idx)).then((either) => {
+					if (either.isLeft()) {
+						resolve(either);
+						return;
+					}
+					builder.add(either.val);
+					remaining--;
+					if (remaining === 0) {
+						resolve(right(builder.finish()));
+						return;
+					}
+				}, reject);
+			}
+		});
+	}
+
+	/**
+	 *
+	 */
+	export function traverseAsync<T, E, T1>(
+		elems: Iterable<T>,
+		f: (elem: T, idx: number) => Either<E, T1> | PromiseLike<Either<E, T1>>,
+	): Promise<Either<E, T1[]>> {
+		return traverseIntoAsync(
+			elems,
+			(elem, idx) =>
+				Promise.resolve(f(elem, idx)).then((either) =>
+					either.map((val): [number, T1] => [idx, val]),
+				),
+			new IndexableBuilder<T1[]>([]),
+		);
+	}
+
+	/**
+	 *
+	 */
+	export function collectIntoAsync<E, TIn, TOut>(
+		elems: Iterable<Either<E, TIn> | PromiseLike<Either<E, TIn>>>,
+		builder: Builder<TIn, TOut>,
+	): Promise<Either<E, TOut>> {
+		return traverseIntoAsync(elems, id, builder);
+	}
+
+	/**
 	 * Concurrently turn an array or a tuple literal of promise-like `Either`
 	 * elements "inside out".
 	 *
@@ -604,26 +698,14 @@ export namespace Either {
 	export function allAsync<E, T>(
 		elems: Iterable<Either<E, T> | PromiseLike<Either<E, T>>>,
 	): Promise<Either<E, T[]>> {
-		return new Promise((resolve, reject) => {
-			const results: T[] = [];
-			let remaining = 0;
-			for (const elem of elems) {
-				const idx = remaining;
-				remaining++;
-				Promise.resolve(elem).then((either) => {
-					if (either.isLeft()) {
-						resolve(either);
-						return;
-					}
-					results[idx] = either.val;
-					remaining--;
-					if (remaining === 0) {
-						resolve(right(results));
-						return;
-					}
-				}, reject);
-			}
-		});
+		return traverseIntoAsync(
+			elems,
+			(elem, idx) =>
+				Promise.resolve(elem).then((either) =>
+					either.map((val): [number, T] => [idx, val]),
+				),
+			new IndexableBuilder<T[]>([]),
+		);
 	}
 
 	/**
@@ -654,26 +736,19 @@ export namespace Either {
 			LeftT<{ [K in keyof TElems]: Awaited<TElems[K]> }[keyof TElems]>,
 			{ [K in keyof TElems]: RightT<Awaited<TElems[K]>> }
 		>
-	> {
-		return new Promise((resolve, reject) => {
-			const entries = Object.entries(elems);
-			const results: Record<string, any> = {};
-			let remaining = entries.length;
-			for (const [key, elem] of entries) {
-				Promise.resolve(elem).then((either) => {
-					if (either.isLeft()) {
-						resolve(either);
-						return;
-					}
-					results[key] = either.val;
-					remaining--;
-					if (remaining === 0) {
-						resolve(right(results as any));
-						return;
-					}
-				}, reject);
-			}
-		});
+	>;
+
+	export function allPropsAsync<E, T>(
+		elems: Record<string, Either<E, T> | PromiseLike<Either<E, T>>>,
+	): Promise<Either<E, Record<string, T>>> {
+		return traverseIntoAsync(
+			Object.entries(elems),
+			([key, elem]) =>
+				Promise.resolve(elem).then((either) =>
+					either.map((val): [string, T] => [key, val]),
+				),
+			new IndexableBuilder<Record<string, T>>({}),
+		);
 	}
 
 	/**

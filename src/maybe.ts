@@ -383,6 +383,8 @@
  * @module
  */
 
+import { ArrayBuilder, IndexableBuilder } from "./_utils.js";
+import type { Builder } from "./builder.js";
 import { Semigroup, cmb } from "./cmb.js";
 import { Eq, Ord, Ordering, cmp, eq } from "./cmp.js";
 import { id } from "./fn.js";
@@ -477,19 +479,59 @@ export namespace Maybe {
 	 * Reduce a finite iterable from left to right in the context of `Maybe`.
 	 */
 	export function reduce<T, TAcc>(
-		vals: Iterable<T>,
+		elems: Iterable<T>,
 		accum: (acc: TAcc, val: T) => Maybe<TAcc>,
 		initial: TAcc,
 	): Maybe<TAcc> {
 		return go(
 			(function* () {
 				let acc = initial;
-				for (const val of vals) {
+				for (const val of elems) {
 					acc = yield* accum(acc, val);
 				}
 				return acc;
 			})(),
 		);
+	}
+
+	/**
+	 *
+	 */
+	export function traverseInto<T, TIn, TOut>(
+		elems: Iterable<T>,
+		f: (elem: T, idx: number) => Maybe<TIn>,
+		builder: Builder<TIn, TOut>,
+	): Maybe<TOut> {
+		return go(
+			(function* () {
+				let idx = 0;
+				for (const elem of elems) {
+					builder.add(yield* f(elem, idx));
+					idx++;
+				}
+				return builder.finish();
+			})(),
+		);
+	}
+
+	/**
+	 *
+	 */
+	export function traverse<T, T1>(
+		elems: Iterable<T>,
+		f: (elem: T, idx: number) => Maybe<T1>,
+	): Maybe<T1[]> {
+		return traverseInto(elems, f, new ArrayBuilder());
+	}
+
+	/**
+	 *
+	 */
+	export function collectInto<TIn, TOut>(
+		maybes: Iterable<Maybe<TIn>>,
+		builder: Builder<TIn, TOut>,
+	): Maybe<TOut> {
+		return traverseInto(maybes, id, builder);
 	}
 
 	/**
@@ -516,15 +558,7 @@ export namespace Maybe {
 	export function all<T>(maybes: Iterable<Maybe<T>>): Maybe<T[]>;
 
 	export function all<T>(maybes: Iterable<Maybe<T>>): Maybe<T[]> {
-		return go(
-			(function* () {
-				const results = [];
-				for (const maybe of maybes) {
-					results.push(yield* maybe);
-				}
-				return results;
-			})(),
-		);
+		return collectInto(maybes, new ArrayBuilder());
 	}
 
 	/**
@@ -543,15 +577,15 @@ export namespace Maybe {
 	 */
 	export function allProps<TMaybes extends Record<string, Maybe<any>>>(
 		maybes: TMaybes,
-	): Maybe<{ -readonly [K in keyof TMaybes]: JustT<TMaybes[K]> }> {
-		return go(
-			(function* () {
-				const results: Record<string, any> = {};
-				for (const [key, maybe] of Object.entries(maybes)) {
-					results[key] = yield* maybe;
-				}
-				return results as any;
-			})(),
+	): Maybe<{ -readonly [K in keyof TMaybes]: JustT<TMaybes[K]> }>;
+
+	export function allProps<T>(
+		maybes: Record<string, Maybe<T>>,
+	): Maybe<Record<string, T>> {
+		return traverseInto(
+			Object.entries(maybes),
+			([key, maybe]) => maybe.map((val): [string, T] => [key, val]),
+			new IndexableBuilder<Record<string, T>>({}),
 		);
 	}
 
@@ -593,6 +627,62 @@ export namespace Maybe {
 	}
 
 	/**
+	 *
+	 */
+	export function traverseIntoAsync<T, TIn, TOut>(
+		elems: Iterable<T>,
+		f: (elem: T, idx: number) => Maybe<TIn> | PromiseLike<Maybe<TIn>>,
+		builder: Builder<TIn, TOut>,
+	): Promise<Maybe<TOut>> {
+		return new Promise((resolve, reject) => {
+			let remaining = 0;
+			for (const elem of elems) {
+				const idx = remaining;
+				remaining++;
+				Promise.resolve(f(elem, idx)).then((maybe) => {
+					if (maybe.isNothing()) {
+						resolve(maybe);
+						return;
+					}
+					builder.add(maybe.val);
+					remaining--;
+					if (remaining === 0) {
+						resolve(just(builder.finish()));
+						return;
+					}
+				}, reject);
+			}
+		});
+	}
+
+	/**
+	 *
+	 */
+	export function traverseAsync<T, T1>(
+		elems: Iterable<T>,
+		f: (elem: T, idx: number) => Maybe<T1> | PromiseLike<Maybe<T1>>,
+	): Promise<Maybe<T1[]>> {
+		return traverseIntoAsync(
+			elems,
+			(elem, idx) =>
+				Promise.resolve(f(elem, idx)).then((maybe) =>
+					maybe.map((val): [number, T1] => [idx, val]),
+				),
+			new IndexableBuilder<T1[]>([]),
+		);
+	}
+
+	/**
+	 *
+	 */
+	export function collectIntoAsync<TIn, TOut>(
+		maybes: Iterable<Maybe<TIn> | PromiseLike<Maybe<TIn>>>,
+		builder: Builder<TIn, TOut>,
+	): Promise<Maybe<TOut>> {
+		return traverseIntoAsync(maybes, id, builder);
+	}
+
+	/**
 	 * Concurrently turn an array or a tuple literal of promise-like `Maybe`
 	 * elements "inside out".
 	 *
@@ -625,26 +715,14 @@ export namespace Maybe {
 	export function allAsync<T>(
 		elems: Iterable<Maybe<T> | PromiseLike<Maybe<T>>>,
 	): Promise<Maybe<T[]>> {
-		return new Promise((resolve, reject) => {
-			const results: T[] = [];
-			let remaining = 0;
-			for (const elem of elems) {
-				const idx = remaining;
-				remaining++;
-				Promise.resolve(elem).then((maybe) => {
-					if (maybe.isNothing()) {
-						resolve(maybe);
-						return;
-					}
-					results[idx] = maybe.val;
-					remaining--;
-					if (remaining === 0) {
-						resolve(just(results));
-						return;
-					}
-				}, reject);
-			}
-		});
+		return traverseIntoAsync(
+			elems,
+			(elem, idx) =>
+				Promise.resolve(elem).then((maybe) =>
+					maybe.map((val): [number, T] => [idx, val]),
+				),
+			new IndexableBuilder<T[]>([]),
+		);
 	}
 
 	/**
@@ -667,26 +745,19 @@ export namespace Maybe {
 		TElems extends Record<string, Maybe<any> | PromiseLike<Maybe<any>>>,
 	>(
 		elems: TElems,
-	): Promise<Maybe<{ [K in keyof TElems]: JustT<Awaited<TElems[K]>> }>> {
-		return new Promise((resolve, reject) => {
-			const entries = Object.entries(elems);
-			const results: Record<string, any> = {};
-			let remaining = entries.length;
-			for (const [key, elem] of entries) {
-				Promise.resolve(elem).then((maybe) => {
-					if (maybe.isNothing()) {
-						resolve(maybe);
-						return;
-					}
-					results[key] = maybe.val;
-					remaining--;
-					if (remaining === 0) {
-						resolve(just(results as any));
-						return;
-					}
-				}, reject);
-			}
-		});
+	): Promise<Maybe<{ [K in keyof TElems]: JustT<Awaited<TElems[K]>> }>>;
+
+	export function allPropsAsync<T>(
+		elems: Record<string, Maybe<T> | PromiseLike<Maybe<T>>>,
+	): Promise<Maybe<Record<string, T>>> {
+		return traverseIntoAsync(
+			Object.entries(elems),
+			([key, elem]) =>
+				Promise.resolve(elem).then((maybe) =>
+					maybe.map((val): [string, T] => [key, val]),
+				),
+			new IndexableBuilder<Record<string, T>>({}),
+		);
 	}
 
 	/**

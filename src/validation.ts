@@ -375,9 +375,12 @@
  * @module
  */
 
+import { ArrayBuilder, IndexableBuilder } from "./_utils.js";
+import type { Builder } from "./builder.js";
 import { Semigroup, cmb } from "./cmb.js";
 import { Eq, Ord, Ordering, cmp, eq } from "./cmp.js";
 import type { Either } from "./either.js";
+import { id } from "./fn.js";
 
 /**
  * A type that represents either accumulating failure (`Err`) or success (`Ok`).
@@ -415,6 +418,49 @@ export namespace Validation {
 	}
 
 	/**
+	 *
+	 */
+	export function traverseInto<T, E extends Semigroup<E>, TIn, TOut>(
+		elems: Iterable<T>,
+		f: (elem: T, idx: number) => Validation<E, TIn>,
+		builder: Builder<TIn, TOut>,
+	): Validation<E, TOut> {
+		let acc = ok<Builder<TIn, TOut>, E>(builder);
+		for (const elem of elems) {
+			let idx = 0;
+			const that = f(elem, idx);
+			acc = acc.zipWith(that, (bldr, val) => {
+				if (acc.isOk() && that.isOk()) {
+					bldr.add(val);
+				}
+				return bldr;
+			});
+			idx++;
+		}
+		return acc.map((bldr) => bldr.finish());
+	}
+
+	/**
+	 *
+	 */
+	export function traverse<T, E extends Semigroup<E>, T1>(
+		elems: Iterable<T>,
+		f: (elem: T, idx: number) => Validation<E, T1>,
+	): Validation<E, T1[]> {
+		return traverseInto(elems, f, new ArrayBuilder());
+	}
+
+	/**
+	 *
+	 */
+	export function collectInto<E extends Semigroup<E>, TIn, TOut>(
+		vdns: Iterable<Validation<E, TIn>>,
+		builder: Builder<TIn, TOut>,
+	): Validation<E, TOut> {
+		return traverseInto(vdns, id, builder);
+	}
+
+	/**
 	 * Turn an array or a tuple literal of `Validation` elements "inside out".
 	 *
 	 * @remarks
@@ -448,14 +494,7 @@ export namespace Validation {
 	export function all<E extends Semigroup<E>, T>(
 		vdns: Iterable<Validation<E, T>>,
 	): Validation<E, T[]> {
-		let acc = ok<T[], E>([]);
-		for (const vdn of vdns) {
-			acc = acc.zipWith(vdn, (results, val) => {
-				results.push(val);
-				return results;
-			});
-		}
-		return acc;
+		return collectInto(vdns, new ArrayBuilder());
 	}
 
 	/**
@@ -481,15 +520,16 @@ export namespace Validation {
 	): Validation<
 		ErrT<TVdns[keyof TVdns]>,
 		{ -readonly [K in keyof TVdns]: OkT<TVdns[K]> }
-	> {
-		let acc = ok<any, any>({});
-		for (const [key, vdn] of Object.entries(vdns)) {
-			acc = acc.zipWith(vdn, (results, val) => {
-				results[key] = val;
-				return results;
-			});
-		}
-		return acc;
+	>;
+
+	export function allProps<E extends Semigroup<E>, T>(
+		vdns: Record<string, Validation<E, T>>,
+	): Validation<E, Record<string, T>> {
+		return traverseInto(
+			Object.entries(vdns),
+			([key, vdn]) => vdn.map((val): [string, T] => [key, val]),
+			new IndexableBuilder<Record<string, T>>({}),
+		);
 	}
 
 	/**
@@ -506,6 +546,79 @@ export namespace Validation {
 				any,
 				T
 			>;
+	}
+
+	/**
+	 *
+	 */
+	export function traverseIntoAsync<T, E extends Semigroup<E>, TIn, TOut>(
+		elems: Iterable<T>,
+		f: (
+			elem: T,
+			idx: number,
+		) => Validation<E, TIn> | PromiseLike<Validation<E, TIn>>,
+		builder: Builder<TIn, TOut>,
+	): Promise<Validation<E, TOut>> {
+		return new Promise((resolve, reject) => {
+			let remaining = 0;
+			let acc: E | undefined;
+
+			for (const elem of elems) {
+				const idx = remaining;
+				remaining++;
+				Promise.resolve(f(elem, idx)).then((vdn) => {
+					if (vdn.isErr()) {
+						if (acc === undefined) {
+							acc = vdn.val;
+						} else {
+							acc = cmb(acc, vdn.val);
+						}
+					} else if (acc === undefined) {
+						builder.add(vdn.val);
+					}
+
+					remaining--;
+					if (remaining === 0) {
+						if (acc === undefined) {
+							resolve(ok(builder.finish()));
+						} else {
+							resolve(err(acc));
+						}
+						return;
+					}
+				}, reject);
+			}
+		});
+	}
+
+	/**
+	 *
+	 */
+	export function traverseAsync<T, E extends Semigroup<E>, T1>(
+		elems: Iterable<T>,
+		f: (
+			elem: T,
+			idx: number,
+		) => Validation<E, T1> | PromiseLike<Validation<E, T1>>,
+	): Promise<Validation<E, T1[]>> {
+		return traverseIntoAsync(
+			elems,
+			(elem, idx) =>
+				Promise.resolve(f(elem, idx)).then((vdn) =>
+					vdn.map((val): [number, T1] => [idx, val]),
+				),
+			new IndexableBuilder<T1[]>([]),
+		);
+	}
+
+	/**
+	 *
+	 */
+	export function collectIntoAsync<E extends Semigroup<E>, TIn, TOut>(
+		vdns: Iterable<Validation<E, TIn> | PromiseLike<Validation<E, TIn>>>,
+		builder: Builder<TIn, TOut>,
+	): Promise<Validation<E, TOut>> {
+		return traverseIntoAsync(vdns, id, builder);
 	}
 
 	/**
@@ -556,37 +669,14 @@ export namespace Validation {
 	export function allAsync<E extends Semigroup<E>, T>(
 		elems: Iterable<Validation<E, T> | PromiseLike<Validation<E, T>>>,
 	): Promise<Validation<E, T[]>> {
-		return new Promise((resolve, reject) => {
-			const results: T[] = [];
-			let remaining = 0;
-			let acc: E | undefined;
-
-			for (const elem of elems) {
-				const idx = remaining;
-				remaining++;
-				Promise.resolve(elem).then((vdn) => {
-					if (vdn.isErr()) {
-						if (acc === undefined) {
-							acc = vdn.val;
-						} else {
-							acc = cmb(acc, vdn.val);
-						}
-					} else if (acc === undefined) {
-						results[idx] = vdn.val;
-					}
-
-					remaining--;
-					if (remaining === 0) {
-						if (acc === undefined) {
-							resolve(ok(results));
-						} else {
-							resolve(err(acc));
-						}
-						return;
-					}
-				}, reject);
-			}
-		});
+		return traverseIntoAsync(
+			elems,
+			(elem, idx) =>
+				Promise.resolve(elem).then((vdn) =>
+					vdn.map((val): [number, T] => [idx, val]),
+				),
+			new IndexableBuilder<T[]>([]),
+		);
 	}
 
 	/**
@@ -620,37 +710,19 @@ export namespace Validation {
 			ErrT<{ [K in keyof TElems]: Awaited<TElems[K]> }[keyof TElems]>,
 			{ [K in keyof TElems]: OkT<Awaited<TElems[K]>> }
 		>
-	> {
-		return new Promise((resolve, reject) => {
-			const entries = Object.entries(elems);
-			const results: Record<string, any> = {};
-			let remaining = entries.length;
-			let acc: Semigroup<any> | undefined;
+	>;
 
-			for (const [key, elem] of entries) {
-				Promise.resolve(elem).then((vdn) => {
-					if (vdn.isErr()) {
-						if (acc === undefined) {
-							acc = vdn.val;
-						} else {
-							acc = cmb(acc, vdn.val);
-						}
-					} else if (acc === undefined) {
-						results[key] = vdn.val;
-					}
-
-					remaining--;
-					if (remaining === 0) {
-						if (acc === undefined) {
-							resolve(ok(results as any));
-						} else {
-							resolve(err(acc as any));
-						}
-						return;
-					}
-				}, reject);
-			}
-		});
+	export function allPropsAsync<E extends Semigroup<E>, T>(
+		elems: Record<string, Validation<E, T> | PromiseLike<Validation<E, T>>>,
+	): Promise<Validation<E, Record<string, T>>> {
+		return traverseIntoAsync(
+			Object.entries(elems),
+			([key, elem]) =>
+				Promise.resolve(elem).then((vdn) =>
+					vdn.map((val): [string, T] => [key, val]),
+				),
+			new IndexableBuilder<Record<string, T>>({}),
+		);
 	}
 
 	/**
