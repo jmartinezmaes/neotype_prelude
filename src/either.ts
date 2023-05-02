@@ -462,11 +462,11 @@ export namespace Either {
 	/**
 	 *
 	 */
-	export function traverseInto<T, E, TIn, TOut>(
+	export function traverseInto<T, E, T1, TFinish>(
 		elems: Iterable<T>,
-		f: (elem: T, idx: number) => Either<E, TIn>,
-		builder: Builder<TIn, TOut>,
-	): Either<E, TOut> {
+		f: (elem: T, idx: number) => Either<E, T1>,
+		builder: Builder<T1, TFinish>,
+	): Either<E, TFinish> {
 		return go(
 			(function* () {
 				let idx = 0;
@@ -502,10 +502,10 @@ export namespace Either {
 	/**
 	 *
 	 */
-	export function collectInto<E, TIn, TOut>(
-		eithers: Iterable<Either<E, TIn>>,
-		builder: Builder<TIn, TOut>,
-	): Either<E, TOut> {
+	export function collectInto<E, T, TFinish>(
+		eithers: Iterable<Either<E, T>>,
+		builder: Builder<T, TFinish>,
+	): Either<E, TFinish> {
 		return traverseInto(eithers, id, builder);
 	}
 
@@ -616,14 +616,11 @@ export namespace Either {
 	/**
 	 *
 	 */
-	export function traverseIntoAsync<T, E, TIn, TOut>(
+	export function traverseIntoAsync<T, E, T1, TFinish>(
 		elems: Iterable<T>,
-		f: (
-			elem: T,
-			idx: number,
-		) => Either<E, TIn> | PromiseLike<Either<E, TIn>>,
-		builder: Builder<TIn, TOut>,
-	): Promise<Either<E, TOut>> {
+		f: (elem: T, idx: number) => Either<E, T1> | PromiseLike<Either<E, T1>>,
+		builder: Builder<T1, TFinish>,
+	): Promise<Either<E, TFinish>> {
 		return new Promise((resolve, reject) => {
 			let remaining = 0;
 			for (const elem of elems) {
@@ -678,10 +675,10 @@ export namespace Either {
 	/**
 	 *
 	 */
-	export function collectIntoAsync<E, TIn, TOut>(
-		elems: Iterable<Either<E, TIn> | PromiseLike<Either<E, TIn>>>,
-		builder: Builder<TIn, TOut>,
-	): Promise<Either<E, TOut>> {
+	export function collectIntoAsync<E, T, TFinish>(
+		elems: Iterable<Either<E, T> | PromiseLike<Either<E, T>>>,
+		builder: Builder<T, TFinish>,
+	): Promise<Either<E, TFinish>> {
 		return traverseIntoAsync(elems, id, builder);
 	}
 

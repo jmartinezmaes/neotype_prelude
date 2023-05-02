@@ -23,14 +23,14 @@
 /**
  *
  */
-export interface Builder<in TIn, out TOut> {
+export interface Builder<in T, out TFinish> {
 	/**
 	 *
 	 */
-	add(val: TIn): void;
+	add(val: T): void;
 
 	/**
 	 *
 	 */
-	finish(): TOut;
+	finish(): TFinish;
 }

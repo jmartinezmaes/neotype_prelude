@@ -425,12 +425,12 @@ export namespace Validation {
 	/**
 	 *
 	 */
-	export function traverseInto<T, E extends Semigroup<E>, TIn, TOut>(
+	export function traverseInto<T, E extends Semigroup<E>, T1, TFinish>(
 		elems: Iterable<T>,
-		f: (elem: T, idx: number) => Validation<E, TIn>,
-		builder: Builder<TIn, TOut>,
-	): Validation<E, TOut> {
-		let acc = ok<Builder<TIn, TOut>, E>(builder);
+		f: (elem: T, idx: number) => Validation<E, T1>,
+		builder: Builder<T1, TFinish>,
+	): Validation<E, TFinish> {
+		let acc = ok<Builder<T1, TFinish>, E>(builder);
 		for (const elem of elems) {
 			let idx = 0;
 			const that = f(elem, idx);
@@ -468,10 +468,10 @@ export namespace Validation {
 	/**
 	 *
 	 */
-	export function collectInto<E extends Semigroup<E>, TIn, TOut>(
-		vdns: Iterable<Validation<E, TIn>>,
-		builder: Builder<TIn, TOut>,
-	): Validation<E, TOut> {
+	export function collectInto<E extends Semigroup<E>, T, TFinish>(
+		vdns: Iterable<Validation<E, T>>,
+		builder: Builder<T, TFinish>,
+	): Validation<E, TFinish> {
 		return traverseInto(vdns, id, builder);
 	}
 
@@ -566,14 +566,14 @@ export namespace Validation {
 	/**
 	 *
 	 */
-	export function traverseIntoAsync<T, E extends Semigroup<E>, TIn, TOut>(
+	export function traverseIntoAsync<T, E extends Semigroup<E>, T1, TFinish>(
 		elems: Iterable<T>,
 		f: (
 			elem: T,
 			idx: number,
-		) => Validation<E, TIn> | PromiseLike<Validation<E, TIn>>,
-		builder: Builder<TIn, TOut>,
-	): Promise<Validation<E, TOut>> {
+		) => Validation<E, T1> | PromiseLike<Validation<E, T1>>,
+		builder: Builder<T1, TFinish>,
+	): Promise<Validation<E, TFinish>> {
 		return new Promise((resolve, reject) => {
 			let remaining = 0;
 			let acc: E | undefined;
@@ -642,10 +642,10 @@ export namespace Validation {
 	/**
 	 *
 	 */
-	export function collectIntoAsync<E extends Semigroup<E>, TIn, TOut>(
-		vdns: Iterable<Validation<E, TIn> | PromiseLike<Validation<E, TIn>>>,
-		builder: Builder<TIn, TOut>,
-	): Promise<Validation<E, TOut>> {
+	export function collectIntoAsync<E extends Semigroup<E>, T, TFinish>(
+		vdns: Iterable<Validation<E, T> | PromiseLike<Validation<E, T>>>,
+		builder: Builder<T, TFinish>,
+	): Promise<Validation<E, TFinish>> {
 		return traverseIntoAsync(vdns, id, builder);
 	}
 

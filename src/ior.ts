@@ -580,11 +580,11 @@ export namespace Ior {
 	/**
 	 *
 	 */
-	export function traverseInto<T, A extends Semigroup<A>, TIn, TOut>(
+	export function traverseInto<T, A extends Semigroup<A>, B, TFinish>(
 		elems: Iterable<T>,
-		f: (elem: T, idx: number) => Ior<A, TIn>,
-		builder: Builder<TIn, TOut>,
-	): Ior<A, TOut> {
+		f: (elem: T, idx: number) => Ior<A, B>,
+		builder: Builder<B, TFinish>,
+	): Ior<A, TFinish> {
 		return go(
 			(function* () {
 				let idx = 0;
@@ -600,10 +600,10 @@ export namespace Ior {
 	/**
 	 *
 	 */
-	export function traverse<T, A extends Semigroup<A>, T1>(
+	export function traverse<T, A extends Semigroup<A>, B>(
 		elems: Iterable<T>,
-		f: (elem: T, idx: number) => Ior<A, T1>,
-	): Ior<A, T1[]> {
+		f: (elem: T, idx: number) => Ior<A, B>,
+	): Ior<A, B[]> {
 		return traverseInto(elems, f, new ArrayPushBuilder());
 	}
 
@@ -620,10 +620,10 @@ export namespace Ior {
 	/**
 	 *
 	 */
-	export function collectInto<A extends Semigroup<A>, TIn, TOut>(
-		iors: Iterable<Ior<A, TIn>>,
-		builder: Builder<TIn, TOut>,
-	): Ior<A, TOut> {
+	export function collectInto<A extends Semigroup<A>, B, TFinish>(
+		iors: Iterable<Ior<A, B>>,
+		builder: Builder<B, TFinish>,
+	): Ior<A, TFinish> {
 		return traverseInto(iors, id, builder);
 	}
 
@@ -761,11 +761,11 @@ export namespace Ior {
 	/**
 	 *
 	 */
-	export function traverseIntoAsync<T, A extends Semigroup<A>, TIn, TOut>(
+	export function traverseIntoAsync<T, A extends Semigroup<A>, B, TFinish>(
 		elems: Iterable<T>,
-		f: (elem: T, idx: number) => Ior<A, TIn> | PromiseLike<Ior<A, TIn>>,
-		builder: Builder<TIn, TOut>,
-	): Promise<Ior<A, TOut>> {
+		f: (elem: T, idx: number) => Ior<A, B> | PromiseLike<Ior<A, B>>,
+		builder: Builder<B, TFinish>,
+	): Promise<Ior<A, TFinish>> {
 		return new Promise((resolve, reject) => {
 			let remaining = 0;
 			let acc: A | undefined;
@@ -838,10 +838,10 @@ export namespace Ior {
 	/**
 	 *
 	 */
-	export function collectIntoAsync<A extends Semigroup<A>, TIn, TOut>(
-		elems: Iterable<Ior<A, TIn> | PromiseLike<Ior<A, TIn>>>,
-		builder: Builder<TIn, TOut>,
-	): Promise<Ior<A, TOut>> {
+	export function collectIntoAsync<A extends Semigroup<A>, B, TFinish>(
+		elems: Iterable<Ior<A, B> | PromiseLike<Ior<A, B>>>,
+		builder: Builder<B, TFinish>,
+	): Promise<Ior<A, TFinish>> {
 		return traverseIntoAsync(elems, id, builder);
 	}
 

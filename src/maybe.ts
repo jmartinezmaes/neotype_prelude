@@ -502,11 +502,11 @@ export namespace Maybe {
 	/**
 	 *
 	 */
-	export function traverseInto<T, TIn, TOut>(
+	export function traverseInto<T, T1, TFinish>(
 		elems: Iterable<T>,
-		f: (elem: T, idx: number) => Maybe<TIn>,
-		builder: Builder<TIn, TOut>,
-	): Maybe<TOut> {
+		f: (elem: T, idx: number) => Maybe<T1>,
+		builder: Builder<T1, TFinish>,
+	): Maybe<TFinish> {
 		return go(
 			(function* () {
 				let idx = 0;
@@ -542,10 +542,10 @@ export namespace Maybe {
 	/**
 	 *
 	 */
-	export function collectInto<TIn, TOut>(
-		maybes: Iterable<Maybe<TIn>>,
-		builder: Builder<TIn, TOut>,
-	): Maybe<TOut> {
+	export function collectInto<T, TFinish>(
+		maybes: Iterable<Maybe<T>>,
+		builder: Builder<T, TFinish>,
+	): Maybe<TFinish> {
 		return traverseInto(maybes, id, builder);
 	}
 
@@ -644,11 +644,11 @@ export namespace Maybe {
 	/**
 	 *
 	 */
-	export function traverseIntoAsync<T, TIn, TOut>(
+	export function traverseIntoAsync<T, T1, TFinish>(
 		elems: Iterable<T>,
-		f: (elem: T, idx: number) => Maybe<TIn> | PromiseLike<Maybe<TIn>>,
-		builder: Builder<TIn, TOut>,
-	): Promise<Maybe<TOut>> {
+		f: (elem: T, idx: number) => Maybe<T1> | PromiseLike<Maybe<T1>>,
+		builder: Builder<T1, TFinish>,
+	): Promise<Maybe<TFinish>> {
 		return new Promise((resolve, reject) => {
 			let remaining = 0;
 			for (const elem of elems) {
@@ -700,10 +700,10 @@ export namespace Maybe {
 	/**
 	 *
 	 */
-	export function collectIntoAsync<TIn, TOut>(
-		maybes: Iterable<Maybe<TIn> | PromiseLike<Maybe<TIn>>>,
-		builder: Builder<TIn, TOut>,
-	): Promise<Maybe<TOut>> {
+	export function collectIntoAsync<T, TFinish>(
+		maybes: Iterable<Maybe<T> | PromiseLike<Maybe<T>>>,
+		builder: Builder<T, TFinish>,
+	): Promise<Maybe<TFinish>> {
 		return traverseIntoAsync(maybes, id, builder);
 	}
 
