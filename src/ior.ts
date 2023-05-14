@@ -761,7 +761,7 @@ export namespace Ior {
 	/**
 	 *
 	 */
-	export function traverseIntoAsync<T, A extends Semigroup<A>, B, TFinish>(
+	export function traverseIntoPar<T, A extends Semigroup<A>, B, TFinish>(
 		elems: Iterable<T>,
 		f: (elem: T, idx: number) => Ior<A, B> | PromiseLike<Ior<A, B>>,
 		builder: Builder<B, TFinish>,
@@ -811,11 +811,11 @@ export namespace Ior {
 	/**
 	 *
 	 */
-	export function traverseAsync<T, A extends Semigroup<A>, B>(
+	export function traversePar<T, A extends Semigroup<A>, B>(
 		elems: Iterable<T>,
 		f: (elem: T, idx: number) => Ior<A, B> | PromiseLike<Ior<A, B>>,
 	): Promise<Ior<A, B[]>> {
-		return traverseIntoAsync(
+		return traverseIntoPar(
 			elems,
 			(elem, idx) =>
 				Promise.resolve(f(elem, idx)).then((ior) =>
@@ -828,21 +828,21 @@ export namespace Ior {
 	/**
 	 *
 	 */
-	export function forEachAsync<T, A extends Semigroup<A>>(
+	export function forEachPar<T, A extends Semigroup<A>>(
 		elems: Iterable<T>,
 		f: (elem: T, idx: number) => Ior<A, any> | PromiseLike<Ior<A, any>>,
 	): Promise<Ior<A, void>> {
-		return traverseIntoAsync(elems, f, new NoOpBuilder());
+		return traverseIntoPar(elems, f, new NoOpBuilder());
 	}
 
 	/**
 	 *
 	 */
-	export function collectIntoAsync<A extends Semigroup<A>, B, TFinish>(
+	export function collectIntoPar<A extends Semigroup<A>, B, TFinish>(
 		elems: Iterable<Ior<A, B> | PromiseLike<Ior<A, B>>>,
 		builder: Builder<B, TFinish>,
 	): Promise<Ior<A, TFinish>> {
-		return traverseIntoAsync(elems, id, builder);
+		return traverseIntoPar(elems, id, builder);
 	}
 
 	/**
@@ -860,7 +860,7 @@ export namespace Ior {
 	 * Left-hand values are combined in the order the promise-like elements
 	 * resolve.
 	 */
-	export function allAsync<
+	export function allPar<
 		TElems extends
 			| readonly (
 					| Ior<Semigroup<any>, any>
@@ -888,14 +888,14 @@ export namespace Ior {
 	 * Left-hand values are combined in the order the promise-like elements
 	 * resolve.
 	 */
-	export function allAsync<A extends Semigroup<A>, B>(
+	export function allPar<A extends Semigroup<A>, B>(
 		elems: Iterable<Ior<A, B> | PromiseLike<Ior<A, B>>>,
 	): Promise<Ior<A, B[]>>;
 
-	export function allAsync<A extends Semigroup<A>, B>(
+	export function allPar<A extends Semigroup<A>, B>(
 		elems: Iterable<Ior<A, B> | PromiseLike<Ior<A, B>>>,
 	): Promise<Ior<A, B[]>> {
-		return traverseIntoAsync(
+		return traverseIntoPar(
 			elems,
 			(elem, idx) =>
 				Promise.resolve(elem).then((ior) =>
@@ -924,7 +924,7 @@ export namespace Ior {
 	 * Left-hand values are combined in the order the promise-like elements
 	 * resolve.
 	 */
-	export function allPropsAsync<
+	export function allPropsPar<
 		TElems extends Record<
 			string,
 			Ior<Semigroup<any>, any> | PromiseLike<Ior<Semigroup<any>, any>>
@@ -938,10 +938,10 @@ export namespace Ior {
 		>
 	>;
 
-	export function allPropsAsync<A extends Semigroup<A>, B>(
+	export function allPropsPar<A extends Semigroup<A>, B>(
 		elems: Record<string, Ior<A, B> | PromiseLike<Ior<A, B>>>,
 	): Promise<Ior<A, Record<string, B>>> {
-		return traverseIntoAsync(
+		return traverseIntoPar(
 			Object.entries(elems),
 			([key, elem]) =>
 				Promise.resolve(elem).then((ior) =>
@@ -961,7 +961,7 @@ export namespace Ior {
 	 * The lifted function's arguments are evaluated concurrently. Left-hand
 	 * values are combined in the order the arguments resolve.
 	 */
-	export function liftAsync<TArgs extends unknown[], T>(
+	export function liftPar<TArgs extends unknown[], T>(
 		f: (...args: TArgs) => T | PromiseLike<T>,
 	): <A extends Semigroup<A>>(
 		...elems: {
@@ -974,7 +974,7 @@ export namespace Ior {
 			goAsync(
 				(async function* (): Ior.GoAsync<any, T> {
 					return f(
-						...((yield* await allAsync(elems)) as TArgs),
+						...((yield* await allPar(elems)) as TArgs),
 					) as Awaited<T>;
 				})(),
 			);

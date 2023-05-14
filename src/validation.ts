@@ -566,7 +566,7 @@ export namespace Validation {
 	/**
 	 *
 	 */
-	export function traverseIntoAsync<T, E extends Semigroup<E>, T1, TFinish>(
+	export function traverseIntoPar<T, E extends Semigroup<E>, T1, TFinish>(
 		elems: Iterable<T>,
 		f: (
 			elem: T,
@@ -609,14 +609,14 @@ export namespace Validation {
 	/**
 	 *
 	 */
-	export function traverseAsync<T, E extends Semigroup<E>, T1>(
+	export function traversePar<T, E extends Semigroup<E>, T1>(
 		elems: Iterable<T>,
 		f: (
 			elem: T,
 			idx: number,
 		) => Validation<E, T1> | PromiseLike<Validation<E, T1>>,
 	): Promise<Validation<E, T1[]>> {
-		return traverseIntoAsync(
+		return traverseIntoPar(
 			elems,
 			(elem, idx) =>
 				Promise.resolve(f(elem, idx)).then((vdn) =>
@@ -629,24 +629,24 @@ export namespace Validation {
 	/**
 	 *
 	 */
-	export function forEachAsync<T, E extends Semigroup<E>>(
+	export function forEachPar<T, E extends Semigroup<E>>(
 		elems: Iterable<T>,
 		f: (
 			elem: T,
 			idx: number,
 		) => Validation<E, any> | PromiseLike<Validation<E, any>>,
 	): Promise<Validation<E, void>> {
-		return traverseIntoAsync(elems, f, new NoOpBuilder());
+		return traverseIntoPar(elems, f, new NoOpBuilder());
 	}
 
 	/**
 	 *
 	 */
-	export function collectIntoAsync<E extends Semigroup<E>, T, TFinish>(
+	export function collectIntoPar<E extends Semigroup<E>, T, TFinish>(
 		vdns: Iterable<Validation<E, T> | PromiseLike<Validation<E, T>>>,
 		builder: Builder<T, TFinish>,
 	): Promise<Validation<E, TFinish>> {
-		return traverseIntoAsync(vdns, id, builder);
+		return traverseIntoPar(vdns, id, builder);
 	}
 
 	/**
@@ -663,7 +663,7 @@ export namespace Validation {
 	 *
 	 * Failures are combined in the order the promise-like elements resolve.
 	 */
-	export function allAsync<
+	export function allPar<
 		TElems extends
 			| readonly (
 					| Validation<Semigroup<any>, any>
@@ -690,14 +690,14 @@ export namespace Validation {
 	 *
 	 * Failures are combined in the order the promise-like elements resolve.
 	 */
-	export function allAsync<E extends Semigroup<E>, T>(
+	export function allPar<E extends Semigroup<E>, T>(
 		elems: Iterable<Validation<E, T> | PromiseLike<Validation<E, T>>>,
 	): Promise<Validation<E, T[]>>;
 
-	export function allAsync<E extends Semigroup<E>, T>(
+	export function allPar<E extends Semigroup<E>, T>(
 		elems: Iterable<Validation<E, T> | PromiseLike<Validation<E, T>>>,
 	): Promise<Validation<E, T[]>> {
-		return traverseIntoAsync(
+		return traverseIntoPar(
 			elems,
 			(elem, idx) =>
 				Promise.resolve(elem).then((vdn) =>
@@ -725,7 +725,7 @@ export namespace Validation {
 	 *
 	 * Failures are combined in the order the promise-like elements resolve.
 	 */
-	export function allPropsAsync<
+	export function allPropsPar<
 		TElems extends Record<
 			string,
 			| Validation<Semigroup<any>, any>
@@ -740,10 +740,10 @@ export namespace Validation {
 		>
 	>;
 
-	export function allPropsAsync<E extends Semigroup<E>, T>(
+	export function allPropsPar<E extends Semigroup<E>, T>(
 		elems: Record<string, Validation<E, T> | PromiseLike<Validation<E, T>>>,
 	): Promise<Validation<E, Record<string, T>>> {
-		return traverseIntoAsync(
+		return traverseIntoPar(
 			Object.entries(elems),
 			([key, elem]) =>
 				Promise.resolve(elem).then((vdn) =>
@@ -763,7 +763,7 @@ export namespace Validation {
 	 * The lifted function's arguments are evaluated concurrently. Failures are
 	 * combined in the order the arguments resolve.
 	 */
-	export function liftAsync<TArgs extends unknown[], T>(
+	export function liftPar<TArgs extends unknown[], T>(
 		f: (...args: TArgs) => T | PromiseLike<T>,
 	): <E extends Semigroup<E>>(
 		...elems: {
@@ -773,7 +773,7 @@ export namespace Validation {
 		}
 	) => Promise<Validation<E, T>> {
 		return async (...elems) => {
-			const result = (await allAsync(elems)).map((args) =>
+			const result = (await allPar(elems)).map((args) =>
 				f(...(args as TArgs)),
 			);
 			if (result.isErr()) {

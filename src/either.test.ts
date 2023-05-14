@@ -286,10 +286,10 @@ describe("Either", () => {
 		});
 	});
 
-	describe("traverseIntoAsync", () => {
+	describe("traverseIntoPar", () => {
 		it("short-circuits on the first Left element", async () => {
 			const builder = new TestBuilder<[number, string]>();
-			const either = await Either.traverseIntoAsync(
+			const either = await Either.traverseIntoPar(
 				["a", "b"],
 				(char, idx) =>
 					delay(10 - 5 * idx).then(() =>
@@ -305,7 +305,7 @@ describe("Either", () => {
 
 		it("collects the successes into a Builder if all elements are Right", async () => {
 			const builder = new TestBuilder<[number, string]>();
-			const either = await Either.traverseIntoAsync(
+			const either = await Either.traverseIntoPar(
 				["a", "b"],
 				(char, idx) =>
 					delay(10 - 5 * idx).then(() => Either.right([idx, char])),
@@ -324,9 +324,9 @@ describe("Either", () => {
 		});
 	});
 
-	describe("traverseAsync", () => {
+	describe("traversePar", () => {
 		it("applies a function to the elements and collects the results into a Builder if all results are Right", async () => {
-			const either = await Either.traverseAsync(["a", "b"], (char, idx) =>
+			const either = await Either.traversePar(["a", "b"], (char, idx) =>
 				delay(10 - 5 * idx).then(() =>
 					Either.right<[number, string]>([idx, char]),
 				),
@@ -340,10 +340,10 @@ describe("Either", () => {
 		});
 	});
 
-	describe("forEachAsync", () => {
+	describe("forEachPar", () => {
 		it("applies a function to the elements", async () => {
 			const results: [number, string][] = [];
-			const either = await Either.forEachAsync(["a", "b"], (char, idx) =>
+			const either = await Either.forEachPar(["a", "b"], (char, idx) =>
 				delay(10 - 5 * idx).then(() => {
 					results.push([idx, char]);
 					return Either.right(undefined);
@@ -357,10 +357,10 @@ describe("Either", () => {
 		});
 	});
 
-	describe("collectIntoAsync", () => {
+	describe("collectIntoPar", () => {
 		it("collects the values into a Builder if all elements are Right", async () => {
 			const builder = new TestBuilder<string>();
-			const either = await Either.collectIntoAsync(
+			const either = await Either.collectIntoPar(
 				[
 					delay(10).then(() => Either.right("a")),
 					delay(5).then(() => Either.right("b")),
@@ -372,9 +372,9 @@ describe("Either", () => {
 		});
 	});
 
-	describe("allAsync", () => {
+	describe("allPar", () => {
 		it("collects the values into an array if all elements are Right", async () => {
-			const either = await Either.allAsync([
+			const either = await Either.allPar([
 				delay(10).then<Either<1, 2>>(() => Either.right(2)),
 				delay(5).then<Either<3, 4>>(() => Either.right(4)),
 			]);
@@ -382,9 +382,9 @@ describe("Either", () => {
 		});
 	});
 
-	describe("allPropsAsync", () => {
+	describe("allPropsPar", () => {
 		it("extracts the successes if all variants are Right", async () => {
-			const either = await Either.allPropsAsync({
+			const either = await Either.allPropsPar({
 				two: delay(10).then<Either<1, 2>>(() => Either.right(2)),
 				four: delay(5).then<Either<3, 4>>(() => Either.right(4)),
 			});
@@ -392,12 +392,12 @@ describe("Either", () => {
 		});
 	});
 
-	describe("liftAsync", () => {
+	describe("liftPar", () => {
 		it("lifts the function into the async context of Either", async () => {
 			function f<A, B>(lhs: A, rhs: B): [A, B] {
 				return [lhs, rhs];
 			}
-			const either = await Either.liftAsync(f<2, 4>)(
+			const either = await Either.liftPar(f<2, 4>)(
 				delay(10).then(() => Either.right<2, 1>(2)),
 				delay(5).then(() => Either.right<4, 3>(4)),
 			);
@@ -408,7 +408,7 @@ describe("Either", () => {
 			async function f<A, B>(lhs: A, rhs: B): Promise<[A, B]> {
 				return [lhs, rhs];
 			}
-			const either = await Either.liftAsync(f<2, 4>)(
+			const either = await Either.liftPar(f<2, 4>)(
 				delay(10).then(() => Either.right<2, 1>(2)),
 				delay(5).then(() => Either.right<4, 3>(4)),
 			);

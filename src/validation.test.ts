@@ -103,9 +103,9 @@ describe("Validation", () => {
 		});
 	});
 
-	describe("allAsync", () => {
+	describe("allPar", () => {
 		it("collects failures in the order the Promises resolve", async () => {
-			const vdn = await Validation.allAsync([
+			const vdn = await Validation.allPar([
 				delay(10).then<Validation<Str, 2>>(() =>
 					Validation.err(new Str("a")),
 				),
@@ -117,7 +117,7 @@ describe("Validation", () => {
 		});
 
 		it("extracts the successes if all variants are Ok", async () => {
-			const vdn = await Validation.allAsync([
+			const vdn = await Validation.allPar([
 				delay(10).then<Validation<Str, 2>>(() => Validation.ok(2)),
 				delay(5).then<Validation<Str, 4>>(() => Validation.ok(4)),
 			]);
@@ -125,7 +125,7 @@ describe("Validation", () => {
 		});
 
 		it("accepts plain Validation values", async () => {
-			const vdn = await Validation.allAsync([
+			const vdn = await Validation.allPar([
 				Validation.ok<2, Str>(2),
 				Validation.ok<4, Str>(4),
 			]);

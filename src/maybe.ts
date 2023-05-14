@@ -644,7 +644,7 @@ export namespace Maybe {
 	/**
 	 *
 	 */
-	export function traverseIntoAsync<T, T1, TFinish>(
+	export function traverseIntoPar<T, T1, TFinish>(
 		elems: Iterable<T>,
 		f: (elem: T, idx: number) => Maybe<T1> | PromiseLike<Maybe<T1>>,
 		builder: Builder<T1, TFinish>,
@@ -673,11 +673,11 @@ export namespace Maybe {
 	/**
 	 *
 	 */
-	export function traverseAsync<T, T1>(
+	export function traversePar<T, T1>(
 		elems: Iterable<T>,
 		f: (elem: T, idx: number) => Maybe<T1> | PromiseLike<Maybe<T1>>,
 	): Promise<Maybe<T1[]>> {
-		return traverseIntoAsync(
+		return traverseIntoPar(
 			elems,
 			(elem, idx) =>
 				Promise.resolve(f(elem, idx)).then((maybe) =>
@@ -690,21 +690,21 @@ export namespace Maybe {
 	/**
 	 *
 	 */
-	export function forEachAsync<T>(
+	export function forEachPar<T>(
 		elems: Iterable<T>,
 		f: (elem: T, idx: number) => Maybe<any> | PromiseLike<Maybe<any>>,
 	): Promise<Maybe<void>> {
-		return traverseIntoAsync(elems, f, new NoOpBuilder());
+		return traverseIntoPar(elems, f, new NoOpBuilder());
 	}
 
 	/**
 	 *
 	 */
-	export function collectIntoAsync<T, TFinish>(
+	export function collectIntoPar<T, TFinish>(
 		maybes: Iterable<Maybe<T> | PromiseLike<Maybe<T>>>,
 		builder: Builder<T, TFinish>,
 	): Promise<Maybe<TFinish>> {
-		return traverseIntoAsync(maybes, id, builder);
+		return traverseIntoPar(maybes, id, builder);
 	}
 
 	/**
@@ -719,7 +719,7 @@ export namespace Maybe {
 	 * -   `[Promise<Maybe<T1>>, Promise<Maybe<T2>>]` becomes
 	 *     `Promise<Maybe<[T1, T2]>>`
 	 */
-	export function allAsync<
+	export function allPar<
 		TElems extends readonly (Maybe<any> | PromiseLike<Maybe<any>>)[] | [],
 	>(
 		elems: TElems,
@@ -733,14 +733,14 @@ export namespace Maybe {
 	 *
 	 * For example, `Iterable<Promise<Maybe<T>>>` becomes `Promise<Maybe<T[]>>`.
 	 */
-	export function allAsync<T>(
+	export function allPar<T>(
 		elems: Iterable<Maybe<T> | PromiseLike<Maybe<T>>>,
 	): Promise<Maybe<T[]>>;
 
-	export function allAsync<T>(
+	export function allPar<T>(
 		elems: Iterable<Maybe<T> | PromiseLike<Maybe<T>>>,
 	): Promise<Maybe<T[]>> {
-		return traverseIntoAsync(
+		return traverseIntoPar(
 			elems,
 			(elem, idx) =>
 				Promise.resolve(elem).then((maybe) =>
@@ -766,16 +766,16 @@ export namespace Maybe {
 	 * -   `{ x: Promise<Maybe<T1>>, y: Promise<Maybe<T2>> }` becomes
 	 *     `Promise<Maybe<{ x: T1, y: T2 }>>`
 	 */
-	export function allPropsAsync<
+	export function allPropsPar<
 		TElems extends Record<string, Maybe<any> | PromiseLike<Maybe<any>>>,
 	>(
 		elems: TElems,
 	): Promise<Maybe<{ [K in keyof TElems]: JustT<Awaited<TElems[K]>> }>>;
 
-	export function allPropsAsync<T>(
+	export function allPropsPar<T>(
 		elems: Record<string, Maybe<T> | PromiseLike<Maybe<T>>>,
 	): Promise<Maybe<Record<string, T>>> {
-		return traverseIntoAsync(
+		return traverseIntoPar(
 			Object.entries(elems),
 			([key, elem]) =>
 				Promise.resolve(elem).then((maybe) =>
@@ -794,7 +794,7 @@ export namespace Maybe {
 	 *
 	 * The lifted function's arguments are evaluated concurrently.
 	 */
-	export function liftAsync<TArgs extends unknown[], T>(
+	export function liftPar<TArgs extends unknown[], T>(
 		f: (...args: TArgs) => T | PromiseLike<T>,
 	): (
 		...elems: {
@@ -804,7 +804,7 @@ export namespace Maybe {
 		return (...elems) =>
 			goAsync(
 				(async function* () {
-					return f(...(yield* await allAsync(elems)));
+					return f(...(yield* await allPar(elems)));
 				})(),
 			);
 	}

@@ -385,9 +385,9 @@ describe("Ior", () => {
 		});
 	});
 
-	describe("allAsync", () => {
+	describe("allPar", () => {
 		it("short-circuits on the first Left", async () => {
-			const ior = await Ior.allAsync([
+			const ior = await Ior.allPar([
 				delay(10).then<Ior<Str, 2>>(() => Ior.both(new Str("a"), 2)),
 				delay(5).then<Ior<Str, 4>>(() => Ior.left(new Str("b"))),
 			]);
@@ -395,7 +395,7 @@ describe("Ior", () => {
 		});
 
 		it("extracts the right-hand values if all variants are Right", async () => {
-			const ior = await Ior.allAsync([
+			const ior = await Ior.allPar([
 				delay(10).then<Ior<Str, 2>>(() => Ior.right(2)),
 				delay(5).then<Ior<Str, 4>>(() => Ior.right(4)),
 			]);
@@ -403,7 +403,7 @@ describe("Ior", () => {
 		});
 
 		it("retains the left-hand value if a Both resolves after a Right", async () => {
-			const ior = await Ior.allAsync([
+			const ior = await Ior.allPar([
 				delay(10).then<Ior<Str, 2>>(() => Ior.both(new Str("a"), 2)),
 				delay(5).then<Ior<Str, 4>>(() => Ior.right(4)),
 			]);
@@ -411,7 +411,7 @@ describe("Ior", () => {
 		});
 
 		it("combines the left-hand values if a Left resolves after a Both", async () => {
-			const ior = await Ior.allAsync([
+			const ior = await Ior.allPar([
 				delay(10).then<Ior<Str, 2>>(() => Ior.left(new Str("a"))),
 				delay(5).then<Ior<Str, 4>>(() => Ior.both(new Str("b"), 4)),
 			]);
@@ -419,7 +419,7 @@ describe("Ior", () => {
 		});
 
 		it("retains the left-hand value if a Both resolves before a Right", async () => {
-			const ior = await Ior.allAsync([
+			const ior = await Ior.allPar([
 				delay(10).then<Ior<Str, 2>>(() => Ior.right(2)),
 				delay(5).then<Ior<Str, 4>>(() => Ior.both(new Str("b"), 4)),
 			]);
@@ -427,7 +427,7 @@ describe("Ior", () => {
 		});
 
 		it("combines the left-hand values if a Both resolves before a Both ", async () => {
-			const ior = await Ior.allAsync([
+			const ior = await Ior.allPar([
 				delay(10).then<Ior<Str, 2>>(() => Ior.both(new Str("a"), 2)),
 				delay(5).then<Ior<Str, 4>>(() => Ior.both(new Str("b"), 4)),
 			]);
@@ -435,7 +435,7 @@ describe("Ior", () => {
 		});
 
 		it("accepts plain Ior values", async () => {
-			const ior = await Ior.allAsync([
+			const ior = await Ior.allPar([
 				Ior.both<Str, 2>(new Str("a"), 2),
 				Ior.both<Str, 4>(new Str("b"), 4),
 			]);

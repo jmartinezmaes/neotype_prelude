@@ -616,7 +616,7 @@ export namespace Either {
 	/**
 	 *
 	 */
-	export function traverseIntoAsync<T, E, T1, TFinish>(
+	export function traverseIntoPar<T, E, T1, TFinish>(
 		elems: Iterable<T>,
 		f: (elem: T, idx: number) => Either<E, T1> | PromiseLike<Either<E, T1>>,
 		builder: Builder<T1, TFinish>,
@@ -645,11 +645,11 @@ export namespace Either {
 	/**
 	 *
 	 */
-	export function traverseAsync<T, E, T1>(
+	export function traversePar<T, E, T1>(
 		elems: Iterable<T>,
 		f: (elem: T, idx: number) => Either<E, T1> | PromiseLike<Either<E, T1>>,
 	): Promise<Either<E, T1[]>> {
-		return traverseIntoAsync(
+		return traverseIntoPar(
 			elems,
 			(elem, idx) =>
 				Promise.resolve(f(elem, idx)).then((either) =>
@@ -662,24 +662,24 @@ export namespace Either {
 	/**
 	 *
 	 */
-	export function forEachAsync<T, E>(
+	export function forEachPar<T, E>(
 		elems: Iterable<T>,
 		f: (
 			elem: T,
 			idx: number,
 		) => Either<E, any> | PromiseLike<Either<E, any>>,
 	): Promise<Either<E, void>> {
-		return traverseIntoAsync(elems, f, new NoOpBuilder());
+		return traverseIntoPar(elems, f, new NoOpBuilder());
 	}
 
 	/**
 	 *
 	 */
-	export function collectIntoAsync<E, T, TFinish>(
+	export function collectIntoPar<E, T, TFinish>(
 		elems: Iterable<Either<E, T> | PromiseLike<Either<E, T>>>,
 		builder: Builder<T, TFinish>,
 	): Promise<Either<E, TFinish>> {
-		return traverseIntoAsync(elems, id, builder);
+		return traverseIntoPar(elems, id, builder);
 	}
 
 	/**
@@ -694,7 +694,7 @@ export namespace Either {
 	 * -   `[Promise<Either<E, T1>>, Promise<Either<E, T2>>]` becomes
 	 *     `Promise<Either<E, [T1, T2]>>`
 	 */
-	export function allAsync<
+	export function allPar<
 		TElems extends
 			| readonly (Either<any, any> | PromiseLike<Either<any, any>>)[]
 			| [],
@@ -716,14 +716,14 @@ export namespace Either {
 	 * For example, `Iterable<Promise<Either<E, T>>>` becomes `Promise<Either<E,
 	 * T[]>>.
 	 */
-	export function allAsync<E, T>(
+	export function allPar<E, T>(
 		elems: Iterable<Either<E, T> | PromiseLike<Either<E, T>>>,
 	): Promise<Either<E, T[]>>;
 
-	export function allAsync<E, T>(
+	export function allPar<E, T>(
 		elems: Iterable<Either<E, T> | PromiseLike<Either<E, T>>>,
 	): Promise<Either<E, T[]>> {
-		return traverseIntoAsync(
+		return traverseIntoPar(
 			elems,
 			(elem, idx) =>
 				Promise.resolve(elem).then((either) =>
@@ -749,7 +749,7 @@ export namespace Either {
 	 * -   `{ x: Promise<Either<E, T1>>, y: Promise<Either<E, T2>> }` becomes
 	 *     `Promise<Either<E, { x: T1, y: T2 }>>`
 	 */
-	export function allPropsAsync<
+	export function allPropsPar<
 		TElems extends Record<
 			string,
 			Either<any, any> | PromiseLike<Either<any, any>>
@@ -763,10 +763,10 @@ export namespace Either {
 		>
 	>;
 
-	export function allPropsAsync<E, T>(
+	export function allPropsPar<E, T>(
 		elems: Record<string, Either<E, T> | PromiseLike<Either<E, T>>>,
 	): Promise<Either<E, Record<string, T>>> {
-		return traverseIntoAsync(
+		return traverseIntoPar(
 			Object.entries(elems),
 			([key, elem]) =>
 				Promise.resolve(elem).then((either) =>
@@ -785,7 +785,7 @@ export namespace Either {
 	 *
 	 * The lifted function's arguments are evaluated concurrently.
 	 */
-	export function liftAsync<TArgs extends unknown[], T>(
+	export function liftPar<TArgs extends unknown[], T>(
 		f: (...args: TArgs) => T | PromiseLike<T>,
 	): <
 		TElems extends {
@@ -801,7 +801,7 @@ export namespace Either {
 		return (...elems) =>
 			goAsync(
 				(async function* () {
-					return f(...((yield* await allAsync(elems)) as TArgs));
+					return f(...((yield* await allPar(elems)) as TArgs));
 				})(),
 			);
 	}

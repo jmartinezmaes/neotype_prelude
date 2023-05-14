@@ -252,9 +252,9 @@ describe("Maybe", () => {
 		});
 	});
 
-	describe("allAsync", () => {
+	describe("allPar", () => {
 		it("short-circuits on the first Nothing", async () => {
-			const maybe = await Maybe.allAsync([
+			const maybe = await Maybe.allPar([
 				delay(10).then<Maybe<1>>(() => Maybe.just(1)),
 				delay(5).then<Maybe<2>>(nothing),
 			]);
@@ -262,7 +262,7 @@ describe("Maybe", () => {
 		});
 
 		it("extracts the values if all variants are Just", async () => {
-			const maybe = await Maybe.allAsync([
+			const maybe = await Maybe.allPar([
 				delay(10).then<Maybe<1>>(() => Maybe.just(1)),
 				delay(5).then<Maybe<2>>(() => Maybe.just(2)),
 			]);
@@ -270,7 +270,7 @@ describe("Maybe", () => {
 		});
 
 		it("accepts plain Maybe values", async () => {
-			const maybe = await Maybe.allAsync([
+			const maybe = await Maybe.allPar([
 				Maybe.just<1>(1),
 				Maybe.just<2>(2),
 			]);
