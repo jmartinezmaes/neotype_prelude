@@ -388,48 +388,48 @@ describe("Ior", () => {
 	describe("allAsync", () => {
 		it("short-circuits on the first Left", async () => {
 			const ior = await Ior.allAsync([
-				delay(10, Ior.both<Str, 2>(new Str("a"), 2)),
-				delay(5, Ior.left<Str, 4>(new Str("b"))),
+				delay(10).then<Ior<Str, 2>>(() => Ior.both(new Str("a"), 2)),
+				delay(5).then<Ior<Str, 4>>(() => Ior.left(new Str("b"))),
 			]);
 			expect(ior).to.deep.equal(Ior.left(new Str("b")));
 		});
 
 		it("extracts the right-hand values if all variants are Right", async () => {
 			const ior = await Ior.allAsync([
-				delay(10, Ior.right<2, Str>(2)),
-				delay(5, Ior.right<4, Str>(4)),
+				delay(10).then<Ior<Str, 2>>(() => Ior.right(2)),
+				delay(5).then<Ior<Str, 4>>(() => Ior.right(4)),
 			]);
 			expect(ior).to.deep.equal(Ior.right([2, 4]));
 		});
 
 		it("retains the left-hand value if a Both resolves after a Right", async () => {
 			const ior = await Ior.allAsync([
-				delay(10, Ior.both<Str, 2>(new Str("a"), 2)),
-				delay(5, Ior.right<4, Str>(4)),
+				delay(10).then<Ior<Str, 2>>(() => Ior.both(new Str("a"), 2)),
+				delay(5).then<Ior<Str, 4>>(() => Ior.right(4)),
 			]);
 			expect(ior).to.deep.equal(Ior.both(new Str("a"), [2, 4]));
 		});
 
 		it("combines the left-hand values if a Left resolves after a Both", async () => {
 			const ior = await Ior.allAsync([
-				delay(10, Ior.left<Str, 2>(new Str("a"))),
-				delay(5, Ior.both<Str, 4>(new Str("b"), 4)),
+				delay(10).then<Ior<Str, 2>>(() => Ior.left(new Str("a"))),
+				delay(5).then<Ior<Str, 4>>(() => Ior.both(new Str("b"), 4)),
 			]);
 			expect(ior).to.deep.equal(Ior.left(new Str("ba")));
 		});
 
 		it("retains the left-hand value if a Both resolves before a Right", async () => {
 			const ior = await Ior.allAsync([
-				delay(10, Ior.right<2, Str>(2)),
-				delay(5, Ior.both<Str, 4>(new Str("b"), 4)),
+				delay(10).then<Ior<Str, 2>>(() => Ior.right(2)),
+				delay(5).then<Ior<Str, 4>>(() => Ior.both(new Str("b"), 4)),
 			]);
 			expect(ior).to.deep.equal(Ior.both(new Str("b"), [2, 4]));
 		});
 
 		it("combines the left-hand values if a Both resolves before a Both ", async () => {
 			const ior = await Ior.allAsync([
-				delay(10, Ior.both<Str, 2>(new Str("a"), 2)),
-				delay(5, Ior.both<Str, 4>(new Str("b"), 4)),
+				delay(10).then<Ior<Str, 2>>(() => Ior.both(new Str("a"), 2)),
+				delay(5).then<Ior<Str, 4>>(() => Ior.both(new Str("b"), 4)),
 			]);
 			expect(ior).to.deep.equal(Ior.both(new Str("ba"), [2, 4]));
 		});
@@ -440,96 +440,6 @@ describe("Ior", () => {
 				Ior.both<Str, 4>(new Str("b"), 4),
 			]);
 			expect(ior).to.deep.equal(Ior.both(new Str("ab"), [2, 4]));
-		});
-	});
-
-	describe("allPropsAsync", () => {
-		it("short-circuits on the first Left", async () => {
-			const ior = await Ior.allPropsAsync({
-				two: delay(10, Ior.both<Str, 2>(new Str("a"), 2)),
-				four: delay(5, Ior.left<Str, 4>(new Str("b"))),
-			});
-			expect(ior).to.deep.equal(Ior.left(new Str("b")));
-		});
-
-		it("extracts the right-hand values if all variants are Right", async () => {
-			const ior = await Ior.allPropsAsync({
-				two: delay(10, Ior.right<2, Str>(2)),
-				four: delay(5, Ior.right<4, Str>(4)),
-			});
-			expect(ior).to.deep.equal(Ior.right({ two: 2, four: 4 }));
-		});
-
-		it("retains the left-hand value if a Both resolves after a Right", async () => {
-			const ior = await Ior.allPropsAsync({
-				two: delay(10, Ior.both<Str, 2>(new Str("a"), 2)),
-				four: delay(5, Ior.right<4, Str>(4)),
-			});
-			expect(ior).to.deep.equal(
-				Ior.both(new Str("a"), { two: 2, four: 4 }),
-			);
-		});
-
-		it("combines the left-hand values if a Left resolves after a Both", async () => {
-			const ior = await Ior.allPropsAsync({
-				two: delay(10, Ior.left<Str, 2>(new Str("a"))),
-				four: delay(5, Ior.both<Str, 4>(new Str("b"), 4)),
-			});
-			expect(ior).to.deep.equal(Ior.left(new Str("ba")));
-		});
-
-		it("retains the left-hand value if a Both resolves before a Right", async () => {
-			const ior = await Ior.allPropsAsync({
-				two: delay(10, Ior.right<2, Str>(2)),
-				four: delay(5, Ior.both<Str, 4>(new Str("b"), 4)),
-			});
-			expect(ior).to.deep.equal(
-				Ior.both(new Str("b"), { two: 2, four: 4 }),
-			);
-		});
-
-		it("combines the left-hand values if a Both resolves before a Both ", async () => {
-			const ior = await Ior.allPropsAsync({
-				two: delay(10, Ior.both<Str, 2>(new Str("a"), 2)),
-				four: delay(5, Ior.both<Str, 4>(new Str("b"), 4)),
-			});
-			expect(ior).to.deep.equal(
-				Ior.both(new Str("ba"), { two: 2, four: 4 }),
-			);
-		});
-
-		it("accepts plain Ior values", async () => {
-			const ior = await Ior.allPropsAsync({
-				two: Ior.both<Str, 2>(new Str("a"), 2),
-				four: Ior.both<Str, 4>(new Str("b"), 4),
-			});
-			expect(ior).to.deep.equal(
-				Ior.both(new Str("ab"), { two: 2, four: 4 }),
-			);
-		});
-	});
-
-	describe("liftAsync", () => {
-		it("lifts the function into the async context of Ior", async () => {
-			function f<A, B>(lhs: A, rhs: B): [A, B] {
-				return [lhs, rhs];
-			}
-			const ior = await Ior.liftAsync(f<2, 4>)(
-				delay(10, Ior.both<Str, 2>(new Str("a"), 2)),
-				delay(5, Ior.both<Str, 4>(new Str("b"), 4)),
-			);
-			expect(ior).to.deep.equal(Ior.both(new Str("ba"), [2, 4]));
-		});
-
-		it("lifts the async function into the async context of Ior", async () => {
-			async function f<A, B>(lhs: A, rhs: B): Promise<[A, B]> {
-				return [lhs, rhs];
-			}
-			const ior = await Ior.liftAsync(f<2, 4>)(
-				delay(10, Ior.both<Str, 2>(new Str("a"), 2)),
-				delay(5, Ior.both<Str, 4>(new Str("b"), 4)),
-			);
-			expect(ior).to.deep.equal(Ior.both(new Str("ba"), [2, 4]));
 		});
 	});
 

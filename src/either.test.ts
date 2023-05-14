@@ -17,6 +17,7 @@
 import * as fc from "fast-check";
 import { describe, expect, it } from "vitest";
 import {
+	TestBuilder,
 	arbNum,
 	arbStr,
 	delay,
@@ -126,8 +127,70 @@ describe("Either", () => {
 		});
 	});
 
+	describe("traverseInto", () => {
+		it("applies the function to the elements and collects the values into a Builder if all results are Right", () => {
+			const builder = new TestBuilder<[number, string]>();
+			const either = Either.traverseInto(
+				["a", "b"],
+				(char, idx) => Either.right<[number, string]>([idx, char]),
+				builder,
+			);
+			expect(either).to.deep.equal(
+				Either.right([
+					[0, "a"],
+					[1, "b"],
+				]),
+			);
+			expect(builder.elems).to.deep.equal([
+				[0, "a"],
+				[1, "b"],
+			]);
+		});
+	});
+
+	describe("traverse", () => {
+		it("applies the function to the elements and collects the values in an array if all results are Right", () => {
+			const either = Either.traverse(["a", "b"], (char, idx) =>
+				Either.right<[number, string]>([idx, char]),
+			);
+			expect(either).to.deep.equal(
+				Either.right([
+					[0, "a"],
+					[1, "b"],
+				]),
+			);
+		});
+	});
+
+	describe("forEach", () => {
+		it("applies a function to the elements", () => {
+			const results: [number, string][] = [];
+			const either = Either.forEach(["a", "b"], (char, idx) => {
+				results.push([idx, char]);
+				return Either.right(undefined);
+			});
+			expect(either).to.deep.equal(Either.right(undefined));
+			expect(results).to.deep.equal([
+				[0, "a"],
+				[1, "b"],
+			]);
+		});
+	});
+
+	describe("collectInto", () => {
+		it("collects the values into a Builder if all elements are Right", () => {
+			const builder = new TestBuilder<string>();
+			const either = Either.collectInto(
+				[Either.right("a"), Either.right("b")],
+				builder,
+			);
+			expect(either).to.deep.equal(Either.right(["a", "b"]));
+			expect(builder.elems).to.deep.equal(["a", "b"]);
+		});
+	});
+
 	describe("all", () => {
-		it("turns the array or the tuple literal of Either elements inside out", () => {
+		it("collects the values in an array if all elements are Right", () => {
 			const either = Either.all([
 				Either.right<2, 1>(2),
 				Either.right<4, 3>(4),
@@ -137,7 +200,7 @@ describe("Either", () => {
 	});
 
 	describe("allProps", () => {
-		it("turns the record or the object literal of Either elements inside out", () => {
+		it("collects the values in an object if all elements are Right", () => {
 			const either = Either.allProps({
 				two: Either.right<2, 1>(2),
 				four: Either.right<4, 3>(4),
@@ -223,53 +286,107 @@ describe("Either", () => {
 		});
 	});
 
+	describe("traverseIntoAsync", () => {
+		it("short-circuits on the first Left element", async () => {
+			const builder = new TestBuilder<[number, string]>();
+			const either = await Either.traverseIntoAsync(
+				["a", "b"],
+				(char, idx) =>
+					delay(10 - 5 * idx).then(() =>
+						char === "b"
+							? Either.left([idx, char])
+							: Either.right([idx, char]),
+					),
+				builder,
+			);
+			expect(either).to.deep.equal(Either.left([1, "b"]));
+			expect(builder.elems).to.deep.equal([]);
+		});
+
+		it("collects the successes into a Builder if all elements are Right", async () => {
+			const builder = new TestBuilder<[number, string]>();
+			const either = await Either.traverseIntoAsync(
+				["a", "b"],
+				(char, idx) =>
+					delay(10 - 5 * idx).then(() => Either.right([idx, char])),
+				builder,
+			);
+			expect(either).to.deep.equal(
+				Either.right([
+					[1, "b"],
+					[0, "a"],
+				]),
+			);
+			expect(builder.elems).to.deep.equal([
+				[1, "b"],
+				[0, "a"],
+			]);
+		});
+	});
+
+	describe("traverseAsync", () => {
+		it("applies a function to the elements and collects the results into a Builder if all results are Right", async () => {
+			const either = await Either.traverseAsync(["a", "b"], (char, idx) =>
+				delay(10 - 5 * idx).then(() =>
+					Either.right<[number, string]>([idx, char]),
+				),
+			);
+			expect(either).to.deep.equal(
+				Either.right([
+					[0, "a"],
+					[1, "b"],
+				]),
+			);
+		});
+	});
+
+	describe("forEachAsync", () => {
+		it("applies a function to the elements", async () => {
+			const results: [number, string][] = [];
+			const either = await Either.forEachAsync(["a", "b"], (char, idx) =>
+				delay(10 - 5 * idx).then(() => {
+					results.push([idx, char]);
+					return Either.right(undefined);
+				}),
+			);
+			expect(either).to.deep.equal(Either.right(undefined));
+			expect(results).to.deep.equal([
+				[1, "b"],
+				[0, "a"],
+			]);
+		});
+	});
+
+	describe("collectIntoAsync", () => {
+		it("collects the values into a Builder if all elements are Right", async () => {
+			const builder = new TestBuilder<string>();
+			const either = await Either.collectIntoAsync(
+				[
+					delay(10).then(() => Either.right("a")),
+					delay(5).then(() => Either.right("b")),
+				],
+				builder,
+			);
+			expect(either).to.deep.equal(Either.right(["b", "a"]));
+			expect(builder.elems).to.deep.equal(["b", "a"]);
+		});
+	});
+
 	describe("allAsync", () => {
-		it("short-circuits on the first Left", async () => {
+		it("collects the values into an array if all elements are Right", async () => {
 			const either = await Either.allAsync([
-				delay(10, Either.right<2, 1>(2)),
-				delay(5, Either.left<3, 4>(3)),
-			]);
-			expect(either).to.deep.equal(Either.left(3));
-		});
-
-		it("extracts the successes if all variants are Right", async () => {
-			const either = await Either.allAsync([
-				delay(10, Either.right<2, 1>(2)),
-				delay(5, Either.right<4, 3>(4)),
-			]);
-			expect(either).to.deep.equal(Either.right([2, 4]));
-		});
-
-		it("accepts plain Either values", async () => {
-			const either = await Either.allAsync([
-				Either.right<2, 1>(2),
-				Either.right<4, 3>(4),
+				delay(10).then<Either<1, 2>>(() => Either.right(2)),
+				delay(5).then<Either<3, 4>>(() => Either.right(4)),
 			]);
 			expect(either).to.deep.equal(Either.right([2, 4]));
 		});
 	});
 
 	describe("allPropsAsync", () => {
-		it("short-circuits on the first Left", async () => {
-			const either = await Either.allPropsAsync({
-				two: delay(10, Either.right<2, 1>(2)),
-				four: delay(5, Either.left<3, 4>(3)),
-			});
-			expect(either).to.deep.equal(Either.left(3));
-		});
-
 		it("extracts the successes if all variants are Right", async () => {
 			const either = await Either.allPropsAsync({
-				two: delay(10, Either.right<2, 1>(2)),
-				four: delay(5, Either.right<4, 3>(4)),
-			});
-			expect(either).to.deep.equal(Either.right({ two: 2, four: 4 }));
-		});
-
-		it("accepts plain Either values", async () => {
-			const either = await Either.allPropsAsync({
-				two: Either.right<2, 1>(2),
-				four: Either.right<4, 3>(4),
+				two: delay(10).then<Either<1, 2>>(() => Either.right(2)),
+				four: delay(5).then<Either<3, 4>>(() => Either.right(4)),
 			});
 			expect(either).to.deep.equal(Either.right({ two: 2, four: 4 }));
 		});
@@ -281,8 +398,8 @@ describe("Either", () => {
 				return [lhs, rhs];
 			}
 			const either = await Either.liftAsync(f<2, 4>)(
-				delay(10, Either.right<2, 1>(2)),
-				delay(5, Either.right<4, 3>(4)),
+				delay(10).then(() => Either.right<2, 1>(2)),
+				delay(5).then(() => Either.right<4, 3>(4)),
 			);
 			expect(either).to.deep.equal(Either.right([2, 4]));
 		});
@@ -292,8 +409,8 @@ describe("Either", () => {
 				return [lhs, rhs];
 			}
 			const either = await Either.liftAsync(f<2, 4>)(
-				delay(10, Either.right<2, 1>(2)),
-				delay(5, Either.right<4, 3>(4)),
+				delay(10).then(() => Either.right<2, 1>(2)),
+				delay(5).then(() => Either.right<4, 3>(4)),
 			);
 			expect(either).to.deep.equal(Either.right([2, 4]));
 		});

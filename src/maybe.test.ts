@@ -255,16 +255,16 @@ describe("Maybe", () => {
 	describe("allAsync", () => {
 		it("short-circuits on the first Nothing", async () => {
 			const maybe = await Maybe.allAsync([
-				delay(10, Maybe.just<1>(1)),
-				delay(5, nothing<2>()),
+				delay(10).then<Maybe<1>>(() => Maybe.just(1)),
+				delay(5).then<Maybe<2>>(nothing),
 			]);
 			expect(maybe).to.deep.equal(Maybe.nothing);
 		});
 
 		it("extracts the values if all variants are Just", async () => {
 			const maybe = await Maybe.allAsync([
-				delay(10, Maybe.just<1>(1)),
-				delay(5, Maybe.just<2>(2)),
+				delay(10).then<Maybe<1>>(() => Maybe.just(1)),
+				delay(5).then<Maybe<2>>(() => Maybe.just(2)),
 			]);
 			expect(maybe).to.deep.equal(Maybe.just([1, 2]));
 		});
@@ -274,56 +274,6 @@ describe("Maybe", () => {
 				Maybe.just<1>(1),
 				Maybe.just<2>(2),
 			]);
-			expect(maybe).to.deep.equal(Maybe.just([1, 2]));
-		});
-	});
-
-	describe("allPropsAsync", () => {
-		it("short-circuits on the first Nothing", async () => {
-			const maybe = await Maybe.allPropsAsync({
-				one: delay(10, Maybe.just<1>(1)),
-				two: delay(5, nothing<2>()),
-			});
-			expect(maybe).to.deep.equal(Maybe.nothing);
-		});
-
-		it("extracts the values if all variants are Just", async () => {
-			const maybe = await Maybe.allPropsAsync({
-				one: delay(10, Maybe.just<1>(1)),
-				two: delay(5, Maybe.just<2>(2)),
-			});
-			expect(maybe).to.deep.equal(Maybe.just({ one: 1, two: 2 }));
-		});
-
-		it("accepts plain Maybe values", async () => {
-			const maybe = await Maybe.allPropsAsync({
-				one: Maybe.just<1>(1),
-				two: Maybe.just<2>(2),
-			});
-			expect(maybe).to.deep.equal(Maybe.just({ one: 1, two: 2 }));
-		});
-	});
-
-	describe("liftAsync", () => {
-		it("lifts the function into the async context of Maybe", async () => {
-			function f<A, B>(lhs: A, rhs: B): [A, B] {
-				return [lhs, rhs];
-			}
-			const maybe = await Maybe.liftAsync(f<1, 2>)(
-				delay(10, Maybe.just(1)),
-				delay(5, Maybe.just(2)),
-			);
-			expect(maybe).to.deep.equal(Maybe.just([1, 2]));
-		});
-
-		it("lifts the async function into the async context of Maybe", async () => {
-			async function f<A, B>(lhs: A, rhs: B): Promise<[A, B]> {
-				return [lhs, rhs];
-			}
-			const maybe = await Maybe.liftAsync(f<1, 2>)(
-				delay(10, Maybe.just(1)),
-				delay(5, Maybe.just(2)),
-			);
 			expect(maybe).to.deep.equal(Maybe.just([1, 2]));
 		});
 	});
