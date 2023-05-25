@@ -106,10 +106,10 @@ describe("Validation", () => {
 	describe("allPar", () => {
 		it("collects failures in the order the Promises resolve", async () => {
 			const vdn = await Validation.allPar([
-				delay(10).then<Validation<Str, 2>>(() =>
+				delay(50).then<Validation<Str, 2>>(() =>
 					Validation.err(new Str("a")),
 				),
-				delay(5).then<Validation<Str, 4>>(() =>
+				delay(10).then<Validation<Str, 4>>(() =>
 					Validation.err(new Str("b")),
 				),
 			]);
@@ -118,8 +118,8 @@ describe("Validation", () => {
 
 		it("extracts the successes if all variants are Ok", async () => {
 			const vdn = await Validation.allPar([
-				delay(10).then<Validation<Str, 2>>(() => Validation.ok(2)),
-				delay(5).then<Validation<Str, 4>>(() => Validation.ok(4)),
+				delay(50).then<Validation<Str, 2>>(() => Validation.ok(2)),
+				delay(10).then<Validation<Str, 4>>(() => Validation.ok(4)),
 			]);
 			expect(vdn).to.deep.equal(Validation.ok([2, 4]));
 		});

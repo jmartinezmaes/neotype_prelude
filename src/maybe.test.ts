@@ -255,16 +255,16 @@ describe("Maybe", () => {
 	describe("allPar", () => {
 		it("short-circuits on the first Nothing", async () => {
 			const maybe = await Maybe.allPar([
-				delay(10).then<Maybe<1>>(() => Maybe.just(1)),
-				delay(5).then<Maybe<2>>(nothing),
+				delay(50).then<Maybe<1>>(() => Maybe.just(1)),
+				delay(10).then<Maybe<2>>(nothing),
 			]);
 			expect(maybe).to.deep.equal(Maybe.nothing);
 		});
 
 		it("extracts the values if all variants are Just", async () => {
 			const maybe = await Maybe.allPar([
-				delay(10).then<Maybe<1>>(() => Maybe.just(1)),
-				delay(5).then<Maybe<2>>(() => Maybe.just(2)),
+				delay(50).then<Maybe<1>>(() => Maybe.just(1)),
+				delay(10).then<Maybe<2>>(() => Maybe.just(2)),
 			]);
 			expect(maybe).to.deep.equal(Maybe.just([1, 2]));
 		});
