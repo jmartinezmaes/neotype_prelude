@@ -181,7 +181,7 @@ describe("Either", () => {
 		it("collects the successes into the Builder if all elements are Right", () => {
 			const builder = new TestBuilder<number>();
 			const either = Either.collectInto(
-				[Either.right(2), Either.right(4)],
+				[Either.right<2, 1>(2), Either.right<4, 3>(4)],
 				builder,
 			);
 			expect(either).to.deep.equal(Either.right([2, 4]));
@@ -362,8 +362,8 @@ describe("Either", () => {
 			const builder = new TestBuilder<number>();
 			const either = await Either.collectIntoPar(
 				[
-					delay(50).then(() => Either.right(2)),
-					delay(10).then(() => Either.right(4)),
+					delay(50).then(() => Either.right<2, 1>(2)),
+					delay(10).then(() => Either.right<4, 3>(4)),
 				],
 				builder,
 			);
