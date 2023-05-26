@@ -216,7 +216,7 @@ describe("Ior", () => {
 	});
 
 	describe("traverseInto", () => {
-		it("applies the function to the elements and collects the right-hand values into a Builder if no results are Left", () => {
+		it("applies the function to the elements and collects the right-hand values into the Builder if no results are Left", () => {
 			const builder = new TestBuilder<[number, string]>();
 			const ior = Ior.traverseInto(
 				["a", "b"],
@@ -266,7 +266,7 @@ describe("Ior", () => {
 	});
 
 	describe("collectInto", () => {
-		it("collects the right-hand values into a Builder if no elements are Left", () => {
+		it("collects the right-hand values into the Builder if no elements are Left", () => {
 			const builder = new TestBuilder<number>();
 			const ior = Ior.collectInto(
 				[Ior.both(new Str("a"), 2), Ior.both(new Str("b"), 4)],
@@ -463,7 +463,7 @@ describe("Ior", () => {
 			expect(ior).to.deep.equal(Ior.left(new Str("1b")));
 		});
 
-		it("applies the function to the elements and collects the right-hand values into a Builder if no results are Left", async () => {
+		it("applies the function to the elements and collects the right-hand values into the Builder if no results are Left", async () => {
 			const builder = new TestBuilder<[number, string]>();
 			const ior = await Ior.traverseIntoPar(
 				["a", "b"],
@@ -600,7 +600,7 @@ describe("Ior", () => {
 	});
 
 	describe("collectIntoPar", () => {
-		it("collects the right-hand values into a Builder if no elements are Left", async () => {
+		it("collects the right-hand values into the Builder if no elements are Left", async () => {
 			const builder = new TestBuilder<number>();
 			const ior = await Ior.collectIntoPar(
 				[

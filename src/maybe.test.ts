@@ -165,7 +165,7 @@ describe("Maybe", () => {
 	});
 
 	describe("traverseInto", () => {
-		it("applies the function to the elements and collects the present values into a Builder if all results are Just", () => {
+		it("applies the function to the elements and collects the present values into the Builder if all results are Just", () => {
 			const builder = new TestBuilder<[number, string]>();
 			const maybe = Maybe.traverseInto(
 				["a", "b"],
@@ -215,7 +215,7 @@ describe("Maybe", () => {
 	});
 
 	describe("collectInto", () => {
-		it("collects the present values into a Builder if all elements are Just", () => {
+		it("collects the present values into the Builder if all elements are Just", () => {
 			const builder = new TestBuilder<number>();
 			const maybe = Maybe.collectInto(
 				[Maybe.just(1), Maybe.just(2)],
@@ -328,7 +328,7 @@ describe("Maybe", () => {
 			expect(maybe).to.equal(Maybe.nothing);
 		});
 
-		it("applies the function to the elements and collects the present values into a Builder if all results are Just", async () => {
+		it("applies the function to the elements and collects the present values into the Builder if all results are Just", async () => {
 			const builder = new TestBuilder<[number, string]>();
 			const maybe = await Maybe.traverseIntoPar(
 				["a", "b"],
@@ -385,7 +385,7 @@ describe("Maybe", () => {
 	});
 
 	describe("collectIntoPar", () => {
-		it("collects the present values into a Builder if all elements are Just", async () => {
+		it("collects the present values into the Builder if all elements are Just", async () => {
 			const builder = new TestBuilder<number>();
 			const maybe = await Maybe.collectIntoPar(
 				[

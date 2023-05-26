@@ -128,7 +128,7 @@ describe("Either", () => {
 	});
 
 	describe("traverseInto", () => {
-		it("applies the function to the elements and collects the successes into a Builder if all results are Right", () => {
+		it("applies the function to the elements and collects the successes into the Builder if all results are Right", () => {
 			const builder = new TestBuilder<[number, string]>();
 			const either = Either.traverseInto(
 				["a", "b"],
@@ -178,7 +178,7 @@ describe("Either", () => {
 	});
 
 	describe("collectInto", () => {
-		it("collects the successes into a Builder if all elements are Right", () => {
+		it("collects the successes into the Builder if all elements are Right", () => {
 			const builder = new TestBuilder<number>();
 			const either = Either.collectInto(
 				[Either.right(2), Either.right(4)],
@@ -301,7 +301,7 @@ describe("Either", () => {
 			expect(either).to.deep.equal(Either.left([1, "b"]));
 		});
 
-		it("applies the function to the elements and collects the successes into a Builder if all results are Right", async () => {
+		it("applies the function to the elements and collects the successes into the Builder if all results are Right", async () => {
 			const builder = new TestBuilder<[number, string]>();
 			const either = await Either.traverseIntoPar(
 				["a", "b"],
@@ -358,7 +358,7 @@ describe("Either", () => {
 	});
 
 	describe("collectIntoPar", () => {
-		it("collects the successes into a Builder if all elements are Right", async () => {
+		it("collects the successes into the Builder if all elements are Right", async () => {
 			const builder = new TestBuilder<number>();
 			const either = await Either.collectIntoPar(
 				[
