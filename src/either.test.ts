@@ -163,7 +163,7 @@ describe("Either", () => {
 	});
 
 	describe("forEach", () => {
-		it("applies a function to the elements", () => {
+		it("applies the function to the elements while the result is Right", () => {
 			const results: [number, string][] = [];
 			const either = Either.forEach(["a", "b"], (char, idx) => {
 				results.push([idx, char]);
@@ -210,7 +210,7 @@ describe("Either", () => {
 	});
 
 	describe("lift", () => {
-		it("lifts the function into the context of Either values", () => {
+		it("applies the function to the successes if all arguments are Right", () => {
 			function f<A, B>(lhs: A, rhs: B): [A, B] {
 				return [lhs, rhs];
 			}
@@ -287,7 +287,7 @@ describe("Either", () => {
 	});
 
 	describe("traverseIntoPar", () => {
-		it("short-circuits on the first Left result", async () => {
+		it("applies the function to the elements and short-circuits on the first Left result", async () => {
 			const either = await Either.traverseIntoPar(
 				["a", "b"],
 				(char, idx) =>
@@ -301,7 +301,7 @@ describe("Either", () => {
 			expect(either).to.deep.equal(Either.left([1, "b"]));
 		});
 
-		it("collects the successes into a Builder if all elements are Right", async () => {
+		it("applies the function to the elements and collects the successes into a Builder if all results are Right", async () => {
 			const builder = new TestBuilder<[number, string]>();
 			const either = await Either.traverseIntoPar(
 				["a", "b"],
@@ -325,7 +325,7 @@ describe("Either", () => {
 	});
 
 	describe("traversePar", () => {
-		it("applies a function to the elements and collects the successes in an array if all results are Right", async () => {
+		it("applies the function to the elements and collects the successes in an array if all results are Right", async () => {
 			const either = await Either.traversePar(["a", "b"], (char, idx) =>
 				delay(char === "a" ? 50 : 10).then(() =>
 					Either.right<[number, string]>([idx, char]),
@@ -341,7 +341,7 @@ describe("Either", () => {
 	});
 
 	describe("forEachPar", () => {
-		it("applies a function to the elements", async () => {
+		it("applies the function to the elements while the result is Right", async () => {
 			const results: [number, string][] = [];
 			const either = await Either.forEachPar(["a", "b"], (char, idx) =>
 				delay(char === "a" ? 50 : 10).then(() => {
@@ -393,7 +393,7 @@ describe("Either", () => {
 	});
 
 	describe("liftPar", () => {
-		it("lifts the async function into the async context of Either", async () => {
+		it("applies the function to the successes if all arguments are Right", async () => {
 			async function f<A, B>(lhs: A, rhs: B): Promise<[A, B]> {
 				return [lhs, rhs];
 			}

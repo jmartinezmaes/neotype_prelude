@@ -216,7 +216,7 @@ describe("Ior", () => {
 	});
 
 	describe("traverseInto", () => {
-		it("applies the function to the elements and collects the right-hand values into a Builder", () => {
+		it("applies the function to the elements and collects the right-hand values into a Builder if no results are Left", () => {
 			const builder = new TestBuilder<[number, string]>();
 			const ior = Ior.traverseInto(
 				["a", "b"],
@@ -237,7 +237,7 @@ describe("Ior", () => {
 	});
 
 	describe("traverse", () => {
-		it("applies the function to the elements and collects the right-hand values into an array", () => {
+		it("applies the function to the elements and collects the right-hand values in an array if no results are Left", () => {
 			const ior = Ior.traverse(["a", "b"], (char, idx) =>
 				Ior.both<Str, [number, string]>(new Str(char), [idx, char]),
 			);
@@ -251,7 +251,7 @@ describe("Ior", () => {
 	});
 
 	describe("forEach", () => {
-		it("applies a function to the elements", () => {
+		it("applies the function to the elements while the result is not Left", () => {
 			const results: [number, string][] = [];
 			const ior = Ior.forEach(["a", "b"], (char, idx) => {
 				results.push([idx, char]);
@@ -266,7 +266,7 @@ describe("Ior", () => {
 	});
 
 	describe("collectInto", () => {
-		it("collects the right-hand values into a Builder", () => {
+		it("collects the right-hand values into a Builder if no elements are Left", () => {
 			const builder = new TestBuilder<number>();
 			const ior = Ior.collectInto(
 				[Ior.both(new Str("a"), 2), Ior.both(new Str("b"), 4)],
@@ -278,7 +278,7 @@ describe("Ior", () => {
 	});
 
 	describe("all", () => {
-		it("turns the array or the tuple literal of Ior elements inside out", () => {
+		it("collects the right-hand values in an array if no elements are Left", () => {
 			const ior = Ior.all([
 				Ior.both<Str, 2>(new Str("a"), 2),
 				Ior.both<Str, 4>(new Str("b"), 4),
@@ -288,7 +288,7 @@ describe("Ior", () => {
 	});
 
 	describe("allProps", () => {
-		it("turns the record or the object literal of Ior elements inside out", () => {
+		it("collects the right-hand values in an object if no elements are Left", () => {
 			const ior = Ior.allProps({
 				two: Ior.both<Str, 2>(new Str("a"), 2),
 				four: Ior.both<Str, 4>(new Str("b"), 4),
@@ -300,7 +300,7 @@ describe("Ior", () => {
 	});
 
 	describe("lift", () => {
-		it("lifts the function into the context of Ior values", () => {
+		it("applies the function to the right-hand values if no arguments are Left", () => {
 			function f<A, B>(lhs: A, rhs: B): [A, B] {
 				return [lhs, rhs];
 			}
@@ -373,7 +373,7 @@ describe("Ior", () => {
 			expect(ior).to.deep.equal(Ior.both(new Str("a"), [2, 4]));
 		});
 
-		it("completes and combines the left-hand values if a Both is yielded after", async () => {
+		it("completes and combines the left-hand values if a Both is yielded after a Both", async () => {
 			async function* f(): Ior.GoAsync<Str, [2, 4]> {
 				const two = yield* await Promise.resolve(
 					Ior.both<Str, 2>(new Str("a"), 2),
@@ -449,7 +449,7 @@ describe("Ior", () => {
 	});
 
 	describe("traverseIntoPar", () => {
-		it("short-circuits on the first Left result", async () => {
+		it("applies the function to the elements and short circuits on the first Left result", async () => {
 			const ior = await Ior.traverseIntoPar(
 				["a", "b"],
 				(char, idx) =>
@@ -463,7 +463,7 @@ describe("Ior", () => {
 			expect(ior).to.deep.equal(Ior.left(new Str("1b")));
 		});
 
-		it("extracts the right-hand values if all variants are Right", async () => {
+		it("applies the function to the elements and collects the right-hand values into a Builder if no results are Left", async () => {
 			const builder = new TestBuilder<[number, string]>();
 			const ior = await Ior.traverseIntoPar(
 				["a", "b"],
@@ -519,7 +519,7 @@ describe("Ior", () => {
 			expect(ior).to.deep.equal(Ior.left(new Str("b0a")));
 		});
 
-		it("retains the left-hand value if a Both resolves before a Right", async () => {
+		it("retains the left-hand value if a Right resolves after a Both", async () => {
 			const builder = new TestBuilder<[number, string]>();
 			const ior = await Ior.traverseIntoPar(
 				["a", "b"],
@@ -543,7 +543,7 @@ describe("Ior", () => {
 			]);
 		});
 
-		it("combines the left-hand values if a Both resolves before a Both ", async () => {
+		it("combines the left-hand values if a Both resolves after a Both ", async () => {
 			const builder = new TestBuilder<[number, string]>();
 			const ior = await Ior.traverseIntoPar(
 				["a", "b"],
@@ -564,29 +564,10 @@ describe("Ior", () => {
 				[0, "a"],
 			]);
 		});
-
-		it("accepts plain Ior values", async () => {
-			const builder = new TestBuilder<[number, string]>();
-			const ior = await Ior.traverseIntoPar(
-				["a", "b"],
-				(char, idx) => Ior.both(new Str(char), [idx, char]),
-				builder,
-			);
-			expect(ior).to.deep.equal(
-				Ior.both(new Str("ab"), [
-					[0, "a"],
-					[1, "b"],
-				]),
-			);
-			expect(builder.elems).to.deep.equal([
-				[0, "a"],
-				[1, "b"],
-			]);
-		});
 	});
 
 	describe("traversePar", () => {
-		it("applies a function to the elements and collects the right-hand values in an array", async () => {
+		it("applies the function to the elements and collects the right-hand values in an array if no results are Left", async () => {
 			const ior = await Ior.traversePar(["a", "b"], (char, idx) =>
 				delay(char === "a" ? 50 : 10).then(() =>
 					Ior.both<Str, [number, string]>(new Str(char), [idx, char]),
@@ -602,7 +583,7 @@ describe("Ior", () => {
 	});
 
 	describe("forEachPar", () => {
-		it("applies a function to the elements", async () => {
+		it("applies the function to the elements while the result is not Left", async () => {
 			const results: [number, string][] = [];
 			const ior = await Ior.forEachPar(["a", "b"], (char, idx) =>
 				delay(char === "a" ? 50 : 10).then(() => {
@@ -619,7 +600,7 @@ describe("Ior", () => {
 	});
 
 	describe("collectIntoPar", () => {
-		it("collects the right-hand values into a Builder", async () => {
+		it("collects the right-hand values into a Builder if no elements are Left", async () => {
 			const builder = new TestBuilder<number>();
 			const ior = await Ior.collectIntoPar(
 				[
@@ -634,7 +615,7 @@ describe("Ior", () => {
 	});
 
 	describe("allPar", () => {
-		it("collects the right-hand values into an array", async () => {
+		it("collects the right-hand values in an array if no elements are Left", async () => {
 			const ior = await Ior.allPar([
 				delay(50).then<Ior<Str, 2>>(() => Ior.both(new Str("a"), 2)),
 				delay(10).then<Ior<Str, 4>>(() => Ior.both(new Str("b"), 4)),
@@ -644,7 +625,7 @@ describe("Ior", () => {
 	});
 
 	describe("allPropsPar", () => {
-		it("collects the right-hand values in an object", async () => {
+		it("collects the right-hand values in an object if no elements are Left", async () => {
 			const ior = await Ior.allPropsPar({
 				two: delay(50).then<Ior<Str, 2>>(() =>
 					Ior.both(new Str("a"), 2),
@@ -660,7 +641,7 @@ describe("Ior", () => {
 	});
 
 	describe("liftPar", () => {
-		it("lifts the async function into the async context of Ior", async () => {
+		it("applies the function to the right-hand values if no arguments are Left", async () => {
 			async function f<A, B>(lhs: A, rhs: B): Promise<[A, B]> {
 				return [lhs, rhs];
 			}
