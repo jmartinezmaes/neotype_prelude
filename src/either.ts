@@ -651,10 +651,8 @@ export namespace Either {
 	): Promise<Either<E, T1[]>> {
 		return traverseIntoPar(
 			elems,
-			(elem, idx) =>
-				Promise.resolve(f(elem, idx)).then((either) =>
-					either.map((val): [number, T1] => [idx, val]),
-				),
+			async (elem, idx) =>
+				(await f(elem, idx)).map((val): [number, T1] => [idx, val]),
 			new ArrayIdxBuilder(),
 		);
 	}
@@ -725,10 +723,8 @@ export namespace Either {
 	): Promise<Either<E, T[]>> {
 		return traverseIntoPar(
 			elems,
-			(elem, idx) =>
-				Promise.resolve(elem).then((either) =>
-					either.map((val): [number, T] => [idx, val]),
-				),
+			async (elem, idx) =>
+				(await elem).map((val): [number, T] => [idx, val]),
 			new ArrayIdxBuilder(),
 		);
 	}
@@ -768,10 +764,8 @@ export namespace Either {
 	): Promise<Either<E, Record<string, T>>> {
 		return traverseIntoPar(
 			Object.entries(elems),
-			([key, elem]) =>
-				Promise.resolve(elem).then((either) =>
-					either.map((val): [string, T] => [key, val]),
-				),
+			async ([key, elem]) =>
+				(await elem).map((val): [string, T] => [key, val]),
 			new RecordBuilder(),
 		);
 	}

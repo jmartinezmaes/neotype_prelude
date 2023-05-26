@@ -679,10 +679,8 @@ export namespace Maybe {
 	): Promise<Maybe<T1[]>> {
 		return traverseIntoPar(
 			elems,
-			(elem, idx) =>
-				Promise.resolve(f(elem, idx)).then((maybe) =>
-					maybe.map((val): [number, T1] => [idx, val]),
-				),
+			async (elem, idx) =>
+				(await f(elem, idx)).map((val): [number, T1] => [idx, val]),
 			new ArrayIdxBuilder(),
 		);
 	}
@@ -742,10 +740,8 @@ export namespace Maybe {
 	): Promise<Maybe<T[]>> {
 		return traverseIntoPar(
 			elems,
-			(elem, idx) =>
-				Promise.resolve(elem).then((maybe) =>
-					maybe.map((val): [number, T] => [idx, val]),
-				),
+			async (elem, idx) =>
+				(await elem).map((val): [number, T] => [idx, val]),
 			new ArrayIdxBuilder(),
 		);
 	}
@@ -777,10 +773,8 @@ export namespace Maybe {
 	): Promise<Maybe<Record<string, T>>> {
 		return traverseIntoPar(
 			Object.entries(elems),
-			([key, elem]) =>
-				Promise.resolve(elem).then((maybe) =>
-					maybe.map((val): [string, T] => [key, val]),
-				),
+			async ([key, elem]) =>
+				(await elem).map((val): [string, T] => [key, val]),
 			new RecordBuilder(),
 		);
 	}

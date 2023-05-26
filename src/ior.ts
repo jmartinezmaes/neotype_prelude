@@ -817,10 +817,8 @@ export namespace Ior {
 	): Promise<Ior<A, B[]>> {
 		return traverseIntoPar(
 			elems,
-			(elem, idx) =>
-				Promise.resolve(f(elem, idx)).then((ior) =>
-					ior.map((val): [number, B] => [idx, val]),
-				),
+			async (elem, idx) =>
+				(await f(elem, idx)).map((val): [number, B] => [idx, val]),
 			new ArrayIdxBuilder(),
 		);
 	}
@@ -897,10 +895,8 @@ export namespace Ior {
 	): Promise<Ior<A, B[]>> {
 		return traverseIntoPar(
 			elems,
-			(elem, idx) =>
-				Promise.resolve(elem).then((ior) =>
-					ior.map((val): [number, B] => [idx, val]),
-				),
+			async (elem, idx) =>
+				(await elem).map((val): [number, B] => [idx, val]),
 			new ArrayIdxBuilder(),
 		);
 	}
@@ -943,10 +939,8 @@ export namespace Ior {
 	): Promise<Ior<A, Record<string, B>>> {
 		return traverseIntoPar(
 			Object.entries(elems),
-			([key, elem]) =>
-				Promise.resolve(elem).then((ior) =>
-					ior.map((val): [string, B] => [key, val]),
-				),
+			async ([key, elem]) =>
+				(await elem).map((val): [string, B] => [key, val]),
 			new RecordBuilder(),
 		);
 	}

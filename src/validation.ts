@@ -618,10 +618,8 @@ export namespace Validation {
 	): Promise<Validation<E, T1[]>> {
 		return traverseIntoPar(
 			elems,
-			(elem, idx) =>
-				Promise.resolve(f(elem, idx)).then((vdn) =>
-					vdn.map((val): [number, T1] => [idx, val]),
-				),
+			async (elem, idx) =>
+				(await f(elem, idx)).map((val): [number, T1] => [idx, val]),
 			new ArrayIdxBuilder(),
 		);
 	}
@@ -699,10 +697,8 @@ export namespace Validation {
 	): Promise<Validation<E, T[]>> {
 		return traverseIntoPar(
 			elems,
-			(elem, idx) =>
-				Promise.resolve(elem).then((vdn) =>
-					vdn.map((val): [number, T] => [idx, val]),
-				),
+			async (elem, idx) =>
+				(await elem).map((val): [number, T] => [idx, val]),
 			new ArrayIdxBuilder(),
 		);
 	}
@@ -745,10 +741,8 @@ export namespace Validation {
 	): Promise<Validation<E, Record<string, T>>> {
 		return traverseIntoPar(
 			Object.entries(elems),
-			([key, elem]) =>
-				Promise.resolve(elem).then((vdn) =>
-					vdn.map((val): [string, T] => [key, val]),
-				),
+			async ([key, elem]) =>
+				(await elem).map((val): [string, T] => [key, val]),
 			new RecordBuilder(),
 		);
 	}
