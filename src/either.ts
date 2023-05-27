@@ -434,7 +434,10 @@ export namespace Either {
 			} else {
 				isHalted = true;
 				err = either.val;
-				nxt = gen.return?.(undefined as any) ?? nxt;
+				nxt = gen.return?.(undefined as any) ?? {
+					done: true,
+					value: undefined as any,
+				};
 			}
 		}
 		return isHalted ? left(err) : right(nxt.value);
@@ -607,7 +610,10 @@ export namespace Either {
 			} else {
 				isHalted = true;
 				err = either.val;
-				nxt = (await gen.return?.(undefined as any)) ?? nxt;
+				nxt = (await gen.return?.(undefined as any)) ?? {
+					done: true,
+					value: undefined as any,
+				};
 			}
 		}
 		return isHalted ? left(err) : right(nxt.value);

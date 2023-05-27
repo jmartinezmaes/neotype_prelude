@@ -545,7 +545,10 @@ export namespace Ior {
 				} else {
 					acc = cmb(acc, ior.val);
 				}
-				nxt = gen.return?.(undefined as any) ?? nxt;
+				nxt = gen.return?.(undefined as any) ?? {
+					done: true,
+					value: undefined as any,
+				};
 			}
 		}
 
@@ -745,7 +748,10 @@ export namespace Ior {
 				} else {
 					acc = cmb(acc, ior.val);
 				}
-				nxt = (await gen.return?.(undefined as any)) ?? nxt;
+				nxt = (await gen.return?.(undefined as any)) ?? {
+					done: true,
+					value: undefined as any,
+				};
 			}
 		}
 

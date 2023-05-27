@@ -474,7 +474,10 @@ export namespace Maybe {
 				nxt = gen.next(maybe.val);
 			} else {
 				isHalted = true;
-				nxt = gen.return?.(undefined as any) ?? nxt;
+				nxt = gen.return?.(undefined as any) ?? {
+					done: true,
+					value: undefined as any,
+				};
 			}
 		}
 		return isHalted ? nothing : just(nxt.value);
@@ -635,7 +638,10 @@ export namespace Maybe {
 				nxt = await gen.next(maybe.val);
 			} else {
 				isHalted = true;
-				nxt = (await gen.return?.(undefined as any)) ?? nxt;
+				nxt = (await gen.return?.(undefined as any)) ?? {
+					done: true,
+					value: undefined as any,
+				};
 			}
 		}
 		return isHalted ? nothing : just(nxt.value);
