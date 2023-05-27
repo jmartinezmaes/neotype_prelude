@@ -431,13 +431,11 @@ export namespace Validation {
 		builder: Builder<T1, TFinish>,
 	): Validation<E, TFinish> {
 		let acc = ok<Builder<T1, TFinish>, E>(builder);
+		let idx = 0;
 		for (const elem of elems) {
-			let idx = 0;
 			const that = f(elem, idx);
 			acc = acc.zipWith(that, (bldr, val) => {
-				if (acc.isOk() && that.isOk()) {
-					bldr.add(val);
-				}
+				bldr.add(val);
 				return bldr;
 			});
 			idx++;

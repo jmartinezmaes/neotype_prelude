@@ -18,6 +18,7 @@ import * as fc from "fast-check";
 import { describe, expect, it } from "vitest";
 import {
 	Str,
+	TestBuilder,
 	arbNum,
 	arbStr,
 	delay,
@@ -70,8 +71,71 @@ describe("Validation", () => {
 		});
 	});
 
+	describe("traverseInto", () => {
+		it("applies the function to the elements and collects the successes into the Builder if all results are Ok", () => {
+			const builder = new TestBuilder<[number, string]>();
+			const vdn = Validation.traverseInto(
+				["a", "b"],
+				(char, idx) =>
+					Validation.ok<[number, string], Str>([idx, char]),
+				builder,
+			);
+			expect(vdn).to.deep.equal(
+				Validation.ok([
+					[0, "a"],
+					[1, "b"],
+				]),
+			);
+			expect(builder.elems).to.deep.equal([
+				[0, "a"],
+				[1, "b"],
+			]);
+		});
+	});
+
+	describe("traverse", () => {
+		it("applies the function to the elements and collects the successes in an array if all results are Ok", () => {
+			const vdn = Validation.traverse(["a", "b"], (char, idx) =>
+				Validation.ok<[number, string], Str>([idx, char]),
+			);
+			expect(vdn).to.deep.equal(
+				Validation.ok([
+					[0, "a"],
+					[1, "b"],
+				]),
+			);
+		});
+	});
+
+	describe("forEach", () => {
+		it("applies the function to the elements while the result is Ok", () => {
+			const results: [number, string][] = [];
+			const vdn = Validation.forEach(["a", "b"], (char, idx) => {
+				results.push([idx, char]);
+				return Validation.ok<void, Str>(undefined);
+			});
+			expect(vdn).to.deep.equal(Validation.ok(undefined));
+			expect(results).to.deep.equal([
+				[0, "a"],
+				[1, "b"],
+			]);
+		});
+	});
+
+	describe("collectInto", () => {
+		it("collects the successes into the Builder if all results are Ok", () => {
+			const builder = new TestBuilder<number>();
+			const vdn = Validation.collectInto(
+				[Validation.ok<2, Str>(2), Validation.ok<4, Str>(4)],
+				builder,
+			);
+			expect(vdn).to.deep.equal(Validation.ok([2, 4]));
+			expect(builder.elems).to.deep.equal([2, 4]);
+		});
+	});
+
 	describe("all", () => {
-		it("turns the array or the tuple literal of Validation elements inside out", () => {
+		it("collects the successes in an array if all elements are Ok", () => {
 			const vdn = Validation.all([
 				Validation.ok<2, Str>(2),
 				Validation.ok<4, Str>(4),
@@ -81,7 +145,7 @@ describe("Validation", () => {
 	});
 
 	describe("allProps", () => {
-		it("turns the record or the object literal of Validation elements inside out", () => {
+		it("collects the successes in an object if all results are Ok", () => {
 			const vdn = Validation.allProps({
 				two: Validation.ok<2, Str>(2),
 				four: Validation.ok<4, Str>(4),
@@ -91,7 +155,7 @@ describe("Validation", () => {
 	});
 
 	describe("lift", () => {
-		it("lifts the function into the context of Validation values", () => {
+		it("applies the function to the succeses if all arguments are Ok", () => {
 			function f<A, B>(lhs: A, rhs: B): [A, B] {
 				return [lhs, rhs];
 			}
@@ -103,32 +167,134 @@ describe("Validation", () => {
 		});
 	});
 
-	describe("allPar", () => {
-		it("collects failures in the order the Promises resolve", async () => {
-			const vdn = await Validation.allPar([
-				delay(50).then<Validation<Str, 2>>(() =>
-					Validation.err(new Str("a")),
-				),
-				delay(10).then<Validation<Str, 4>>(() =>
-					Validation.err(new Str("b")),
-				),
-			]);
-			expect(vdn).to.deep.equal(Validation.err(new Str("ba")));
+	describe("traverseIntoPar", () => {
+		it("applies the function to the elements and collects failures in the order Promises resolve", async () => {
+			const vdn = await Validation.traverseIntoPar(
+				["a", "b"],
+				(char, idx) =>
+					delay(char === "a" ? 50 : 10).then(() =>
+						Validation.err(new Str(idx.toString() + char)),
+					),
+				new TestBuilder<[number, string]>(),
+			);
+			expect(vdn).to.deep.equal(Validation.err(new Str("1b0a")));
 		});
 
-		it("extracts the successes if all variants are Ok", async () => {
+		it("applies the function to the elements and collects the successes into the Builder if all results are Ok", async () => {
+			const builder = new TestBuilder<[number, string]>();
+			const vdn = await Validation.traverseIntoPar(
+				["a", "b"],
+				(char, idx) =>
+					delay(char === "a" ? 50 : 10).then(() =>
+						Validation.ok<[number, string], Str>([idx, char]),
+					),
+				builder,
+			);
+			expect(vdn).to.deep.equal(
+				Validation.ok([
+					[1, "b"],
+					[0, "a"],
+				]),
+			);
+			expect(builder.elems).to.deep.equal([
+				[1, "b"],
+				[0, "a"],
+			]);
+		});
+	});
+
+	describe("traversePar", () => {
+		it("applies the function to the elements and collects the results in an array if all results are Ok", async () => {
+			const vdn = await Validation.traversePar(["a", "b"], (char, idx) =>
+				delay(char === "a" ? 50 : 10).then(() =>
+					Validation.ok<[number, string], Str>([idx, char]),
+				),
+			);
+			expect(vdn).to.deep.equal(
+				Validation.ok([
+					[0, "a"],
+					[1, "b"],
+				]),
+			);
+		});
+	});
+
+	describe("forEachPar", () => {
+		it("applies the function to the successes if all arguments are Ok", async () => {
+			const results: [number, string][] = [];
+			const vdn = await Validation.forEachPar(["a", "b"], (char, idx) =>
+				delay(char === "a" ? 50 : 10).then(() => {
+					results.push([idx, char]);
+					return Validation.ok<void, Str>(undefined);
+				}),
+			);
+			expect(vdn).to.deep.equal(Validation.ok(undefined));
+			expect(results).to.deep.equal([
+				[1, "b"],
+				[0, "a"],
+			]);
+		});
+	});
+
+	describe("collectIntoPar", () => {
+		it("collects the successes into the Builder if all elements are Ok", async () => {
+			const builder = new TestBuilder<number>();
+			const vdn = await Validation.collectIntoPar(
+				[
+					delay(50).then(() => Validation.ok<2, Str>(2)),
+					delay(10).then(() => Validation.ok<4, Str>(4)),
+				],
+				builder,
+			);
+			expect(vdn).to.deep.equal(Validation.ok([4, 2]));
+			expect(builder.elems).to.deep.equal([4, 2]);
+		});
+	});
+
+	describe("allPar", () => {
+		it("collects the successes in an array if all elements are Ok", async () => {
 			const vdn = await Validation.allPar([
 				delay(50).then<Validation<Str, 2>>(() => Validation.ok(2)),
 				delay(10).then<Validation<Str, 4>>(() => Validation.ok(4)),
 			]);
 			expect(vdn).to.deep.equal(Validation.ok([2, 4]));
 		});
+	});
 
-		it("accepts plain Validation values", async () => {
-			const vdn = await Validation.allPar([
-				Validation.ok<2, Str>(2),
-				Validation.ok<4, Str>(4),
-			]);
+	describe("allPropsPar", () => {
+		it("collects the successes in an object if all elements are Ok", async () => {
+			const vdn = await Validation.allPropsPar({
+				two: delay(50).then<Validation<Str, 2>>(() => Validation.ok(2)),
+				four: delay(10).then<Validation<Str, 4>>(() =>
+					Validation.ok(4),
+				),
+			});
+			expect(vdn).to.deep.equal(Validation.ok({ two: 2, four: 4 }));
+		});
+	});
+
+	describe("liftPar", () => {
+		it("does not apply the function if any argument is Err", async () => {
+			async function f<A, B>(lhs: A, rhs: B): Promise<[A, B]> {
+				return [lhs, rhs];
+			}
+			const vdn = await Validation.liftPar(f<2, 4>)(
+				delay(50).then<Validation<Str, 2>>(() =>
+					Validation.err(new Str("a")),
+				),
+				delay(10).then<Validation<Str, 4>>(() => Validation.ok(4)),
+			);
+			expect(vdn).to.deep.equal(Validation.err(new Str("a")));
+		});
+
+		it("applies the function to the successes if all arguments are Ok", async () => {
+			async function f<A, B>(lhs: A, rhs: B): Promise<[A, B]> {
+				return [lhs, rhs];
+			}
+			const vdn = await Validation.liftPar(f<2, 4>)(
+				delay(50).then<Validation<Str, 2>>(() => Validation.ok(2)),
+				delay(10).then<Validation<Str, 4>>(() => Validation.ok(4)),
+			);
 			expect(vdn).to.deep.equal(Validation.ok([2, 4]));
 		});
 	});
