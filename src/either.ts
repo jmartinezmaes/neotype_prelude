@@ -434,10 +434,7 @@ export namespace Either {
 			} else {
 				isHalted = true;
 				err = either.val;
-				nxt = gen.return?.(undefined as any) ?? {
-					done: true,
-					value: undefined as any,
-				};
+				nxt = gen.return(undefined as any);
 			}
 		}
 		return isHalted ? left(err) : right(nxt.value);
@@ -610,10 +607,7 @@ export namespace Either {
 			} else {
 				isHalted = true;
 				err = either.val;
-				nxt = (await gen.return?.(undefined as any)) ?? {
-					done: true,
-					value: undefined as any,
-				};
+				nxt = await gen.return(undefined as any);
 			}
 		}
 		return isHalted ? left(err) : right(nxt.value);
@@ -1045,7 +1039,11 @@ export namespace Either {
 	 * result of type `T`. Synchronous comprehensions may also `yield*` other
 	 * `Either.Go` generators directly.
 	 */
-	export type Go<E, TReturn> = Iterator<Either<E, unknown>, TReturn, unknown>;
+	export type Go<E, TReturn> = Generator<
+		Either<E, unknown>,
+		TReturn,
+		unknown
+	>;
 
 	/**
 	 * An async generator that yields `Either` values and returns a result.
@@ -1059,7 +1057,7 @@ export namespace Either {
 	 * with `Either` should be awaited before yielding. Async comprehensions may
 	 * also `yield*` other `Either.Go` and `Either.GoAsync` generators directly.
 	 */
-	export type GoAsync<E, TReturn> = AsyncIterator<
+	export type GoAsync<E, TReturn> = AsyncGenerator<
 		Either<E, any>,
 		TReturn,
 		unknown

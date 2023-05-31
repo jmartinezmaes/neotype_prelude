@@ -474,10 +474,7 @@ export namespace Maybe {
 				nxt = gen.next(maybe.val);
 			} else {
 				isHalted = true;
-				nxt = gen.return?.(undefined as any) ?? {
-					done: true,
-					value: undefined as any,
-				};
+				nxt = gen.return(undefined as any);
 			}
 		}
 		return isHalted ? nothing : just(nxt.value);
@@ -638,10 +635,7 @@ export namespace Maybe {
 				nxt = await gen.next(maybe.val);
 			} else {
 				isHalted = true;
-				nxt = (await gen.return?.(undefined as any)) ?? {
-					done: true,
-					value: undefined as any,
-				};
+				nxt = await gen.return(undefined as any);
 			}
 		}
 		return isHalted ? nothing : just(nxt.value);
@@ -1083,7 +1077,7 @@ export namespace Maybe {
 	 * type `T`. Synchronous comprehensions may also `yield*` other `Maybe.Go`
 	 * generators directly.
 	 */
-	export type Go<TReturn> = Iterator<Maybe<unknown>, TReturn, unknown>;
+	export type Go<TReturn> = Generator<Maybe<unknown>, TReturn, unknown>;
 
 	/**
 	 * An async generator that yields `Maybe` values and returns a result.
@@ -1097,7 +1091,7 @@ export namespace Maybe {
 	 * `Maybe` should be awaited before yielding. Async comprehensions may also
 	 * `yield*` other `Maybe.Go` and `Maybe.GoAsync` generators directly.
 	 */
-	export type GoAsync<TReturn> = AsyncIterator<
+	export type GoAsync<TReturn> = AsyncGenerator<
 		Maybe<unknown>,
 		TReturn,
 		unknown

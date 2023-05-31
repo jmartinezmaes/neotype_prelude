@@ -545,10 +545,7 @@ export namespace Ior {
 				} else {
 					acc = cmb(acc, ior.val);
 				}
-				nxt = gen.return?.(undefined as any) ?? {
-					done: true,
-					value: undefined as any,
-				};
+				nxt = gen.return(undefined as any);
 			}
 		}
 
@@ -748,10 +745,7 @@ export namespace Ior {
 				} else {
 					acc = cmb(acc, ior.val);
 				}
-				nxt = (await gen.return?.(undefined as any)) ?? {
-					done: true,
-					value: undefined as any,
-				};
+				nxt = await gen.return(undefined as any);
 			}
 		}
 
@@ -1340,7 +1334,7 @@ export namespace Ior {
 	 * values are implementors of the same `Semigroup` so the values may
 	 * accumulate as the generator yields.
 	 */
-	export type Go<A extends Semigroup<A>, TReturn> = Iterator<
+	export type Go<A extends Semigroup<A>, TReturn> = Generator<
 		Ior<A, unknown>,
 		TReturn,
 		unknown
@@ -1362,7 +1356,7 @@ export namespace Ior {
 	 * values are implementors of the same `Semigroup` so the values may
 	 * accumulate as the generator yields.
 	 */
-	export type GoAsync<A extends Semigroup<A>, TReturn> = AsyncIterator<
+	export type GoAsync<A extends Semigroup<A>, TReturn> = AsyncGenerator<
 		Ior<A, unknown>,
 		TReturn,
 		unknown
