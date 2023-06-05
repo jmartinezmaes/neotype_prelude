@@ -31,12 +31,10 @@
  *
  * -   Initial values
  * -   Nullable values
- * -   Optional fields in classes and objects
  * -   Return values for functions that are not defined over their entire input
  *     range (partial functions)
  * -   Return values for reporting simple failures, where `Nothing` is returned
  *     on failure
- * -   Optional function arguments
  *
  * ## Importing from this module
  *
