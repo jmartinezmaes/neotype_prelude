@@ -191,23 +191,42 @@
  *
  * ## Collecting into `Either`
  *
- * These functions turn a container of `Either` elements "inside out":
+ * These functions map the elements in an iterable to `Either` values, evaluate
+ * the values, and act on the successes:
  *
- * -   `all` turns an iterable or a tuple literal of `Either` elements inside
- *     out.
- * -   `allProps` turns a string-keyed record or object literal of `Either`
- *     elements inside out.
+ * -   `reduce` accumulates the successes.
+ * -   `traverseInto` collects the successes into a `Builder`.
+ * -   `traverse` collects the successes in an array.
+ * -   `forEach` ignores the successes.
  *
- * These functions concurrently turn a container of promise-like `Either`
- * elements "inside out":
+ * These functions evaluate the `Either` elements in a structure and collect the
+ * successes:
  *
- * -   `allAsync` turns an iterable or a tuple literal of promise-like `Either`
- *     elements inside out.
- * -   `allPropsAsync` turns a string-keyed record or object literal of
- *     promise-like `Either` elements inside out.
+ * -   `collectInto` traverses an iterable and collects the successes into a
+ *     `Builder`.
+ * -   `all` traverses an iterable and collects the successes in an array or a
+ *     tuple literal.
+ * -   `allProps` traverses a string-keyed record or object literal and collects
+ *     the successes in an equivalent structure.
  *
- * The `reduce` function reduces a finite iterable from left to right in the
- * context of `Either`.
+ * ### Collecting concurrently
+ *
+ * These functions map the elements in an iterable to promise-like `Either`
+ * values, concurrently evaluate the values, and act on the successes:
+ *
+ * -   `traverseIntoPar` collects the successes into a `Builder`.
+ * -   `traversePar` collects the successes in an array.
+ * -   `forEachPar` ignores the successes.
+ *
+ * These functions concurrently evaluate the promise-like `Either` elements in a
+ * structure and collect the successes:
+ *
+ * -   `collectIntoPar` traverses an iterable and collects the successes into a
+ *     `Builder`.
+ * -   `allPar` traverses an iterable and collects the successes in an array or
+ *     a tuple literal.
+ * -   `allPropsPar` traverses a string-keyed record or object literal and
+ *     collects the successes in an equivalent structure.
  *
  * ## Lifting functions into the context of `Either`
  *
@@ -215,7 +234,7 @@
  *
  * -   `lift` adapts a synchronous function to accept `Either` values as
  *     arguments and return an `Either`.
- * -   `liftAsync` adapts a synchronous or an asynchronous function to accept
+ * -   `liftPar` adapts a synchronous or an asynchronous function to accept
  *     promise-like `Either` values as arguments and return a `Promise` that
  *     resolves with an `Either`.
  *
@@ -405,11 +424,6 @@ export namespace Either {
 
 	/**
 	 * Construct an `Either` from a `Validation`.
-	 *
-	 * @remarks
-	 *
-	 * If the `Validation` is an `Err`, return its failure in a `Left`;
-	 * otherwise, return its success in a `Right`.
 	 */
 	export function fromValidation<E, T>(vdn: Validation<E, T>): Either<E, T> {
 		return vdn.unwrap(left, right);
@@ -417,11 +431,6 @@ export namespace Either {
 
 	/**
 	 * Evaluate an `Either.Go` generator to return an `Either`.
-	 *
-	 * @remarks
-	 *
-	 * If any yielded `Either` fails, return the failed `Either`; otherwise,
-	 * when the generator returns, return the the result as a success.
 	 */
 	export function go<E, TReturn>(gen: Go<E, TReturn>): Either<E, TReturn> {
 		let nxt = gen.next();
@@ -441,7 +450,8 @@ export namespace Either {
 	}
 
 	/**
-	 * Reduce a finite iterable from left to right in the context of `Either`.
+	 * Accumulate the elements in an iterable using a reducer function that
+	 * returns an `Either`.
 	 */
 	export function reduce<T, TAcc, E>(
 		elems: Iterable<T>,
@@ -460,7 +470,12 @@ export namespace Either {
 	}
 
 	/**
+	 * Map the elements in an iterable to `Either` values, evaluate the values
+	 * from left to right, and collect the successes into a `Builder`.
 	 *
+	 * @remarks
+	 *
+	 * If any `Either` fails, the state of the provided `Builder` is undefined.
 	 */
 	export function traverseInto<T, E, T1, TFinish>(
 		elems: Iterable<T>,
@@ -480,7 +495,8 @@ export namespace Either {
 	}
 
 	/**
-	 *
+	 * Map the elements in an iterable to `Either` values, evaluate the values
+	 * from left to right, and collect the successes in an array.
 	 */
 	export function traverse<T, E, T1>(
 		elems: Iterable<T>,
@@ -490,7 +506,8 @@ export namespace Either {
 	}
 
 	/**
-	 *
+	 * Map the elements in an iterable to `Either` values, evaluate the values
+	 * from left to right, and ignore the successes.
 	 */
 	export function forEach<T, E>(
 		elems: Iterable<T>,
@@ -500,7 +517,12 @@ export namespace Either {
 	}
 
 	/**
+	 * Evaluate the `Either` elements in an iterable from left to right and
+	 * collect the successes into a `Builder`.
 	 *
+	 * @remarks
+	 *
+	 * If any `Either` fails, the state of the provided `Builder` is undefined.
 	 */
 	export function collectInto<E, T, TFinish>(
 		eithers: Iterable<Either<E, T>>,
@@ -510,11 +532,13 @@ export namespace Either {
 	}
 
 	/**
-	 * Turn an array or a tuple literal of `Either` elements "inside out".
+	 * Evaluate the `Either` elements in an array or a tuple literal from left
+	 * to right and collect the successes in an equivalent structure.
 	 *
 	 * @remarks
 	 *
-	 * For example:
+	 * This function essentially turns an array or a tuple literal of `Either`
+	 * elements "inside out". For example:
 	 *
 	 * -   `Either<E, T>[]` becomes `Either<E, T[]>`
 	 * -   `[Either<E, T1>, Either<E, T2>]` becomes `Either<E, [T1, T2]>`
@@ -527,11 +551,13 @@ export namespace Either {
 	>;
 
 	/**
-	 * Turn an iterable of `Either` elements "inside out" using an array.
+	 * Evaluate the `Either` elements in an iterable from left to right and
+	 * collect the successes in an array.
 	 *
 	 * @remarks
 	 *
-	 * For example, `Iterable<Either<E, T>>` becomes `Either<E, T[]>`.
+	 * This function essentially turns an iterable of `Either` elements "inside
+	 * out". For example, `Iterable<Either<E, T>>` becomes `Either<E, T[]>`.
 	 */
 	export function all<E, T>(eithers: Iterable<Either<E, T>>): Either<E, T[]>;
 
@@ -540,15 +566,13 @@ export namespace Either {
 	}
 
 	/**
-	 * Turn a string-keyed record or object literal of `Either` elements "inside
-	 * out".
+	 * Evaluate the `Either` elements in a string-keyed record or object literal
+	 * and collect the successes in an equivalent structure.
 	 *
 	 * @remarks
 	 *
-	 * This function enumerates only the object's own enumerable, string-keyed
-	 * property key-value pairs.
-	 *
-	 * For example:
+	 * This function essentially turns a string-keyed record or object literal
+	 * of `Either` elements "inside out". For example:
 	 *
 	 * -   `Record<string, Either<E, T>>` becomes `Either<E, Record<string, T>>`
 	 * -   `{ x: Either<E, T1>, y: Either<E, T2> }` becomes `Either<E, { x: T1,
@@ -587,12 +611,6 @@ export namespace Either {
 	/**
 	 * Evaluate an `Either.GoAsync` async generator to return a `Promise` that
 	 * resolves with an `Either`.
-	 *
-	 * @remarks
-	 *
-	 * If any yielded `Either` fails, resolve with the failed `Either`;
-	 * otherwise, when the generator returns, resolve with with the result as a
-	 * success. If an error is thrown, reject with the error.
 	 */
 	export async function goAsync<E, TReturn>(
 		gen: GoAsync<E, TReturn>,
@@ -614,7 +632,13 @@ export namespace Either {
 	}
 
 	/**
+	 * Map the elements in an iterable to promise-like `Either` values,
+	 * concurrently evaluate the values, and collect the successes into a
+	 * `Builder`.
 	 *
+	 * @remarks
+	 *
+	 * If any `Either` fails, the state of the provided `Builder` is undefined.
 	 */
 	export function traverseIntoPar<T, E, T1, TFinish>(
 		elems: Iterable<T>,
@@ -643,7 +667,8 @@ export namespace Either {
 	}
 
 	/**
-	 *
+	 * Map the elements in an iterable to promise-like `Either` values,
+	 * concurrently evaluate the values, and collect the successes in an array.
 	 */
 	export function traversePar<T, E, T1>(
 		elems: Iterable<T>,
@@ -658,7 +683,8 @@ export namespace Either {
 	}
 
 	/**
-	 *
+	 * Map the elements in an iterable to promise-like `Either` values,
+	 * concurrently evaluate the values, and ignore the successes.
 	 */
 	export function forEachPar<T, E>(
 		elems: Iterable<T>,
@@ -671,7 +697,12 @@ export namespace Either {
 	}
 
 	/**
+	 * Concurrently evaluate the promise-like `Either` elements in an iterable
+	 * and collect the successes into a `Builder`.
 	 *
+	 * @remarks
+	 *
+	 * If any `Either` fails, the state of the provided `Builder` is undefined.
 	 */
 	export function collectIntoPar<E, T, TFinish>(
 		elems: Iterable<Either<E, T> | PromiseLike<Either<E, T>>>,
@@ -681,12 +712,13 @@ export namespace Either {
 	}
 
 	/**
-	 * Concurrently turn an array or a tuple literal of promise-like `Either`
-	 * elements "inside out".
+	 * Concurrently evaluate the promise-like `Either` elements in an array or a
+	 * tuple literal and collect the successes in an equivalent structure.
 	 *
 	 * @remarks
 	 *
-	 * For example:
+	 * This function essentially turns an array or a tuple literal of
+	 * promise-like `Either` elements "inside out". For example:
 	 *
 	 * -   `Promise<Either<E, T>>[]` becomes `Promise<Either<E, T[]>>`
 	 * -   `[Promise<Either<E, T1>>, Promise<Either<E, T2>>]` becomes
@@ -706,13 +738,14 @@ export namespace Either {
 	>;
 
 	/**
-	 * Concurrently turn an iterable of promise-like `Either` elements "inside
-	 * out" using an array.
+	 * Concurrently evaluate the promise-like `Either` elements in an iterable
+	 * and collect the successes in an array.
 	 *
 	 * @remarks
 	 *
-	 * For example, `Iterable<Promise<Either<E, T>>>` becomes `Promise<Either<E,
-	 * T[]>>.
+	 * This function essentially turns an iterable of promise-like `Either`
+	 * elements "inside out". For example, `Iterable<Promise<Either<E, T>>>`
+	 * becomes `Promise<Either<E, T[]>>`.
 	 */
 	export function allPar<E, T>(
 		elems: Iterable<Either<E, T> | PromiseLike<Either<E, T>>>,
@@ -730,15 +763,14 @@ export namespace Either {
 	}
 
 	/**
-	 * Concurrently turn a string-keyed record or object literal of promise-like
-	 * `Either` elements "inside out".
+	 * Concurrently evaluate the promise-like `Either` elements in a
+	 * string-keyed record or object literal and collect the successes in an
+	 * equivalent structure.
 	 *
 	 * @remarks
 	 *
-	 * This function enumerates only the object's own enumerable, string-keyed
-	 * property key-value pairs.
-	 *
-	 * For example:
+	 * This function essentially turns a string-keyed record or object literal
+	 * of promise-like `Either` elements "inside out". For example:
 	 *
 	 * -   `Record<string, Promise<Either<E, T>>>` becomes `Promise<Either<E,
 	 *     Record<string, T>>>`
@@ -921,7 +953,7 @@ export namespace Either {
 		}
 
 		/**
-		 * If this `Either`, suceeds, apply a generator comprehension function
+		 * If this `Either` succeeds, apply a generator comprehension function
 		 * to its success and evaluate the `Either.Go` generator to return
 		 * another `Either`; otherwise, return this `Either` as is.
 		 */
