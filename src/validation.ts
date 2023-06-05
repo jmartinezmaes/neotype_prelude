@@ -134,20 +134,41 @@
  *
  * ## Collecting into `Validation`
  *
- * These functions turn a container of `Validation` elements "inside out":
+ * These functions map the elements in an iterable to `Validation` values,
+ * evaluate the values, and act on the successes:
  *
- * -   `all` turns an iterable or a tuple literal of `Validation` elements
- *     inside out.
- * -   `allProps` turns a string-keyed record or object literal of `Validation`
- *     elements inside out.
+ * -   `traverseInto` collects the successes into a `Builder`.
+ * -   `traverse` collects the successes in an array.
+ * -   `forEach` ignores the successes.
  *
- * These functions concurrently turn a container of promise-like `Validation`
- * elements "inside out":
+ * These functions evaluate the `Validation` elements in a structure and collect
+ * the successes:
  *
- * -   `allAsync` turns an iterable or a tuple literal of promise-like
- *     `Validation` elements inside out.
- * -   `allPropsAsync` turns a string-keyed record or object literal of
- *     promise-like`Validation` elements inside out.
+ * -   `collectInto` traverses an iterable and collects the successes into a
+ *     `Builder`.
+ * -   `all` traverses an iterable and collects the successes in an array or a
+ *     tuple literal.
+ * -   `allProps` traverses a string-keyed record or object literal and collects
+ *     the successes in an equivalent structure.
+ *
+ * ### Collecting concurrently
+ *
+ * These functions map the elements in an iterable to promise-like `Validation`
+ * values, concurrently evaluate the values, and act on the successes:
+ *
+ * -   `traverseIntoPar` collects the successes into a `Builder`.
+ * -   `traversePar` collects the successes in an array.
+ * -   `forEachPar` ignores the successes.
+ *
+ * These functions concurrently evaluate the promise-like `Validation` elements
+ * in a structure and collect the successes:
+ *
+ * -   `collectIntoPar` traverses an iterable and collects the successes into a
+ *     `Builder`.
+ * -   `allPar` traverses an iterable and collects the successes in an array or
+ *     a tuple literal.
+ * -   `allPropsPar` traverses a string-keyed record or object literal and
+ *     collects the successes in an equivalent structure.
  *
  * ## Lifting functions into the context of `Validation`
  *
@@ -412,18 +433,19 @@ export namespace Validation {
 
 	/**
 	 * Construct a `Validation` from an `Either`.
-	 *
-	 * @remarks
-	 *
-	 * If the `Either` is a `Left`, return its value in an `Err`; otherwise,
-	 * return its value in an `Ok`.
 	 */
 	export function fromEither<A, B>(either: Either<A, B>): Validation<A, B> {
 		return either.unwrap(err, ok);
 	}
 
 	/**
+	 * Map the elements in an iterable to `Validation` values, evaluate the
+	 * values from left to right, and collect the successes into a `Builder`.
 	 *
+	 * @remarks
+	 *
+	 * If any `Validation` fails, the state of the provided `Builder` is
+	 * undefined.
 	 */
 	export function traverseInto<T, E extends Semigroup<E>, T1, TFinish>(
 		elems: Iterable<T>,
@@ -444,7 +466,8 @@ export namespace Validation {
 	}
 
 	/**
-	 *
+	 * Map the elements in an iterable to `Validation` values, evaluate the
+	 * values from left to right, and collect the successes in an array.
 	 */
 	export function traverse<T, E extends Semigroup<E>, T1>(
 		elems: Iterable<T>,
@@ -454,7 +477,8 @@ export namespace Validation {
 	}
 
 	/**
-	 *
+	 * Map the elements in an iterable to `Validation` values, evaluate the
+	 * values from left to right, and ignore the successes.
 	 */
 	export function forEach<T, E extends Semigroup<E>>(
 		elems: Iterable<T>,
@@ -464,7 +488,13 @@ export namespace Validation {
 	}
 
 	/**
+	 * Evaluate the `Validation` elements in an iterable from left to right and
+	 * collect the successes into a `Builder`.
 	 *
+	 * @remarks
+	 *
+	 * If any `Validation` fails, the state of the provided `Builder` is
+	 * undefined.
 	 */
 	export function collectInto<E extends Semigroup<E>, T, TFinish>(
 		vdns: Iterable<Validation<E, T>>,
@@ -474,11 +504,13 @@ export namespace Validation {
 	}
 
 	/**
-	 * Turn an array or a tuple literal of `Validation` elements "inside out".
+	 * Evaluate the `Validation` elements in an array or a tuple literal from
+	 * left to right and collect the successes in an equivalent structure.
 	 *
 	 * @remarks
 	 *
-	 * For example:
+	 * This function essentially turns an array or a tuple literal of
+	 * `Validation` elements "inside out". For example:
 	 *
 	 * -   `Validation<E, T>[]` becomes `Validation<E, T[]>`
 	 * -   `[Validation<E, T1>, Validation<E, T2>]` becomes `Validation<E, [T1,
@@ -494,11 +526,14 @@ export namespace Validation {
 	>;
 
 	/**
-	 * Turn an iterable of `Validation` elements "inside out" using an array.
+	 * Evaluate the `Validation` elements in an iterable from left to right and
+	 * collect the successes in an array.
 	 *
 	 * @remarks
 	 *
-	 * For example, `Iterable<Validation<E, T>>` becomes `Validation<E, T[]>`.
+	 * This function essentially turns an iterable of `Validation` elements
+	 * "inside out". For example, `Iterable<Validation<E, T>>` becomes
+	 * `Validation<E, T[]>`.
 	 */
 	export function all<E extends Semigroup<E>, T>(
 		vdns: Iterable<Validation<E, T>>,
@@ -511,15 +546,13 @@ export namespace Validation {
 	}
 
 	/**
-	 * Turn a string-keyed record or object literal of `Validation` elements
-	 * "inside out".
+	 * Evaluate the `Validation` elements in a string-keyed record or object
+	 * literal and collect the successes in an equivalent structure.
 	 *
 	 * @remarks
 	 *
-	 * This function enumerates only the object's own enumerable string-keyed
-	 * property key-value pairs.
-	 *
-	 * For example:
+	 * This function essentially turns a string-keyed record or object literal
+	 * of `Validation` elements "inside out". For example:
 	 *
 	 * -   `Record<string, Validation<E, T>>` becomes `Validation<E,
 	 *     Record<string, T>>`
@@ -562,7 +595,14 @@ export namespace Validation {
 	}
 
 	/**
+	 * Map the elements in an iterable to promise-like `Validation` values,
+	 * concurrently evaluate the values, and collect the successes into a
+	 * `Builder`.
 	 *
+	 * @remarks
+	 *
+	 * If any `Validation` fails, the state of the provided `Builder` is
+	 * undefined.
 	 */
 	export function traverseIntoPar<T, E extends Semigroup<E>, T1, TFinish>(
 		elems: Iterable<T>,
@@ -605,7 +645,8 @@ export namespace Validation {
 	}
 
 	/**
-	 *
+	 * Map the elements in an iterable to promise-like `Validation` values,
+	 * concurrently evaluate the values, and collect the successes in an array.
 	 */
 	export function traversePar<T, E extends Semigroup<E>, T1>(
 		elems: Iterable<T>,
@@ -623,7 +664,8 @@ export namespace Validation {
 	}
 
 	/**
-	 *
+	 * Map the elements in an iterable to promise-like `Validation` values,
+	 * concurrently evaluate the values, and ignore the successes.
 	 */
 	export function forEachPar<T, E extends Semigroup<E>>(
 		elems: Iterable<T>,
@@ -636,7 +678,13 @@ export namespace Validation {
 	}
 
 	/**
+	 * Concurrently evaluate the promise-like `Validation` elements in an
+	 * iterable and collect the successes into a `Builder`.
 	 *
+	 * @remarks
+	 *
+	 * If any `Validation` fails, the state of the provided `Builder` is
+	 * undefined.
 	 */
 	export function collectIntoPar<E extends Semigroup<E>, T, TFinish>(
 		vdns: Iterable<Validation<E, T> | PromiseLike<Validation<E, T>>>,
@@ -646,18 +694,17 @@ export namespace Validation {
 	}
 
 	/**
-	 * Concurrently turn an array or a tuple literal of promise-like
-	 * `Validation` elements "inside out".
+	 * Concurrently evaluate the promise-like `Validation` elements in an array
+	 * or a tuple literal and collect the successes in an equivalent structure.
 	 *
 	 * @remarks
 	 *
-	 * For example:
+	 * This function essentially turns an array or a tuple literal of
+	 * promise-like `Validation` elements "inside out". For example:
 	 *
 	 * -   `Promise<Validation<E, T>>[]` becomes `Promise<Validation<E, T[]>>`
-	 * -   `[Promise<Validation<E, T1L>, Promise<Validation<E, T2>>]` becomes
+	 * -   `[Promise<Validation<E, T1>>, Promise<Validation<E, T2>>]` becomes
 	 *     `Promise<Validation<E, [T1, T2]>>`
-	 *
-	 * Failures are combined in the order the promise-like elements resolve.
 	 */
 	export function allPar<
 		TElems extends
@@ -676,15 +723,14 @@ export namespace Validation {
 	>;
 
 	/**
-	 * Concurrently turn an iterable of promise-like `Validation` elements
-	 * "inside out" using an array.
+	 * Concurrently evaluate the promise-like `Validation` elements in an
+	 * iterable and collect the successes in an array.
 	 *
 	 * @remarks
 	 *
-	 * For example, `Iterable<Promise<Validation<E, T>>>` becomes
-	 * `Promise<Validation<E, T[]>>`.
-	 *
-	 * Failures are combined in the order the promise-like elements resolve.
+	 * This function essentially turns an iterable of promise-like `Validation`
+	 * elements "inside out". For example, `Iterable<Promise<Validation<E, T>>>`
+	 * becomes `Promise<Validation<E, T[]>>`.
 	 */
 	export function allPar<E extends Semigroup<E>, T>(
 		elems: Iterable<Validation<E, T> | PromiseLike<Validation<E, T>>>,
@@ -702,22 +748,19 @@ export namespace Validation {
 	}
 
 	/**
-	 * Concurrently turn a string-keyed record or object literal of promise-like
-	 * `Validation` elements "inside out".
+	 * Concurrently evaluate the promise-like `Validation` elements in a
+	 * string-keyed record or object literal and collect the successes in an
+	 * equivalent structure.
 	 *
 	 * @remarks
 	 *
-	 * This function enumerates only the object's own enumerable string-keyed
-	 * property key-value pairs.
+	 * This function essentially turns a string-keyed record or object literal
+	 * of promise-like `Validation` elements "inside out". For example:
 	 *
-	 * For example:
-	 *
-	 * -   `Record<string, Validation<E, T>>` becomes `Validation<E,
-	 *     Record<string, T>>`
-	 * -   `{ x: Validation<E, T1>, y: Validation<E, T2> }` becomes
-	 *     `Validation<E, { x: T1, y: T2 }>`
-	 *
-	 * Failures are combined in the order the promise-like elements resolve.
+	 * -   `Record<string, Promise<Validation<E, T>>>` becomes
+	 *     `Promise<Validation<E, Record<string, T>>>`
+	 * -   `{ x: Promise<Validation<E, T1>>, y: Promise<Validation<E, T2>> }`
+	 *     becomes `Promise<Validation<E, { x: T1, y: T2 }>>`
 	 */
 	export function allPropsPar<
 		TElems extends Record<
@@ -752,8 +795,7 @@ export namespace Validation {
 	 *
 	 * @remarks
 	 *
-	 * The lifted function's arguments are evaluated concurrently. Failures are
-	 * combined in the order the arguments resolve.
+	 * The lifted function's arguments are evaluated concurrently.
 	 */
 	export function liftPar<TArgs extends unknown[], T>(
 		f: (...args: TArgs) => T | PromiseLike<T>,
