@@ -32,10 +32,6 @@ import { Ordering, cmp, eq } from "./cmp.js";
 import { Maybe } from "./maybe.js";
 
 describe("Maybe", () => {
-	function nothing<T>(): Maybe<T> {
-		return Maybe.nothing;
-	}
-
 	function arbMaybe<T>(arbVal: fc.Arbitrary<T>): fc.Arbitrary<Maybe<T>> {
 		return fc.oneof(fc.constant(Maybe.nothing), arbVal.map(Maybe.just));
 	}
@@ -109,7 +105,7 @@ describe("Maybe", () => {
 		it("short-circuits on the first yielded Nothing", () => {
 			function* f(): Maybe.Go<[1, 2]> {
 				const one = yield* Maybe.just<1>(1);
-				const two = yield* nothing<2>();
+				const two = yield* Maybe.nothing;
 				return [one, two];
 			}
 			const maybe = Maybe.go(f());
@@ -130,7 +126,7 @@ describe("Maybe", () => {
 			const logs: string[] = [];
 			function* f(): Maybe.Go<1> {
 				try {
-					return yield* nothing<1>();
+					return yield* Maybe.nothing;
 				} finally {
 					logs.push("finally");
 				}
@@ -145,7 +141,7 @@ describe("Maybe", () => {
 				try {
 					return 1;
 				} finally {
-					yield* nothing<1>();
+					yield* Maybe.nothing;
 				}
 			}
 			const maybe = Maybe.go(f());
@@ -257,7 +253,7 @@ describe("Maybe", () => {
 		it("short-circuits on the first yielded Nothing", async () => {
 			async function* f(): Maybe.GoAsync<[1, 2]> {
 				const one = yield* await Promise.resolve(Maybe.just<1>(1));
-				const two = yield* await Promise.resolve(nothing<2>());
+				const two = yield* await Promise.resolve(Maybe.nothing);
 				return [one, two];
 			}
 			const maybe = await Maybe.goAsync(f());
@@ -292,7 +288,7 @@ describe("Maybe", () => {
 			const logs: string[] = [];
 			async function* f(): Maybe.GoAsync<1> {
 				try {
-					return yield* await Promise.resolve(nothing<1>());
+					return yield* await Promise.resolve(Maybe.nothing);
 				} finally {
 					logs.push("finally");
 				}
@@ -307,7 +303,7 @@ describe("Maybe", () => {
 				try {
 					return 1;
 				} finally {
-					yield* await Promise.resolve(nothing<1>());
+					yield* await Promise.resolve(Maybe.nothing);
 				}
 			}
 			const maybe = await Maybe.goAsync(f());
@@ -545,7 +541,7 @@ describe("Maybe", () => {
 
 	describe("#isNothing", () => {
 		it("returns true if the variant is Nothing", () => {
-			expect(nothing<1>().isNothing()).to.be.true;
+			expect(Maybe.nothing.isNothing()).to.be.true;
 		});
 
 		it("returns false if the variant is Just", () => {
@@ -555,7 +551,7 @@ describe("Maybe", () => {
 
 	describe("#isJust", () => {
 		it("returns false if the variant is Nothing", () => {
-			expect(nothing<1>().isJust()).to.be.false;
+			expect(Maybe.nothing.isJust()).to.be.false;
 		});
 
 		it("returns true if the variant is Just", () => {
@@ -565,7 +561,7 @@ describe("Maybe", () => {
 
 	describe("#unwrap", () => {
 		it("evaluates the first function if the variant is Nothing", () => {
-			const result = nothing<1>().unwrap(
+			const result = (Maybe.nothing as Maybe<1>).unwrap(
 				(): 3 => 3,
 				(one): [1, 2] => [one, 2],
 			);
@@ -583,7 +579,7 @@ describe("Maybe", () => {
 
 	describe("getOrElse", () => {
 		it("evaluates the function if the variant is Nothing", () => {
-			const result = nothing<1>().getOrElse((): 2 => 2);
+			const result = (Maybe.nothing as Maybe<1>).getOrElse((): 2 => 2);
 			expect(result).to.equal(2);
 		});
 
@@ -595,7 +591,7 @@ describe("Maybe", () => {
 
 	describe("#getOr", () => {
 		it("returns the fallback value if the variant is Nothing", () => {
-			const result = nothing<1>().getOr(2 as const);
+			const result = (Maybe.nothing as Maybe<1>).getOr(2 as const);
 			expect(result).to.equal(2);
 		});
 
@@ -607,7 +603,7 @@ describe("Maybe", () => {
 
 	describe("#toNullish", () => {
 		it("returns undefined if the variant is Nothing", () => {
-			const result = nothing<1>().toNullish();
+			const result = (Maybe.nothing as Maybe<1>).toNullish();
 			expect(result).to.be.undefined;
 		});
 
@@ -619,7 +615,9 @@ describe("Maybe", () => {
 
 	describe("#orElse", () => {
 		it("evaluates the function if the variant is Nothing", () => {
-			const maybe = nothing<1>().orElse(() => Maybe.just<2>(2));
+			const maybe = (Maybe.nothing as Maybe<1>).orElse(() =>
+				Maybe.just<2>(2),
+			);
 			expect(maybe).to.deep.equal(Maybe.just(2));
 		});
 
@@ -631,7 +629,7 @@ describe("Maybe", () => {
 
 	describe("#or", () => {
 		it("returns the other Maybe if the variant is Nothing", () => {
-			const maybe = nothing<1>().or(Maybe.just<2>(2));
+			const maybe = (Maybe.nothing as Maybe<1>).or(Maybe.just<2>(2));
 			expect(maybe).to.deep.equal(Maybe.just(2));
 		});
 
@@ -643,7 +641,7 @@ describe("Maybe", () => {
 
 	describe("#andThen", () => {
 		it("does not apply the continuation if the variant is Nothing", () => {
-			const maybe = nothing<1>().andThen(
+			const maybe = (Maybe.nothing as Maybe<1>).andThen(
 				(one): Maybe<[1, 2]> => Maybe.just([one, 2]),
 			);
 			expect(maybe).to.equal(Maybe.nothing);
@@ -659,7 +657,7 @@ describe("Maybe", () => {
 
 	describe("#andThenGo", () => {
 		it("does not apply the continuation if the variant is Nothing", () => {
-			const maybe = nothing<1>().andThenGo(function* (
+			const maybe = (Maybe.nothing as Maybe<1>).andThenGo(function* (
 				one,
 			): Maybe.Go<[1, 2]> {
 				const two = yield* Maybe.just<2>(2);
@@ -681,7 +679,7 @@ describe("Maybe", () => {
 
 	describe("#and", () => {
 		it("returns the original Maybe if the variant is Nothing", () => {
-			const maybe = nothing<1>().and(Maybe.just<2>(2));
+			const maybe = (Maybe.nothing as Maybe<1>).and(Maybe.just<2>(2));
 			expect(maybe).to.deep.equal(Maybe.nothing);
 		});
 
@@ -693,10 +691,9 @@ describe("Maybe", () => {
 
 	describe("#mapNullish", () => {
 		it("does not apply the continuation if the variant is Nothing", () => {
-			const maybe = nothing<1>().mapNullish((one): [1, 2] | null => [
-				one,
-				2,
-			]);
+			const maybe = (Maybe.nothing as Maybe<1>).mapNullish(
+				(one): [1, 2] | null => [one, 2],
+			);
 			expect(maybe).to.equal(Maybe.nothing);
 		});
 
@@ -724,7 +721,9 @@ describe("Maybe", () => {
 
 	describe("#filter", () => {
 		it("does not apply the predicate if the variant is Nothing", () => {
-			const maybe = nothing<number>().filter((one) => one === 1);
+			const maybe = (Maybe.nothing as Maybe<number>).filter(
+				(one) => one === 1,
+			);
 			expect(maybe).to.equal(Maybe.nothing);
 		});
 
