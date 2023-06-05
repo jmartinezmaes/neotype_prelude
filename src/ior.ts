@@ -205,22 +205,42 @@
  *
  * ## Collecting into `Ior`
  *
- * These functions turn a container of `Ior` elements "inside out".
+ * These functions map the elements in an iterable to `Ior` values, evaluate the
+ * values, and act on the right-hand values:
  *
- * -   `all` turns an iterable or a tuple literal of `Ior` elements inside out.
- * -   `allProps` turns a string-keyed record or object literal of `Ior`
- *     elements inside out.
+ * -   `reduce` accumulates the right-hand values.
+ * -   `traverseInto` collects the right-hand values into a `Builder`.
+ * -   `traverse` collects the right-hand values in an array.
+ * -   `forEach` ignores the right-hand values.
  *
- * These functions concurrently turn a container of promise-like `Ior` elements
- * "inside out":
+ * These functions evaluate the `Ior` elements in a structure and collect the
+ * right-hand values:
  *
- * -   `allAsync` turns an iterable or a tuple literal of promise-like `Ior`
- *     elements inside out.
- * -   `allPropsAsync` turns a string-keyed record or object literal of
- *     promise-like `Ior` elements inside out.
+ * -   `collectInto` traverses an iterable and collects the right-hand values
+ *     into a `Builder`.
+ * -   `all` traverses an iterable and collects the right-hand values in an
+ *     array or a tuple literal.
+ * -   `allProps` traverses a string-keyed record or object literal and collects
+ *     the right-hand values in an equivalent structure.
  *
- * The `reduce` function reduces a finite iterable from left to right in the
- * context of `Ior`.
+ * ### Collecting concurrently
+ *
+ * These functions map the elements in an iterable to promise-like `Ior` values,
+ * concurrently evaluate the values, and act on the right-hand values:
+ *
+ * -   `traverseIntoPar` collects the right-hand values into a `Builder`.
+ * -   `traversePar` collects the right-hand values in an array.
+ * -   `forEachPar` ignores the right-hand values.
+ *
+ * These functions concurrently evaluate the promise-like `Ior` elements in a
+ * structure and collect the right-hand values:
+ *
+ * -   `collectIntoPar` traverses an iterable and collects the right-hand values
+ *     into a `Builder`.
+ * -   `allPar` traverses an iterable and collects the right-hand values in an
+ *     array or a tuple literal.
+ * -   `allPropsPar` traverses a string-keyed record or object literal and
+ *     collects the right-hand values in an equivalent structure.
  *
  * ## Lifting functions into the context of `Ior`
  *
@@ -475,11 +495,6 @@ export namespace Ior {
 
 	/**
 	 * Construct an `Ior` from an `Either`.
-	 *
-	 * @remarks
-	 *
-	 * If the `Either` is a `Left`, return its value in a `Left` variant of
-	 * `Ior`; otherwise return its value in a `Right` variant of `Ior`.
 	 */
 	export function fromEither<A, B>(either: Either<A, B>): Ior<A, B> {
 		return either.unwrap(left, right);
@@ -487,11 +502,6 @@ export namespace Ior {
 
 	/**
 	 * Construct an `Ior` from a `Validation`.
-	 *
-	 * @remarks
-	 *
-	 * If the `Validation` is an `Err`, return its failure in a `Left`;
-	 * otherwise, return its success in a `Right`.
 	 */
 	export function fromValidation<E, T>(vdn: Validation<E, T>): Ior<E, T> {
 		return vdn.unwrap(left, right);
@@ -499,11 +509,6 @@ export namespace Ior {
 
 	/**
 	 * Construct an `Ior` from a 2-tuple of values.
-	 *
-	 * @remarks
-	 *
-	 * This will always construct a `Both` variant from the first value and
-	 * second value of the tuple.
 	 */
 	export function fromTuple<A, B>(tuple: readonly [A, B]): Ior<A, B> {
 		return both(tuple[0], tuple[1]);
@@ -511,14 +516,6 @@ export namespace Ior {
 
 	/**
 	 * Evaluate an `Ior.Go` generator to return an `Ior`.
-	 *
-	 * @remarks
-	 *
-	 * If any yielded `Ior` is a `Left`, combine the left-hand value with any
-	 * existing left-hand value and return the result in a `Left`; otherwise,
-	 * when the generator returns, return the result as a right-hand value.
-	 * Accumulate the left-hand values of yielded `Both` variants using their
-	 * behavior as a semigroup.
 	 */
 	export function go<A extends Semigroup<A>, TReturn>(
 		gen: Go<A, TReturn>,
@@ -559,7 +556,8 @@ export namespace Ior {
 	}
 
 	/**
-	 * Reduce a finite iterable from left to right in the context of `Ior`.
+	 * Accumulate the elements in an iterable using a reducer function that
+	 * returns an `Ior`.
 	 */
 	export function reduce<T, TAcc, A extends Semigroup<A>>(
 		elems: Iterable<T>,
@@ -578,7 +576,12 @@ export namespace Ior {
 	}
 
 	/**
+	 * Map the elements in an iterable to `Ior` values, evaluate the values from
+	 * left to right, and collect the right-hand values into a `Builder`.
 	 *
+	 * @remarks
+	 *
+	 * If any `Ior` fails, the state of the provided `Builder` is undefined.
 	 */
 	export function traverseInto<T, A extends Semigroup<A>, B, TFinish>(
 		elems: Iterable<T>,
@@ -598,7 +601,8 @@ export namespace Ior {
 	}
 
 	/**
-	 *
+	 * Map the elements in an iterable to `Ior` values, evaluate the values from
+	 * left to right, and collect the right-hand values in an array.
 	 */
 	export function traverse<T, A extends Semigroup<A>, B>(
 		elems: Iterable<T>,
@@ -608,7 +612,8 @@ export namespace Ior {
 	}
 
 	/**
-	 *
+	 * Map the elements in an iterable to `Ior` values, evaluate the values from
+	 * left to right, and ignore the right-hand values.
 	 */
 	export function forEach<T, A extends Semigroup<A>>(
 		elems: Iterable<T>,
@@ -618,7 +623,12 @@ export namespace Ior {
 	}
 
 	/**
+	 * Evaluate the `Ior` elements in an iterable from left to right and collect
+	 * the right-hand values into a `Builder`.
 	 *
+	 * @remarks
+	 *
+	 * If any `Ior` fails, the state of the provided `Builder` is undefined.
 	 */
 	export function collectInto<A extends Semigroup<A>, B, TFinish>(
 		iors: Iterable<Ior<A, B>>,
@@ -628,14 +638,16 @@ export namespace Ior {
 	}
 
 	/**
-	 * Turn an array or a tuple literal of `Ior` elements "inside out".
+	 * Evaluate the `Ior` elements in an array or a tuple literal from left to
+	 * right and collect the right-hand values in an equivalent structure.
 	 *
 	 * @remarks
 	 *
-	 * For example:
+	 * This function essentially turns an array or a tuple literal of `Ior`
+	 * elements "inside out". For example:
 	 *
-	 * -   `Ior<A, B>[]` becomes `Ior<A, B[]>`
-	 * -   `[Ior<A, B1>, Ior<A, B2>]` becomes `Ior<A, [B1, B2]>`
+	 * -   `Ior<E, T>[]` becomes `Ior<E, T[]>`
+	 * -   `[Ior<E, T1>, Ior<E, T2>]` becomes `Ior<E, [T1, T2]>`
 	 */
 	export function all<TIors extends readonly Ior<Semigroup<any>, any>[] | []>(
 		iors: TIors,
@@ -645,11 +657,13 @@ export namespace Ior {
 	>;
 
 	/**
-	 * Turn an iterable of `Ior` elements "inside out" using an array.
+	 * Evaluate the `Ior` elements in an iterable from left to right and collect
+	 * the right-hand values in an array.
 	 *
 	 * @remarks
 	 *
-	 * For example, `Iterable<Ior<A, B>>` becomes `Ior<A, B[]>`.
+	 * This function essentially turns an iterable of `Ior` elements "inside
+	 * out". For example, `Iterable<Ior<E, T>>` becomes `Ior<E, T[]>`.
 	 */
 	export function all<A extends Semigroup<A>, B>(
 		iors: Iterable<Ior<A, B>>,
@@ -662,18 +676,16 @@ export namespace Ior {
 	}
 
 	/**
-	 * Turn a string-keyed record or object literal of `Ior` elements "inside
-	 * out".
+	 * Evaluate the `Ior` elements in a string-keyed record or object literal
+	 * and collect the right-hand values in an equivalent structure.
 	 *
 	 * @remarks
 	 *
-	 * This function enumerates only the object's own enumerable, string-keyed
-	 * property key-value pairs.
+	 * This function essentially turns a string-keyed record or object literal
+	 * of `Ior` elements "inside out". For example:
 	 *
-	 * For example:
-	 *
-	 * -   `Record<string, Ior<A, B>>` becomes `Ior<A, Record<string, B>>`
-	 * -   `{ x: Ior<A, B1>, y: Ior<A, B2> }` becomes `Ior<A, { x: B1, y: B2 }>`
+	 * -   `Record<string, Ior<E, T>>` becomes `Ior<E, Record<string, T>>`
+	 * -   `{ x: Ior<E, T1>, y: Ior<E, T2> }` becomes `Ior<E, { x: T1, y: T2 }>`
 	 */
 	export function allProps<
 		TIors extends Record<string, Ior<Semigroup<any>, any>>,
@@ -710,15 +722,6 @@ export namespace Ior {
 	/**
 	 * Evaluate an `Ior.GoAsync` async generator to return a `Promise` that
 	 * resolves with an `Ior`.
-	 *
-	 * @remarks
-	 *
-	 * If any yielded `Ior` is a `Left`, combine the left-hand value with any
-	 * existing left-hand value and resolve with the result in a `Left`;
-	 * otherwise, when the generator returns, resolve with the result as a
-	 * right-hand value. Accumulate the left-hand values of yielded `Both`
-	 * variants using their behavior as a semigroup. If an error is thrown,
-	 * reject with the error.
 	 */
 	export async function goAsync<A extends Semigroup<A>, TReturn>(
 		gen: GoAsync<A, TReturn>,
@@ -759,7 +762,13 @@ export namespace Ior {
 	}
 
 	/**
+	 * Map the elements in an iterable to promise-like `Ior` values,
+	 * concurrently evaluate the values, and collect the right-hand values into
+	 * a `Builder`.
 	 *
+	 * @remarks
+	 *
+	 * If any `Ior` fails, the state of the provided `Builder` is undefined.
 	 */
 	export function traverseIntoPar<T, A extends Semigroup<A>, B, TFinish>(
 		elems: Iterable<T>,
@@ -809,7 +818,9 @@ export namespace Ior {
 	}
 
 	/**
-	 *
+	 * Map the elements in an iterable to promise-like `Ior` values,
+	 * concurrently evaluate the values, and collect the right-hand values in an
+	 * array.
 	 */
 	export function traversePar<T, A extends Semigroup<A>, B>(
 		elems: Iterable<T>,
@@ -824,7 +835,8 @@ export namespace Ior {
 	}
 
 	/**
-	 *
+	 * Map the elements in an iterable to promise-like `Ior` values,
+	 * concurrently evaluate the values, and ignore the right-hand values.
 	 */
 	export function forEachPar<T, A extends Semigroup<A>>(
 		elems: Iterable<T>,
@@ -834,7 +846,12 @@ export namespace Ior {
 	}
 
 	/**
+	 * Concurrently evaluate the promise-like `Ior` elements in an iterable
+	 * and collect the right-hand values into a `Builder`.
 	 *
+	 * @remarks
+	 *
+	 * If any `Ior` fails, the state of the provided `Builder` is undefined.
 	 */
 	export function collectIntoPar<A extends Semigroup<A>, B, TFinish>(
 		elems: Iterable<Ior<A, B> | PromiseLike<Ior<A, B>>>,
@@ -844,19 +861,18 @@ export namespace Ior {
 	}
 
 	/**
-	 * Concurrently turn an array or a tuple literal of promise-like `Ior`
-	 * elements "inside out".
+	 * Concurrently evaluate the promise-like `Ior` elements in an array or a
+	 * tuple literal and collect the right-hand values in an equivalent
+	 * structure.
 	 *
 	 * @remarks
 	 *
-	 * For example:
+	 * This function essentially turns an array or a tuple literal of
+	 * promise-like `Ior` elements "inside out". For example:
 	 *
-	 * -   `Promise<Ior<A, B>>[]` becomes `Promise<Ior<A, B[]>>`
-	 * -   `[Promise<Ior<A, B1>>, Promise<Ior<A, B2>>]` becomes `Promise<Ior<A,
-	 *     [B1, B2]>>`
-	 *
-	 * Left-hand values are combined in the order the promise-like elements
-	 * resolve.
+	 * -   `Promise<Ior<E, T>>[]` becomes `Promise<Ior<E, T[]>>`
+	 * -   `[Promise<Ior<E, T1>>, Promise<Ior<E, T2>>]` becomes `Promise<Ior<E,
+	 *     [T1, T2]>>`
 	 */
 	export function allPar<
 		TElems extends
@@ -875,16 +891,15 @@ export namespace Ior {
 	>;
 
 	/**
-	 * Concurrently turn an iterable of promise-like `Ior` elements "inside
-	 * out" using an array.
+	 * Concurrently evaluate the promise-like `Ior` elements in an iterable and
+	 * collect the right-hand values in an array.
 	 *
 	 * @remarks
 	 *
-	 * For example, `Iterable<Promise<Ior<A, B>>>` becomes `Promise<Ior<A,
-	 * B[]>>`.
-	 *
-	 * Left-hand values are combined in the order the promise-like elements
-	 * resolve.
+	 * This function essentially turns an iterable of promise-like `Ior`
+	 * elements "inside out". For example, `Iterable<Promise<Ior<E, T>>>`
+	 * becomes `Promise<Ior<E, T[]>>`.
+
 	 */
 	export function allPar<A extends Semigroup<A>, B>(
 		elems: Iterable<Ior<A, B> | PromiseLike<Ior<A, B>>>,
@@ -902,23 +917,19 @@ export namespace Ior {
 	}
 
 	/**
-	 * Concurrently turn a string-keyed record or object literal of promise-like
-	 * `Ior` elements "inside out".
+	 * Concurrently evaluate the promise-like `Ior` elements in a string-keyed
+	 * record or object literal and collect the right-hand values in an
+	 * equivalent structure.
 	 *
 	 * @remarks
 	 *
-	 * This function enumerates only the object's own enumerable, string-keyed
-	 * property key-value pairs.
+	 * This function essentially turns a string-keyed record or object literal
+	 * of promise-like `Ior` elements "inside out". For example:
 	 *
-	 * For example:
-	 *
-	 * -   `Record<string, Promise<Ior<A, B>>>` becomes `Promise<Ior<A,
-	 *     Record<string, B>>>`
-	 * -   `{ x: Promise<Ior<A, B1>>, y: Promise<Ior<A, B2>> }` becomes
-	 *     `Promise<Ior<A, { x: B1, y: B2 }>>`
-	 *
-	 * Left-hand values are combined in the order the promise-like elements
-	 * resolve.
+	 * -   `Record<string, Promise<Ior<E, T>>>` becomes `Promise<Ior<E,
+	 *     Record<string, T>>>`
+	 * -   `{ x: Promise<Ior<E, T1>>, y: Promise<Ior<E, T2>> }` becomes
+	 *     `Promise<Ior<E, { x: T1, y: T2 }>>`
 	 */
 	export function allPropsPar<
 		TElems extends Record<
@@ -952,8 +963,7 @@ export namespace Ior {
 	 *
 	 * @remarks
 	 *
-	 * The lifted function's arguments are evaluated concurrently. Left-hand
-	 * values are combined in the order the arguments resolve.
+	 * The lifted function's arguments are evaluated concurrently.
 	 */
 	export function liftPar<TArgs extends unknown[], T>(
 		f: (...args: TArgs) => T | PromiseLike<T>,
