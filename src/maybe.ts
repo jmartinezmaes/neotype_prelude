@@ -202,33 +202,52 @@
  *
  * ## Collecting into `Maybe`
  *
- * These functions turn a container of `Maybe` elements "inside out":
+ * These functions map the elements in an iterable to `Maybe` values, evaluate
+ * the values, and act on the present values:
  *
- * -   `all` turns an iterable or a tuple literal of `Maybe` elements inside
- *     out.
- * -   `allProps` turns a string-keyed record or object literal of `Maybe`
- *     elements inside out.
+ * -   `reduce` accumulates the present values.
+ * -   `traverseInto` collects the present values into a `Builder`.
+ * -   `traverse` collects the present values in an array.
+ * -   `forEach` ignores the present values.
  *
- * These functions concurrently turn a container of promise-like `Maybe`
- * elements "inside out":
+ * These functions evaluate the `Maybe` elements in a structure and collect the
+ * present values:
  *
- * -   `allAsync` turns an iterable or a tuple literal of promise-like `Maybe`
- *     elements inside out.
- * -   `allPropsAsync` turns a string-keyed record or object literal of
- *     promise-like `Maybe` elements inside out.
+ * -   `collectInto` traverses an iterable and collects the present values into
+ *     a `Builder`.
+ * -   `all` traverses an iterable and collects the present values in an array
+ *     or a tuple literal.
+ * -   `allProps` traverses a string-keyed record or object literal and collects
+ *     the present values in an equivalent structure.
  *
- * The `reduce` function reduces a finite iterable from left to right in the
- * context of `Maybe`.
+ * ### Collecting concurrently
+ *
+ * These functions map the elements in an iterable to promise-like `Maybe`
+ * values, concurrently evaluate the values, and act on the present values:
+ *
+ * -   `traverseIntoPar` collects the present values into a `Builder`.
+ * -   `traversePar` collects the present values in an array.
+ * -   `forEachPar` ignores the present values.
+ *
+ * These functions concurrently evaluate the promise-like `Maybe` elements in a
+ * structure and collect the present values:
+ *
+ * -   `collectIntoPar` traverses an iterable and collects the present values
+ *     into a `Builder`.
+ * -   `allPar` traverses an iterable and collects the present values in an
+ *     array or a tuple literal.
+ * -   `allPropsPar` traverses a string-keyed record or object literal and
+ *     collects the present values in an equivalent structure.
  *
  * ## Lifting functions into the context of `Maybe`
  *
  * These functions adapt a function to work with `Maybe` values:
  *
  * -   `lift` adapts a synchronous function to accept `Maybe` values as
- *     arguments and return an `Maybe`.
+ *     arguments and return a `Maybe`.
  * -   `liftAsync` adapts a synchronous or an asynchronous function to accept
  *     promise-like `Maybe` values as arguments and return a `Promise` that
- *     resolves with an `Maybe`.
+ *     resolves with a `Maybe`.
  *
  * @example Basic matching and unwrapping
  *
@@ -414,11 +433,6 @@ export namespace Maybe {
 	/**
 	 * Consruct a `Maybe` from a value that is potentially `null` or
 	 * `undefined`.
-	 *
-	 * @remarks
-	 *
-	 * If the value is `null` or `undefined`, return `Nothing`; otherwise,
-	 * return the value in a `Just`.
 	 */
 	export function fromNullish<T>(val: T | null | undefined): Maybe<T> {
 		return val === null || val === undefined ? nothing : just(val);
@@ -427,11 +441,6 @@ export namespace Maybe {
 	/**
 	 * Adapt a function that may return `null` or `undefined` into a function
 	 * that returns a `Maybe`.
-	 *
-	 * @remarks
-	 *
-	 * If the function returns `null` or `undefined`, return `Nothing`;
-	 * otherwise, return the result in a `Just`.
 	 */
 	export function wrapFn<TArgs extends unknown[], T>(
 		f: (...args: TArgs) => T | null | undefined,
@@ -441,11 +450,6 @@ export namespace Maybe {
 
 	/**
 	 * Adapt a predicate into a function that returns a `Maybe`.
-	 *
-	 * @remarks
-	 *
-	 * If the predicate returns `true`, return the argument in a `Just`;
-	 * otherwise, return `Nothing`.
 	 */
 	export function wrapPred<T, T1 extends T>(
 		f: (val: T) => val is T1,
@@ -459,11 +463,6 @@ export namespace Maybe {
 
 	/**
 	 * Evaluate a `Maybe.Go` generator to return a `Maybe.`
-	 *
-	 * @remarks
-	 *
-	 * If any yielded `Maybe` is absent, return `Nothing`; otherwise, when the
-	 * generator returns, return the the result in a `Just`.
 	 */
 	export function go<TReturn>(gen: Go<TReturn>): Maybe<TReturn> {
 		let nxt = gen.next();
@@ -481,7 +480,8 @@ export namespace Maybe {
 	}
 
 	/**
-	 * Reduce a finite iterable from left to right in the context of `Maybe`.
+	 * Accumulate the elements in an iterable using a reducer function that
+	 * returns a `Maybe`.
 	 */
 	export function reduce<T, TAcc>(
 		elems: Iterable<T>,
@@ -500,7 +500,13 @@ export namespace Maybe {
 	}
 
 	/**
+	 * Map the elements in an iterable to `Maybe` values, evaluate the values
+	 * from left to right, and collect the present values into a `Builder`.
 	 *
+	 * @remarks
+	 *
+	 * If any `Maybe` is absent, the state of the provided `Builder` is
+	 * undefined.
 	 */
 	export function traverseInto<T, T1, TFinish>(
 		elems: Iterable<T>,
@@ -520,7 +526,8 @@ export namespace Maybe {
 	}
 
 	/**
-	 *
+	 * Map the elements in an iterable to `Maybe` values, evaluate the values
+	 * from left to right, and collect the present values in an array.
 	 */
 	export function traverse<T, T1>(
 		elems: Iterable<T>,
@@ -530,7 +537,8 @@ export namespace Maybe {
 	}
 
 	/**
-	 *
+	 * Map the elements in an iterable to `Maybe` values, evaluate the values
+	 * from left to right, and ignore the present values.
 	 */
 	export function forEach<T>(
 		elems: Iterable<T>,
@@ -540,7 +548,13 @@ export namespace Maybe {
 	}
 
 	/**
+	 * Evaluate the `Maybe` elements in an iterable from left to right and
+	 * collect the present values into a `Builder`.
 	 *
+	 * @remarks
+	 *
+	 * If any `Maybe` is absent, the state of the provided `Builder` is
+	 * undefined.
 	 */
 	export function collectInto<T, TFinish>(
 		maybes: Iterable<Maybe<T>>,
@@ -550,11 +564,13 @@ export namespace Maybe {
 	}
 
 	/**
-	 * Turn an array or a tuple literal of `Maybe` elements "inside out".
+	 * Evaluate the `Maybe` elements in an array or a tuple literal from left
+	 * to right and collect the present values in an equivalent structure.
 	 *
 	 * @remarks
 	 *
-	 * For example:
+	 * This function essentially turns an array or a tuple literal of `Maybe`
+	 * elements "inside out". For example:
 	 *
 	 * -   `Maybe<T>[]` becomes `Maybe<T[]>`
 	 * -   `[Maybe<T1>, Maybe<T2>]` becomes `Maybe<[T1, T2]>`
@@ -564,11 +580,13 @@ export namespace Maybe {
 	): Maybe<{ -readonly [K in keyof TMaybes]: JustT<TMaybes[K]> }>;
 
 	/**
-	 * Turn an iterable of `Maybe` elements "inside out" using an array.
+	 * Evaluate the `Maybe` elements in an iterable from left to right and
+	 * collect the present values in an array.
 	 *
 	 * @remarks
 	 *
-	 * For example, `Iterable<Maybe<T>>` becomes `Maybe<T[]>`.
+	 * This function essentially turns an iterable of `Maybe` elements "inside
+	 * out". For example, `Iterable<Maybe<T>>` becomes `Maybe<T[]>`.
 	 */
 	export function all<T>(maybes: Iterable<Maybe<T>>): Maybe<T[]>;
 
@@ -577,15 +595,13 @@ export namespace Maybe {
 	}
 
 	/**
-	 * Turn a string-keyed record or object literal of `Maybe` elements "inside
-	 * out".
+	 * Evaluate the `Maybe` elements in a string-keyed record or object literal
+	 * and collect the present values in an equivalent structure.
 	 *
 	 * @remarks
 	 *
-	 * This function enumerates only the object's own enumerable, string-keyed
-	 * property key-value pairs.
-	 *
-	 * For example:
+	 * This function essentially turns a string-keyed record or object literal
+	 * of `Maybe` elements "inside out". For example:
 	 *
 	 * -   `Record<string, Maybe<T>>` becomes `Maybe<Record<string, T>>`
 	 * -   `{ x: Maybe<T1>, y: Maybe<T2> }` becomes `Maybe<{ x: T1, y: T2 }>`
@@ -617,12 +633,6 @@ export namespace Maybe {
 	/**
 	 * Evaluate a `Maybe.GoAsync` async generator to return a `Promise` that
 	 * resolves with a `Maybe`.
-	 *
-	 * @remarks
-	 *
-	 * If any yielded `Maybe` is absent, resolve with `Nothing`; otherwise, when
-	 * the generator returns, resolve with the the result in a `Just`. If an
-	 * error is thrown, reject with the error.
 	 */
 	export async function goAsync<TReturn>(
 		gen: GoAsync<TReturn>,
@@ -642,7 +652,14 @@ export namespace Maybe {
 	}
 
 	/**
+	 * Map the elements in an iterable to promise-like `Maybe` values,
+	 * concurrently evaluate the values, and collect the present values into a
+	 * `Builder`.
 	 *
+	 * @remarks
+	 *
+	 * If any `Maybe` is absent, the state of the provided `Builder` is
+	 * undefined.
 	 */
 	export function traverseIntoPar<T, T1, TFinish>(
 		elems: Iterable<T>,
@@ -671,7 +688,9 @@ export namespace Maybe {
 	}
 
 	/**
-	 *
+	 * Map the elements in an iterable to promise-like `Maybe` values,
+	 * concurrently evaluate the values, and collect the present values in an
+	 * array.
 	 */
 	export function traversePar<T, T1>(
 		elems: Iterable<T>,
@@ -686,7 +705,8 @@ export namespace Maybe {
 	}
 
 	/**
-	 *
+	 * Map the elements in an iterable to promise-like `Maybe` values,
+	 * concurrently evaluate the values, and ignore the present values.
 	 */
 	export function forEachPar<T>(
 		elems: Iterable<T>,
@@ -696,7 +716,13 @@ export namespace Maybe {
 	}
 
 	/**
+	 * Concurrently evaluate the promise-like `Maybe` elements in an iterable
+	 * and collect the present values into a `Builder`.
 	 *
+	 * @remarks
+	 *
+	 * If any `Maybe` is absent, the state of the provided `Builder` is
+	 * undefined.
 	 */
 	export function collectIntoPar<T, TFinish>(
 		maybes: Iterable<Maybe<T> | PromiseLike<Maybe<T>>>,
@@ -706,15 +732,16 @@ export namespace Maybe {
 	}
 
 	/**
-	 * Concurrently turn an array or a tuple literal of promise-like `Maybe`
-	 * elements "inside out".
+	 * Concurrently evaluate the promise-like `Maybe` elements in an array or a
+	 * tuple literal and collect the present values in an equivalent structure.
 	 *
 	 * @remarks
 	 *
-	 * For example:
+	 * This function essentially turns an array or a tuple literal of
+	 * promise-like `Maybe` elements "inside out". For example:
 	 *
 	 * -   `Promise<Maybe<T>>[]` becomes `Promise<Maybe<T[]>>`
-	 * -   `[Promise<Maybe<T1>>, Promise<Maybe<T2>>]` becomes
+	 * -   `[Promise<Maybe<T1>>, Promise<Maybe<T2>>]`
 	 *     `Promise<Maybe<[T1, T2]>>`
 	 */
 	export function allPar<
@@ -724,12 +751,14 @@ export namespace Maybe {
 	): Promise<Maybe<{ [K in keyof TElems]: JustT<Awaited<TElems[K]>> }>>;
 
 	/**
-	 * Concurrently turn an iterable of promise-like `Maybe` elements "inside
-	 * out" using an array.
+	 * Concurrently evaluate the promise-like `Maybe` elements in an iterable
+	 * and collect the present values in an array.
 	 *
 	 * @remarks
 	 *
-	 * For example, `Iterable<Promise<Maybe<T>>>` becomes `Promise<Maybe<T[]>>`.
+	 * This function essentially turns an iterable of promise-like `Maybe`
+	 * elements "inside out". For example, `Iterable<Promise<Maybe<T>>>` becomes
+	 * `Promise<Maybe<T[]>>`.
 	 */
 	export function allPar<T>(
 		elems: Iterable<Maybe<T> | PromiseLike<Maybe<T>>>,
@@ -747,15 +776,14 @@ export namespace Maybe {
 	}
 
 	/**
-	 * Concurrently turn a string-keyed record or object literal of promise-like
-	 * `Maybe` elements "inside out".
+	 * Concurrently evaluate the promise-like `Maybe` elements in a string-keyed
+	 * record or object literal and collect the present values in an equivalent
+	 * structure.
 	 *
 	 * @remarks
 	 *
-	 * This function enumerates only the object's own enumerable, string-keyed
-	 * property key-value pairs.
-	 *
-	 * For example:
+	 * This function essentially turns a string-keyed record or object literal
+	 * of promise-like `Maybe` elements "inside out". For example:
 	 *
 	 * -   `Record<string, Promise<Maybe<T>>>` becomes
 	 *     `Promise<Maybe<Record<string, T>>>`
