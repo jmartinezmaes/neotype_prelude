@@ -229,10 +229,6 @@ describe("Ior", () => {
 					[1, "b"],
 				]),
 			);
-			expect(builder.elems).to.deep.equal([
-				[0, "a"],
-				[1, "b"],
-			]);
 		});
 	});
 
@@ -273,7 +269,6 @@ describe("Ior", () => {
 				builder,
 			);
 			expect(ior).to.deep.equal(Ior.both(new Str("ab"), [2, 4]));
-			expect(builder.elems).to.deep.equal([2, 4]);
 		});
 	});
 
@@ -479,10 +474,6 @@ describe("Ior", () => {
 					[0, "a"],
 				]),
 			);
-			expect(builder.elems).to.deep.equal([
-				[1, "b"],
-				[0, "a"],
-			]);
 		});
 
 		it("retains the left-hand value if a Both resolves after a Right", async () => {
@@ -537,10 +528,6 @@ describe("Ior", () => {
 					[0, "a"],
 				]),
 			);
-			expect(builder.elems).to.deep.equal([
-				[1, "b"],
-				[0, "a"],
-			]);
 		});
 
 		it("combines the left-hand values if a Both resolves after a Both ", async () => {
@@ -559,10 +546,6 @@ describe("Ior", () => {
 					[0, "a"],
 				]),
 			);
-			expect(builder.elems).to.deep.equal([
-				[1, "b"],
-				[0, "a"],
-			]);
 		});
 	});
 
@@ -610,7 +593,6 @@ describe("Ior", () => {
 				builder,
 			);
 			expect(ior).to.deep.equal(Ior.both(new Str("ba"), [4, 2]));
-			expect(builder.elems).to.deep.equal([4, 2]);
 		});
 	});
 

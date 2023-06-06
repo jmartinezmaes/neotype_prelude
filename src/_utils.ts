@@ -17,42 +17,42 @@
 import type { Builder } from "./builder.js";
 
 export class ArrayPushBuilder<in out T> implements Builder<T, T[]> {
-	elems: T[] = [];
+	readonly #elems: T[] = [];
 
 	add(elem: T): void {
-		this.elems.push(elem);
+		this.#elems.push(elem);
 	}
 
 	finish(): T[] {
-		return this.elems;
+		return this.#elems;
 	}
 }
 
 export class ArrayIdxBuilder<in out T>
 	implements Builder<readonly [number, T], T[]>
 {
-	elems: T[] = [];
+	readonly #elems: T[] = [];
 
 	add([idx, elem]: readonly [number, T]): void {
-		this.elems[idx] = elem;
+		this.#elems[idx] = elem;
 	}
 
 	finish(): T[] {
-		return this.elems;
+		return this.#elems;
 	}
 }
 
 export class RecordBuilder<in out T>
 	implements Builder<readonly [string, T], Record<string, T>>
 {
-	elems: Record<string, T> = {};
+	readonly #elems: Record<string, T> = {};
 
 	add([key, elem]: readonly [string, T]): void {
-		this.elems[key] = elem;
+		this.#elems[key] = elem;
 	}
 
 	finish(): Record<string, T> {
-		return this.elems;
+		return this.#elems;
 	}
 }
 

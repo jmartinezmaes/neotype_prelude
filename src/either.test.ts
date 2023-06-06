@@ -141,10 +141,6 @@ describe("Either", () => {
 					[1, "b"],
 				]),
 			);
-			expect(builder.elems).to.deep.equal([
-				[0, "a"],
-				[1, "b"],
-			]);
 		});
 	});
 
@@ -185,7 +181,6 @@ describe("Either", () => {
 				builder,
 			);
 			expect(either).to.deep.equal(Either.right([2, 4]));
-			expect(builder.elems).to.deep.equal([2, 4]);
 		});
 	});
 
@@ -317,10 +312,6 @@ describe("Either", () => {
 					[0, "a"],
 				]),
 			);
-			expect(builder.elems).to.deep.equal([
-				[1, "b"],
-				[0, "a"],
-			]);
 		});
 	});
 
@@ -368,7 +359,6 @@ describe("Either", () => {
 				builder,
 			);
 			expect(either).to.deep.equal(Either.right([4, 2]));
-			expect(builder.elems).to.deep.equal([4, 2]);
 		});
 	});
 

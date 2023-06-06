@@ -174,10 +174,6 @@ describe("Maybe", () => {
 					[1, "b"],
 				]),
 			);
-			expect(builder.elems).to.deep.equal([
-				[0, "a"],
-				[1, "b"],
-			]);
 		});
 	});
 
@@ -218,7 +214,6 @@ describe("Maybe", () => {
 				builder,
 			);
 			expect(maybe).to.deep.equal(Maybe.just([1, 2]));
-			expect(builder.elems).to.deep.equal([1, 2]);
 		});
 	});
 
@@ -340,10 +335,6 @@ describe("Maybe", () => {
 					[0, "a"],
 				]),
 			);
-			expect(builder.elems).to.deep.equal([
-				[1, "b"],
-				[0, "a"],
-			]);
 		});
 	});
 
@@ -391,7 +382,6 @@ describe("Maybe", () => {
 				builder,
 			);
 			expect(maybe).to.deep.equal(Maybe.just([2, 1]));
-			expect(builder.elems).to.deep.equal([2, 1]);
 		});
 	});
 

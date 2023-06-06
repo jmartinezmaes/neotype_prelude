@@ -86,10 +86,6 @@ describe("Validation", () => {
 					[1, "b"],
 				]),
 			);
-			expect(builder.elems).to.deep.equal([
-				[0, "a"],
-				[1, "b"],
-			]);
 		});
 	});
 
@@ -130,7 +126,6 @@ describe("Validation", () => {
 				builder,
 			);
 			expect(vdn).to.deep.equal(Validation.ok([2, 4]));
-			expect(builder.elems).to.deep.equal([2, 4]);
 		});
 	});
 
@@ -196,10 +191,6 @@ describe("Validation", () => {
 					[0, "a"],
 				]),
 			);
-			expect(builder.elems).to.deep.equal([
-				[1, "b"],
-				[0, "a"],
-			]);
 		});
 	});
 
@@ -247,7 +238,6 @@ describe("Validation", () => {
 				builder,
 			);
 			expect(vdn).to.deep.equal(Validation.ok([4, 2]));
-			expect(builder.elems).to.deep.equal([4, 2]);
 		});
 	});
 
