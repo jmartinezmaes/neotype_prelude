@@ -562,7 +562,7 @@ export namespace Either {
 	export function all<E, T>(eithers: Iterable<Either<E, T>>): Either<E, T[]>;
 
 	export function all<E, T>(eithers: Iterable<Either<E, T>>): Either<E, T[]> {
-		return collectInto(eithers, new ArrayPushBuilder());
+		return traverse(eithers, id);
 	}
 
 	/**
@@ -754,12 +754,7 @@ export namespace Either {
 	export function allPar<E, T>(
 		elems: Iterable<Either<E, T> | PromiseLike<Either<E, T>>>,
 	): Promise<Either<E, T[]>> {
-		return traverseIntoPar(
-			elems,
-			async (elem, idx) =>
-				(await elem).map((val): [number, T] => [idx, val]),
-			new ArrayEntryBuilder(),
-		);
+		return traversePar(elems, id);
 	}
 
 	/**

@@ -589,7 +589,7 @@ export namespace Maybe {
 	export function all<T>(maybes: Iterable<Maybe<T>>): Maybe<T[]>;
 
 	export function all<T>(maybes: Iterable<Maybe<T>>): Maybe<T[]> {
-		return collectInto(maybes, new ArrayPushBuilder());
+		return traverse(maybes, id);
 	}
 
 	/**
@@ -765,12 +765,7 @@ export namespace Maybe {
 	export function allPar<T>(
 		elems: Iterable<Maybe<T> | PromiseLike<Maybe<T>>>,
 	): Promise<Maybe<T[]>> {
-		return traverseIntoPar(
-			elems,
-			async (elem, idx) =>
-				(await elem).map((val): [number, T] => [idx, val]),
-			new ArrayEntryBuilder(),
-		);
+		return traversePar(elems, id);
 	}
 
 	/**

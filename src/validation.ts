@@ -542,7 +542,7 @@ export namespace Validation {
 	export function all<E extends Semigroup<E>, T>(
 		vdns: Iterable<Validation<E, T>>,
 	): Validation<E, T[]> {
-		return collectInto(vdns, new ArrayPushBuilder());
+		return traverse(vdns, id);
 	}
 
 	/**
@@ -739,12 +739,7 @@ export namespace Validation {
 	export function allPar<E extends Semigroup<E>, T>(
 		elems: Iterable<Validation<E, T> | PromiseLike<Validation<E, T>>>,
 	): Promise<Validation<E, T[]>> {
-		return traverseIntoPar(
-			elems,
-			async (elem, idx) =>
-				(await elem).map((val): [number, T] => [idx, val]),
-			new ArrayEntryBuilder(),
-		);
+		return traversePar(elems, id);
 	}
 
 	/**

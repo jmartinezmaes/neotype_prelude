@@ -672,7 +672,7 @@ export namespace Ior {
 	export function all<A extends Semigroup<A>, B>(
 		iors: Iterable<Ior<A, B>>,
 	): Ior<A, B[]> {
-		return collectInto(iors, new ArrayPushBuilder());
+		return traverse(iors, id);
 	}
 
 	/**
@@ -908,12 +908,7 @@ export namespace Ior {
 	export function allPar<A extends Semigroup<A>, B>(
 		elems: Iterable<Ior<A, B> | PromiseLike<Ior<A, B>>>,
 	): Promise<Ior<A, B[]>> {
-		return traverseIntoPar(
-			elems,
-			async (elem, idx) =>
-				(await elem).map((val): [number, B] => [idx, val]),
-			new ArrayEntryBuilder(),
-		);
+		return traversePar(elems, id);
 	}
 
 	/**
