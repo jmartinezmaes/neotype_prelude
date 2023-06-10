@@ -397,12 +397,12 @@
  */
 
 import {
-	ArrayIdxBuilder,
+	ArrayEntryBuilder,
 	ArrayPushBuilder,
 	NoOpBuilder,
-	RecordBuilder,
-} from "./_utils.js";
-import type { Builder } from "./builder.js";
+	RecordEntryBuilder,
+	type Builder,
+} from "./builder.js";
 import { Semigroup, cmb } from "./cmb.js";
 import { Eq, Ord, Ordering, cmp, eq } from "./cmp.js";
 import type { Either } from "./either.js";
@@ -574,7 +574,7 @@ export namespace Validation {
 		return traverseInto(
 			Object.entries(vdns),
 			([key, vdn]) => vdn.map((val): [string, T] => [key, val]),
-			new RecordBuilder(),
+			new RecordEntryBuilder(),
 		);
 	}
 
@@ -659,7 +659,7 @@ export namespace Validation {
 			elems,
 			async (elem, idx) =>
 				(await f(elem, idx)).map((val): [number, T1] => [idx, val]),
-			new ArrayIdxBuilder(),
+			new ArrayEntryBuilder(),
 		);
 	}
 
@@ -743,7 +743,7 @@ export namespace Validation {
 			elems,
 			async (elem, idx) =>
 				(await elem).map((val): [number, T] => [idx, val]),
-			new ArrayIdxBuilder(),
+			new ArrayEntryBuilder(),
 		);
 	}
 
@@ -784,7 +784,7 @@ export namespace Validation {
 			Object.entries(elems),
 			async ([key, elem]) =>
 				(await elem).map((val): [string, T] => [key, val]),
-			new RecordBuilder(),
+			new RecordEntryBuilder(),
 		);
 	}
 

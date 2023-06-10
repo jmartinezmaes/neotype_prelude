@@ -450,12 +450,12 @@
  */
 
 import {
-	ArrayIdxBuilder,
+	ArrayEntryBuilder,
 	ArrayPushBuilder,
 	NoOpBuilder,
-	RecordBuilder,
-} from "./_utils.js";
-import type { Builder } from "./builder.js";
+	RecordEntryBuilder,
+	type Builder,
+} from "./builder.js";
 import { Semigroup, cmb } from "./cmb.js";
 import { Eq, Ord, Ordering, cmp, eq } from "./cmp.js";
 import type { Either } from "./either.js";
@@ -702,7 +702,7 @@ export namespace Ior {
 		return traverseInto(
 			Object.entries(iors),
 			([key, ior]) => ior.map((val): [string, B] => [key, val]),
-			new RecordBuilder(),
+			new RecordEntryBuilder(),
 		);
 	}
 
@@ -830,7 +830,7 @@ export namespace Ior {
 			elems,
 			async (elem, idx) =>
 				(await f(elem, idx)).map((val): [number, B] => [idx, val]),
-			new ArrayIdxBuilder(),
+			new ArrayEntryBuilder(),
 		);
 	}
 
@@ -912,7 +912,7 @@ export namespace Ior {
 			elems,
 			async (elem, idx) =>
 				(await elem).map((val): [number, B] => [idx, val]),
-			new ArrayIdxBuilder(),
+			new ArrayEntryBuilder(),
 		);
 	}
 
@@ -952,7 +952,7 @@ export namespace Ior {
 			Object.entries(elems),
 			async ([key, elem]) =>
 				(await elem).map((val): [string, B] => [key, val]),
-			new RecordBuilder(),
+			new RecordEntryBuilder(),
 		);
 	}
 

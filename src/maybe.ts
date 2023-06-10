@@ -401,12 +401,12 @@
  */
 
 import {
-	ArrayIdxBuilder,
+	ArrayEntryBuilder,
 	ArrayPushBuilder,
 	NoOpBuilder,
-	RecordBuilder,
-} from "./_utils.js";
-import type { Builder } from "./builder.js";
+	RecordEntryBuilder,
+	type Builder,
+} from "./builder.js";
 import { Semigroup, cmb } from "./cmb.js";
 import { Eq, Ord, Ordering, cmp, eq } from "./cmp.js";
 import { id } from "./fn.js";
@@ -614,7 +614,7 @@ export namespace Maybe {
 		return traverseInto(
 			Object.entries(maybes),
 			([key, maybe]) => maybe.map((val): [string, T] => [key, val]),
-			new RecordBuilder(),
+			new RecordEntryBuilder(),
 		);
 	}
 
@@ -698,7 +698,7 @@ export namespace Maybe {
 			elems,
 			async (elem, idx) =>
 				(await f(elem, idx)).map((val): [number, T1] => [idx, val]),
-			new ArrayIdxBuilder(),
+			new ArrayEntryBuilder(),
 		);
 	}
 
@@ -769,7 +769,7 @@ export namespace Maybe {
 			elems,
 			async (elem, idx) =>
 				(await elem).map((val): [number, T] => [idx, val]),
-			new ArrayIdxBuilder(),
+			new ArrayEntryBuilder(),
 		);
 	}
 
@@ -801,7 +801,7 @@ export namespace Maybe {
 			Object.entries(elems),
 			async ([key, elem]) =>
 				(await elem).map((val): [string, T] => [key, val]),
-			new RecordBuilder(),
+			new RecordEntryBuilder(),
 		);
 	}
 
