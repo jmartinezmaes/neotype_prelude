@@ -186,18 +186,21 @@ export class ArrayConcatBuilder<in out T> extends ArrayBuilder<T[], T> {
 /**
  *
  */
-export abstract class RecordBuilder<in T, out TFinish>
-	implements Builder<T, Record<string, TFinish>>
+export abstract class RecordBuilder<
+	in T,
+	in out K extends number | string | symbol,
+	out V,
+> implements Builder<T, Record<K, V>>
 {
-	protected elems: Record<string, TFinish>;
+	protected elems: Record<K, V>;
 
-	constructor(initial: Record<string, TFinish> = {}) {
+	constructor(initial: Record<K, V> = {} as Record<K, V>) {
 		this.elems = initial;
 	}
 
 	abstract add(elem: T): void;
 
-	finish(): Record<string, TFinish> {
+	finish(): Record<K, V> {
 		return this.elems;
 	}
 }
@@ -205,11 +208,11 @@ export abstract class RecordBuilder<in T, out TFinish>
 /**
  *
  */
-export class RecordEntryBuilder<in out T> extends RecordBuilder<
-	readonly [string, T],
-	T
-> {
-	add([key, val]: readonly [string, T]): void {
+export class RecordEntryBuilder<
+	in out K extends number | string | symbol,
+	in out V,
+> extends RecordBuilder<readonly [K, V], K, V> {
+	add([key, val]: readonly [K, V]): void {
 		this.elems[key] = val;
 	}
 }
@@ -217,11 +220,11 @@ export class RecordEntryBuilder<in out T> extends RecordBuilder<
 /**
  *
  */
-export class RecordSpreadBuilder<in out T> extends RecordBuilder<
-	Record<string, T>,
-	T
-> {
-	add(elem: Record<string, T>): void {
+export class RecordSpreadBuilder<
+	in out K extends number | string | symbol,
+	in out V,
+> extends RecordBuilder<Record<K, V>, K, V> {
+	add(elem: Record<K, V>): void {
 		this.elems = { ...this.elems, ...elem };
 	}
 }
