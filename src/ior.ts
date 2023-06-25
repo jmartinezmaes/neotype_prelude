@@ -601,6 +601,28 @@ export namespace Ior {
 	}
 
 	/**
+	 *
+	 */
+	export function traverseEntriesInto<
+		K,
+		V,
+		A extends Semigroup<A>,
+		B,
+		TFinish,
+	>(
+		entries: Iterable<readonly [K, V]>,
+		f: (elem: V, key: K, idx: number) => Ior<A, B>,
+		builder: Builder<readonly [K, B], TFinish>,
+	): Ior<A, TFinish> {
+		return traverseInto(
+			entries,
+			([key, elem], idx) =>
+				f(elem, key, idx).map((val): [K, B] => [key, val]),
+			builder,
+		);
+	}
+
+	/**
 	 * Map the elements in an iterable to `Ior` values, evaluate the values from
 	 * left to right, and collect the right-hand values in an array.
 	 */
@@ -612,14 +634,18 @@ export namespace Ior {
 	}
 
 	/**
-	 * Map the elements in an iterable to `Ior` values, evaluate the values from
-	 * left to right, and ignore the right-hand values.
+	 *
 	 */
-	export function forEach<T, A extends Semigroup<A>>(
-		elems: Iterable<T>,
-		f: (elem: T, idx: number) => Ior<A, any>,
-	): Ior<A, void> {
-		return traverseInto(elems, f, new NoOpBuilder());
+	export function traverseEntries<
+		K extends number | string | symbol,
+		V,
+		A extends Semigroup<A>,
+		B,
+	>(
+		entries: Iterable<readonly [K, V]>,
+		f: (elem: V, key: K, idx: number) => Ior<A, B>,
+	): Ior<A, Record<K, B>> {
+		return traverseEntriesInto(entries, f, new RecordEntryBuilder());
 	}
 
 	/**
@@ -635,6 +661,21 @@ export namespace Ior {
 		builder: Builder<B, TFinish>,
 	): Ior<A, TFinish> {
 		return traverseInto(iors, id, builder);
+	}
+
+	/**
+	 *
+	 */
+	export function collectEntriesInto<
+		K extends number | string | symbol,
+		A extends Semigroup<A>,
+		B,
+		TFinish,
+	>(
+		entries: Iterable<readonly [K, Ior<A, B>]>,
+		builder: Builder<readonly [K, B], TFinish>,
+	): Ior<A, TFinish> {
+		return traverseEntriesInto(entries, id, builder);
 	}
 
 	/**
@@ -676,6 +717,17 @@ export namespace Ior {
 	}
 
 	/**
+	 *
+	 */
+	export function allEntries<
+		K extends number | string | symbol,
+		A extends Semigroup<A>,
+		B,
+	>(entries: Iterable<readonly [K, Ior<A, B>]>): Ior<A, Record<K, B>> {
+		return traverseEntries(entries, id);
+	}
+
+	/**
 	 * Evaluate the `Ior` elements in a string-keyed record or object literal
 	 * and collect the right-hand values in an equivalent structure.
 	 *
@@ -688,22 +740,29 @@ export namespace Ior {
 	 * -   `{ x: Ior<E, T1>, y: Ior<E, T2> }` becomes `Ior<E, { x: T1, y: T2 }>`
 	 */
 	export function allProps<
-		TIors extends Record<string, Ior<Semigroup<any>, any>>,
+		TProps extends Record<string, Ior<Semigroup<any>, any>>,
 	>(
-		iors: TIors,
+		props: TProps,
 	): Ior<
-		LeftT<TIors[keyof TIors]>,
-		{ -readonly [K in keyof TIors]: RightT<TIors[K]> }
+		LeftT<TProps[keyof TProps]>,
+		{ -readonly [K in keyof TProps]: RightT<TProps[K]> }
 	>;
 
 	export function allProps<A extends Semigroup<A>, B>(
-		iors: Record<string, Ior<A, B>>,
+		props: Record<string, Ior<A, B>>,
 	): Ior<A, Record<string, B>> {
-		return traverseInto(
-			Object.entries(iors),
-			([key, ior]) => ior.map((val): [string, B] => [key, val]),
-			new RecordEntryBuilder(),
-		);
+		return traverseEntries(Object.entries(props), id);
+	}
+
+	/**
+	 * Map the elements in an iterable to `Ior` values, evaluate the values from
+	 * left to right, and ignore the right-hand values.
+	 */
+	export function forEach<T, A extends Semigroup<A>>(
+		elems: Iterable<T>,
+		f: (elem: T, idx: number) => Ior<A, any>,
+	): Ior<A, void> {
+		return traverseInto(elems, f, new NoOpBuilder());
 	}
 
 	/**
@@ -818,6 +877,28 @@ export namespace Ior {
 	}
 
 	/**
+	 *
+	 */
+	export function traverseEntriesIntoPar<
+		K,
+		V,
+		A extends Semigroup<A>,
+		B,
+		TFinish,
+	>(
+		entries: Iterable<readonly [K, V]>,
+		f: (elem: V, key: K, idx: number) => Ior<A, B> | PromiseLike<Ior<A, B>>,
+		builder: Builder<readonly [K, B], TFinish>,
+	): Promise<Ior<A, TFinish>> {
+		return traverseIntoPar(
+			entries,
+			async ([key, elem], idx) =>
+				(await f(elem, key, idx)).map((val): [K, B] => [key, val]),
+			builder,
+		);
+	}
+
+	/**
 	 * Map the elements in an iterable to promise-like `Ior` values,
 	 * concurrently evaluate the values, and collect the right-hand values in an
 	 * array.
@@ -835,14 +916,18 @@ export namespace Ior {
 	}
 
 	/**
-	 * Map the elements in an iterable to promise-like `Ior` values,
-	 * concurrently evaluate the values, and ignore the right-hand values.
+	 *
 	 */
-	export function forEachPar<T, A extends Semigroup<A>>(
-		elems: Iterable<T>,
-		f: (elem: T, idx: number) => Ior<A, any> | PromiseLike<Ior<A, any>>,
-	): Promise<Ior<A, void>> {
-		return traverseIntoPar(elems, f, new NoOpBuilder());
+	export function traverseEntriesPar<
+		K extends number | string | symbol,
+		V,
+		A extends Semigroup<A>,
+		B,
+	>(
+		entries: Iterable<readonly [K, V]>,
+		f: (elem: V, key: K, idx: number) => Ior<A, B> | PromiseLike<Ior<A, B>>,
+	): Promise<Ior<A, Record<K, B>>> {
+		return traverseEntriesIntoPar(entries, f, new RecordEntryBuilder());
 	}
 
 	/**
@@ -858,6 +943,21 @@ export namespace Ior {
 		builder: Builder<B, TFinish>,
 	): Promise<Ior<A, TFinish>> {
 		return traverseIntoPar(elems, id, builder);
+	}
+
+	/**
+	 *
+	 */
+	export function collectEntriesIntoPar<
+		K,
+		A extends Semigroup<A>,
+		B,
+		TFinish,
+	>(
+		entries: Iterable<readonly [K, Ior<A, B> | PromiseLike<Ior<A, B>>]>,
+		builder: Builder<readonly [K, B], TFinish>,
+	): Promise<Ior<A, TFinish>> {
+		return traverseEntriesIntoPar(entries, id, builder);
 	}
 
 	/**
@@ -912,6 +1012,19 @@ export namespace Ior {
 	}
 
 	/**
+	 *
+	 */
+	export function allEntriesPar<
+		K extends number | string | symbol,
+		A extends Semigroup<A>,
+		B,
+	>(
+		entries: Iterable<readonly [K, Ior<A, B> | PromiseLike<Ior<A, B>>]>,
+	): Promise<Ior<A, Record<K, B>>> {
+		return traverseEntriesPar(entries, id);
+	}
+
+	/**
 	 * Concurrently evaluate the promise-like `Ior` elements in a string-keyed
 	 * record or object literal and collect the right-hand values in an
 	 * equivalent structure.
@@ -927,28 +1040,34 @@ export namespace Ior {
 	 *     `Promise<Ior<E, { x: T1, y: T2 }>>`
 	 */
 	export function allPropsPar<
-		TElems extends Record<
+		TProps extends Record<
 			string,
 			Ior<Semigroup<any>, any> | PromiseLike<Ior<Semigroup<any>, any>>
 		>,
 	>(
-		elems: TElems,
+		props: TProps,
 	): Promise<
 		Ior<
-			LeftT<{ [K in keyof TElems]: Awaited<TElems[K]> }[keyof TElems]>,
-			{ [K in keyof TElems]: RightT<Awaited<TElems[K]>> }
+			LeftT<{ [K in keyof TProps]: Awaited<TProps[K]> }[keyof TProps]>,
+			{ [K in keyof TProps]: RightT<Awaited<TProps[K]>> }
 		>
 	>;
 
 	export function allPropsPar<A extends Semigroup<A>, B>(
-		elems: Record<string, Ior<A, B> | PromiseLike<Ior<A, B>>>,
+		props: Record<string, Ior<A, B> | PromiseLike<Ior<A, B>>>,
 	): Promise<Ior<A, Record<string, B>>> {
-		return traverseIntoPar(
-			Object.entries(elems),
-			async ([key, elem]) =>
-				(await elem).map((val): [string, B] => [key, val]),
-			new RecordEntryBuilder(),
-		);
+		return traverseEntriesPar(Object.entries(props), id);
+	}
+
+	/**
+	 * Map the elements in an iterable to promise-like `Ior` values,
+	 * concurrently evaluate the values, and ignore the right-hand values.
+	 */
+	export function forEachPar<T, A extends Semigroup<A>>(
+		elems: Iterable<T>,
+		f: (elem: T, idx: number) => Ior<A, any> | PromiseLike<Ior<A, any>>,
+	): Promise<Ior<A, void>> {
+		return traverseIntoPar(elems, f, new NoOpBuilder());
 	}
 
 	/**

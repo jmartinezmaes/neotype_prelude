@@ -524,6 +524,22 @@ export namespace Maybe {
 	}
 
 	/**
+	 *
+	 */
+	export function traverseEntriesInto<K, V, V1, TFinish>(
+		entries: Iterable<readonly [K, V]>,
+		f: (elem: V, key: K, idx: number) => Maybe<V1>,
+		builder: Builder<readonly [K, V1], TFinish>,
+	): Maybe<TFinish> {
+		return traverseInto(
+			entries,
+			([key, elem], idx) =>
+				f(elem, key, idx).map((val): [K, V1] => [key, val]),
+			builder,
+		);
+	}
+
+	/**
 	 * Map the elements in an iterable to `Maybe` values, evaluate the values
 	 * from left to right, and collect the present values in an array.
 	 */
@@ -535,14 +551,13 @@ export namespace Maybe {
 	}
 
 	/**
-	 * Map the elements in an iterable to `Maybe` values, evaluate the values
-	 * from left to right, and ignore the present values.
+	 *
 	 */
-	export function forEach<T>(
-		elems: Iterable<T>,
-		f: (elem: T, idx: number) => Maybe<any>,
-	): Maybe<void> {
-		return traverseInto(elems, f, new NoOpBuilder());
+	export function traverseEntries<K extends number | string | symbol, V, V1>(
+		entries: Iterable<readonly [K, V]>,
+		f: (elem: V, key: K, idx: number) => Maybe<V1>,
+	): Maybe<Record<K, V1>> {
+		return traverseEntriesInto(entries, f, new RecordEntryBuilder());
 	}
 
 	/**
@@ -559,6 +574,16 @@ export namespace Maybe {
 		builder: Builder<T, TFinish>,
 	): Maybe<TFinish> {
 		return traverseInto(maybes, id, builder);
+	}
+
+	/**
+	 *
+	 */
+	export function collectEntriesInto<K, V, TFinish>(
+		entries: Iterable<readonly [K, Maybe<V>]>,
+		builder: Builder<readonly [K, V], TFinish>,
+	): Maybe<TFinish> {
+		return traverseEntriesInto(entries, id, builder);
 	}
 
 	/**
@@ -593,6 +618,15 @@ export namespace Maybe {
 	}
 
 	/**
+	 *
+	 */
+	export function allEntries<K extends number | string | symbol, V>(
+		entries: Iterable<readonly [K, Maybe<V>]>,
+	): Maybe<Record<K, V>> {
+		return traverseEntries(entries, id);
+	}
+
+	/**
 	 * Evaluate the `Maybe` elements in a string-keyed record or object literal
 	 * and collect the present values in an equivalent structure.
 	 *
@@ -605,17 +639,24 @@ export namespace Maybe {
 	 * -   `{ x: Maybe<T1>, y: Maybe<T2> }` becomes `Maybe<{ x: T1, y: T2 }>`
 	 */
 	export function allProps<TMaybes extends Record<string, Maybe<any>>>(
-		maybes: TMaybes,
+		props: TMaybes,
 	): Maybe<{ -readonly [K in keyof TMaybes]: JustT<TMaybes[K]> }>;
 
 	export function allProps<T>(
-		maybes: Record<string, Maybe<T>>,
+		props: Record<string, Maybe<T>>,
 	): Maybe<Record<string, T>> {
-		return traverseInto(
-			Object.entries(maybes),
-			([key, maybe]) => maybe.map((val): [string, T] => [key, val]),
-			new RecordEntryBuilder(),
-		);
+		return traverseEntries(Object.entries(props), id);
+	}
+
+	/**
+	 * Map the elements in an iterable to `Maybe` values, evaluate the values
+	 * from left to right, and ignore the present values.
+	 */
+	export function forEach<T>(
+		elems: Iterable<T>,
+		f: (elem: T, idx: number) => Maybe<any>,
+	): Maybe<void> {
+		return traverseInto(elems, f, new NoOpBuilder());
 	}
 
 	/**
@@ -686,6 +727,22 @@ export namespace Maybe {
 	}
 
 	/**
+	 *
+	 */
+	export function traverseEntriesIntoPar<K, V, V1, TFinish>(
+		entries: Iterable<readonly [K, V]>,
+		f: (elem: V, key: K, idx: number) => Maybe<V1> | PromiseLike<Maybe<V1>>,
+		builder: Builder<readonly [K, V1], TFinish>,
+	): Promise<Maybe<TFinish>> {
+		return traverseIntoPar(
+			entries,
+			async ([key, elem], idx) =>
+				(await f(elem, key, idx)).map((val): [K, V1] => [key, val]),
+			builder,
+		);
+	}
+
+	/**
 	 * Map the elements in an iterable to promise-like `Maybe` values,
 	 * concurrently evaluate the values, and collect the present values in an
 	 * array.
@@ -703,14 +760,17 @@ export namespace Maybe {
 	}
 
 	/**
-	 * Map the elements in an iterable to promise-like `Maybe` values,
-	 * concurrently evaluate the values, and ignore the present values.
+	 *
 	 */
-	export function forEachPar<T>(
-		elems: Iterable<T>,
-		f: (elem: T, idx: number) => Maybe<any> | PromiseLike<Maybe<any>>,
-	): Promise<Maybe<void>> {
-		return traverseIntoPar(elems, f, new NoOpBuilder());
+	export function traverseEntriesPar<
+		K extends number | string | symbol,
+		V,
+		V1,
+	>(
+		entries: Iterable<readonly [K, V]>,
+		f: (elem: V, key: K, idx: number) => Maybe<V1> | PromiseLike<Maybe<V1>>,
+	): Promise<Maybe<Record<K, V1>>> {
+		return traverseEntriesIntoPar(entries, f, new RecordEntryBuilder());
 	}
 
 	/**
@@ -723,10 +783,24 @@ export namespace Maybe {
 	 * undefined.
 	 */
 	export function collectIntoPar<T, TFinish>(
-		maybes: Iterable<Maybe<T> | PromiseLike<Maybe<T>>>,
+		elems: Iterable<Maybe<T> | PromiseLike<Maybe<T>>>,
 		builder: Builder<T, TFinish>,
 	): Promise<Maybe<TFinish>> {
-		return traverseIntoPar(maybes, id, builder);
+		return traverseIntoPar(elems, id, builder);
+	}
+
+	/**
+	 *
+	 */
+	export function collectEntriesIntoPar<
+		K extends number | string | symbol,
+		V,
+		TFinish,
+	>(
+		entries: Iterable<readonly [K, Maybe<V> | PromiseLike<Maybe<V>>]>,
+		builder: Builder<readonly [K, V], TFinish>,
+	): Promise<Maybe<TFinish>> {
+		return traverseEntriesIntoPar(entries, id, builder);
 	}
 
 	/**
@@ -769,6 +843,15 @@ export namespace Maybe {
 	}
 
 	/**
+	 *
+	 */
+	export function allEntriesPar<K extends number | string | symbol, V>(
+		entries: Iterable<readonly [K, Maybe<V> | PromiseLike<Maybe<V>>]>,
+	): Promise<Maybe<Record<K, V>>> {
+		return traverseEntriesPar(entries, id);
+	}
+
+	/**
 	 * Concurrently evaluate the promise-like `Maybe` elements in a string-keyed
 	 * record or object literal and collect the present values in an equivalent
 	 * structure.
@@ -784,20 +867,26 @@ export namespace Maybe {
 	 *     `Promise<Maybe<{ x: T1, y: T2 }>>`
 	 */
 	export function allPropsPar<
-		TElems extends Record<string, Maybe<any> | PromiseLike<Maybe<any>>>,
+		TProps extends Record<string, Maybe<any> | PromiseLike<Maybe<any>>>,
 	>(
-		elems: TElems,
-	): Promise<Maybe<{ [K in keyof TElems]: JustT<Awaited<TElems[K]>> }>>;
+		props: TProps,
+	): Promise<Maybe<{ [K in keyof TProps]: JustT<Awaited<TProps[K]>> }>>;
 
 	export function allPropsPar<T>(
-		elems: Record<string, Maybe<T> | PromiseLike<Maybe<T>>>,
+		props: Record<string, Maybe<T> | PromiseLike<Maybe<T>>>,
 	): Promise<Maybe<Record<string, T>>> {
-		return traverseIntoPar(
-			Object.entries(elems),
-			async ([key, elem]) =>
-				(await elem).map((val): [string, T] => [key, val]),
-			new RecordEntryBuilder(),
-		);
+		return traverseEntriesPar(Object.entries(props), id);
+	}
+
+	/**
+	 * Map the elements in an iterable to promise-like `Maybe` values,
+	 * concurrently evaluate the values, and ignore the present values.
+	 */
+	export function forEachPar<T>(
+		elems: Iterable<T>,
+		f: (elem: T, idx: number) => Maybe<any> | PromiseLike<Maybe<any>>,
+	): Promise<Maybe<void>> {
+		return traverseIntoPar(elems, f, new NoOpBuilder());
 	}
 
 	/**

@@ -194,18 +194,28 @@
  * These functions map the elements in an iterable to `Either` values, evaluate
  * the values, and act on the successes:
  *
- * -   `reduce` accumulates the successes.
- * -   `traverseInto` collects the successes into a `Builder`.
- * -   `traverse` collects the successes in an array.
- * -   `forEach` ignores the successes.
+ * -   `reduce` traverses an iterable of elements and accumulates the successes.
+ * -   `traverseInto` traverses an iterable of elements and collects the
+ *     successes into a `Builder`.
+ * -   `traverseEntriesInto` traverses an iterable of key-element pairs and
+ *     collects the key-success pairs into a `Builder`.
+ * -   `traverse` traverses an iterable of elements and collects the successes
+ *     in an array.
+ * -   `traverseEntries` traverses an iterable of key-element pairs and collects
+ *     the key-success pairs in an object.
+ * -   `forEach` traverses an iterable of elements and ignores the successes.
  *
  * These functions evaluate the `Either` elements in a structure and collect the
  * successes:
  *
- * -   `collectInto` traverses an iterable and collects the successes into a
- *     `Builder`.
+ * -   `collectInto` traverses an iterable of elements and collects the
+ *     successes into a `Builder`.
+ * -   `collectEntriesInto` traverses an iterable of key-element pairs and
+ *     collects the key-success pairs into a `Builder`.
  * -   `all` traverses an iterable and collects the successes in an array or a
  *     tuple literal.
+ * -   `allEntries` traverses an iterable of key-element pairs and collects the
+ *     key-success pairs in an object.
  * -   `allProps` traverses a string-keyed record or object literal and collects
  *     the successes in an equivalent structure.
  *
@@ -214,8 +224,11 @@
  * These functions map the elements in an iterable to promise-like `Either`
  * values, concurrently evaluate the values, and act on the successes:
  *
- * -   `traverseIntoPar` collects the successes into a `Builder`.
+ * -   `traverseIntoPar` traverses an iterable of elements and collects the
+ *     successes into a `Builder`.
+ * -   `traverseEntriesIntoPar`
  * -   `traversePar` collects the successes in an array.
+ * -   `traverseEntriesPar`
  * -   `forEachPar` ignores the successes.
  *
  * These functions concurrently evaluate the promise-like `Either` elements in a
@@ -223,8 +236,10 @@
  *
  * -   `collectIntoPar` traverses an iterable and collects the successes into a
  *     `Builder`.
+ * -   `collectEntriesIntoPar`
  * -   `allPar` traverses an iterable and collects the successes in an array or
  *     a tuple literal.
+ * -   `allEntriesPar`
  * -   `allPropsPar` traverses a string-keyed record or object literal and
  *     collects the successes in an equivalent structure.
  *
@@ -495,6 +510,28 @@ export namespace Either {
 	}
 
 	/**
+	 * Map the elements in an iterable of key-element pairs to `Either` values,
+	 * evaluate the values from left to right, and collect the key-success pairs
+	 * into a `Builder`.
+	 *
+	 * @remarks
+	 *
+	 * If any `Either` fails, the state of the provided `Builder` is undefined.
+	 */
+	export function traverseEntriesInto<K, V, E, V1, TFinish>(
+		entries: Iterable<readonly [K, V]>,
+		f: (elem: V, key: K, idx: number) => Either<E, V1>,
+		builder: Builder<readonly [K, V1], TFinish>,
+	): Either<E, TFinish> {
+		return traverseInto(
+			entries,
+			([key, elem], idx) =>
+				f(elem, key, idx).map((val): [K, V1] => [key, val]),
+			builder,
+		);
+	}
+
+	/**
 	 * Map the elements in an iterable to `Either` values, evaluate the values
 	 * from left to right, and collect the successes in an array.
 	 */
@@ -506,14 +543,20 @@ export namespace Either {
 	}
 
 	/**
-	 * Map the elements in an iterable to `Either` values, evaluate the values
-	 * from left to right, and ignore the successes.
+	 * Map the elements in an iterable of key-element pairs to `Either` values,
+	 * evaluate the values from left to right, and collect the key-success pairs
+	 * in an object.
 	 */
-	export function forEach<T, E>(
-		elems: Iterable<T>,
-		f: (elem: T, idx: number) => Either<E, any>,
-	): Either<E, void> {
-		return traverseInto(elems, f, new NoOpBuilder());
+	export function traverseEntries<
+		K extends number | string | symbol,
+		V,
+		E,
+		V1,
+	>(
+		elems: Iterable<readonly [K, V]>,
+		f: (elem: V, key: K, idx: number) => Either<E, V1>,
+	): Either<E, Record<K, V1>> {
+		return traverseEntriesInto(elems, f, new RecordEntryBuilder());
 	}
 
 	/**
@@ -529,6 +572,21 @@ export namespace Either {
 		builder: Builder<T, TFinish>,
 	): Either<E, TFinish> {
 		return traverseInto(eithers, id, builder);
+	}
+
+	/**
+	 * Evaluate the `Either` elements in an iterable of key-`Either` pairs from
+	 * left to right and collect the key-success pairs into a `Builder`.
+	 *
+	 * @remarks
+	 *
+	 * If any `Either` fails, the state of the provided `Builder` is undefined.
+	 */
+	export function collectEntriesInto<K, E, V, TFinish>(
+		entries: Iterable<readonly [K, Either<E, V>]>,
+		builder: Builder<readonly [K, V], TFinish>,
+	): Either<E, TFinish> {
+		return traverseEntriesInto(entries, id, builder);
 	}
 
 	/**
@@ -566,6 +624,16 @@ export namespace Either {
 	}
 
 	/**
+	 * Evaluate the `Either` elements in an iterable of key-`Either` pairs from
+	 * left to right and collect the key-success pairs in an object.
+	 */
+	export function allEntries<K extends number | string | symbol, E, V>(
+		entries: Iterable<readonly [K, Either<E, V>]>,
+	): Either<E, Record<K, V>> {
+		return traverseEntries(entries, id);
+	}
+
+	/**
 	 * Evaluate the `Either` elements in a string-keyed record or object literal
 	 * and collect the successes in an equivalent structure.
 	 *
@@ -578,21 +646,28 @@ export namespace Either {
 	 * -   `{ x: Either<E, T1>, y: Either<E, T2> }` becomes `Either<E, { x: T1,
 	 *     y: T2 }>`
 	 */
-	export function allProps<TEithers extends Record<string, Either<any, any>>>(
-		eithers: TEithers,
+	export function allProps<TProps extends Record<string, Either<any, any>>>(
+		props: TProps,
 	): Either<
-		LeftT<TEithers[keyof TEithers]>,
-		{ -readonly [K in keyof TEithers]: RightT<TEithers[K]> }
+		LeftT<TProps[keyof TProps]>,
+		{ -readonly [K in keyof TProps]: RightT<TProps[K]> }
 	>;
 
 	export function allProps<E, T>(
-		eithers: Record<string, Either<E, T>>,
+		props: Record<string, Either<E, T>>,
 	): Either<E, Record<string, T>> {
-		return traverseInto(
-			Object.entries(eithers),
-			([key, either]) => either.map((val): [string, T] => [key, val]),
-			new RecordEntryBuilder(),
-		);
+		return traverseEntries(Object.entries(props), id);
+	}
+
+	/**
+	 * Map the elements in an iterable to `Either` values, evaluate the values
+	 * from left to right, and ignore the successes.
+	 */
+	export function forEach<T, E>(
+		elems: Iterable<T>,
+		f: (elem: T, idx: number) => Either<E, any>,
+	): Either<E, void> {
+		return traverseInto(elems, f, new NoOpBuilder());
 	}
 
 	/**
@@ -667,6 +742,32 @@ export namespace Either {
 	}
 
 	/**
+	 * Map the elements in an iterable of key-element pairs to promise-like
+	 * `Either` values, concurrently evaluate the values, and collect the
+	 * key-success pairs into a `Builder`.
+	 *
+	 * @remarks
+	 *
+	 * If any `Either` fails, the state of the provided `Builder` is undefined.
+	 */
+	export function traverseEntriesIntoPar<K, V, E, V1, TFinish>(
+		entries: Iterable<readonly [K, V]>,
+		f: (
+			elem: V,
+			key: K,
+			idx: number,
+		) => Either<E, V1> | PromiseLike<Either<E, V1>>,
+		builder: Builder<readonly [K, V1], TFinish>,
+	): Promise<Either<E, TFinish>> {
+		return traverseIntoPar(
+			entries,
+			async ([key, elem], idx) =>
+				(await f(elem, key, idx)).map((val): [K, V1] => [key, val]),
+			builder,
+		);
+	}
+
+	/**
 	 * Map the elements in an iterable to promise-like `Either` values,
 	 * concurrently evaluate the values, and collect the successes in an array.
 	 */
@@ -683,17 +784,24 @@ export namespace Either {
 	}
 
 	/**
-	 * Map the elements in an iterable to promise-like `Either` values,
-	 * concurrently evaluate the values, and ignore the successes.
+	 * Map the elements in an iterable of key-element pairs to promise-like
+	 * `Either` values, concurrently evaluate the values, and collect the
+	 * key-success pairs in an object.
 	 */
-	export function forEachPar<T, E>(
-		elems: Iterable<T>,
+	export function traverseEntriesPar<
+		K extends number | string | symbol,
+		V,
+		E,
+		V1,
+	>(
+		entries: Iterable<readonly [K, V]>,
 		f: (
-			elem: T,
+			elem: V,
+			key: K,
 			idx: number,
-		) => Either<E, any> | PromiseLike<Either<E, any>>,
-	): Promise<Either<E, void>> {
-		return traverseIntoPar(elems, f, new NoOpBuilder());
+		) => Either<E, V1> | PromiseLike<Either<E, V1>>,
+	): Promise<Either<E, Record<K, V1>>> {
+		return traverseEntriesIntoPar(entries, f, new RecordEntryBuilder());
 	}
 
 	/**
@@ -709,6 +817,23 @@ export namespace Either {
 		builder: Builder<T, TFinish>,
 	): Promise<Either<E, TFinish>> {
 		return traverseIntoPar(elems, id, builder);
+	}
+
+	/**
+	 * Concurrently evaluate the promise-like `Either` elements in an iterable
+	 * of key-element pairs and collect the key-success pairs into a `Builder`.
+	 *
+	 * @remarks
+	 *
+	 * If any `Either` fails, the state of the provided `Builder` is undefined.
+	 */
+	export function collectEntriesIntoPar<K, E, V, TFinish>(
+		entries: Iterable<
+			readonly [K, Either<E, V> | PromiseLike<Either<E, V>>]
+		>,
+		builder: Builder<readonly [K, V], TFinish>,
+	): Promise<Either<E, TFinish>> {
+		return traverseEntriesIntoPar(entries, id, builder);
 	}
 
 	/**
@@ -758,6 +883,18 @@ export namespace Either {
 	}
 
 	/**
+	 * Concurrently evaluate the promise-like `Either` elements in an iterable
+	 * of key-element pairs and collect the key-success pairs in an object.
+	 */
+	export function allEntriesPar<K extends number | string | symbol, E, V>(
+		entries: Iterable<
+			readonly [K, Either<E, V> | PromiseLike<Either<E, V>>]
+		>,
+	): Promise<Either<E, Record<K, V>>> {
+		return traverseEntriesPar(entries, id);
+	}
+
+	/**
 	 * Concurrently evaluate the promise-like `Either` elements in a
 	 * string-keyed record or object literal and collect the successes in an
 	 * equivalent structure.
@@ -773,28 +910,37 @@ export namespace Either {
 	 *     `Promise<Either<E, { x: T1, y: T2 }>>`
 	 */
 	export function allPropsPar<
-		TElems extends Record<
+		TProps extends Record<
 			string,
 			Either<any, any> | PromiseLike<Either<any, any>>
 		>,
 	>(
-		elems: TElems,
+		props: TProps,
 	): Promise<
 		Either<
-			LeftT<{ [K in keyof TElems]: Awaited<TElems[K]> }[keyof TElems]>,
-			{ [K in keyof TElems]: RightT<Awaited<TElems[K]>> }
+			LeftT<{ [K in keyof TProps]: Awaited<TProps[K]> }[keyof TProps]>,
+			{ [K in keyof TProps]: RightT<Awaited<TProps[K]>> }
 		>
 	>;
 
 	export function allPropsPar<E, T>(
-		elems: Record<string, Either<E, T> | PromiseLike<Either<E, T>>>,
+		props: Record<string, Either<E, T> | PromiseLike<Either<E, T>>>,
 	): Promise<Either<E, Record<string, T>>> {
-		return traverseIntoPar(
-			Object.entries(elems),
-			async ([key, elem]) =>
-				(await elem).map((val): [string, T] => [key, val]),
-			new RecordEntryBuilder(),
-		);
+		return traverseEntriesPar(Object.entries(props), id);
+	}
+
+	/**
+	 * Map the elements in an iterable to promise-like `Either` values,
+	 * concurrently evaluate the values, and ignore the successes.
+	 */
+	export function forEachPar<T, E>(
+		elems: Iterable<T>,
+		f: (
+			elem: T,
+			idx: number,
+		) => Either<E, any> | PromiseLike<Either<E, any>>,
+	): Promise<Either<E, void>> {
+		return traverseIntoPar(elems, f, new NoOpBuilder());
 	}
 
 	/**
