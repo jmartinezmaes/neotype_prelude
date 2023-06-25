@@ -144,6 +144,27 @@ describe("Either", () => {
 		});
 	});
 
+	describe("traverseEntriesInto", () => {
+		it("applies the function to the elements and collects the key-success pairs into the Builder if all results are Right", () => {
+			const builder = new TestBuilder<[string, [number, string]]>();
+			const either = Either.traverseEntriesInto(
+				[
+					["a", "x"],
+					["b", "y"],
+				],
+				(char, key, idx) =>
+					Either.right<[number, string]>([idx, key + char]),
+				builder,
+			);
+			expect(either).to.deep.equal(
+				Either.right([
+					["a", [0, "ax"]],
+					["b", [1, "by"]],
+				]),
+			);
+		});
+	});
+
 	describe("traverse", () => {
 		it("applies the function to the elements and collects the successes in an array if all results are Right", () => {
 			const either = Either.traverse(["a", "b"], (char, idx) =>
@@ -155,6 +176,85 @@ describe("Either", () => {
 					[1, "b"],
 				]),
 			);
+		});
+	});
+
+	describe("traverseEntries", () => {
+		it("applies the function to the elements and collects the key-success pairs in a record if all results are Right", () => {
+			const either = Either.traverseEntries(
+				[
+					["a", "x"],
+					["b", "y"],
+				],
+				(char, key, idx) =>
+					Either.right<[number, string]>([idx, key + char]),
+			);
+			expect(either).to.deep.equal(
+				Either.right({
+					a: [0, "ax"],
+					b: [1, "by"],
+				}),
+			);
+		});
+	});
+
+	describe("collectInto", () => {
+		it("collects the successes into the Builder if all elements are Right", () => {
+			const builder = new TestBuilder<number>();
+			const either = Either.collectInto(
+				[Either.right<2, 1>(2), Either.right<4, 3>(4)],
+				builder,
+			);
+			expect(either).to.deep.equal(Either.right([2, 4]));
+		});
+	});
+
+	describe("collectEntriesInto", () => {
+		it("collects the key-success pairs into the Builder if all elements are Right", () => {
+			const builder = new TestBuilder<[string, number]>();
+			const either = Either.collectEntriesInto(
+				[
+					["a", Either.right<2, 1>(2)],
+					["b", Either.right<4, 3>(4)],
+				],
+				builder,
+			);
+			expect(either).to.deep.equal(
+				Either.right([
+					["a", 2],
+					["b", 4],
+				]),
+			);
+		});
+	});
+
+	describe("all", () => {
+		it("collects the successes in an array if all elements are Right", () => {
+			const either = Either.all([
+				Either.right<2, 1>(2),
+				Either.right<4, 3>(4),
+			]);
+			expect(either).to.deep.equal(Either.right([2, 4]));
+		});
+	});
+
+	describe("allEntries", () => {
+		it("collects the key-success pairs in an object if all elements are Right", () => {
+			const either = Either.allEntries([
+				["a", Either.right<2, 1>(2)],
+				["b", Either.right<4, 3>(4)],
+			]);
+			expect(either).to.deep.equal(Either.right({ a: 2, b: 4 }));
+		});
+	});
+
+	describe("allProps", () => {
+		it("collects the successes in an object if all elements are Right", () => {
+			const either = Either.allProps({
+				two: Either.right<2, 1>(2),
+				four: Either.right<4, 3>(4),
+			});
+			expect(either).to.deep.equal(Either.right({ two: 2, four: 4 }));
 		});
 	});
 
@@ -170,37 +270,6 @@ describe("Either", () => {
 				[0, "a"],
 				[1, "b"],
 			]);
-		});
-	});
-
-	describe("collectInto", () => {
-		it("collects the successes into the Builder if all elements are Right", () => {
-			const builder = new TestBuilder<number>();
-			const either = Either.collectInto(
-				[Either.right<2, 1>(2), Either.right<4, 3>(4)],
-				builder,
-			);
-			expect(either).to.deep.equal(Either.right([2, 4]));
-		});
-	});
-
-	describe("all", () => {
-		it("collects the successes in an array if all elements are Right", () => {
-			const either = Either.all([
-				Either.right<2, 1>(2),
-				Either.right<4, 3>(4),
-			]);
-			expect(either).to.deep.equal(Either.right([2, 4]));
-		});
-	});
-
-	describe("allProps", () => {
-		it("collects the successes in an object if all elements are Right", () => {
-			const either = Either.allProps({
-				two: Either.right<2, 1>(2),
-				four: Either.right<4, 3>(4),
-			});
-			expect(either).to.deep.equal(Either.right({ two: 2, four: 4 }));
 		});
 	});
 
@@ -315,6 +384,29 @@ describe("Either", () => {
 		});
 	});
 
+	describe("traverseEntriesIntoPar", () => {
+		it("applies the function to the elements and collects the key-success pairs into the Builder if all results are Right", async () => {
+			const builder = new TestBuilder<[string, [number, string]]>();
+			const either = await Either.traverseEntriesIntoPar(
+				[
+					["a", "x"],
+					["b", "y"],
+				],
+				(char, key, idx) =>
+					delay(key === "a" ? 50 : 10).then(() =>
+						Either.right([idx, key + char]),
+					),
+				builder,
+			);
+			expect(either).to.deep.equal(
+				Either.right([
+					["b", [1, "by"]],
+					["a", [0, "ax"]],
+				]),
+			);
+		});
+	});
+
 	describe("traversePar", () => {
 		it("applies the function to the elements and collects the successes in an array if all results are Right", async () => {
 			const either = await Either.traversePar(["a", "b"], (char, idx) =>
@@ -331,20 +423,21 @@ describe("Either", () => {
 		});
 	});
 
-	describe("forEachPar", () => {
-		it("applies the function to the elements while the result is Right", async () => {
-			const results: [number, string][] = [];
-			const either = await Either.forEachPar(["a", "b"], (char, idx) =>
-				delay(char === "a" ? 50 : 10).then(() => {
-					results.push([idx, char]);
-					return Either.right(undefined);
-				}),
+	describe("traverseEntriesPar", () => {
+		it("applies the function to the elements and collects the key-success pairs in an object if all results are Right", async () => {
+			const either = await Either.traverseEntriesPar(
+				[
+					["a", "x"],
+					["b", "y"],
+				],
+				(char, key, idx) =>
+					delay(key === "a" ? 50 : 10).then(() =>
+						Either.right<[number, string]>([idx, key + char]),
+					),
 			);
-			expect(either).to.deep.equal(Either.right(undefined));
-			expect(results).to.deep.equal([
-				[1, "b"],
-				[0, "a"],
-			]);
+			expect(either).to.deep.equal(
+				Either.right({ a: [0, "ax"], b: [1, "by"] }),
+			);
 		});
 	});
 
@@ -362,6 +455,25 @@ describe("Either", () => {
 		});
 	});
 
+	describe("collectEntriesIntoPar", () => {
+		it("collects the key-success pairs into the Builder if all elements are Right", async () => {
+			const builder = new TestBuilder<[string, number]>();
+			const either = await Either.collectEntriesIntoPar(
+				[
+					["a", delay(50).then(() => Either.right<2, 1>(2))],
+					["b", delay(10).then(() => Either.right<4, 3>(4))],
+				],
+				builder,
+			);
+			expect(either).to.deep.equal(
+				Either.right([
+					["b", 4],
+					["a", 2],
+				]),
+			);
+		});
+	});
+
 	describe("allPar", () => {
 		it("collects the successes in an array if all elements are Right", async () => {
 			const either = await Either.allPar([
@@ -372,6 +484,16 @@ describe("Either", () => {
 		});
 	});
 
+	describe("allEntriesPar", () => {
+		it("collects the key-success pairs in an object if all elements are Right", async () => {
+			const either = await Either.allEntriesPar([
+				["a", delay(50).then(() => Either.right<2, 1>(2))],
+				["b", delay(10).then(() => Either.right<4, 3>(4))],
+			]);
+			expect(either).to.deep.equal(Either.right({ a: 2, b: 4 }));
+		});
+	});
+
 	describe("allPropsPar", () => {
 		it("collects the successes in an object if all elements are Right", async () => {
 			const either = await Either.allPropsPar({
@@ -379,6 +501,23 @@ describe("Either", () => {
 				four: delay(10).then<Either<3, 4>>(() => Either.right(4)),
 			});
 			expect(either).to.deep.equal(Either.right({ two: 2, four: 4 }));
+		});
+	});
+
+	describe("forEachPar", () => {
+		it("applies the function to the elements while the result is Right", async () => {
+			const results: [number, string][] = [];
+			const either = await Either.forEachPar(["a", "b"], (char, idx) =>
+				delay(char === "a" ? 50 : 10).then(() => {
+					results.push([idx, char]);
+					return Either.right(undefined);
+				}),
+			);
+			expect(either).to.deep.equal(Either.right(undefined));
+			expect(results).to.deep.equal([
+				[1, "b"],
+				[0, "a"],
+			]);
 		});
 	});
 
