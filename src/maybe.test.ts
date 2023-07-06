@@ -177,6 +177,27 @@ describe("Maybe", () => {
 		});
 	});
 
+	describe("traverseEntriesInto", () => {
+		it("applies the function to the elements and collects the key-value pairs into the Builder if all results are Just", () => {
+			const builder = new TestBuilder<[string, [number, string]]>();
+			const maybe = Maybe.traverseEntriesInto(
+				[
+					["a", "x"],
+					["b", "y"],
+				],
+				(char, key, idx) =>
+					Maybe.just<[number, string]>([idx, key + char]),
+				builder,
+			);
+			expect(maybe).to.deep.equal(
+				Maybe.just([
+					["a", [0, "ax"]],
+					["b", [1, "by"]],
+				]),
+			);
+		});
+	});
+
 	describe("traverse", () => {
 		it("applies the function to the elements and collects the present values in an array if all results are Just", () => {
 			const maybe = Maybe.traverse(["a", "b"], (char, idx) =>
@@ -188,6 +209,82 @@ describe("Maybe", () => {
 					[1, "b"],
 				]),
 			);
+		});
+	});
+
+	describe("traverseEntries", () => {
+		it("applies the function to the elements and collects the key-value pairs in an object if all results are Just", () => {
+			const maybe = Maybe.traverseEntries(
+				[
+					["a", "x"],
+					["b", "y"],
+				],
+				(char, key, idx) =>
+					Maybe.just<[number, string]>([idx, key + char]),
+			);
+			expect(maybe).to.deep.equal(
+				Maybe.just({
+					a: [0, "ax"],
+					b: [1, "by"],
+				}),
+			);
+		});
+	});
+
+	describe("collectInto", () => {
+		it("collects the present values into the Builder if all elements are Just", () => {
+			const builder = new TestBuilder<number>();
+			const maybe = Maybe.collectInto(
+				[Maybe.just(1), Maybe.just(2)],
+				builder,
+			);
+			expect(maybe).to.deep.equal(Maybe.just([1, 2]));
+		});
+	});
+
+	describe("collectEntriesInto", () => {
+		it("collects the key-value pairs into the Builder if all elements are Just", () => {
+			const builder = new TestBuilder<[string, number]>();
+			const maybe = Maybe.collectEntriesInto(
+				[
+					["a", Maybe.just(1)],
+					["b", Maybe.just(2)],
+				],
+				builder,
+			);
+			expect(maybe).to.deep.equal(
+				Maybe.just([
+					["a", 1],
+					["b", 2],
+				]),
+			);
+		});
+	});
+
+	describe("all", () => {
+		it("collects the present values in an array if all elements are Just", () => {
+			const maybe = Maybe.all([Maybe.just<1>(1), Maybe.just<2>(2)]);
+			expect(maybe).to.deep.equal(Maybe.just([1, 2]));
+		});
+	});
+
+	describe("allEntries", () => {
+		it("collects the key-value pairs in an object if all elements are Just", () => {
+			const maybe = Maybe.allEntries([
+				["a", Maybe.just(1)],
+				["b", Maybe.just(2)],
+			]);
+			expect(maybe).to.deep.equal(Maybe.just({ a: 1, b: 2 }));
+		});
+	});
+
+	describe("allProps", () => {
+		it("collects the present values in an object if all elements are Just", () => {
+			const maybe = Maybe.allProps({
+				one: Maybe.just<1>(1),
+				two: Maybe.just<2>(2),
+			});
+			expect(maybe).to.deep.equal(Maybe.just({ one: 1, two: 2 }));
 		});
 	});
 
@@ -203,34 +300,6 @@ describe("Maybe", () => {
 				[0, "a"],
 				[1, "b"],
 			]);
-		});
-	});
-
-	describe("collectInto", () => {
-		it("collects the present values into the Builder if all elements are Just", () => {
-			const builder = new TestBuilder<number>();
-			const maybe = Maybe.collectInto(
-				[Maybe.just(1), Maybe.just(2)],
-				builder,
-			);
-			expect(maybe).to.deep.equal(Maybe.just([1, 2]));
-		});
-	});
-
-	describe("all", () => {
-		it("collects the present values in an array if all elements are Just", () => {
-			const maybe = Maybe.all([Maybe.just<1>(1), Maybe.just<2>(2)]);
-			expect(maybe).to.deep.equal(Maybe.just([1, 2]));
-		});
-	});
-
-	describe("allProps", () => {
-		it("collects the present values in an object if all elements are Just", () => {
-			const maybe = Maybe.allProps({
-				one: Maybe.just<1>(1),
-				two: Maybe.just<2>(2),
-			});
-			expect(maybe).to.deep.equal(Maybe.just({ one: 1, two: 2 }));
 		});
 	});
 
@@ -338,6 +407,29 @@ describe("Maybe", () => {
 		});
 	});
 
+	describe("traverseEntriesIntoPar", () => {
+		it("applies the function to the elements and collects the key-value pairs into the Builder if all results are Just", async () => {
+			const builder = new TestBuilder<[string, [number, string]]>();
+			const maybe = await Maybe.traverseEntriesIntoPar(
+				[
+					["a", "x"],
+					["b", "y"],
+				],
+				(char, key, idx) =>
+					delay(key === "a" ? 50 : 10).then(() =>
+						Maybe.just<[number, string]>([idx, key + char]),
+					),
+				builder,
+			);
+			expect(maybe).to.deep.equal(
+				Maybe.just([
+					["b", [1, "by"]],
+					["a", [0, "ax"]],
+				]),
+			);
+		});
+	});
+
 	describe("traversePar", () => {
 		it("applies the function to the elements and collects the present values in an array if all results are Just", async () => {
 			const maybe = await Maybe.traversePar(["a", "b"], (char, idx) =>
@@ -354,20 +446,24 @@ describe("Maybe", () => {
 		});
 	});
 
-	describe("forEachPar", () => {
-		it("applies the function to the elements and continues while the result is Just", async () => {
-			const results: [number, string][] = [];
-			const maybe = await Maybe.forEachPar(["a", "b"], (char, idx) =>
-				delay(char === "a" ? 50 : 10).then(() => {
-					results.push([idx, char]);
-					return Maybe.just(undefined);
+	describe("traverseEntriesPar", () => {
+		it("applies the function to the elements and collects the key-value pairs into the Builder if all results are Just", async () => {
+			const maybe = await Maybe.traverseEntriesPar(
+				[
+					["a", "x"],
+					["b", "y"],
+				],
+				(char, key, idx) =>
+					delay(key === "a" ? 50 : 10).then(() =>
+						Maybe.just<[number, string]>([idx, key + char]),
+					),
+			);
+			expect(maybe).to.deep.equal(
+				Maybe.just({
+					a: [0, "ax"],
+					b: [1, "by"],
 				}),
 			);
-			expect(maybe).to.deep.equal(Maybe.just(undefined));
-			expect(results).to.deep.equal([
-				[1, "b"],
-				[0, "a"],
-			]);
 		});
 	});
 
@@ -385,6 +481,25 @@ describe("Maybe", () => {
 		});
 	});
 
+	describe("collectEntriesIntoPar", () => {
+		it("collects the present values into the Builder if all elements are Just", async () => {
+			const builder = new TestBuilder<[string, number]>();
+			const maybe = await Maybe.collectEntriesIntoPar(
+				[
+					["a", delay(50).then(() => Maybe.just(1))],
+					["b", delay(10).then(() => Maybe.just(2))],
+				],
+				builder,
+			);
+			expect(maybe).to.deep.equal(
+				Maybe.just([
+					["b", 2],
+					["a", 1],
+				]),
+			);
+		});
+	});
+
 	describe("allPar", () => {
 		it("collects the present values in an array if all elements are Just", async () => {
 			const maybe = await Maybe.allPar([
@@ -395,6 +510,16 @@ describe("Maybe", () => {
 		});
 	});
 
+	describe("allEntriesPar", () => {
+		it("collects the present values in an array if all elements are Just", async () => {
+			const maybe = await Maybe.allEntriesPar([
+				["a", delay(50).then(() => Maybe.just(1))],
+				["b", delay(10).then(() => Maybe.just(2))],
+			]);
+			expect(maybe).to.deep.equal(Maybe.just({ a: 1, b: 2 }));
+		});
+	});
+
 	describe("allPropsPar", () => {
 		it("collects the present values in an object if all elements are Just", async () => {
 			const maybe = await Maybe.allPropsPar({
@@ -402,6 +527,23 @@ describe("Maybe", () => {
 				two: delay(10).then<Maybe<2>>(() => Maybe.just(2)),
 			});
 			expect(maybe).to.deep.equal(Maybe.just({ one: 1, two: 2 }));
+		});
+	});
+
+	describe("forEachPar", () => {
+		it("applies the function to the elements and continues while the result is Just", async () => {
+			const results: [number, string][] = [];
+			const maybe = await Maybe.forEachPar(["a", "b"], (char, idx) =>
+				delay(char === "a" ? 50 : 10).then(() => {
+					results.push([idx, char]);
+					return Maybe.just(undefined);
+				}),
+			);
+			expect(maybe).to.deep.equal(Maybe.just(undefined));
+			expect(results).to.deep.equal([
+				[1, "b"],
+				[0, "a"],
+			]);
 		});
 	});
 
