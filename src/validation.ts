@@ -847,6 +847,21 @@ export namespace Validation {
 	}
 
 	/**
+	 *
+	 */
+	export function allEntriesPar<
+		K extends number | string | symbol,
+		E extends Semigroup<E>,
+		V,
+	>(
+		entries: Iterable<
+			readonly [K, Validation<E, V> | PromiseLike<Validation<E, V>>]
+		>,
+	): Promise<Validation<E, Record<K, V>>> {
+		return traverseEntriesPar(entries, id);
+	}
+
+	/**
 	 * Concurrently evaluate the promise-like `Validation` elements in a
 	 * string-keyed record or object literal and collect the successes in an
 	 * equivalent structure.

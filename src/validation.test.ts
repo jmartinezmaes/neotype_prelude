@@ -89,6 +89,27 @@ describe("Validation", () => {
 		});
 	});
 
+	describe("traverseEntriesInto", () => {
+		it("applies the function to the elements and collects the key-success pairs into the Builder if all results are Ok", () => {
+			const builder = new TestBuilder<[string, [number, string]]>();
+			const vdn = Validation.traverseEntriesInto(
+				[
+					["a", "x"],
+					["b", "y"],
+				],
+				(char, key, idx) =>
+					Validation.ok<[number, string]>([idx, key + char]),
+				builder,
+			);
+			expect(vdn).to.deep.equal(
+				Validation.ok([
+					["a", [0, "ax"]],
+					["b", [1, "by"]],
+				]),
+			);
+		});
+	});
+
 	describe("traverse", () => {
 		it("applies the function to the elements and collects the successes in an array if all results are Ok", () => {
 			const vdn = Validation.traverse(["a", "b"], (char, idx) =>
@@ -100,6 +121,85 @@ describe("Validation", () => {
 					[1, "b"],
 				]),
 			);
+		});
+	});
+
+	describe("traverseEntries", () => {
+		it("applies the function to the elements and collects the key-success pairs in an object if all results are Ok", () => {
+			const vdn = Validation.traverseEntries(
+				[
+					["a", "x"],
+					["b", "y"],
+				],
+				(char, key, idx) =>
+					Validation.ok<[number, string]>([idx, key + char]),
+			);
+			expect(vdn).to.deep.equal(
+				Validation.ok({
+					a: [0, "ax"],
+					b: [1, "by"],
+				}),
+			);
+		});
+	});
+
+	describe("collectInto", () => {
+		it("collects the successes into the Builder if all results are Ok", () => {
+			const builder = new TestBuilder<number>();
+			const vdn = Validation.collectInto(
+				[Validation.ok<2, Str>(2), Validation.ok<4, Str>(4)],
+				builder,
+			);
+			expect(vdn).to.deep.equal(Validation.ok([2, 4]));
+		});
+	});
+
+	describe("collectEntriesInto", () => {
+		it("collects the key-success pairs into an object if all results are Ok", () => {
+			const builder = new TestBuilder<[string, number]>();
+			const vdn = Validation.collectEntriesInto(
+				[
+					["a", Validation.ok(2)],
+					["b", Validation.ok(4)],
+				],
+				builder,
+			);
+			expect(vdn).to.deep.equal(
+				Validation.ok([
+					["a", 2],
+					["b", 4],
+				]),
+			);
+		});
+	});
+
+	describe("all", () => {
+		it("collects the successes in an array if all elements are Ok", () => {
+			const vdn = Validation.all([
+				Validation.ok<2, Str>(2),
+				Validation.ok<4, Str>(4),
+			]);
+			expect(vdn).to.deep.equal(Validation.ok([2, 4]));
+		});
+	});
+
+	describe("allEntries", () => {
+		it("collects the key-success pairs in ab object if all elements are Ok", () => {
+			const vdn = Validation.allEntries([
+				["a", Validation.ok(2)],
+				["b", Validation.ok(4)],
+			]);
+			expect(vdn).to.deep.equal(Validation.ok({ a: 2, b: 4 }));
+		});
+	});
+
+	describe("allProps", () => {
+		it("collects the successes in an object if all results are Ok", () => {
+			const vdn = Validation.allProps({
+				two: Validation.ok<2, Str>(2),
+				four: Validation.ok<4, Str>(4),
+			});
+			expect(vdn).to.deep.equal(Validation.ok({ two: 2, four: 4 }));
 		});
 	});
 
@@ -115,37 +215,6 @@ describe("Validation", () => {
 				[0, "a"],
 				[1, "b"],
 			]);
-		});
-	});
-
-	describe("collectInto", () => {
-		it("collects the successes into the Builder if all results are Ok", () => {
-			const builder = new TestBuilder<number>();
-			const vdn = Validation.collectInto(
-				[Validation.ok<2, Str>(2), Validation.ok<4, Str>(4)],
-				builder,
-			);
-			expect(vdn).to.deep.equal(Validation.ok([2, 4]));
-		});
-	});
-
-	describe("all", () => {
-		it("collects the successes in an array if all elements are Ok", () => {
-			const vdn = Validation.all([
-				Validation.ok<2, Str>(2),
-				Validation.ok<4, Str>(4),
-			]);
-			expect(vdn).to.deep.equal(Validation.ok([2, 4]));
-		});
-	});
-
-	describe("allProps", () => {
-		it("collects the successes in an object if all results are Ok", () => {
-			const vdn = Validation.allProps({
-				two: Validation.ok<2, Str>(2),
-				four: Validation.ok<4, Str>(4),
-			});
-			expect(vdn).to.deep.equal(Validation.ok({ two: 2, four: 4 }));
 		});
 	});
 
@@ -194,6 +263,29 @@ describe("Validation", () => {
 		});
 	});
 
+	describe("traverseEntriesIntoPar", () => {
+		it("applies the function to the elements and collects the key-success pairs into the Builder if all results are Ok", async () => {
+			const builder = new TestBuilder<[string, [number, string]]>();
+			const vdn = await Validation.traverseEntriesIntoPar(
+				[
+					["a", "x"],
+					["b", "y"],
+				],
+				(char, key, idx) =>
+					delay(key === "a" ? 50 : 10).then(() =>
+						Validation.ok<[number, string]>([idx, key + char]),
+					),
+				builder,
+			);
+			expect(vdn).to.deep.equal(
+				Validation.ok([
+					["b", [1, "by"]],
+					["a", [0, "ax"]],
+				]),
+			);
+		});
+	});
+
 	describe("traversePar", () => {
 		it("applies the function to the elements and collects the results in an array if all results are Ok", async () => {
 			const vdn = await Validation.traversePar(["a", "b"], (char, idx) =>
@@ -210,20 +302,24 @@ describe("Validation", () => {
 		});
 	});
 
-	describe("forEachPar", () => {
-		it("applies the function to the successes if all arguments are Ok", async () => {
-			const results: [number, string][] = [];
-			const vdn = await Validation.forEachPar(["a", "b"], (char, idx) =>
-				delay(char === "a" ? 50 : 10).then(() => {
-					results.push([idx, char]);
-					return Validation.ok<void, Str>(undefined);
+	describe("traverseEntriesPar", () => {
+		it("applies the function to the elements and collects the key-success pairs in an object if all results are Ok", async () => {
+			const vdn = await Validation.traverseEntriesPar(
+				[
+					["a", "x"],
+					["b", "y"],
+				],
+				(char, key, idx) =>
+					delay(key === "a" ? 50 : 10).then(() =>
+						Validation.ok<[number, string]>([idx, key + char]),
+					),
+			);
+			expect(vdn).to.deep.equal(
+				Validation.ok({
+					a: [0, "ax"],
+					b: [1, "by"],
 				}),
 			);
-			expect(vdn).to.deep.equal(Validation.ok(undefined));
-			expect(results).to.deep.equal([
-				[1, "b"],
-				[0, "a"],
-			]);
 		});
 	});
 
@@ -241,6 +337,25 @@ describe("Validation", () => {
 		});
 	});
 
+	describe("collectEntriesIntoPar", () => {
+		it("collects the key-success pairs into the Builder if all elements are Ok", async () => {
+			const builder = new TestBuilder<[string, number]>();
+			const vdn = await Validation.collectEntriesIntoPar(
+				[
+					["a", delay(50).then(() => Validation.ok<2, Str>(2))],
+					["b", delay(10).then(() => Validation.ok<4, Str>(4))],
+				],
+				builder,
+			);
+			expect(vdn).to.deep.equal(
+				Validation.ok([
+					["b", 4],
+					["a", 2],
+				]),
+			);
+		});
+	});
+
 	describe("allPar", () => {
 		it("collects the successes in an array if all elements are Ok", async () => {
 			const vdn = await Validation.allPar([
@@ -248,6 +363,22 @@ describe("Validation", () => {
 				delay(10).then<Validation<Str, 4>>(() => Validation.ok(4)),
 			]);
 			expect(vdn).to.deep.equal(Validation.ok([2, 4]));
+		});
+	});
+
+	describe("allEntriesPar", () => {
+		it("collects the key-success pairs in an object if all elements are Ok", async () => {
+			const vdn = await Validation.allEntriesPar([
+				[
+					"a",
+					delay(50).then<Validation<Str, 2>>(() => Validation.ok(2)),
+				],
+				[
+					"b",
+					delay(10).then<Validation<Str, 4>>(() => Validation.ok(4)),
+				],
+			]);
+			expect(vdn).to.deep.equal(Validation.ok({ a: 2, b: 4 }));
 		});
 	});
 
@@ -260,6 +391,23 @@ describe("Validation", () => {
 				),
 			});
 			expect(vdn).to.deep.equal(Validation.ok({ two: 2, four: 4 }));
+		});
+	});
+
+	describe("forEachPar", () => {
+		it("applies the function to the successes if all arguments are Ok", async () => {
+			const results: [number, string][] = [];
+			const vdn = await Validation.forEachPar(["a", "b"], (char, idx) =>
+				delay(char === "a" ? 50 : 10).then(() => {
+					results.push([idx, char]);
+					return Validation.ok<void, Str>(undefined);
+				}),
+			);
+			expect(vdn).to.deep.equal(Validation.ok(undefined));
+			expect(results).to.deep.equal([
+				[1, "b"],
+				[0, "a"],
+			]);
 		});
 	});
 
