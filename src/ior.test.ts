@@ -232,6 +232,26 @@ describe("Ior", () => {
 		});
 	});
 
+	describe("traverseEntriesInto", () => {
+		it("applies the function to the elements and collects the key-right-hand-value pairs into the Builder if no results are Left", () => {
+			const builder = new TestBuilder<[string, [number, string]]>();
+			const ior = Ior.traverseEntriesInto(
+				[
+					["a", "x"],
+					["b", "y"],
+				],
+				(char, key, idx) => Ior.both(new Str(char), [idx, key + char]),
+				builder,
+			);
+			expect(ior).to.deep.equal(
+				Ior.both(new Str("xy"), [
+					["a", [0, "ax"]],
+					["b", [1, "by"]],
+				]),
+			);
+		});
+	});
+
 	describe("traverse", () => {
 		it("applies the function to the elements and collects the right-hand values in an array if no results are Left", () => {
 			const ior = Ior.traverse(["a", "b"], (char, idx) =>
@@ -242,6 +262,86 @@ describe("Ior", () => {
 					[0, "a"],
 					[1, "b"],
 				]),
+			);
+		});
+	});
+
+	describe("traverseEntries", () => {
+		it("applies the function to the elements and collects the key-right-hand-value pairs in ab object if no results are Left", () => {
+			const ior = Ior.traverseEntries(
+				[
+					["a", "x"],
+					["b", "y"],
+				],
+				(char, key, idx) => Ior.both(new Str(char), [idx, key + char]),
+			);
+			expect(ior).to.deep.equal(
+				Ior.both(new Str("xy"), {
+					a: [0, "ax"],
+					b: [1, "by"],
+				}),
+			);
+		});
+	});
+
+	describe("collectInto", () => {
+		it("collects the right-hand values into the Builder if no elements are Left", () => {
+			const builder = new TestBuilder<number>();
+			const ior = Ior.collectInto(
+				[Ior.both(new Str("a"), 2), Ior.both(new Str("b"), 4)],
+				builder,
+			);
+			expect(ior).to.deep.equal(Ior.both(new Str("ab"), [2, 4]));
+		});
+	});
+
+	describe("collectEntriesInto", () => {
+		it("collects the key-right-hand-value pairs into the Builder if no elements are Left", () => {
+			const builder = new TestBuilder<[string, number]>();
+			const ior = Ior.collectEntriesInto(
+				[
+					["a", Ior.both(new Str("x"), 2)],
+					["b", Ior.both(new Str("y"), 4)],
+				],
+				builder,
+			);
+			expect(ior).to.deep.equal(
+				Ior.both(new Str("xy"), [
+					["a", 2],
+					["b", 4],
+				]),
+			);
+		});
+	});
+
+	describe("all", () => {
+		it("collects the right-hand values in an array if no elements are Left", () => {
+			const ior = Ior.all([
+				Ior.both<Str, 2>(new Str("a"), 2),
+				Ior.both<Str, 4>(new Str("b"), 4),
+			]);
+			expect(ior).to.deep.equal(Ior.both(new Str("ab"), [2, 4]));
+		});
+	});
+
+	describe("allEntries", () => {
+		it("collects the key-right-hand-value pairs in an object if no elements are Left", () => {
+			const ior = Ior.allEntries([
+				["a", Ior.both(new Str("x"), 2)],
+				["b", Ior.both(new Str("y"), 4)],
+			]);
+			expect(ior).to.deep.equal(Ior.both(new Str("xy"), { a: 2, b: 4 }));
+		});
+	});
+
+	describe("allProps", () => {
+		it("collects the right-hand values in an object if no elements are Left", () => {
+			const ior = Ior.allProps({
+				two: Ior.both<Str, 2>(new Str("a"), 2),
+				four: Ior.both<Str, 4>(new Str("b"), 4),
+			});
+			expect(ior).to.deep.equal(
+				Ior.both(new Str("ab"), { two: 2, four: 4 }),
 			);
 		});
 	});
@@ -258,39 +358,6 @@ describe("Ior", () => {
 				[0, "a"],
 				[1, "b"],
 			]);
-		});
-	});
-
-	describe("collectInto", () => {
-		it("collects the right-hand values into the Builder if no elements are Left", () => {
-			const builder = new TestBuilder<number>();
-			const ior = Ior.collectInto(
-				[Ior.both(new Str("a"), 2), Ior.both(new Str("b"), 4)],
-				builder,
-			);
-			expect(ior).to.deep.equal(Ior.both(new Str("ab"), [2, 4]));
-		});
-	});
-
-	describe("all", () => {
-		it("collects the right-hand values in an array if no elements are Left", () => {
-			const ior = Ior.all([
-				Ior.both<Str, 2>(new Str("a"), 2),
-				Ior.both<Str, 4>(new Str("b"), 4),
-			]);
-			expect(ior).to.deep.equal(Ior.both(new Str("ab"), [2, 4]));
-		});
-	});
-
-	describe("allProps", () => {
-		it("collects the right-hand values in an object if no elements are Left", () => {
-			const ior = Ior.allProps({
-				two: Ior.both<Str, 2>(new Str("a"), 2),
-				four: Ior.both<Str, 4>(new Str("b"), 4),
-			});
-			expect(ior).to.deep.equal(
-				Ior.both(new Str("ab"), { two: 2, four: 4 }),
-			);
 		});
 	});
 
@@ -549,6 +616,29 @@ describe("Ior", () => {
 		});
 	});
 
+	describe("traverseEntriesIntoPar", () => {
+		it("applies the function to the elements and collects the key-right-hand-value pairs into the Builder if no results are Left", async () => {
+			const builder = new TestBuilder<[string, [number, string]]>();
+			const ior = await Ior.traverseEntriesIntoPar(
+				[
+					["a", "x"],
+					["b", "y"],
+				],
+				(char, key, idx) =>
+					delay(key === "a" ? 50 : 10).then(() =>
+						Ior.both(new Str(char), [idx, key + char]),
+					),
+				builder,
+			);
+			expect(ior).to.deep.equal(
+				Ior.both(new Str("yx"), [
+					["b", [1, "by"]],
+					["a", [0, "ax"]],
+				]),
+			);
+		});
+	});
+
 	describe("traversePar", () => {
 		it("applies the function to the elements and collects the right-hand values in an array if no results are Left", async () => {
 			const ior = await Ior.traversePar(["a", "b"], (char, idx) =>
@@ -561,6 +651,96 @@ describe("Ior", () => {
 					[0, "a"],
 					[1, "b"],
 				]),
+			);
+		});
+	});
+
+	describe("traverseEntriesPar", () => {
+		it("applies the function to the elements and collects the key-right-hand-value pairs in an object if no results are Left", async () => {
+			const ior = await Ior.traverseEntriesPar(
+				[
+					["a", "x"],
+					["b", "y"],
+				],
+				(char, key, idx) =>
+					delay(key === "a" ? 50 : 10).then(() =>
+						Ior.both(new Str(char), [idx, key + char]),
+					),
+			);
+			expect(ior).to.deep.equal(
+				Ior.both(new Str("yx"), {
+					a: [0, "ax"],
+					b: [1, "by"],
+				}),
+			);
+		});
+	});
+
+	describe("collectIntoPar", () => {
+		it("collects the right-hand values into the Builder if no elements are Left", async () => {
+			const builder = new TestBuilder<number>();
+			const ior = await Ior.collectIntoPar(
+				[
+					delay(50).then(() => Ior.both(new Str("a"), 2)),
+					delay(10).then(() => Ior.both(new Str("b"), 4)),
+				],
+				builder,
+			);
+			expect(ior).to.deep.equal(Ior.both(new Str("ba"), [4, 2]));
+		});
+	});
+
+	describe("collectEntriesIntoPar", () => {
+		it("collects the key-right-hand-value pairs into the Builder if no elements are Left", async () => {
+			const builder = new TestBuilder<[string, number]>();
+			const ior = await Ior.collectEntriesIntoPar(
+				[
+					["a", delay(50).then(() => Ior.both(new Str("x"), 2))],
+					["b", delay(10).then(() => Ior.both(new Str("y"), 4))],
+				],
+				builder,
+			);
+			expect(ior).to.deep.equal(
+				Ior.both(new Str("yx"), [
+					["b", 4],
+					["a", 2],
+				]),
+			);
+		});
+	});
+
+	describe("allPar", () => {
+		it("collects the right-hand values in an array if no elements are Left", async () => {
+			const ior = await Ior.allPar([
+				delay(50).then<Ior<Str, 2>>(() => Ior.both(new Str("a"), 2)),
+				delay(10).then<Ior<Str, 4>>(() => Ior.both(new Str("b"), 4)),
+			]);
+			expect(ior).to.deep.equal(Ior.both(new Str("ba"), [2, 4]));
+		});
+	});
+
+	describe("allEntriesPar", () => {
+		it("collects the key-right-hand-value pairs in an object if no elements are Left", async () => {
+			const ior = await Ior.allEntriesPar([
+				["a", delay(50).then(() => Ior.both(new Str("x"), 2))],
+				["b", delay(10).then(() => Ior.both(new Str("y"), 4))],
+			]);
+			expect(ior).to.deep.equal(Ior.both(new Str("yx"), { a: 2, b: 4 }));
+		});
+	});
+
+	describe("allPropsPar", () => {
+		it("collects the right-hand values in an object if no elements are Left", async () => {
+			const ior = await Ior.allPropsPar({
+				two: delay(50).then<Ior<Str, 2>>(() =>
+					Ior.both(new Str("a"), 2),
+				),
+				four: delay(10).then<Ior<Str, 4>>(() =>
+					Ior.both(new Str("b"), 4),
+				),
+			});
+			expect(ior).to.deep.equal(
+				Ior.both(new Str("ba"), { two: 2, four: 4 }),
 			);
 		});
 	});
@@ -579,46 +759,6 @@ describe("Ior", () => {
 				[1, "b"],
 				[0, "a"],
 			]);
-		});
-	});
-
-	describe("collectIntoPar", () => {
-		it("collects the right-hand values into the Builder if no elements are Left", async () => {
-			const builder = new TestBuilder<number>();
-			const ior = await Ior.collectIntoPar(
-				[
-					delay(50).then(() => Ior.both(new Str("a"), 2)),
-					delay(10).then(() => Ior.both(new Str("b"), 4)),
-				],
-				builder,
-			);
-			expect(ior).to.deep.equal(Ior.both(new Str("ba"), [4, 2]));
-		});
-	});
-
-	describe("allPar", () => {
-		it("collects the right-hand values in an array if no elements are Left", async () => {
-			const ior = await Ior.allPar([
-				delay(50).then<Ior<Str, 2>>(() => Ior.both(new Str("a"), 2)),
-				delay(10).then<Ior<Str, 4>>(() => Ior.both(new Str("b"), 4)),
-			]);
-			expect(ior).to.deep.equal(Ior.both(new Str("ba"), [2, 4]));
-		});
-	});
-
-	describe("allPropsPar", () => {
-		it("collects the right-hand values in an object if no elements are Left", async () => {
-			const ior = await Ior.allPropsPar({
-				two: delay(50).then<Ior<Str, 2>>(() =>
-					Ior.both(new Str("a"), 2),
-				),
-				four: delay(10).then<Ior<Str, 4>>(() =>
-					Ior.both(new Str("b"), 4),
-				),
-			});
-			expect(ior).to.deep.equal(
-				Ior.both(new Str("ba"), { two: 2, four: 4 }),
-			);
 		});
 	});
 
