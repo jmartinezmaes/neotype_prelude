@@ -37,6 +37,8 @@ import { cmb, type Semigroup } from "./cmb.js";
  * import type { Builder } from "@neotype/prelude/builder.js";
  * ```
  *
+ * Built-in implementors of `Builder` can also be imported as named.
+ *
  * ## Implementing `Builder`
  *
  * Implementors of `Builder` must implement the `add` and `finish` methods.
@@ -47,25 +49,50 @@ import { cmb, type Semigroup } from "./cmb.js";
  *     specify the behavior of the `Builder` after `finish` is called, and
  *     whether any further sequences of method calls are allowed.
  *
- * @example Creating a `Builder` for arrays
+ * ## Built-in builders
  *
- * Consider an `ArrayBuilder` class that builds an array by appending values:
+ * ### String builders
  *
- * ```ts
- * import type { Builder } from "@neotype/prelude/builder.js";
+ * These builders construct a string:
  *
- * class ArrayBuilder<in out T> implements Builder<T, T[]> {
- *     readonly #elems: T[] = [];
+ * -   `StringAppendBuilder` appends strings.
+ * -   `StringPrependBuilder` prepends strings.
  *
- *     add(elem: T): void {
- *         this.#elems.push(elem);
- *     }
+ * ### Array Builders
  *
- *     finish(): T[] {
- *         return this.#elems;
- *     }
- * }
- * ```
+ * These builders construct an array:
+ *
+ * -   `ArrayPushBuilder` appends elements.
+ * -   `ArrayUnshiftBuilder` prepends elements.
+ * -   `ArrayEntryBuilder` assigns elements to indices from index-element pairs.
+ * -   `ArrayConcatBuilder` concatenates arrays.
+ *
+ * ### Record (object) builders
+ *
+ * These builders construct a record (object):
+ *
+ * -   `RecordEntryBuilder` assigns values to keys from key-value pairs.
+ * -   `RecordSpreadBuilder` spreads objects.
+ *
+ * ### Map builders
+ *
+ * These builders construct a map:
+ *
+ * -   `MapEntryBuilder` assigns values to keys from key-value pairs.
+ * -   `MapUnionBuilder` takes the union of maps.
+ *
+ * ### Set builders
+ *
+ * These builders construct a set:
+ *
+ * -   `SetValueBuilder` adds elements.
+ * -   `SetUnionBuilder` takes the union of sets.
+ *
+ * ### Semigroup builders
+ *
+ * These builders construct a semigroup:
+ *
+ * -   `SemigroupBuilder` combines semigroups.
  *
  * @module
  */
@@ -91,7 +118,7 @@ export interface Builder<in T, out TFinish> {
 }
 
 /**
- *
+ * A builder that constructs a string.
  */
 export abstract class StringBuilder<in T> implements Builder<T, string> {
 	protected val: string;
@@ -108,7 +135,7 @@ export abstract class StringBuilder<in T> implements Builder<T, string> {
 }
 
 /**
- *
+ * A builder that constructs a string by appending strings.
  */
 export class StringAppendBuilder extends StringBuilder<string> {
 	add(elem: string): void {
@@ -117,7 +144,7 @@ export class StringAppendBuilder extends StringBuilder<string> {
 }
 
 /**
- *
+ * A builder that constructs a string by prepending strings.
  */
 export class StringPrependBuilder extends StringBuilder<string> {
 	add(elem: string): void {
@@ -126,7 +153,7 @@ export class StringPrependBuilder extends StringBuilder<string> {
 }
 
 /**
- *
+ * A builder that constructs an array.
  */
 export abstract class ArrayBuilder<in T, out TFinish>
 	implements Builder<T, TFinish[]>
@@ -145,7 +172,7 @@ export abstract class ArrayBuilder<in T, out TFinish>
 }
 
 /**
- *
+ * A builder that constructs an array by appending elements.
  */
 export class ArrayPushBuilder<in out T> extends ArrayBuilder<T, T> {
 	add(elem: T): void {
@@ -154,7 +181,7 @@ export class ArrayPushBuilder<in out T> extends ArrayBuilder<T, T> {
 }
 
 /**
- *
+ * A builder that constructs an array by prepending elements.
  */
 export class ArrayUnshiftBuilder<in out T> extends ArrayBuilder<T, T> {
 	add(elem: T): void {
@@ -163,7 +190,8 @@ export class ArrayUnshiftBuilder<in out T> extends ArrayBuilder<T, T> {
 }
 
 /**
- *
+ * A builder that constructs an array by assigning elements to indices from
+ * index-element pairs.
  */
 export class ArrayEntryBuilder<in out T> extends ArrayBuilder<
 	readonly [number, T],
@@ -175,7 +203,7 @@ export class ArrayEntryBuilder<in out T> extends ArrayBuilder<
 }
 
 /**
- *
+ * A builder that constructs an array by concatenating arrays.
  */
 export class ArrayConcatBuilder<in out T> extends ArrayBuilder<T[], T> {
 	add(elem: T[]): void {
@@ -184,7 +212,7 @@ export class ArrayConcatBuilder<in out T> extends ArrayBuilder<T[], T> {
 }
 
 /**
- *
+ * A builder that constructs an object.
  */
 export abstract class RecordBuilder<
 	in T,
@@ -206,7 +234,8 @@ export abstract class RecordBuilder<
 }
 
 /**
- *
+ * A builder that constructs an object by assigning values to keys from
+ * key-value pairs.
  */
 export class RecordEntryBuilder<
 	in out K extends number | string | symbol,
@@ -218,7 +247,7 @@ export class RecordEntryBuilder<
 }
 
 /**
- *
+ * A builder that constructs an object by merging objects.
  */
 export class RecordSpreadBuilder<
 	in out K extends number | string | symbol,
@@ -230,7 +259,7 @@ export class RecordSpreadBuilder<
 }
 
 /**
- *
+ * A builder that constucts a map.
  */
 export abstract class MapBuilder<in T, out K, out V>
 	implements Builder<T, Map<K, V>>
@@ -249,7 +278,8 @@ export abstract class MapBuilder<in T, out K, out V>
 }
 
 /**
- *
+ * A builder that constucts a map by assigning values to keys from key-value
+ * pairs.
  */
 export class MapEntryBuilder<in out K, in out V> extends MapBuilder<
 	readonly [K, V],
@@ -262,7 +292,7 @@ export class MapEntryBuilder<in out K, in out V> extends MapBuilder<
 }
 
 /**
- *
+ * A builder that constucts a map by taking the union of maps.
  */
 export class MapUnionBuilder<in out K, in out V> extends MapBuilder<
 	Map<K, V>,
@@ -280,7 +310,7 @@ export class MapUnionBuilder<in out K, in out V> extends MapBuilder<
 }
 
 /**
- *
+ * A builder that constucts a set.
  */
 export abstract class SetBuilder<in T, out TFinish>
 	implements Builder<T, Set<TFinish>>
@@ -299,7 +329,7 @@ export abstract class SetBuilder<in T, out TFinish>
 }
 
 /**
- *
+ * A builder that constucts a set by adding elements.
  */
 export class SetValueBuilder<in out T> extends SetBuilder<T, T> {
 	add(elem: T): void {
@@ -308,7 +338,7 @@ export class SetValueBuilder<in out T> extends SetBuilder<T, T> {
 }
 
 /**
- *
+ * A builder that constucts a set by taking the union of sets.
  */
 export class SetUnionBuilder<in out T> extends SetBuilder<Set<T>, T> {
 	add(elem: Set<T>): void {
@@ -322,7 +352,7 @@ export class SetUnionBuilder<in out T> extends SetBuilder<Set<T>, T> {
 }
 
 /**
- *
+ * A builder that constrcuts a semigroup by combining semigroups.
  */
 export class SemigroupBuilder<in out T extends Semigroup<T>>
 	implements Builder<T, T>
@@ -343,7 +373,7 @@ export class SemigroupBuilder<in out T extends Semigroup<T>>
 }
 
 /**
- *
+ * A builder that does not consider its arguments and does not produce a result.
  */
 export class NoOpBuilder implements Builder<unknown, void> {
 	add(): void {

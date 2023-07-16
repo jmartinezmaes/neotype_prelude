@@ -122,7 +122,7 @@ describe("RecordSpreadBuilder", () => {
 });
 
 describe("MapEntryBuilder", () => {
-	it("builds a Map by assigning values to keys", () => {
+	it("builds a map by assigning values to keys", () => {
 		const builder: Builder<
 			readonly [string, number],
 			Map<string, number>
@@ -141,7 +141,7 @@ describe("MapEntryBuilder", () => {
 });
 
 describe("MapUnionBuilder", () => {
-	it("builds a Map by taking the union of maps", () => {
+	it("builds a map by taking the union of maps", () => {
 		const builder: Builder<
 			Map<string, number>,
 			Map<string, number>
@@ -164,7 +164,7 @@ describe("MapUnionBuilder", () => {
 });
 
 describe("SetValueBuilder", () => {
-	it("builds a Set by adding values", () => {
+	it("builds a set by adding values", () => {
 		const builder: Builder<number, Set<number>> = new SetValueBuilder();
 		builder.add(1);
 		builder.add(2);
@@ -175,7 +175,7 @@ describe("SetValueBuilder", () => {
 });
 
 describe("SetUnionBuilder", () => {
-	it("builds a Set by taking the union of sets", () => {
+	it("builds a set by taking the union of sets", () => {
 		const builder: Builder<
 			Set<number>,
 			Set<number>
