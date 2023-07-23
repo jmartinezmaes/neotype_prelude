@@ -67,4 +67,4 @@ jobs:
       - uses: volta-cli/action@v4
       - run: npm ci
       - run: npm i -D typescript@${{ matrix.ts-version }}
-      - run: npm test
+      - run: npm run typecheck
