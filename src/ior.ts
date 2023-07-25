@@ -601,7 +601,13 @@ export namespace Ior {
 	}
 
 	/**
+	 * Map the elements in an iterable of key-element pairs to `Ior` values,
+	 * evaluate the values from left to right, and collect the
+	 * key-right-hand-value pairs into a `Builder`.
 	 *
+	 * @remarks
+	 *
+	 * If any `Ior` fails, the state of the provided `Builder` is undefined.
 	 */
 	export function traverseEntriesInto<
 		K,
@@ -634,7 +640,9 @@ export namespace Ior {
 	}
 
 	/**
-	 *
+	 * Map the elements in an iterable of key-element pairs to `Ior` values,
+	 * evaluate the values from left to right, and collect the
+	 * key-right-hand-value pairs in an object.
 	 */
 	export function traverseEntries<
 		K extends number | string | symbol,
@@ -664,7 +672,12 @@ export namespace Ior {
 	}
 
 	/**
+	 * Evaluate the `Ior` elements in an iterable of key-`Ior` pairs from left
+	 * to right and collect the key-right-hand-value pairs into a `Builder`.
 	 *
+	 * @remarks
+	 *
+	 * If any `Ior` fails, the state of the provided `Builder` is undefined.
 	 */
 	export function collectEntriesInto<
 		K extends number | string | symbol,
@@ -717,7 +730,8 @@ export namespace Ior {
 	}
 
 	/**
-	 *
+	 * Evaluate the `Ior` elements in an iterable of key-`Ior` pairs from left
+	 * to right and collect the key-right-hand-value pairs in an object.
 	 */
 	export function allEntries<
 		K extends number | string | symbol,
@@ -877,7 +891,13 @@ export namespace Ior {
 	}
 
 	/**
+	 * Map the elements in an iterable of key-element pairs to promise-like
+	 * `Ior` values, concurrently evaluate the values, and collect the
+	 * key-right-hand-value pairs into a `Builder`.
 	 *
+	 * @remarks
+	 *
+	 * If any `Ior` fails, the state of the provided `Builder` is undefined.
 	 */
 	export function traverseEntriesIntoPar<
 		K,
@@ -916,7 +936,9 @@ export namespace Ior {
 	}
 
 	/**
-	 *
+	 * Map the elements in an iterable of key-element pairs to promise-like
+	 * `Ior` values, concurrently evaluate the values, and collect the
+	 * key-right-hand-value pairs in an object.
 	 */
 	export function traverseEntriesPar<
 		K extends number | string | symbol,
@@ -946,7 +968,13 @@ export namespace Ior {
 	}
 
 	/**
+	 * Concurrently evaluate the promise-like `Ior` elements in an iterable of
+	 * key-element pairs and collect the key-right-hand-value pairs into a
+	 * `Builder`.
 	 *
+	 * @remarks
+	 *
+	 * If any `Ior` fails, the state of the provided `Builder` is undefined.
 	 */
 	export function collectEntriesIntoPar<
 		K,
@@ -1012,7 +1040,9 @@ export namespace Ior {
 	}
 
 	/**
-	 *
+	 * Concurrently evaluate the promise-like `Ior` elements in an iterable of
+	 * key-element pairs and collect the key-right-hand-value pairs in an
+	 * object.
 	 */
 	export function allEntriesPar<
 		K extends number | string | symbol,

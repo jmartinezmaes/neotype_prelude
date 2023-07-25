@@ -524,7 +524,14 @@ export namespace Maybe {
 	}
 
 	/**
+	 * Map the elements in an iterable of key-element pairs to `Maybe` values,
+	 * evaluate the values from left to right, and collect the key-present-value
+	 * pairs into a `Builder`.
 	 *
+	 * @remarks
+	 *
+	 * If any `Maybe` is absent, the state of the provided `Builder` is
+	 * undefined.
 	 */
 	export function traverseEntriesInto<K, V, V1, TFinish>(
 		entries: Iterable<readonly [K, V]>,
@@ -551,7 +558,9 @@ export namespace Maybe {
 	}
 
 	/**
-	 *
+	 * Map the elements in an iterable of key-element pairs to `Maybe` values,
+	 * evaluate the values from left to right, and collect the key-present-value
+	 * pairs in an object.
 	 */
 	export function traverseEntries<K extends number | string | symbol, V, V1>(
 		entries: Iterable<readonly [K, V]>,
@@ -577,7 +586,13 @@ export namespace Maybe {
 	}
 
 	/**
+	 * Evaluate the `Maybe` elements in an iterable of key-`Maybe` pairs from
+	 * left to right and collect the key-present-value pairs into a `Builder`.
 	 *
+	 * @remarks
+	 *
+	 * If any `Maybe` is absent, the state of the provided `Builder` is
+	 * undefined.
 	 */
 	export function collectEntriesInto<K, V, TFinish>(
 		entries: Iterable<readonly [K, Maybe<V>]>,
@@ -618,7 +633,8 @@ export namespace Maybe {
 	}
 
 	/**
-	 *
+	 * Evaluate the `Maybe` elements in an iterable of key-`Maybe` pairs from
+	 * left to right and collect the key-present-value pairs in an object.
 	 */
 	export function allEntries<K extends number | string | symbol, V>(
 		entries: Iterable<readonly [K, Maybe<V>]>,
@@ -727,7 +743,14 @@ export namespace Maybe {
 	}
 
 	/**
+	 * Map the elements in an iterable of key-element pairs to promise-like
+	 * `Maybe` values, concurrently evaluate the values, and collect the
+	 * key-present-value pairs into a `Builder`.
 	 *
+	 * @remarks
+	 *
+	 * If any `Maybe` is absent, the state of the provided `Builder` is
+	 * undefined.
 	 */
 	export function traverseEntriesIntoPar<K, V, V1, TFinish>(
 		entries: Iterable<readonly [K, V]>,
@@ -760,7 +783,9 @@ export namespace Maybe {
 	}
 
 	/**
-	 *
+	 * Map the elements in an iterable of key-element pairs to promise-like
+	 * `Maybe` values, concurrently evaluate the values, and collect the
+	 * key-present-value pairs in an object.
 	 */
 	export function traverseEntriesPar<
 		K extends number | string | symbol,
@@ -790,7 +815,14 @@ export namespace Maybe {
 	}
 
 	/**
+	 * Concurrently evaluate the promise-like `Maybe` elements in an iterable
+	 * of key-element pairs and collect the key-present-value pairs into a
+	 * `Builder`.
 	 *
+	 * @remarks
+	 *
+	 * If any `Maybe` is absent, the state of the provided `Builder` is
+	 * undefined.
 	 */
 	export function collectEntriesIntoPar<
 		K extends number | string | symbol,
@@ -843,7 +875,8 @@ export namespace Maybe {
 	}
 
 	/**
-	 *
+	 * Concurrently evaluate the promise-like `Maybe` elements in an iterable of
+	 * key-element pairs and collect the key-present-value pairs in an object.
 	 */
 	export function allEntriesPar<K extends number | string | symbol, V>(
 		entries: Iterable<readonly [K, Maybe<V> | PromiseLike<Maybe<V>>]>,

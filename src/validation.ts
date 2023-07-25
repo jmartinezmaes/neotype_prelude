@@ -466,7 +466,14 @@ export namespace Validation {
 	}
 
 	/**
+	 * Map the elements in an iterable of key-element pairs to `Validation`
+	 * values, evaluate the values from left to right, and collect the
+	 * key-success pairs into a `Builder`.
 	 *
+	 * @remarks
+	 *
+	 * If any `Validation` fails, the state of the provided `Builder` is
+	 * undefined.
 	 */
 	export function traverseEntriesInto<
 		K,
@@ -499,7 +506,9 @@ export namespace Validation {
 	}
 
 	/**
-	 *
+	 * Map the elements in an iterable of key-element pairs to `Validation`
+	 * values, evaluate the values from left to right, and collect the
+	 * key-success pairs in an object.
 	 */
 	export function traverseEntries<
 		K extends number | string | symbol,
@@ -530,7 +539,14 @@ export namespace Validation {
 	}
 
 	/**
+	 * Evaluate the `Validation` elements in an iterable of key-`Validation`
+	 * pairs from left to right and collect the key-success pairs into a
+	 * `Builder`.
 	 *
+	 * @remarks
+	 *
+	 * If any `Validation` fails, the state of the provided `Builder` is
+	 * undefined.
 	 */
 	export function collectEntriesInto<K, E extends Semigroup<E>, V, TFinish>(
 		entries: Iterable<readonly [K, Validation<E, V>]>,
@@ -582,7 +598,8 @@ export namespace Validation {
 	}
 
 	/**
-	 *
+	 * Evaluate the `Validation` elements in an iterable of key-`Validaiton`
+	 * pairs from left to right and collect the key-success pairs in an object.
 	 */
 	export function allEntries<
 		K extends number | string | symbol,
@@ -701,7 +718,14 @@ export namespace Validation {
 	}
 
 	/**
+	 * Map the elements in an iterable of key-element pairs to promise-like
+	 * `Validation` values, concurrently evaluate the values, and collect the
+	 * key-success pairs into a `Builder`.
 	 *
+	 * @remarks
+	 *
+	 * If any `Validation` fails, the state of the provided `Builder` is
+	 * undefined.
 	 */
 	export function traverseEntriesIntoPar<
 		K,
@@ -746,7 +770,9 @@ export namespace Validation {
 	}
 
 	/**
-	 *
+	 * Map the elements in an iterable of key-element pairs to promise-like
+	 * `Validation` values, concurrently evaluate the values, and collect the
+	 * key-success pairs in an object.
 	 */
 	export function traverseEntriesPar<
 		K extends number | string | symbol,
@@ -781,7 +807,14 @@ export namespace Validation {
 	}
 
 	/**
+	 * Concurrently evaluate the promise-like `Validation` elements in an
+	 * iterable of key-element pairs and collect the key-success pairs into a
+	 * `Builder`.
 	 *
+	 * @remarks
+	 *
+	 * If any `Validation` fails, the state of the provided `Builder` is
+	 * undefined.
 	 */
 	export function collectEntriesIntoPar<
 		K extends number | string | symbol,
@@ -847,7 +880,9 @@ export namespace Validation {
 	}
 
 	/**
-	 *
+	 * Concurrently evaluate the promise-like `Validation` elements in an
+	 * iterable of key-element pairs and collect the key-success pairs in an
+	 * object.
 	 */
 	export function allEntriesPar<
 		K extends number | string | symbol,
