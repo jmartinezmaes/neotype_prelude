@@ -216,7 +216,7 @@
  * These functions evaluate the `Ior` elements in a structure and collect the
  * right-hand values:
  *
- * -   `collectInto` traverses an iterable and collects the right-hand values
+ * -   `allInto` traverses an iterable and collects the right-hand values
  *     into a `Builder`.
  * -   `all` traverses an iterable and collects the right-hand values in an
  *     array or a tuple literal.
@@ -235,7 +235,7 @@
  * These functions concurrently evaluate the promise-like `Ior` elements in a
  * structure and collect the right-hand values:
  *
- * -   `collectIntoPar` traverses an iterable and collects the right-hand values
+ * -   `allIntoPar` traverses an iterable and collects the right-hand values
  *     into a `Builder`.
  * -   `allPar` traverses an iterable and collects the right-hand values in an
  *     array or a tuple literal.
@@ -664,7 +664,7 @@ export namespace Ior {
 	 *
 	 * If any `Ior` fails, the state of the provided `Builder` is undefined.
 	 */
-	export function collectInto<A extends Semigroup<A>, B, TFinish>(
+	export function allInto<A extends Semigroup<A>, B, TFinish>(
 		iors: Iterable<Ior<A, B>>,
 		builder: Builder<B, TFinish>,
 	): Ior<A, TFinish> {
@@ -960,7 +960,7 @@ export namespace Ior {
 	 *
 	 * If any `Ior` fails, the state of the provided `Builder` is undefined.
 	 */
-	export function collectIntoPar<A extends Semigroup<A>, B, TFinish>(
+	export function allIntoPar<A extends Semigroup<A>, B, TFinish>(
 		elems: Iterable<Ior<A, B> | PromiseLike<Ior<A, B>>>,
 		builder: Builder<B, TFinish>,
 	): Promise<Ior<A, TFinish>> {

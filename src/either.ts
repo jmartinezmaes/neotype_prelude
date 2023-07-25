@@ -208,7 +208,7 @@
  * These functions evaluate the `Either` elements in a structure and collect the
  * successes:
  *
- * -   `collectInto` traverses an iterable of elements and collects the
+ * -   `allInto` traverses an iterable of elements and collects the
  *     successes into a `Builder`.
  * -   `collectEntriesInto` traverses an iterable of key-element pairs and
  *     collects the key-success pairs into a `Builder`.
@@ -234,7 +234,7 @@
  * These functions concurrently evaluate the promise-like `Either` elements in a
  * structure and collect the successes:
  *
- * -   `collectIntoPar` traverses an iterable and collects the successes into a
+ * -   `allIntoPar` traverses an iterable and collects the successes into a
  *     `Builder`.
  * -   `collectEntriesIntoPar`
  * -   `allPar` traverses an iterable and collects the successes in an array or
@@ -567,7 +567,7 @@ export namespace Either {
 	 *
 	 * If any `Either` fails, the state of the provided `Builder` is undefined.
 	 */
-	export function collectInto<E, T, TFinish>(
+	export function allInto<E, T, TFinish>(
 		eithers: Iterable<Either<E, T>>,
 		builder: Builder<T, TFinish>,
 	): Either<E, TFinish> {
@@ -812,7 +812,7 @@ export namespace Either {
 	 *
 	 * If any `Either` fails, the state of the provided `Builder` is undefined.
 	 */
-	export function collectIntoPar<E, T, TFinish>(
+	export function allIntoPar<E, T, TFinish>(
 		elems: Iterable<Either<E, T> | PromiseLike<Either<E, T>>>,
 		builder: Builder<T, TFinish>,
 	): Promise<Either<E, TFinish>> {

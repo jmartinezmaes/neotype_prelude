@@ -211,7 +211,7 @@
  * These functions evaluate the `Maybe` elements in a structure and collect the
  * present values:
  *
- * -   `collectInto` traverses an iterable and collects the present values into
+ * -   `allInto` traverses an iterable and collects the present values into
  *     a `Builder`.
  * -   `all` traverses an iterable and collects the present values in an array
  *     or a tuple literal.
@@ -230,7 +230,7 @@
  * These functions concurrently evaluate the promise-like `Maybe` elements in a
  * structure and collect the present values:
  *
- * -   `collectIntoPar` traverses an iterable and collects the present values
+ * -   `allIntoPar` traverses an iterable and collects the present values
  *     into a `Builder`.
  * -   `allPar` traverses an iterable and collects the present values in an
  *     array or a tuple literal.
@@ -578,7 +578,7 @@ export namespace Maybe {
 	 * If any `Maybe` is absent, the state of the provided `Builder` is
 	 * undefined.
 	 */
-	export function collectInto<T, TFinish>(
+	export function allInto<T, TFinish>(
 		maybes: Iterable<Maybe<T>>,
 		builder: Builder<T, TFinish>,
 	): Maybe<TFinish> {
@@ -807,7 +807,7 @@ export namespace Maybe {
 	 * If any `Maybe` is absent, the state of the provided `Builder` is
 	 * undefined.
 	 */
-	export function collectIntoPar<T, TFinish>(
+	export function allIntoPar<T, TFinish>(
 		elems: Iterable<Maybe<T> | PromiseLike<Maybe<T>>>,
 		builder: Builder<T, TFinish>,
 	): Promise<Maybe<TFinish>> {

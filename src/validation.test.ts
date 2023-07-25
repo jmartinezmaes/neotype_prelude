@@ -143,10 +143,10 @@ describe("Validation", () => {
 		});
 	});
 
-	describe("collectInto", () => {
+	describe("allInto", () => {
 		it("collects the successes into the Builder if all results are Ok", () => {
 			const builder = new TestBuilder<number>();
-			const vdn = Validation.collectInto(
+			const vdn = Validation.allInto(
 				[Validation.ok<2, Str>(2), Validation.ok<4, Str>(4)],
 				builder,
 			);
@@ -323,10 +323,10 @@ describe("Validation", () => {
 		});
 	});
 
-	describe("collectIntoPar", () => {
+	describe("allIntoPar", () => {
 		it("collects the successes into the Builder if all elements are Ok", async () => {
 			const builder = new TestBuilder<number>();
-			const vdn = await Validation.collectIntoPar(
+			const vdn = await Validation.allIntoPar(
 				[
 					delay(50).then(() => Validation.ok<2, Str>(2)),
 					delay(10).then(() => Validation.ok<4, Str>(4)),

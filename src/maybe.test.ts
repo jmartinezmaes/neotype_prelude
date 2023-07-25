@@ -231,10 +231,10 @@ describe("Maybe", () => {
 		});
 	});
 
-	describe("collectInto", () => {
+	describe("allInto", () => {
 		it("collects the present values into the Builder if all elements are Just", () => {
 			const builder = new TestBuilder<number>();
-			const maybe = Maybe.collectInto(
+			const maybe = Maybe.allInto(
 				[Maybe.just(1), Maybe.just(2)],
 				builder,
 			);
@@ -467,10 +467,10 @@ describe("Maybe", () => {
 		});
 	});
 
-	describe("collectIntoPar", () => {
+	describe("allIntoPar", () => {
 		it("collects the present values into the Builder if all elements are Just", async () => {
 			const builder = new TestBuilder<number>();
-			const maybe = await Maybe.collectIntoPar(
+			const maybe = await Maybe.allIntoPar(
 				[
 					delay(50).then(() => Maybe.just(1)),
 					delay(10).then(() => Maybe.just(2)),

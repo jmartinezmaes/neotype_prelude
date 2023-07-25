@@ -144,7 +144,7 @@
  * These functions evaluate the `Validation` elements in a structure and collect
  * the successes:
  *
- * -   `collectInto` traverses an iterable and collects the successes into a
+ * -   `allInto` traverses an iterable and collects the successes into a
  *     `Builder`.
  * -   `all` traverses an iterable and collects the successes in an array or a
  *     tuple literal.
@@ -163,7 +163,7 @@
  * These functions concurrently evaluate the promise-like `Validation` elements
  * in a structure and collect the successes:
  *
- * -   `collectIntoPar` traverses an iterable and collects the successes into a
+ * -   `allIntoPar` traverses an iterable and collects the successes into a
  *     `Builder`.
  * -   `allPar` traverses an iterable and collects the successes in an array or
  *     a tuple literal.
@@ -531,7 +531,7 @@ export namespace Validation {
 	 * If any `Validation` fails, the state of the provided `Builder` is
 	 * undefined.
 	 */
-	export function collectInto<E extends Semigroup<E>, T, TFinish>(
+	export function allInto<E extends Semigroup<E>, T, TFinish>(
 		vdns: Iterable<Validation<E, T>>,
 		builder: Builder<T, TFinish>,
 	): Validation<E, TFinish> {
@@ -799,7 +799,7 @@ export namespace Validation {
 	 * If any `Validation` fails, the state of the provided `Builder` is
 	 * undefined.
 	 */
-	export function collectIntoPar<E extends Semigroup<E>, T, TFinish>(
+	export function allIntoPar<E extends Semigroup<E>, T, TFinish>(
 		elems: Iterable<Validation<E, T> | PromiseLike<Validation<E, T>>>,
 		builder: Builder<T, TFinish>,
 	): Promise<Validation<E, TFinish>> {

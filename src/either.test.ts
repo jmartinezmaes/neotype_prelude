@@ -198,10 +198,10 @@ describe("Either", () => {
 		});
 	});
 
-	describe("collectInto", () => {
+	describe("allInto", () => {
 		it("collects the successes into the Builder if all elements are Right", () => {
 			const builder = new TestBuilder<number>();
-			const either = Either.collectInto(
+			const either = Either.allInto(
 				[Either.right<2, 1>(2), Either.right<4, 3>(4)],
 				builder,
 			);
@@ -441,10 +441,10 @@ describe("Either", () => {
 		});
 	});
 
-	describe("collectIntoPar", () => {
+	describe("allIntoPar", () => {
 		it("collects the successes into the Builder if all elements are Right", async () => {
 			const builder = new TestBuilder<number>();
-			const either = await Either.collectIntoPar(
+			const either = await Either.allIntoPar(
 				[
 					delay(50).then(() => Either.right<2, 1>(2)),
 					delay(10).then(() => Either.right<4, 3>(4)),
