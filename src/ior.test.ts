@@ -295,10 +295,10 @@ describe("Ior", () => {
 		});
 	});
 
-	describe("collectEntriesInto", () => {
+	describe("allEntriesInto", () => {
 		it("collects the key-right-hand-value pairs into the Builder if no elements are Left", () => {
 			const builder = new TestBuilder<[string, number]>();
-			const ior = Ior.collectEntriesInto(
+			const ior = Ior.allEntriesInto(
 				[
 					["a", Ior.both(new Str("x"), 2)],
 					["b", Ior.both(new Str("y"), 4)],
@@ -690,10 +690,10 @@ describe("Ior", () => {
 		});
 	});
 
-	describe("collectEntriesIntoPar", () => {
+	describe("allEntriesIntoPar", () => {
 		it("collects the key-right-hand-value pairs into the Builder if no elements are Left", async () => {
 			const builder = new TestBuilder<[string, number]>();
-			const ior = await Ior.collectEntriesIntoPar(
+			const ior = await Ior.allEntriesIntoPar(
 				[
 					["a", delay(50).then(() => Ior.both(new Str("x"), 2))],
 					["b", delay(10).then(() => Ior.both(new Str("y"), 4))],

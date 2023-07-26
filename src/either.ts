@@ -210,7 +210,7 @@
  *
  * -   `allInto` traverses an iterable of elements and collects the
  *     successes into a `Builder`.
- * -   `collectEntriesInto` traverses an iterable of key-element pairs and
+ * -   `allEntriesInto` traverses an iterable of key-element pairs and
  *     collects the key-success pairs into a `Builder`.
  * -   `all` traverses an iterable and collects the successes in an array or a
  *     tuple literal.
@@ -236,7 +236,7 @@
  *
  * -   `allIntoPar` traverses an iterable and collects the successes into a
  *     `Builder`.
- * -   `collectEntriesIntoPar`
+ * -   `allEntriesIntoPar`
  * -   `allPar` traverses an iterable and collects the successes in an array or
  *     a tuple literal.
  * -   `allEntriesPar`
@@ -582,7 +582,7 @@ export namespace Either {
 	 *
 	 * If any `Either` fails, the state of the provided `Builder` is undefined.
 	 */
-	export function collectEntriesInto<K, E, V, TFinish>(
+	export function allEntriesInto<K, E, V, TFinish>(
 		entries: Iterable<readonly [K, Either<E, V>]>,
 		builder: Builder<readonly [K, V], TFinish>,
 	): Either<E, TFinish> {
@@ -827,7 +827,7 @@ export namespace Either {
 	 *
 	 * If any `Either` fails, the state of the provided `Builder` is undefined.
 	 */
-	export function collectEntriesIntoPar<K, E, V, TFinish>(
+	export function allEntriesIntoPar<K, E, V, TFinish>(
 		entries: Iterable<
 			readonly [K, Either<E, V> | PromiseLike<Either<E, V>>]
 		>,

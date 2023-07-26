@@ -594,7 +594,7 @@ export namespace Maybe {
 	 * If any `Maybe` is absent, the state of the provided `Builder` is
 	 * undefined.
 	 */
-	export function collectEntriesInto<K, V, TFinish>(
+	export function allEntriesInto<K, V, TFinish>(
 		entries: Iterable<readonly [K, Maybe<V>]>,
 		builder: Builder<readonly [K, V], TFinish>,
 	): Maybe<TFinish> {
@@ -824,7 +824,7 @@ export namespace Maybe {
 	 * If any `Maybe` is absent, the state of the provided `Builder` is
 	 * undefined.
 	 */
-	export function collectEntriesIntoPar<
+	export function allEntriesIntoPar<
 		K extends number | string | symbol,
 		V,
 		TFinish,

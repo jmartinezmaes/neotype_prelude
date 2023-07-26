@@ -548,7 +548,7 @@ export namespace Validation {
 	 * If any `Validation` fails, the state of the provided `Builder` is
 	 * undefined.
 	 */
-	export function collectEntriesInto<K, E extends Semigroup<E>, V, TFinish>(
+	export function allEntriesInto<K, E extends Semigroup<E>, V, TFinish>(
 		entries: Iterable<readonly [K, Validation<E, V>]>,
 		builder: Builder<readonly [K, V], TFinish>,
 	): Validation<E, TFinish> {
@@ -816,7 +816,7 @@ export namespace Validation {
 	 * If any `Validation` fails, the state of the provided `Builder` is
 	 * undefined.
 	 */
-	export function collectEntriesIntoPar<
+	export function allEntriesIntoPar<
 		K extends number | string | symbol,
 		E extends Semigroup<E>,
 		V,

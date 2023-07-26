@@ -679,7 +679,7 @@ export namespace Ior {
 	 *
 	 * If any `Ior` fails, the state of the provided `Builder` is undefined.
 	 */
-	export function collectEntriesInto<
+	export function allEntriesInto<
 		K extends number | string | symbol,
 		A extends Semigroup<A>,
 		B,
@@ -976,12 +976,7 @@ export namespace Ior {
 	 *
 	 * If any `Ior` fails, the state of the provided `Builder` is undefined.
 	 */
-	export function collectEntriesIntoPar<
-		K,
-		A extends Semigroup<A>,
-		B,
-		TFinish,
-	>(
+	export function allEntriesIntoPar<K, A extends Semigroup<A>, B, TFinish>(
 		entries: Iterable<readonly [K, Ior<A, B> | PromiseLike<Ior<A, B>>]>,
 		builder: Builder<readonly [K, B], TFinish>,
 	): Promise<Ior<A, TFinish>> {

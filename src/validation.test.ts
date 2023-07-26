@@ -154,10 +154,10 @@ describe("Validation", () => {
 		});
 	});
 
-	describe("collectEntriesInto", () => {
+	describe("allEntriesInto", () => {
 		it("collects the key-success pairs into an object if all results are Ok", () => {
 			const builder = new TestBuilder<[string, number]>();
-			const vdn = Validation.collectEntriesInto(
+			const vdn = Validation.allEntriesInto(
 				[
 					["a", Validation.ok(2)],
 					["b", Validation.ok(4)],
@@ -337,10 +337,10 @@ describe("Validation", () => {
 		});
 	});
 
-	describe("collectEntriesIntoPar", () => {
+	describe("allEntriesIntoPar", () => {
 		it("collects the key-success pairs into the Builder if all elements are Ok", async () => {
 			const builder = new TestBuilder<[string, number]>();
-			const vdn = await Validation.collectEntriesIntoPar(
+			const vdn = await Validation.allEntriesIntoPar(
 				[
 					["a", delay(50).then(() => Validation.ok<2, Str>(2))],
 					["b", delay(10).then(() => Validation.ok<4, Str>(4))],

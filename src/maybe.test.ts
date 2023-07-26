@@ -242,10 +242,10 @@ describe("Maybe", () => {
 		});
 	});
 
-	describe("collectEntriesInto", () => {
+	describe("allEntriesInto", () => {
 		it("collects the key-value pairs into the Builder if all elements are Just", () => {
 			const builder = new TestBuilder<[string, number]>();
-			const maybe = Maybe.collectEntriesInto(
+			const maybe = Maybe.allEntriesInto(
 				[
 					["a", Maybe.just(1)],
 					["b", Maybe.just(2)],
@@ -481,10 +481,10 @@ describe("Maybe", () => {
 		});
 	});
 
-	describe("collectEntriesIntoPar", () => {
+	describe("allEntriesIntoPar", () => {
 		it("collects the present values into the Builder if all elements are Just", async () => {
 			const builder = new TestBuilder<[string, number]>();
-			const maybe = await Maybe.collectEntriesIntoPar(
+			const maybe = await Maybe.allEntriesIntoPar(
 				[
 					["a", delay(50).then(() => Maybe.just(1))],
 					["b", delay(10).then(() => Maybe.just(2))],
