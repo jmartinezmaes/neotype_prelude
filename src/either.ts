@@ -684,296 +684,6 @@ export namespace Either {
 	}
 
 	/**
-	 * Evaluate an `Either.GoAsync` async generator to return a `Promise` that
-	 * resolves with an `Either`.
-	 */
-	export async function goAsync<E, TReturn>(
-		gen: GoAsync<E, TReturn>,
-	): Promise<Either<E, TReturn>> {
-		let nxt = await gen.next();
-		let err: any;
-		let isHalted = false;
-		while (!nxt.done) {
-			const either = nxt.value;
-			if (either.isRight()) {
-				nxt = await gen.next(either.val);
-			} else {
-				isHalted = true;
-				err = either.val;
-				nxt = await gen.return(undefined as any);
-			}
-		}
-		return isHalted ? left(err) : right(nxt.value);
-	}
-
-	/**
-	 * Map the elements in an iterable to promise-like `Either` values,
-	 * concurrently evaluate the values, and collect the successes into a
-	 * `Builder`.
-	 *
-	 * @remarks
-	 *
-	 * If any `Either` fails, the state of the provided `Builder` is undefined.
-	 */
-	export function traverseIntoPar<T, E, T1, TFinish>(
-		elems: Iterable<T>,
-		f: (elem: T, idx: number) => Either<E, T1> | PromiseLike<Either<E, T1>>,
-		builder: Builder<T1, TFinish>,
-	): Promise<Either<E, TFinish>> {
-		return new Promise((resolve, reject) => {
-			let remaining = 0;
-			for (const elem of elems) {
-				const idx = remaining;
-				remaining++;
-				Promise.resolve(f(elem, idx)).then((either) => {
-					if (either.isLeft()) {
-						resolve(either);
-						return;
-					}
-					builder.add(either.val);
-					remaining--;
-					if (remaining === 0) {
-						resolve(right(builder.finish()));
-						return;
-					}
-				}, reject);
-			}
-		});
-	}
-
-	/**
-	 * Map the elements in an iterable of key-element pairs to promise-like
-	 * `Either` values, concurrently evaluate the values, and collect the
-	 * key-success pairs into a `Builder`.
-	 *
-	 * @remarks
-	 *
-	 * If any `Either` fails, the state of the provided `Builder` is undefined.
-	 */
-	export function traverseEntriesIntoPar<K, V, E, V1, TFinish>(
-		entries: Iterable<readonly [K, V]>,
-		f: (
-			elem: V,
-			key: K,
-			idx: number,
-		) => Either<E, V1> | PromiseLike<Either<E, V1>>,
-		builder: Builder<readonly [K, V1], TFinish>,
-	): Promise<Either<E, TFinish>> {
-		return traverseIntoPar(
-			entries,
-			async ([key, elem], idx) =>
-				(await f(elem, key, idx)).map((val): [K, V1] => [key, val]),
-			builder,
-		);
-	}
-
-	/**
-	 * Map the elements in an iterable to promise-like `Either` values,
-	 * concurrently evaluate the values, and collect the successes in an array.
-	 */
-	export function traversePar<T, E, T1>(
-		elems: Iterable<T>,
-		f: (elem: T, idx: number) => Either<E, T1> | PromiseLike<Either<E, T1>>,
-	): Promise<Either<E, T1[]>> {
-		return traverseIntoPar(
-			elems,
-			async (elem, idx) =>
-				(await f(elem, idx)).map((val): [number, T1] => [idx, val]),
-			new ArrayEntryBuilder(),
-		);
-	}
-
-	/**
-	 * Map the elements in an iterable of key-element pairs to promise-like
-	 * `Either` values, concurrently evaluate the values, and collect the
-	 * key-success pairs in an object.
-	 */
-	export function traverseEntriesPar<
-		K extends number | string | symbol,
-		V,
-		E,
-		V1,
-	>(
-		entries: Iterable<readonly [K, V]>,
-		f: (
-			elem: V,
-			key: K,
-			idx: number,
-		) => Either<E, V1> | PromiseLike<Either<E, V1>>,
-	): Promise<Either<E, Record<K, V1>>> {
-		return traverseEntriesIntoPar(entries, f, new RecordEntryBuilder());
-	}
-
-	/**
-	 * Concurrently evaluate the promise-like `Either` elements in an iterable
-	 * and collect the successes into a `Builder`.
-	 *
-	 * @remarks
-	 *
-	 * If any `Either` fails, the state of the provided `Builder` is undefined.
-	 */
-	export function allIntoPar<E, T, TFinish>(
-		elems: Iterable<Either<E, T> | PromiseLike<Either<E, T>>>,
-		builder: Builder<T, TFinish>,
-	): Promise<Either<E, TFinish>> {
-		return traverseIntoPar(elems, id, builder);
-	}
-
-	/**
-	 * Concurrently evaluate the promise-like `Either` elements in an iterable
-	 * of key-element pairs and collect the key-success pairs into a `Builder`.
-	 *
-	 * @remarks
-	 *
-	 * If any `Either` fails, the state of the provided `Builder` is undefined.
-	 */
-	export function allEntriesIntoPar<K, E, V, TFinish>(
-		entries: Iterable<
-			readonly [K, Either<E, V> | PromiseLike<Either<E, V>>]
-		>,
-		builder: Builder<readonly [K, V], TFinish>,
-	): Promise<Either<E, TFinish>> {
-		return traverseEntriesIntoPar(entries, id, builder);
-	}
-
-	/**
-	 * Concurrently evaluate the promise-like `Either` elements in an array or a
-	 * tuple literal and collect the successes in an equivalent structure.
-	 *
-	 * @remarks
-	 *
-	 * This function essentially turns an array or a tuple literal of
-	 * promise-like `Either` elements "inside out". For example:
-	 *
-	 * -   `Promise<Either<E, T>>[]` becomes `Promise<Either<E, T[]>>`
-	 * -   `[Promise<Either<E, T1>>, Promise<Either<E, T2>>]` becomes
-	 *     `Promise<Either<E, [T1, T2]>>`
-	 */
-	export function allPar<
-		TElems extends
-			| readonly (Either<any, any> | PromiseLike<Either<any, any>>)[]
-			| [],
-	>(
-		elems: TElems,
-	): Promise<
-		Either<
-			LeftT<{ [K in keyof TElems]: Awaited<TElems[K]> }[number]>,
-			{ [K in keyof TElems]: RightT<Awaited<TElems[K]>> }
-		>
-	>;
-
-	/**
-	 * Concurrently evaluate the promise-like `Either` elements in an iterable
-	 * and collect the successes in an array.
-	 *
-	 * @remarks
-	 *
-	 * This function essentially turns an iterable of promise-like `Either`
-	 * elements "inside out". For example, `Iterable<Promise<Either<E, T>>>`
-	 * becomes `Promise<Either<E, T[]>>`.
-	 */
-	export function allPar<E, T>(
-		elems: Iterable<Either<E, T> | PromiseLike<Either<E, T>>>,
-	): Promise<Either<E, T[]>>;
-
-	export function allPar<E, T>(
-		elems: Iterable<Either<E, T> | PromiseLike<Either<E, T>>>,
-	): Promise<Either<E, T[]>> {
-		return traversePar(elems, id);
-	}
-
-	/**
-	 * Concurrently evaluate the promise-like `Either` elements in an iterable
-	 * of key-element pairs and collect the key-success pairs in an object.
-	 */
-	export function allEntriesPar<K extends number | string | symbol, E, V>(
-		entries: Iterable<
-			readonly [K, Either<E, V> | PromiseLike<Either<E, V>>]
-		>,
-	): Promise<Either<E, Record<K, V>>> {
-		return traverseEntriesPar(entries, id);
-	}
-
-	/**
-	 * Concurrently evaluate the promise-like `Either` elements in a
-	 * string-keyed record or object literal and collect the successes in an
-	 * equivalent structure.
-	 *
-	 * @remarks
-	 *
-	 * This function essentially turns a string-keyed record or object literal
-	 * of promise-like `Either` elements "inside out". For example:
-	 *
-	 * -   `Record<string, Promise<Either<E, T>>>` becomes `Promise<Either<E,
-	 *     Record<string, T>>>`
-	 * -   `{ x: Promise<Either<E, T1>>, y: Promise<Either<E, T2>> }` becomes
-	 *     `Promise<Either<E, { x: T1, y: T2 }>>`
-	 */
-	export function allPropsPar<
-		TProps extends Record<
-			string,
-			Either<any, any> | PromiseLike<Either<any, any>>
-		>,
-	>(
-		props: TProps,
-	): Promise<
-		Either<
-			LeftT<{ [K in keyof TProps]: Awaited<TProps[K]> }[keyof TProps]>,
-			{ [K in keyof TProps]: RightT<Awaited<TProps[K]>> }
-		>
-	>;
-
-	export function allPropsPar<E, T>(
-		props: Record<string, Either<E, T> | PromiseLike<Either<E, T>>>,
-	): Promise<Either<E, Record<string, T>>> {
-		return traverseEntriesPar(Object.entries(props), id);
-	}
-
-	/**
-	 * Map the elements in an iterable to promise-like `Either` values,
-	 * concurrently evaluate the values, and ignore the successes.
-	 */
-	export function forEachPar<T, E>(
-		elems: Iterable<T>,
-		f: (
-			elem: T,
-			idx: number,
-		) => Either<E, any> | PromiseLike<Either<E, any>>,
-	): Promise<Either<E, void>> {
-		return traverseIntoPar(elems, f, new NoOpBuilder());
-	}
-
-	/**
-	 * Adapt a synchronous or an asynchronous function to accept promise-like
-	 * `Either` values as arguments and return a `Promise` that resolves with an
-	 * `Either`.
-	 *
-	 * @remarks
-	 *
-	 * The lifted function's arguments are evaluated concurrently.
-	 */
-	export function liftPar<TArgs extends unknown[], T>(
-		f: (...args: TArgs) => T | PromiseLike<T>,
-	): <
-		TElems extends {
-			[K in keyof TArgs]:
-				| Either<any, TArgs[K]>
-				| PromiseLike<Either<any, TArgs[K]>>;
-		},
-	>(
-		...elems: TElems
-	) => Promise<
-		Either<LeftT<{ [K in keyof TElems]: Awaited<TElems[K]> }[number]>, T>
-	> {
-		return (...elems) =>
-			goAsync(
-				(async function* () {
-					return f(...((yield* await allPar(elems)) as TArgs));
-				})(),
-			);
-	}
-
-	/**
 	 * An enumeration that discriminates `Either`.
 	 */
 	export enum Kind {
@@ -1219,24 +929,6 @@ export namespace Either {
 	>;
 
 	/**
-	 * An async generator that yields `Either` values and returns a result.
-	 *
-	 * @remarks
-	 *
-	 * Async `Either` generator comprehensions should use this type alias as
-	 * their return type. An async generator function that returns an
-	 * `Either.GoAsync<E, T>` may `yield*` zero or more `Either<E, any>` values
-	 * and must return a result of type `T`. `PromiseLike` values that resolve
-	 * with `Either` should be awaited before yielding. Async comprehensions may
-	 * also `yield*` other `Either.Go` and `Either.GoAsync` generators directly.
-	 */
-	export type GoAsync<E, TReturn> = AsyncGenerator<
-		Either<E, any>,
-		TReturn,
-		unknown
-	>;
-
-	/**
 	 * Extract the left-sided value type `A` from the type `Either<A, B>`.
 	 */
 	export type LeftT<TEither extends Either<any, any>> = [TEither] extends [
@@ -1253,4 +945,317 @@ export namespace Either {
 	]
 		? B
 		: never;
+}
+
+/**
+ * A `PromiseLike` object that fulfills with an `Either`.
+ */
+export type AsyncEitherLike<E, T> = PromiseLike<Either<E, T>>;
+
+/**
+ * A `Promise` that fulfills with an `Either`.
+ */
+export type AsyncEither<E, T> = Promise<Either<E, T>>;
+
+/**
+ * The companion namespace for the `AsyncEither` type.
+ */
+export namespace AsyncEither {
+	/**
+	 * Evaluate an `Either.GoAsync` async generator to return a `Promise` that
+	 * resolves with an `Either`.
+	 */
+	export async function go<E, TReturn>(
+		gen: Go<E, TReturn>,
+	): AsyncEither<E, TReturn> {
+		let nxt = await gen.next();
+		let err: any;
+		let isHalted = false;
+		while (!nxt.done) {
+			const either = nxt.value;
+			if (either.isRight()) {
+				nxt = await gen.next(either.val);
+			} else {
+				isHalted = true;
+				err = either.val;
+				nxt = await gen.return(undefined as any);
+			}
+		}
+		return isHalted ? Either.left(err) : Either.right(nxt.value);
+	}
+
+	/**
+	 * Map the elements in an iterable to promise-like `Either` values,
+	 * concurrently evaluate the values, and collect the successes into a
+	 * `Builder`.
+	 *
+	 * @remarks
+	 *
+	 * If any `Either` fails, the state of the provided `Builder` is undefined.
+	 */
+	export function traverseIntoPar<T, E, T1, TFinish>(
+		elems: Iterable<T>,
+		f: (elem: T, idx: number) => Either<E, T1> | AsyncEitherLike<E, T1>,
+		builder: Builder<T1, TFinish>,
+	): AsyncEither<E, TFinish> {
+		return new Promise((resolve, reject) => {
+			let remaining = 0;
+			for (const elem of elems) {
+				const idx = remaining;
+				remaining++;
+				Promise.resolve(f(elem, idx)).then((either) => {
+					if (either.isLeft()) {
+						resolve(either);
+						return;
+					}
+					builder.add(either.val);
+					remaining--;
+					if (remaining === 0) {
+						resolve(Either.right(builder.finish()));
+						return;
+					}
+				}, reject);
+			}
+		});
+	}
+
+	/**
+	 * Map the elements in an iterable of key-element pairs to promise-like
+	 * `Either` values, concurrently evaluate the values, and collect the
+	 * key-success pairs into a `Builder`.
+	 *
+	 * @remarks
+	 *
+	 * If any `Either` fails, the state of the provided `Builder` is undefined.
+	 */
+	export function traverseEntriesIntoPar<K, V, E, V1, TFinish>(
+		entries: Iterable<readonly [K, V]>,
+		f: (
+			elem: V,
+			key: K,
+			idx: number,
+		) => Either<E, V1> | AsyncEitherLike<E, V1>,
+		builder: Builder<readonly [K, V1], TFinish>,
+	): AsyncEither<E, TFinish> {
+		return traverseIntoPar(
+			entries,
+			async ([key, elem], idx) =>
+				(await f(elem, key, idx)).map((val): [K, V1] => [key, val]),
+			builder,
+		);
+	}
+
+	/**
+	 * Map the elements in an iterable to promise-like `Either` values,
+	 * concurrently evaluate the values, and collect the successes in an array.
+	 */
+	export function traversePar<T, E, T1>(
+		elems: Iterable<T>,
+		f: (elem: T, idx: number) => Either<E, T1> | AsyncEitherLike<E, T1>,
+	): AsyncEither<E, T1[]> {
+		return traverseIntoPar(
+			elems,
+			async (elem, idx) =>
+				(await f(elem, idx)).map((val): [number, T1] => [idx, val]),
+			new ArrayEntryBuilder(),
+		);
+	}
+
+	/**
+	 * Map the elements in an iterable of key-element pairs to promise-like
+	 * `Either` values, concurrently evaluate the values, and collect the
+	 * key-success pairs in an object.
+	 */
+	export function traverseEntriesPar<
+		K extends number | string | symbol,
+		V,
+		E,
+		V1,
+	>(
+		entries: Iterable<readonly [K, V]>,
+		f: (
+			elem: V,
+			key: K,
+			idx: number,
+		) => Either<E, V1> | AsyncEitherLike<E, V1>,
+	): AsyncEither<E, Record<K, V1>> {
+		return traverseEntriesIntoPar(entries, f, new RecordEntryBuilder());
+	}
+
+	/**
+	 * Concurrently evaluate the promise-like `Either` elements in an iterable
+	 * and collect the successes into a `Builder`.
+	 *
+	 * @remarks
+	 *
+	 * If any `Either` fails, the state of the provided `Builder` is undefined.
+	 */
+	export function allIntoPar<E, T, TFinish>(
+		elems: Iterable<Either<E, T> | AsyncEitherLike<E, T>>,
+		builder: Builder<T, TFinish>,
+	): AsyncEither<E, TFinish> {
+		return traverseIntoPar(elems, id, builder);
+	}
+
+	/**
+	 * Concurrently evaluate the promise-like `Either` elements in an iterable
+	 * of key-element pairs and collect the key-success pairs into a `Builder`.
+	 *
+	 * @remarks
+	 *
+	 * If any `Either` fails, the state of the provided `Builder` is undefined.
+	 */
+	export function allEntriesIntoPar<K, E, V, TFinish>(
+		entries: Iterable<readonly [K, Either<E, V> | AsyncEitherLike<E, V>]>,
+		builder: Builder<readonly [K, V], TFinish>,
+	): AsyncEither<E, TFinish> {
+		return traverseEntriesIntoPar(entries, id, builder);
+	}
+
+	/**
+	 * Concurrently evaluate the promise-like `Either` elements in an array or a
+	 * tuple literal and collect the successes in an equivalent structure.
+	 *
+	 * @remarks
+	 *
+	 * This function essentially turns an array or a tuple literal of
+	 * promise-like `Either` elements "inside out". For example:
+	 *
+	 * -   `Promise<Either<E, T>>[]` becomes `Promise<Either<E, T[]>>`
+	 * -   `[Promise<Either<E, T1>>, Promise<Either<E, T2>>]` becomes
+	 *     `Promise<Either<E, [T1, T2]>>`
+	 */
+	export function allPar<
+		TElems extends
+			| readonly (Either<any, any> | AsyncEitherLike<any, any>)[]
+			| [],
+	>(
+		elems: TElems,
+	): AsyncEither<
+		Either.LeftT<{ [K in keyof TElems]: Awaited<TElems[K]> }[number]>,
+		{ [K in keyof TElems]: Either.RightT<Awaited<TElems[K]>> }
+	>;
+
+	/**
+	 * Concurrently evaluate the promise-like `Either` elements in an iterable
+	 * and collect the successes in an array.
+	 *
+	 * @remarks
+	 *
+	 * This function essentially turns an iterable of promise-like `Either`
+	 * elements "inside out". For example, `Iterable<Promise<Either<E, T>>>`
+	 * becomes `Promise<Either<E, T[]>>`.
+	 */
+	export function allPar<E, T>(
+		elems: Iterable<Either<E, T> | AsyncEitherLike<E, T>>,
+	): AsyncEither<E, T[]>;
+
+	export function allPar<E, T>(
+		elems: Iterable<Either<E, T> | AsyncEitherLike<E, T>>,
+	): AsyncEither<E, T[]> {
+		return traversePar(elems, id);
+	}
+
+	/**
+	 * Concurrently evaluate the promise-like `Either` elements in an iterable
+	 * of key-element pairs and collect the key-success pairs in an object.
+	 */
+	export function allEntriesPar<K extends number | string | symbol, E, V>(
+		entries: Iterable<readonly [K, Either<E, V> | AsyncEitherLike<E, V>]>,
+	): AsyncEither<E, Record<K, V>> {
+		return traverseEntriesPar(entries, id);
+	}
+
+	/**
+	 * Concurrently evaluate the promise-like `Either` elements in a
+	 * string-keyed record or object literal and collect the successes in an
+	 * equivalent structure.
+	 *
+	 * @remarks
+	 *
+	 * This function essentially turns a string-keyed record or object literal
+	 * of promise-like `Either` elements "inside out". For example:
+	 *
+	 * -   `Record<string, Promise<Either<E, T>>>` becomes `Promise<Either<E,
+	 *     Record<string, T>>>`
+	 * -   `{ x: Promise<Either<E, T1>>, y: Promise<Either<E, T2>> }` becomes
+	 *     `Promise<Either<E, { x: T1, y: T2 }>>`
+	 */
+	export function allPropsPar<
+		TProps extends Record<
+			string,
+			Either<any, any> | AsyncEitherLike<any, any>
+		>,
+	>(
+		props: TProps,
+	): AsyncEither<
+		Either.LeftT<{ [K in keyof TProps]: Awaited<TProps[K]> }[keyof TProps]>,
+		{ [K in keyof TProps]: Either.RightT<Awaited<TProps[K]>> }
+	>;
+
+	export function allPropsPar<E, T>(
+		props: Record<string, Either<E, T> | AsyncEitherLike<E, T>>,
+	): AsyncEither<E, Record<string, T>> {
+		return traverseEntriesPar(Object.entries(props), id);
+	}
+
+	/**
+	 * Map the elements in an iterable to promise-like `Either` values,
+	 * concurrently evaluate the values, and ignore the successes.
+	 */
+	export function forEachPar<T, E>(
+		elems: Iterable<T>,
+		f: (elem: T, idx: number) => Either<E, any> | AsyncEitherLike<E, any>,
+	): AsyncEither<E, void> {
+		return traverseIntoPar(elems, f, new NoOpBuilder());
+	}
+
+	/**
+	 * Adapt a synchronous or an asynchronous function to accept promise-like
+	 * `Either` values as arguments and return a `Promise` that resolves with an
+	 * `Either`.
+	 *
+	 * @remarks
+	 *
+	 * The lifted function's arguments are evaluated concurrently.
+	 */
+	export function liftPar<TArgs extends unknown[], T>(
+		f: (...args: TArgs) => T | PromiseLike<T>,
+	): <
+		TElems extends {
+			[K in keyof TArgs]:
+				| Either<any, TArgs[K]>
+				| AsyncEitherLike<any, TArgs[K]>;
+		},
+	>(
+		...elems: TElems
+	) => AsyncEither<
+		Either.LeftT<{ [K in keyof TElems]: Awaited<TElems[K]> }[number]>,
+		T
+	> {
+		return (...elems) =>
+			go(
+				(async function* () {
+					return f(...((yield* await allPar(elems)) as TArgs));
+				})(),
+			);
+	}
+
+	/**
+	 * An async generator that yields `Either` values and returns a result.
+	 *
+	 * @remarks
+	 *
+	 * Async `Either` generator comprehensions should use this type alias as
+	 * their return type. An async generator function that returns an
+	 * `EitherAsync.Go<E, T>` may `yield*` zero or more `Either<E, any>` values
+	 * and must return a result of type `T`. `PromiseLike` values that resolve
+	 * with `Either` should be awaited before yielding. Async comprehensions may
+	 * also `yield*` other `Either.Go` and `EitherAsync.Go` generators directly.
+	 */
+	export type Go<E, TReturn> = AsyncGenerator<
+		Either<E, any>,
+		TReturn,
+		unknown
+	>;
 }

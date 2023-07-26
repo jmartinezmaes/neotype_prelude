@@ -29,7 +29,7 @@ import {
 import { cmb } from "./cmb.js";
 import { Ordering, cmp, eq } from "./cmp.js";
 import { Either } from "./either.js";
-import { Ior } from "./ior.js";
+import { AsyncIor, Ior } from "./ior.js";
 import { Validation } from "./validation.js";
 
 describe("Ior", () => {
@@ -371,407 +371,6 @@ describe("Ior", () => {
 				Ior.both(new Str("b"), 4),
 			);
 			expect(ior).to.deep.equal(Ior.both(new Str("ab"), [2, 4]));
-		});
-	});
-
-	describe("goAsync", async () => {
-		it("short-circuits on the first yielded Left", async () => {
-			async function* f(): Ior.GoAsync<Str, [2, 4]> {
-				const two = yield* await Promise.resolve(Ior.right<2, Str>(2));
-				const four = yield* await Promise.resolve(
-					Ior.left<Str, 4>(new Str("b")),
-				);
-				return [two, four];
-			}
-			const ior = await Ior.goAsync(f());
-			expect(ior).to.deep.equal(Ior.left(new Str("b")));
-		});
-
-		it("completes if all yielded values are Right", async () => {
-			async function* f(): Ior.GoAsync<Str, [2, 4]> {
-				const two = yield* await Promise.resolve(Ior.right<2, Str>(2));
-				const four = yield* await Promise.resolve(Ior.right<4, Str>(4));
-				return [two, four];
-			}
-			const ior = await Ior.goAsync(f());
-			expect(ior).to.deep.equal(Ior.right([2, 4]));
-		});
-
-		it("completes and retains the left-hand value if a Both is yielded after a Right", async () => {
-			async function* f(): Ior.GoAsync<Str, [2, 4]> {
-				const two = yield* await Promise.resolve(Ior.right<2, Str>(2));
-				const four = yield* await Promise.resolve(
-					Ior.both<Str, 4>(new Str("b"), 4),
-				);
-				return [two, four];
-			}
-			const ior = await Ior.goAsync(f());
-			expect(ior).to.deep.equal(Ior.both(new Str("b"), [2, 4]));
-		});
-
-		it("short-circuits and combines the left-hand values if a Left is yielded after a Both", async () => {
-			async function* f(): Ior.GoAsync<Str, [2, 4]> {
-				const two = yield* await Promise.resolve(
-					Ior.both<Str, 2>(new Str("a"), 2),
-				);
-				const four = yield* await Promise.resolve(
-					Ior.left<Str, 4>(new Str("b")),
-				);
-				return [two, four];
-			}
-			const ior = await Ior.goAsync(f());
-			expect(ior).to.deep.equal(Ior.left(new Str("ab")));
-		});
-
-		it("completes and retains the left-hand value if a Right is yielded after a Both", async () => {
-			async function* f(): Ior.GoAsync<Str, [2, 4]> {
-				const two = yield* await Promise.resolve(
-					Ior.both<Str, 2>(new Str("a"), 2),
-				);
-				const four = yield* await Promise.resolve(Ior.right<4, Str>(4));
-				return [two, four];
-			}
-			const ior = await Ior.goAsync(f());
-			expect(ior).to.deep.equal(Ior.both(new Str("a"), [2, 4]));
-		});
-
-		it("completes and combines the left-hand values if a Both is yielded after a Both", async () => {
-			async function* f(): Ior.GoAsync<Str, [2, 4]> {
-				const two = yield* await Promise.resolve(
-					Ior.both<Str, 2>(new Str("a"), 2),
-				);
-				const four = yield* await Promise.resolve(
-					Ior.both<Str, 4>(new Str("b"), 4),
-				);
-				return [two, four];
-			}
-			const ior = await Ior.goAsync(f());
-			expect(ior).to.deep.equal(Ior.both(new Str("ab"), [2, 4]));
-		});
-
-		it("unwraps Promises in right-hand channels and in return", async () => {
-			async function* f(): Ior.GoAsync<Str, [2, 4]> {
-				const two = yield* await Promise.resolve(
-					Ior.both(new Str("a"), Promise.resolve<2>(2)),
-				);
-				const four = yield* await Promise.resolve(
-					Ior.both(new Str("b"), Promise.resolve<4>(4)),
-				);
-				return Promise.resolve([two, four]);
-			}
-			const ior = await Ior.goAsync(f());
-			expect(ior).to.deep.equal(Ior.both(new Str("ab"), [2, 4]));
-		});
-
-		it("executes the finally block if a Left is yielded in the try block", async () => {
-			const logs: string[] = [];
-			async function* f(): Ior.GoAsync<Str, 2> {
-				try {
-					return yield* await Promise.resolve(
-						Ior.left<Str, 2>(new Str("a")),
-					);
-				} finally {
-					logs.push("finally");
-				}
-			}
-			const ior = await Ior.goAsync(f());
-			expect(ior).to.deep.equal(Ior.left(new Str("a")));
-			expect(logs).to.deep.equal(["finally"]);
-		});
-
-		it("combines the left-hand values of two Left variants across the try...finally block", async () => {
-			async function* f(): Ior.GoAsync<Str, 2> {
-				try {
-					return yield* await Promise.resolve(
-						Ior.left<Str, 2>(new Str("a")),
-					);
-				} finally {
-					yield* Ior.left<Str, 4>(new Str("b"));
-				}
-			}
-			const ior = await Ior.goAsync(f());
-			expect(ior).to.deep.equal(Ior.left(new Str("ab")));
-		});
-
-		it("combines the left-hand values of a Left variant and a Both variant across the try...finally block", async () => {
-			async function* f(): Ior.GoAsync<Str, 2> {
-				try {
-					return yield* await Promise.resolve(
-						Ior.left<Str, 2>(new Str("a")),
-					);
-				} finally {
-					yield* await Promise.resolve(
-						Ior.both<Str, 4>(new Str("b"), 4),
-					);
-				}
-			}
-			const ior = await Ior.goAsync(f());
-			expect(ior).to.deep.equal(Ior.left(new Str("ab")));
-		});
-	});
-
-	describe("traverseIntoPar", () => {
-		it("applies the function to the elements and short circuits on the first Left result", async () => {
-			const ior = await Ior.traverseIntoPar(
-				["a", "b"],
-				(char, idx) =>
-					delay(char === "a" ? 50 : 10).then(() =>
-						char === "a"
-							? Ior.both(new Str(char), [idx, char])
-							: Ior.left(new Str(idx.toString() + char)),
-					),
-				new TestBuilder<[number, string]>(),
-			);
-			expect(ior).to.deep.equal(Ior.left(new Str("1b")));
-		});
-
-		it("applies the function to the elements and collects the right-hand values into the Builder if no results are Left", async () => {
-			const builder = new TestBuilder<[number, string]>();
-			const ior = await Ior.traverseIntoPar(
-				["a", "b"],
-				(char, idx) =>
-					delay(char === "a" ? 50 : 10).then(() =>
-						Ior.right([idx, char]),
-					),
-				builder,
-			);
-			expect(ior).to.deep.equal(
-				Ior.right([
-					[1, "b"],
-					[0, "a"],
-				]),
-			);
-		});
-
-		it("retains the left-hand value if a Both resolves after a Right", async () => {
-			const builder = new TestBuilder<[number, string]>();
-			const ior = await Ior.traverseIntoPar(
-				["a", "b"],
-				(char, idx) =>
-					delay(char === "a" ? 50 : 10).then(() =>
-						char === "a"
-							? Ior.both(new Str(char), [idx, char])
-							: Ior.right([idx, char]),
-					),
-				builder,
-			);
-			expect(ior).to.deep.equal(
-				Ior.both(new Str("a"), [
-					[1, "b"],
-					[0, "a"],
-				]),
-			);
-		});
-
-		it("combines the left-hand values if a Left resolves after a Both", async () => {
-			const ior = await Ior.traverseIntoPar(
-				["a", "b"],
-				(char, idx) =>
-					delay(char === "a" ? 50 : 10).then(() =>
-						char === "a"
-							? Ior.left(new Str(idx.toString() + char))
-							: Ior.both(new Str(char), [idx, char]),
-					),
-				new TestBuilder<[number, string]>(),
-			);
-			expect(ior).to.deep.equal(Ior.left(new Str("b0a")));
-		});
-
-		it("retains the left-hand value if a Right resolves after a Both", async () => {
-			const builder = new TestBuilder<[number, string]>();
-			const ior = await Ior.traverseIntoPar(
-				["a", "b"],
-				(char, idx) =>
-					delay(char === "a" ? 50 : 10).then(() =>
-						char === "a"
-							? Ior.right([idx, char])
-							: Ior.both(new Str(char), [idx, char]),
-					),
-				builder,
-			);
-			expect(ior).to.deep.equal(
-				Ior.both(new Str("b"), [
-					[1, "b"],
-					[0, "a"],
-				]),
-			);
-		});
-
-		it("combines the left-hand values if a Both resolves after a Both ", async () => {
-			const builder = new TestBuilder<[number, string]>();
-			const ior = await Ior.traverseIntoPar(
-				["a", "b"],
-				(char, idx) =>
-					delay(char === "a" ? 50 : 10).then(() =>
-						Ior.both(new Str(char), [idx, char]),
-					),
-				builder,
-			);
-			expect(ior).to.deep.equal(
-				Ior.both(new Str("ba"), [
-					[1, "b"],
-					[0, "a"],
-				]),
-			);
-		});
-	});
-
-	describe("traverseEntriesIntoPar", () => {
-		it("applies the function to the elements and collects the key-right-hand-value pairs into the Builder if no results are Left", async () => {
-			const builder = new TestBuilder<[string, [number, string]]>();
-			const ior = await Ior.traverseEntriesIntoPar(
-				[
-					["a", "x"],
-					["b", "y"],
-				],
-				(char, key, idx) =>
-					delay(key === "a" ? 50 : 10).then(() =>
-						Ior.both(new Str(char), [idx, key + char]),
-					),
-				builder,
-			);
-			expect(ior).to.deep.equal(
-				Ior.both(new Str("yx"), [
-					["b", [1, "by"]],
-					["a", [0, "ax"]],
-				]),
-			);
-		});
-	});
-
-	describe("traversePar", () => {
-		it("applies the function to the elements and collects the right-hand values in an array if no results are Left", async () => {
-			const ior = await Ior.traversePar(["a", "b"], (char, idx) =>
-				delay(char === "a" ? 50 : 10).then(() =>
-					Ior.both<Str, [number, string]>(new Str(char), [idx, char]),
-				),
-			);
-			expect(ior).to.deep.equal(
-				Ior.both(new Str("ba"), [
-					[0, "a"],
-					[1, "b"],
-				]),
-			);
-		});
-	});
-
-	describe("traverseEntriesPar", () => {
-		it("applies the function to the elements and collects the key-right-hand-value pairs in an object if no results are Left", async () => {
-			const ior = await Ior.traverseEntriesPar(
-				[
-					["a", "x"],
-					["b", "y"],
-				],
-				(char, key, idx) =>
-					delay(key === "a" ? 50 : 10).then(() =>
-						Ior.both(new Str(char), [idx, key + char]),
-					),
-			);
-			expect(ior).to.deep.equal(
-				Ior.both(new Str("yx"), {
-					a: [0, "ax"],
-					b: [1, "by"],
-				}),
-			);
-		});
-	});
-
-	describe("allIntoPar", () => {
-		it("collects the right-hand values into the Builder if no elements are Left", async () => {
-			const builder = new TestBuilder<number>();
-			const ior = await Ior.allIntoPar(
-				[
-					delay(50).then(() => Ior.both(new Str("a"), 2)),
-					delay(10).then(() => Ior.both(new Str("b"), 4)),
-				],
-				builder,
-			);
-			expect(ior).to.deep.equal(Ior.both(new Str("ba"), [4, 2]));
-		});
-	});
-
-	describe("allEntriesIntoPar", () => {
-		it("collects the key-right-hand-value pairs into the Builder if no elements are Left", async () => {
-			const builder = new TestBuilder<[string, number]>();
-			const ior = await Ior.allEntriesIntoPar(
-				[
-					["a", delay(50).then(() => Ior.both(new Str("x"), 2))],
-					["b", delay(10).then(() => Ior.both(new Str("y"), 4))],
-				],
-				builder,
-			);
-			expect(ior).to.deep.equal(
-				Ior.both(new Str("yx"), [
-					["b", 4],
-					["a", 2],
-				]),
-			);
-		});
-	});
-
-	describe("allPar", () => {
-		it("collects the right-hand values in an array if no elements are Left", async () => {
-			const ior = await Ior.allPar([
-				delay(50).then<Ior<Str, 2>>(() => Ior.both(new Str("a"), 2)),
-				delay(10).then<Ior<Str, 4>>(() => Ior.both(new Str("b"), 4)),
-			]);
-			expect(ior).to.deep.equal(Ior.both(new Str("ba"), [2, 4]));
-		});
-	});
-
-	describe("allEntriesPar", () => {
-		it("collects the key-right-hand-value pairs in an object if no elements are Left", async () => {
-			const ior = await Ior.allEntriesPar([
-				["a", delay(50).then(() => Ior.both(new Str("x"), 2))],
-				["b", delay(10).then(() => Ior.both(new Str("y"), 4))],
-			]);
-			expect(ior).to.deep.equal(Ior.both(new Str("yx"), { a: 2, b: 4 }));
-		});
-	});
-
-	describe("allPropsPar", () => {
-		it("collects the right-hand values in an object if no elements are Left", async () => {
-			const ior = await Ior.allPropsPar({
-				two: delay(50).then<Ior<Str, 2>>(() =>
-					Ior.both(new Str("a"), 2),
-				),
-				four: delay(10).then<Ior<Str, 4>>(() =>
-					Ior.both(new Str("b"), 4),
-				),
-			});
-			expect(ior).to.deep.equal(
-				Ior.both(new Str("ba"), { two: 2, four: 4 }),
-			);
-		});
-	});
-
-	describe("forEachPar", () => {
-		it("applies the function to the elements while the result is not Left", async () => {
-			const results: [number, string][] = [];
-			const ior = await Ior.forEachPar(["a", "b"], (char, idx) =>
-				delay(char === "a" ? 50 : 10).then(() => {
-					results.push([idx, char]);
-					return Ior.both(new Str(char), undefined);
-				}),
-			);
-			expect(ior).to.deep.equal(Ior.both(new Str("ba"), undefined));
-			expect(results).to.deep.equal([
-				[1, "b"],
-				[0, "a"],
-			]);
-		});
-	});
-
-	describe("liftPar", () => {
-		it("applies the function to the right-hand values if no arguments are Left", async () => {
-			async function f<A, B>(lhs: A, rhs: B): Promise<[A, B]> {
-				return [lhs, rhs];
-			}
-			const ior = await Ior.liftPar(f<2, 4>)(
-				delay(50).then(() => Ior.both(new Str("a"), 2)),
-				delay(10).then(() => Ior.both(new Str("b"), 4)),
-			);
-			expect(ior).to.deep.equal(Ior.both(new Str("ba"), [2, 4]));
 		});
 	});
 
@@ -1333,6 +932,409 @@ describe("Ior", () => {
 		it("applies the function to the right-hand value if the variant is Both", () => {
 			const ior = Ior.both<1, 2>(1, 2).map((two): [2, 4] => [two, 4]);
 			expect(ior).to.deep.equal(Ior.both(1, [2, 4]));
+		});
+	});
+});
+
+describe("AsyncIor", () => {
+	describe("go", async () => {
+		it("short-circuits on the first yielded Left", async () => {
+			async function* f(): AsyncIor.Go<Str, [2, 4]> {
+				const two = yield* await Promise.resolve(Ior.right<2, Str>(2));
+				const four = yield* await Promise.resolve(
+					Ior.left<Str, 4>(new Str("b")),
+				);
+				return [two, four];
+			}
+			const ior = await AsyncIor.go(f());
+			expect(ior).to.deep.equal(Ior.left(new Str("b")));
+		});
+
+		it("completes if all yielded values are Right", async () => {
+			async function* f(): AsyncIor.Go<Str, [2, 4]> {
+				const two = yield* await Promise.resolve(Ior.right<2, Str>(2));
+				const four = yield* await Promise.resolve(Ior.right<4, Str>(4));
+				return [two, four];
+			}
+			const ior = await AsyncIor.go(f());
+			expect(ior).to.deep.equal(Ior.right([2, 4]));
+		});
+
+		it("completes and retains the left-hand value if a Both is yielded after a Right", async () => {
+			async function* f(): AsyncIor.Go<Str, [2, 4]> {
+				const two = yield* await Promise.resolve(Ior.right<2, Str>(2));
+				const four = yield* await Promise.resolve(
+					Ior.both<Str, 4>(new Str("b"), 4),
+				);
+				return [two, four];
+			}
+			const ior = await AsyncIor.go(f());
+			expect(ior).to.deep.equal(Ior.both(new Str("b"), [2, 4]));
+		});
+
+		it("short-circuits and combines the left-hand values if a Left is yielded after a Both", async () => {
+			async function* f(): AsyncIor.Go<Str, [2, 4]> {
+				const two = yield* await Promise.resolve(
+					Ior.both<Str, 2>(new Str("a"), 2),
+				);
+				const four = yield* await Promise.resolve(
+					Ior.left<Str, 4>(new Str("b")),
+				);
+				return [two, four];
+			}
+			const ior = await AsyncIor.go(f());
+			expect(ior).to.deep.equal(Ior.left(new Str("ab")));
+		});
+
+		it("completes and retains the left-hand value if a Right is yielded after a Both", async () => {
+			async function* f(): AsyncIor.Go<Str, [2, 4]> {
+				const two = yield* await Promise.resolve(
+					Ior.both<Str, 2>(new Str("a"), 2),
+				);
+				const four = yield* await Promise.resolve(Ior.right<4, Str>(4));
+				return [two, four];
+			}
+			const ior = await AsyncIor.go(f());
+			expect(ior).to.deep.equal(Ior.both(new Str("a"), [2, 4]));
+		});
+
+		it("completes and combines the left-hand values if a Both is yielded after a Both", async () => {
+			async function* f(): AsyncIor.Go<Str, [2, 4]> {
+				const two = yield* await Promise.resolve(
+					Ior.both<Str, 2>(new Str("a"), 2),
+				);
+				const four = yield* await Promise.resolve(
+					Ior.both<Str, 4>(new Str("b"), 4),
+				);
+				return [two, four];
+			}
+			const ior = await AsyncIor.go(f());
+			expect(ior).to.deep.equal(Ior.both(new Str("ab"), [2, 4]));
+		});
+
+		it("unwraps Promises in right-hand channels and in return", async () => {
+			async function* f(): AsyncIor.Go<Str, [2, 4]> {
+				const two = yield* await Promise.resolve(
+					Ior.both(new Str("a"), Promise.resolve<2>(2)),
+				);
+				const four = yield* await Promise.resolve(
+					Ior.both(new Str("b"), Promise.resolve<4>(4)),
+				);
+				return Promise.resolve([two, four]);
+			}
+			const ior = await AsyncIor.go(f());
+			expect(ior).to.deep.equal(Ior.both(new Str("ab"), [2, 4]));
+		});
+
+		it("executes the finally block if a Left is yielded in the try block", async () => {
+			const logs: string[] = [];
+			async function* f(): AsyncIor.Go<Str, 2> {
+				try {
+					return yield* await Promise.resolve(
+						Ior.left<Str, 2>(new Str("a")),
+					);
+				} finally {
+					logs.push("finally");
+				}
+			}
+			const ior = await AsyncIor.go(f());
+			expect(ior).to.deep.equal(Ior.left(new Str("a")));
+			expect(logs).to.deep.equal(["finally"]);
+		});
+
+		it("combines the left-hand values of two Left variants across the try...finally block", async () => {
+			async function* f(): AsyncIor.Go<Str, 2> {
+				try {
+					return yield* await Promise.resolve(
+						Ior.left<Str, 2>(new Str("a")),
+					);
+				} finally {
+					yield* Ior.left<Str, 4>(new Str("b"));
+				}
+			}
+			const ior = await AsyncIor.go(f());
+			expect(ior).to.deep.equal(Ior.left(new Str("ab")));
+		});
+
+		it("combines the left-hand values of a Left variant and a Both variant across the try...finally block", async () => {
+			async function* f(): AsyncIor.Go<Str, 2> {
+				try {
+					return yield* await Promise.resolve(
+						Ior.left<Str, 2>(new Str("a")),
+					);
+				} finally {
+					yield* await Promise.resolve(
+						Ior.both<Str, 4>(new Str("b"), 4),
+					);
+				}
+			}
+			const ior = await AsyncIor.go(f());
+			expect(ior).to.deep.equal(Ior.left(new Str("ab")));
+		});
+	});
+
+	describe("traverseIntoPar", () => {
+		it("applies the function to the elements and short circuits on the first Left result", async () => {
+			const ior = await AsyncIor.traverseIntoPar(
+				["a", "b"],
+				(char, idx) =>
+					delay(char === "a" ? 50 : 10).then(() =>
+						char === "a"
+							? Ior.both(new Str(char), [idx, char])
+							: Ior.left(new Str(idx.toString() + char)),
+					),
+				new TestBuilder<[number, string]>(),
+			);
+			expect(ior).to.deep.equal(Ior.left(new Str("1b")));
+		});
+
+		it("applies the function to the elements and collects the right-hand values into the Builder if no results are Left", async () => {
+			const builder = new TestBuilder<[number, string]>();
+			const ior = await AsyncIor.traverseIntoPar(
+				["a", "b"],
+				(char, idx) =>
+					delay(char === "a" ? 50 : 10).then(() =>
+						Ior.right([idx, char]),
+					),
+				builder,
+			);
+			expect(ior).to.deep.equal(
+				Ior.right([
+					[1, "b"],
+					[0, "a"],
+				]),
+			);
+		});
+
+		it("retains the left-hand value if a Both resolves after a Right", async () => {
+			const builder = new TestBuilder<[number, string]>();
+			const ior = await AsyncIor.traverseIntoPar(
+				["a", "b"],
+				(char, idx) =>
+					delay(char === "a" ? 50 : 10).then(() =>
+						char === "a"
+							? Ior.both(new Str(char), [idx, char])
+							: Ior.right([idx, char]),
+					),
+				builder,
+			);
+			expect(ior).to.deep.equal(
+				Ior.both(new Str("a"), [
+					[1, "b"],
+					[0, "a"],
+				]),
+			);
+		});
+
+		it("combines the left-hand values if a Left resolves after a Both", async () => {
+			const ior = await AsyncIor.traverseIntoPar(
+				["a", "b"],
+				(char, idx) =>
+					delay(char === "a" ? 50 : 10).then(() =>
+						char === "a"
+							? Ior.left(new Str(idx.toString() + char))
+							: Ior.both(new Str(char), [idx, char]),
+					),
+				new TestBuilder<[number, string]>(),
+			);
+			expect(ior).to.deep.equal(Ior.left(new Str("b0a")));
+		});
+
+		it("retains the left-hand value if a Right resolves after a Both", async () => {
+			const builder = new TestBuilder<[number, string]>();
+			const ior = await AsyncIor.traverseIntoPar(
+				["a", "b"],
+				(char, idx) =>
+					delay(char === "a" ? 50 : 10).then(() =>
+						char === "a"
+							? Ior.right([idx, char])
+							: Ior.both(new Str(char), [idx, char]),
+					),
+				builder,
+			);
+			expect(ior).to.deep.equal(
+				Ior.both(new Str("b"), [
+					[1, "b"],
+					[0, "a"],
+				]),
+			);
+		});
+
+		it("combines the left-hand values if a Both resolves after a Both ", async () => {
+			const builder = new TestBuilder<[number, string]>();
+			const ior = await AsyncIor.traverseIntoPar(
+				["a", "b"],
+				(char, idx) =>
+					delay(char === "a" ? 50 : 10).then(() =>
+						Ior.both(new Str(char), [idx, char]),
+					),
+				builder,
+			);
+			expect(ior).to.deep.equal(
+				Ior.both(new Str("ba"), [
+					[1, "b"],
+					[0, "a"],
+				]),
+			);
+		});
+	});
+
+	describe("traverseEntriesIntoPar", () => {
+		it("applies the function to the elements and collects the key-right-hand-value pairs into the Builder if no results are Left", async () => {
+			const builder = new TestBuilder<[string, [number, string]]>();
+			const ior = await AsyncIor.traverseEntriesIntoPar(
+				[
+					["a", "x"],
+					["b", "y"],
+				],
+				(char, key, idx) =>
+					delay(key === "a" ? 50 : 10).then(() =>
+						Ior.both(new Str(char), [idx, key + char]),
+					),
+				builder,
+			);
+			expect(ior).to.deep.equal(
+				Ior.both(new Str("yx"), [
+					["b", [1, "by"]],
+					["a", [0, "ax"]],
+				]),
+			);
+		});
+	});
+
+	describe("traversePar", () => {
+		it("applies the function to the elements and collects the right-hand values in an array if no results are Left", async () => {
+			const ior = await AsyncIor.traversePar(["a", "b"], (char, idx) =>
+				delay(char === "a" ? 50 : 10).then(() =>
+					Ior.both<Str, [number, string]>(new Str(char), [idx, char]),
+				),
+			);
+			expect(ior).to.deep.equal(
+				Ior.both(new Str("ba"), [
+					[0, "a"],
+					[1, "b"],
+				]),
+			);
+		});
+	});
+
+	describe("traverseEntriesPar", () => {
+		it("applies the function to the elements and collects the key-right-hand-value pairs in an object if no results are Left", async () => {
+			const ior = await AsyncIor.traverseEntriesPar(
+				[
+					["a", "x"],
+					["b", "y"],
+				],
+				(char, key, idx) =>
+					delay(key === "a" ? 50 : 10).then(() =>
+						Ior.both(new Str(char), [idx, key + char]),
+					),
+			);
+			expect(ior).to.deep.equal(
+				Ior.both(new Str("yx"), {
+					a: [0, "ax"],
+					b: [1, "by"],
+				}),
+			);
+		});
+	});
+
+	describe("allIntoPar", () => {
+		it("collects the right-hand values into the Builder if no elements are Left", async () => {
+			const builder = new TestBuilder<number>();
+			const ior = await AsyncIor.allIntoPar(
+				[
+					delay(50).then(() => Ior.both(new Str("a"), 2)),
+					delay(10).then(() => Ior.both(new Str("b"), 4)),
+				],
+				builder,
+			);
+			expect(ior).to.deep.equal(Ior.both(new Str("ba"), [4, 2]));
+		});
+	});
+
+	describe("allEntriesIntoPar", () => {
+		it("collects the key-right-hand-value pairs into the Builder if no elements are Left", async () => {
+			const builder = new TestBuilder<[string, number]>();
+			const ior = await AsyncIor.allEntriesIntoPar(
+				[
+					["a", delay(50).then(() => Ior.both(new Str("x"), 2))],
+					["b", delay(10).then(() => Ior.both(new Str("y"), 4))],
+				],
+				builder,
+			);
+			expect(ior).to.deep.equal(
+				Ior.both(new Str("yx"), [
+					["b", 4],
+					["a", 2],
+				]),
+			);
+		});
+	});
+
+	describe("allPar", () => {
+		it("collects the right-hand values in an array if no elements are Left", async () => {
+			const ior = await AsyncIor.allPar([
+				delay(50).then<Ior<Str, 2>>(() => Ior.both(new Str("a"), 2)),
+				delay(10).then<Ior<Str, 4>>(() => Ior.both(new Str("b"), 4)),
+			]);
+			expect(ior).to.deep.equal(Ior.both(new Str("ba"), [2, 4]));
+		});
+	});
+
+	describe("allEntriesPar", () => {
+		it("collects the key-right-hand-value pairs in an object if no elements are Left", async () => {
+			const ior = await AsyncIor.allEntriesPar([
+				["a", delay(50).then(() => Ior.both(new Str("x"), 2))],
+				["b", delay(10).then(() => Ior.both(new Str("y"), 4))],
+			]);
+			expect(ior).to.deep.equal(Ior.both(new Str("yx"), { a: 2, b: 4 }));
+		});
+	});
+
+	describe("allPropsPar", () => {
+		it("collects the right-hand values in an object if no elements are Left", async () => {
+			const ior = await AsyncIor.allPropsPar({
+				two: delay(50).then<Ior<Str, 2>>(() =>
+					Ior.both(new Str("a"), 2),
+				),
+				four: delay(10).then<Ior<Str, 4>>(() =>
+					Ior.both(new Str("b"), 4),
+				),
+			});
+			expect(ior).to.deep.equal(
+				Ior.both(new Str("ba"), { two: 2, four: 4 }),
+			);
+		});
+	});
+
+	describe("forEachPar", () => {
+		it("applies the function to the elements while the result is not Left", async () => {
+			const results: [number, string][] = [];
+			const ior = await AsyncIor.forEachPar(["a", "b"], (char, idx) =>
+				delay(char === "a" ? 50 : 10).then(() => {
+					results.push([idx, char]);
+					return Ior.both(new Str(char), undefined);
+				}),
+			);
+			expect(ior).to.deep.equal(Ior.both(new Str("ba"), undefined));
+			expect(results).to.deep.equal([
+				[1, "b"],
+				[0, "a"],
+			]);
+		});
+	});
+
+	describe("liftPar", () => {
+		it("applies the function to the right-hand values if no arguments are Left", async () => {
+			async function f<A, B>(lhs: A, rhs: B): Promise<[A, B]> {
+				return [lhs, rhs];
+			}
+			const ior = await AsyncIor.liftPar(f<2, 4>)(
+				delay(50).then(() => Ior.both(new Str("a"), 2)),
+				delay(10).then(() => Ior.both(new Str("b"), 4)),
+			);
+			expect(ior).to.deep.equal(Ior.both(new Str("ba"), [2, 4]));
 		});
 	});
 });

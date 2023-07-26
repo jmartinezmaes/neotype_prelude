@@ -679,12 +679,7 @@ export namespace Ior {
 	 *
 	 * If any `Ior` fails, the state of the provided `Builder` is undefined.
 	 */
-	export function allEntriesInto<
-		K extends number | string | symbol,
-		A extends Semigroup<A>,
-		B,
-		TFinish,
-	>(
+	export function allEntriesInto<K, A extends Semigroup<A>, B, TFinish>(
 		entries: Iterable<readonly [K, Ior<A, B>]>,
 		builder: Builder<readonly [K, B], TFinish>,
 	): Ior<A, TFinish> {
@@ -790,337 +785,6 @@ export namespace Ior {
 	) => Ior<A, T> {
 		return (...iors) =>
 			all(iors).map((args) => f(...(args as TArgs))) as Ior<any, T>;
-	}
-
-	/**
-	 * Evaluate an `Ior.GoAsync` async generator to return a `Promise` that
-	 * resolves with an `Ior`.
-	 */
-	export async function goAsync<A extends Semigroup<A>, TReturn>(
-		gen: GoAsync<A, TReturn>,
-	): Promise<Ior<A, TReturn>> {
-		let nxt = await gen.next();
-		let acc: A | undefined;
-		let isHalted = false;
-
-		while (!nxt.done) {
-			const ior = nxt.value;
-			if (ior.isRight()) {
-				nxt = await gen.next(ior.val);
-			} else if (ior.isBoth()) {
-				if (acc === undefined) {
-					acc = ior.fst;
-				} else {
-					acc = cmb(acc, ior.fst);
-				}
-				nxt = await gen.next(ior.snd);
-			} else {
-				isHalted = true;
-				if (acc === undefined) {
-					acc = ior.val;
-				} else {
-					acc = cmb(acc, ior.val);
-				}
-				nxt = await gen.return(undefined as any);
-			}
-		}
-
-		if (isHalted) {
-			return left(acc as A);
-		}
-		if (acc === undefined) {
-			return right(nxt.value);
-		}
-		return both(acc, nxt.value);
-	}
-
-	/**
-	 * Map the elements in an iterable to promise-like `Ior` values,
-	 * concurrently evaluate the values, and collect the right-hand values into
-	 * a `Builder`.
-	 *
-	 * @remarks
-	 *
-	 * If any `Ior` fails, the state of the provided `Builder` is undefined.
-	 */
-	export function traverseIntoPar<T, A extends Semigroup<A>, B, TFinish>(
-		elems: Iterable<T>,
-		f: (elem: T, idx: number) => Ior<A, B> | PromiseLike<Ior<A, B>>,
-		builder: Builder<B, TFinish>,
-	): Promise<Ior<A, TFinish>> {
-		return new Promise((resolve, reject) => {
-			let remaining = 0;
-			let acc: A | undefined;
-
-			for (const elem of elems) {
-				const idx = remaining;
-				remaining++;
-				Promise.resolve(f(elem, idx)).then((ior) => {
-					if (ior.isLeft()) {
-						if (acc === undefined) {
-							resolve(ior);
-						} else {
-							resolve(left(cmb(acc, ior.val)));
-						}
-						return;
-					}
-
-					if (ior.isRight()) {
-						builder.add(ior.val);
-					} else {
-						if (acc === undefined) {
-							acc = ior.fst;
-						} else {
-							acc = cmb(acc, ior.fst);
-						}
-						builder.add(ior.snd);
-					}
-
-					remaining--;
-					if (remaining === 0) {
-						if (acc === undefined) {
-							resolve(right(builder.finish()));
-						} else {
-							resolve(both(acc, builder.finish()));
-						}
-						return;
-					}
-				}, reject);
-			}
-		});
-	}
-
-	/**
-	 * Map the elements in an iterable of key-element pairs to promise-like
-	 * `Ior` values, concurrently evaluate the values, and collect the
-	 * key-right-hand-value pairs into a `Builder`.
-	 *
-	 * @remarks
-	 *
-	 * If any `Ior` fails, the state of the provided `Builder` is undefined.
-	 */
-	export function traverseEntriesIntoPar<
-		K,
-		V,
-		A extends Semigroup<A>,
-		B,
-		TFinish,
-	>(
-		entries: Iterable<readonly [K, V]>,
-		f: (elem: V, key: K, idx: number) => Ior<A, B> | PromiseLike<Ior<A, B>>,
-		builder: Builder<readonly [K, B], TFinish>,
-	): Promise<Ior<A, TFinish>> {
-		return traverseIntoPar(
-			entries,
-			async ([key, elem], idx) =>
-				(await f(elem, key, idx)).map((val): [K, B] => [key, val]),
-			builder,
-		);
-	}
-
-	/**
-	 * Map the elements in an iterable to promise-like `Ior` values,
-	 * concurrently evaluate the values, and collect the right-hand values in an
-	 * array.
-	 */
-	export function traversePar<T, A extends Semigroup<A>, B>(
-		elems: Iterable<T>,
-		f: (elem: T, idx: number) => Ior<A, B> | PromiseLike<Ior<A, B>>,
-	): Promise<Ior<A, B[]>> {
-		return traverseIntoPar(
-			elems,
-			async (elem, idx) =>
-				(await f(elem, idx)).map((val): [number, B] => [idx, val]),
-			new ArrayEntryBuilder(),
-		);
-	}
-
-	/**
-	 * Map the elements in an iterable of key-element pairs to promise-like
-	 * `Ior` values, concurrently evaluate the values, and collect the
-	 * key-right-hand-value pairs in an object.
-	 */
-	export function traverseEntriesPar<
-		K extends number | string | symbol,
-		V,
-		A extends Semigroup<A>,
-		B,
-	>(
-		entries: Iterable<readonly [K, V]>,
-		f: (elem: V, key: K, idx: number) => Ior<A, B> | PromiseLike<Ior<A, B>>,
-	): Promise<Ior<A, Record<K, B>>> {
-		return traverseEntriesIntoPar(entries, f, new RecordEntryBuilder());
-	}
-
-	/**
-	 * Concurrently evaluate the promise-like `Ior` elements in an iterable
-	 * and collect the right-hand values into a `Builder`.
-	 *
-	 * @remarks
-	 *
-	 * If any `Ior` fails, the state of the provided `Builder` is undefined.
-	 */
-	export function allIntoPar<A extends Semigroup<A>, B, TFinish>(
-		elems: Iterable<Ior<A, B> | PromiseLike<Ior<A, B>>>,
-		builder: Builder<B, TFinish>,
-	): Promise<Ior<A, TFinish>> {
-		return traverseIntoPar(elems, id, builder);
-	}
-
-	/**
-	 * Concurrently evaluate the promise-like `Ior` elements in an iterable of
-	 * key-element pairs and collect the key-right-hand-value pairs into a
-	 * `Builder`.
-	 *
-	 * @remarks
-	 *
-	 * If any `Ior` fails, the state of the provided `Builder` is undefined.
-	 */
-	export function allEntriesIntoPar<K, A extends Semigroup<A>, B, TFinish>(
-		entries: Iterable<readonly [K, Ior<A, B> | PromiseLike<Ior<A, B>>]>,
-		builder: Builder<readonly [K, B], TFinish>,
-	): Promise<Ior<A, TFinish>> {
-		return traverseEntriesIntoPar(entries, id, builder);
-	}
-
-	/**
-	 * Concurrently evaluate the promise-like `Ior` elements in an array or a
-	 * tuple literal and collect the right-hand values in an equivalent
-	 * structure.
-	 *
-	 * @remarks
-	 *
-	 * This function essentially turns an array or a tuple literal of
-	 * promise-like `Ior` elements "inside out". For example:
-	 *
-	 * -   `Promise<Ior<E, T>>[]` becomes `Promise<Ior<E, T[]>>`
-	 * -   `[Promise<Ior<E, T1>>, Promise<Ior<E, T2>>]` becomes `Promise<Ior<E,
-	 *     [T1, T2]>>`
-	 */
-	export function allPar<
-		TElems extends
-			| readonly (
-					| Ior<Semigroup<any>, any>
-					| PromiseLike<Ior<Semigroup<any>, any>>
-			  )[]
-			| [],
-	>(
-		elems: TElems,
-	): Promise<
-		Ior<
-			LeftT<{ [K in keyof TElems]: Awaited<TElems[K]> }[number]>,
-			{ [K in keyof TElems]: RightT<Awaited<TElems[K]>> }
-		>
-	>;
-
-	/**
-	 * Concurrently evaluate the promise-like `Ior` elements in an iterable and
-	 * collect the right-hand values in an array.
-	 *
-	 * @remarks
-	 *
-	 * This function essentially turns an iterable of promise-like `Ior`
-	 * elements "inside out". For example, `Iterable<Promise<Ior<E, T>>>`
-	 * becomes `Promise<Ior<E, T[]>>`.
-
-	 */
-	export function allPar<A extends Semigroup<A>, B>(
-		elems: Iterable<Ior<A, B> | PromiseLike<Ior<A, B>>>,
-	): Promise<Ior<A, B[]>>;
-
-	export function allPar<A extends Semigroup<A>, B>(
-		elems: Iterable<Ior<A, B> | PromiseLike<Ior<A, B>>>,
-	): Promise<Ior<A, B[]>> {
-		return traversePar(elems, id);
-	}
-
-	/**
-	 * Concurrently evaluate the promise-like `Ior` elements in an iterable of
-	 * key-element pairs and collect the key-right-hand-value pairs in an
-	 * object.
-	 */
-	export function allEntriesPar<
-		K extends number | string | symbol,
-		A extends Semigroup<A>,
-		B,
-	>(
-		entries: Iterable<readonly [K, Ior<A, B> | PromiseLike<Ior<A, B>>]>,
-	): Promise<Ior<A, Record<K, B>>> {
-		return traverseEntriesPar(entries, id);
-	}
-
-	/**
-	 * Concurrently evaluate the promise-like `Ior` elements in a string-keyed
-	 * record or object literal and collect the right-hand values in an
-	 * equivalent structure.
-	 *
-	 * @remarks
-	 *
-	 * This function essentially turns a string-keyed record or object literal
-	 * of promise-like `Ior` elements "inside out". For example:
-	 *
-	 * -   `Record<string, Promise<Ior<E, T>>>` becomes `Promise<Ior<E,
-	 *     Record<string, T>>>`
-	 * -   `{ x: Promise<Ior<E, T1>>, y: Promise<Ior<E, T2>> }` becomes
-	 *     `Promise<Ior<E, { x: T1, y: T2 }>>`
-	 */
-	export function allPropsPar<
-		TProps extends Record<
-			string,
-			Ior<Semigroup<any>, any> | PromiseLike<Ior<Semigroup<any>, any>>
-		>,
-	>(
-		props: TProps,
-	): Promise<
-		Ior<
-			LeftT<{ [K in keyof TProps]: Awaited<TProps[K]> }[keyof TProps]>,
-			{ [K in keyof TProps]: RightT<Awaited<TProps[K]>> }
-		>
-	>;
-
-	export function allPropsPar<A extends Semigroup<A>, B>(
-		props: Record<string, Ior<A, B> | PromiseLike<Ior<A, B>>>,
-	): Promise<Ior<A, Record<string, B>>> {
-		return traverseEntriesPar(Object.entries(props), id);
-	}
-
-	/**
-	 * Map the elements in an iterable to promise-like `Ior` values,
-	 * concurrently evaluate the values, and ignore the right-hand values.
-	 */
-	export function forEachPar<T, A extends Semigroup<A>>(
-		elems: Iterable<T>,
-		f: (elem: T, idx: number) => Ior<A, any> | PromiseLike<Ior<A, any>>,
-	): Promise<Ior<A, void>> {
-		return traverseIntoPar(elems, f, new NoOpBuilder());
-	}
-
-	/**
-	 * Adapt a synchronous or an asynchronous function to accept promise-like
-	 * `Ior` values as arguments and return a `Promise` that resolves with an
-	 * `Ior`.
-	 *
-	 * @remarks
-	 *
-	 * The lifted function's arguments are evaluated concurrently.
-	 */
-	export function liftPar<TArgs extends unknown[], T>(
-		f: (...args: TArgs) => T | PromiseLike<T>,
-	): <A extends Semigroup<A>>(
-		...elems: {
-			[K in keyof TArgs]:
-				| Ior<A, TArgs[K]>
-				| PromiseLike<Ior<A, TArgs[K]>>;
-		}
-	) => Promise<Ior<A, T>> {
-		return (...elems) =>
-			goAsync(
-				(async function* (): Ior.GoAsync<any, T> {
-					return f(
-						...((yield* await allPar(elems)) as TArgs),
-					) as Awaited<T>;
-				})(),
-			);
 	}
 
 	/**
@@ -1490,28 +1154,6 @@ export namespace Ior {
 	>;
 
 	/**
-	 * An async generator that yields `Ior` values and returns a result.
-	 *
-	 * @remarks
-	 *
-	 * Async `Ior` generator comprehensions should use this type alias as their
-	 * return type. An async generator function that returns an `Ior.GoAsync<A,
-	 * T>` may `yield*` zero or more `Ior<A, any>` values and must return a
-	 * result of type `T`. `PromiseLike` values that resolve with `Ior` should
-	 * be awaited before yielding. Async comprehensions may also `yield*` other
-	 * `Ior.Go` and `Ior.GoAsync` generators directly.
-	 *
-	 * Comprehensions require that the left-hand values of all yielded `Ior`
-	 * values are implementors of the same `Semigroup` so the values may
-	 * accumulate as the generator yields.
-	 */
-	export type GoAsync<A extends Semigroup<A>, TReturn> = AsyncGenerator<
-		Ior<A, unknown>,
-		TReturn,
-		unknown
-	>;
-
-	/**
 	 * Extract the left-hand value type `A` from the type `Ior<A, B>`.
 	 */
 	export type LeftT<TIor extends Ior<any, any>> = [TIor] extends [
@@ -1528,4 +1170,366 @@ export namespace Ior {
 	]
 		? B
 		: never;
+}
+
+/**
+ * A `PromiseLike` object that fulfills with an `Ior`.
+ */
+export type AsyncIorLike<A, B> = PromiseLike<Ior<A, B>>;
+
+/**
+ * A `Promise` that fulfills with an `Ior`.
+ */
+export type AsyncIor<A, B> = Promise<Ior<A, B>>;
+
+/**
+ * The companion namespace for the `AsyncIor` type.
+ */
+export namespace AsyncIor {
+	/**
+	 * Evaluate an `Ior.GoAsync` async generator to return a `Promise` that
+	 * resolves with an `Ior`.
+	 */
+	export async function go<A extends Semigroup<A>, TReturn>(
+		gen: Go<A, TReturn>,
+	): AsyncIor<A, TReturn> {
+		let nxt = await gen.next();
+		let acc: A | undefined;
+		let isHalted = false;
+
+		while (!nxt.done) {
+			const ior = nxt.value;
+			if (ior.isRight()) {
+				nxt = await gen.next(ior.val);
+			} else if (ior.isBoth()) {
+				if (acc === undefined) {
+					acc = ior.fst;
+				} else {
+					acc = cmb(acc, ior.fst);
+				}
+				nxt = await gen.next(ior.snd);
+			} else {
+				isHalted = true;
+				if (acc === undefined) {
+					acc = ior.val;
+				} else {
+					acc = cmb(acc, ior.val);
+				}
+				nxt = await gen.return(undefined as any);
+			}
+		}
+
+		if (isHalted) {
+			return Ior.left(acc as A);
+		}
+		if (acc === undefined) {
+			return Ior.right(nxt.value);
+		}
+		return Ior.both(acc, nxt.value);
+	}
+
+	/**
+	 * Map the elements in an iterable to promise-like `Ior` values,
+	 * concurrently evaluate the values, and collect the right-hand values into
+	 * a `Builder`.
+	 *
+	 * @remarks
+	 *
+	 * If any `Ior` fails, the state of the provided `Builder` is undefined.
+	 */
+	export function traverseIntoPar<T, A extends Semigroup<A>, B, TFinish>(
+		elems: Iterable<T>,
+		f: (elem: T, idx: number) => Ior<A, B> | AsyncIorLike<A, B>,
+		builder: Builder<B, TFinish>,
+	): AsyncIor<A, TFinish> {
+		return new Promise((resolve, reject) => {
+			let remaining = 0;
+			let acc: A | undefined;
+
+			for (const elem of elems) {
+				const idx = remaining;
+				remaining++;
+				Promise.resolve(f(elem, idx)).then((ior) => {
+					if (ior.isLeft()) {
+						if (acc === undefined) {
+							resolve(ior);
+						} else {
+							resolve(Ior.left(cmb(acc, ior.val)));
+						}
+						return;
+					}
+
+					if (ior.isRight()) {
+						builder.add(ior.val);
+					} else {
+						if (acc === undefined) {
+							acc = ior.fst;
+						} else {
+							acc = cmb(acc, ior.fst);
+						}
+						builder.add(ior.snd);
+					}
+
+					remaining--;
+					if (remaining === 0) {
+						if (acc === undefined) {
+							resolve(Ior.right(builder.finish()));
+						} else {
+							resolve(Ior.both(acc, builder.finish()));
+						}
+						return;
+					}
+				}, reject);
+			}
+		});
+	}
+
+	/**
+	 * Map the elements in an iterable of key-element pairs to promise-like
+	 * `Ior` values, concurrently evaluate the values, and collect the
+	 * key-right-hand-value pairs into a `Builder`.
+	 *
+	 * @remarks
+	 *
+	 * If any `Ior` fails, the state of the provided `Builder` is undefined.
+	 */
+	export function traverseEntriesIntoPar<
+		K,
+		V,
+		A extends Semigroup<A>,
+		B,
+		TFinish,
+	>(
+		entries: Iterable<readonly [K, V]>,
+		f: (elem: V, key: K, idx: number) => Ior<A, B> | AsyncIorLike<A, B>,
+		builder: Builder<readonly [K, B], TFinish>,
+	): AsyncIor<A, TFinish> {
+		return traverseIntoPar(
+			entries,
+			async ([key, elem], idx) =>
+				(await f(elem, key, idx)).map((val): [K, B] => [key, val]),
+			builder,
+		);
+	}
+
+	/**
+	 * Map the elements in an iterable to promise-like `Ior` values,
+	 * concurrently evaluate the values, and collect the right-hand values in an
+	 * array.
+	 */
+	export function traversePar<T, A extends Semigroup<A>, B>(
+		elems: Iterable<T>,
+		f: (elem: T, idx: number) => Ior<A, B> | AsyncIorLike<A, B>,
+	): AsyncIor<A, B[]> {
+		return traverseIntoPar(
+			elems,
+			async (elem, idx) =>
+				(await f(elem, idx)).map((val): [number, B] => [idx, val]),
+			new ArrayEntryBuilder(),
+		);
+	}
+
+	/**
+	 * Map the elements in an iterable of key-element pairs to promise-like
+	 * `Ior` values, concurrently evaluate the values, and collect the
+	 * key-right-hand-value pairs in an object.
+	 */
+	export function traverseEntriesPar<
+		K extends number | string | symbol,
+		V,
+		A extends Semigroup<A>,
+		B,
+	>(
+		entries: Iterable<readonly [K, V]>,
+		f: (elem: V, key: K, idx: number) => Ior<A, B> | AsyncIorLike<A, B>,
+	): AsyncIor<A, Record<K, B>> {
+		return traverseEntriesIntoPar(entries, f, new RecordEntryBuilder());
+	}
+
+	/**
+	 * Concurrently evaluate the promise-like `Ior` elements in an iterable
+	 * and collect the right-hand values into a `Builder`.
+	 *
+	 * @remarks
+	 *
+	 * If any `Ior` fails, the state of the provided `Builder` is undefined.
+	 */
+	export function allIntoPar<A extends Semigroup<A>, B, TFinish>(
+		elems: Iterable<Ior<A, B> | AsyncIorLike<A, B>>,
+		builder: Builder<B, TFinish>,
+	): AsyncIor<A, TFinish> {
+		return traverseIntoPar(elems, id, builder);
+	}
+
+	/**
+	 * Concurrently evaluate the promise-like `Ior` elements in an iterable of
+	 * key-element pairs and collect the key-right-hand-value pairs into a
+	 * `Builder`.
+	 *
+	 * @remarks
+	 *
+	 * If any `Ior` fails, the state of the provided `Builder` is undefined.
+	 */
+	export function allEntriesIntoPar<K, A extends Semigroup<A>, B, TFinish>(
+		entries: Iterable<readonly [K, Ior<A, B> | AsyncIorLike<A, B>]>,
+		builder: Builder<readonly [K, B], TFinish>,
+	): AsyncIor<A, TFinish> {
+		return traverseEntriesIntoPar(entries, id, builder);
+	}
+
+	/**
+	 * Concurrently evaluate the promise-like `Ior` elements in an array or a
+	 * tuple literal and collect the right-hand values in an equivalent
+	 * structure.
+	 *
+	 * @remarks
+	 *
+	 * This function essentially turns an array or a tuple literal of
+	 * promise-like `Ior` elements "inside out". For example:
+	 *
+	 * -   `Promise<Ior<E, T>>[]` becomes `Promise<Ior<E, T[]>>`
+	 * -   `[Promise<Ior<E, T1>>, Promise<Ior<E, T2>>]` becomes `Promise<Ior<E,
+	 *     [T1, T2]>>`
+	 */
+	export function allPar<
+		TElems extends
+			| readonly (
+					| Ior<Semigroup<any>, any>
+					| AsyncIorLike<Semigroup<any>, any>
+			  )[]
+			| [],
+	>(
+		elems: TElems,
+	): AsyncIor<
+		Ior.LeftT<{ [K in keyof TElems]: Awaited<TElems[K]> }[number]>,
+		{ [K in keyof TElems]: Ior.RightT<Awaited<TElems[K]>> }
+	>;
+
+	/**
+	 * Concurrently evaluate the promise-like `Ior` elements in an iterable and
+	 * collect the right-hand values in an array.
+	 *
+	 * @remarks
+	 *
+	 * This function essentially turns an iterable of promise-like `Ior`
+	 * elements "inside out". For example, `Iterable<Promise<Ior<E, T>>>`
+	 * becomes `Promise<Ior<E, T[]>>`.
+
+	 */
+	export function allPar<A extends Semigroup<A>, B>(
+		elems: Iterable<Ior<A, B> | AsyncIorLike<A, B>>,
+	): AsyncIor<A, B[]>;
+
+	export function allPar<A extends Semigroup<A>, B>(
+		elems: Iterable<Ior<A, B> | AsyncIorLike<A, B>>,
+	): AsyncIor<A, B[]> {
+		return traversePar(elems, id);
+	}
+
+	/**
+	 * Concurrently evaluate the promise-like `Ior` elements in an iterable of
+	 * key-element pairs and collect the key-right-hand-value pairs in an
+	 * object.
+	 */
+	export function allEntriesPar<
+		K extends number | string | symbol,
+		A extends Semigroup<A>,
+		B,
+	>(
+		entries: Iterable<readonly [K, Ior<A, B> | AsyncIorLike<A, B>]>,
+	): AsyncIor<A, Record<K, B>> {
+		return traverseEntriesPar(entries, id);
+	}
+
+	/**
+	 * Concurrently evaluate the promise-like `Ior` elements in a string-keyed
+	 * record or object literal and collect the right-hand values in an
+	 * equivalent structure.
+	 *
+	 * @remarks
+	 *
+	 * This function essentially turns a string-keyed record or object literal
+	 * of promise-like `Ior` elements "inside out". For example:
+	 *
+	 * -   `Record<string, Promise<Ior<E, T>>>` becomes `Promise<Ior<E,
+	 *     Record<string, T>>>`
+	 * -   `{ x: Promise<Ior<E, T1>>, y: Promise<Ior<E, T2>> }` becomes
+	 *     `Promise<Ior<E, { x: T1, y: T2 }>>`
+	 */
+	export function allPropsPar<
+		TProps extends Record<
+			string,
+			Ior<Semigroup<any>, any> | AsyncIorLike<Semigroup<any>, any>
+		>,
+	>(
+		props: TProps,
+	): AsyncIor<
+		Ior.LeftT<{ [K in keyof TProps]: Awaited<TProps[K]> }[keyof TProps]>,
+		{ [K in keyof TProps]: Ior.RightT<Awaited<TProps[K]>> }
+	>;
+
+	export function allPropsPar<A extends Semigroup<A>, B>(
+		props: Record<string, Ior<A, B> | AsyncIorLike<A, B>>,
+	): AsyncIor<A, Record<string, B>> {
+		return traverseEntriesPar(Object.entries(props), id);
+	}
+
+	/**
+	 * Map the elements in an iterable to promise-like `Ior` values,
+	 * concurrently evaluate the values, and ignore the right-hand values.
+	 */
+	export function forEachPar<T, A extends Semigroup<A>>(
+		elems: Iterable<T>,
+		f: (elem: T, idx: number) => Ior<A, any> | AsyncIorLike<A, any>,
+	): AsyncIor<A, void> {
+		return traverseIntoPar(elems, f, new NoOpBuilder());
+	}
+
+	/**
+	 * Adapt a synchronous or an asynchronous function to accept promise-like
+	 * `Ior` values as arguments and return a `Promise` that resolves with an
+	 * `Ior`.
+	 *
+	 * @remarks
+	 *
+	 * The lifted function's arguments are evaluated concurrently.
+	 */
+	export function liftPar<TArgs extends unknown[], T>(
+		f: (...args: TArgs) => T | PromiseLike<T>,
+	): <A extends Semigroup<A>>(
+		...elems: {
+			[K in keyof TArgs]: Ior<A, TArgs[K]> | AsyncIorLike<A, TArgs[K]>;
+		}
+	) => AsyncIor<A, T> {
+		return (...elems) =>
+			go(
+				(async function* (): Go<any, T> {
+					return f(
+						...((yield* await allPar(elems)) as TArgs),
+					) as Awaited<T>;
+				})(),
+			);
+	}
+
+	/**
+	 * An async generator that yields `Ior` values and returns a result.
+	 *
+	 * @remarks
+	 *
+	 * Async `Ior` generator comprehensions should use this type alias as their
+	 * return type. An async generator function that returns an `AsyncIor.Go<A,
+	 * T>` may `yield*` zero or more `Ior<A, any>` values and must return a
+	 * result of type `T`. `PromiseLike` values that resolve with `Ior` should
+	 * be awaited before yielding. Async comprehensions may also `yield*` other
+	 * `Ior.Go` and `AsyncIor.Go` generators directly.
+	 *
+	 * Comprehensions require that the left-hand values of all yielded `Ior`
+	 * values are implementors of the same `Semigroup` so the values may
+	 * accumulate as the generator yields.
+	 */
+	export type Go<A extends Semigroup<A>, TReturn> = AsyncGenerator<
+		Ior<A, unknown>,
+		TReturn,
+		unknown
+	>;
 }

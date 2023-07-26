@@ -686,267 +686,6 @@ export namespace Maybe {
 	}
 
 	/**
-	 * Evaluate a `Maybe.GoAsync` async generator to return a `Promise` that
-	 * resolves with a `Maybe`.
-	 */
-	export async function goAsync<TReturn>(
-		gen: GoAsync<TReturn>,
-	): Promise<Maybe<TReturn>> {
-		let nxt = await gen.next();
-		let isHalted = false;
-		while (!nxt.done) {
-			const maybe = nxt.value;
-			if (maybe.isJust()) {
-				nxt = await gen.next(maybe.val);
-			} else {
-				isHalted = true;
-				nxt = await gen.return(undefined as any);
-			}
-		}
-		return isHalted ? nothing : just(nxt.value);
-	}
-
-	/**
-	 * Map the elements in an iterable to promise-like `Maybe` values,
-	 * concurrently evaluate the values, and collect the present values into a
-	 * `Builder`.
-	 *
-	 * @remarks
-	 *
-	 * If any `Maybe` is absent, the state of the provided `Builder` is
-	 * undefined.
-	 */
-	export function traverseIntoPar<T, T1, TFinish>(
-		elems: Iterable<T>,
-		f: (elem: T, idx: number) => Maybe<T1> | PromiseLike<Maybe<T1>>,
-		builder: Builder<T1, TFinish>,
-	): Promise<Maybe<TFinish>> {
-		return new Promise((resolve, reject) => {
-			let remaining = 0;
-			for (const elem of elems) {
-				const idx = remaining;
-				remaining++;
-				Promise.resolve(f(elem, idx)).then((maybe) => {
-					if (maybe.isNothing()) {
-						resolve(maybe);
-						return;
-					}
-					builder.add(maybe.val);
-					remaining--;
-					if (remaining === 0) {
-						resolve(just(builder.finish()));
-						return;
-					}
-				}, reject);
-			}
-		});
-	}
-
-	/**
-	 * Map the elements in an iterable of key-element pairs to promise-like
-	 * `Maybe` values, concurrently evaluate the values, and collect the
-	 * key-present-value pairs into a `Builder`.
-	 *
-	 * @remarks
-	 *
-	 * If any `Maybe` is absent, the state of the provided `Builder` is
-	 * undefined.
-	 */
-	export function traverseEntriesIntoPar<K, V, V1, TFinish>(
-		entries: Iterable<readonly [K, V]>,
-		f: (elem: V, key: K, idx: number) => Maybe<V1> | PromiseLike<Maybe<V1>>,
-		builder: Builder<readonly [K, V1], TFinish>,
-	): Promise<Maybe<TFinish>> {
-		return traverseIntoPar(
-			entries,
-			async ([key, elem], idx) =>
-				(await f(elem, key, idx)).map((val): [K, V1] => [key, val]),
-			builder,
-		);
-	}
-
-	/**
-	 * Map the elements in an iterable to promise-like `Maybe` values,
-	 * concurrently evaluate the values, and collect the present values in an
-	 * array.
-	 */
-	export function traversePar<T, T1>(
-		elems: Iterable<T>,
-		f: (elem: T, idx: number) => Maybe<T1> | PromiseLike<Maybe<T1>>,
-	): Promise<Maybe<T1[]>> {
-		return traverseIntoPar(
-			elems,
-			async (elem, idx) =>
-				(await f(elem, idx)).map((val): [number, T1] => [idx, val]),
-			new ArrayEntryBuilder(),
-		);
-	}
-
-	/**
-	 * Map the elements in an iterable of key-element pairs to promise-like
-	 * `Maybe` values, concurrently evaluate the values, and collect the
-	 * key-present-value pairs in an object.
-	 */
-	export function traverseEntriesPar<
-		K extends number | string | symbol,
-		V,
-		V1,
-	>(
-		entries: Iterable<readonly [K, V]>,
-		f: (elem: V, key: K, idx: number) => Maybe<V1> | PromiseLike<Maybe<V1>>,
-	): Promise<Maybe<Record<K, V1>>> {
-		return traverseEntriesIntoPar(entries, f, new RecordEntryBuilder());
-	}
-
-	/**
-	 * Concurrently evaluate the promise-like `Maybe` elements in an iterable
-	 * and collect the present values into a `Builder`.
-	 *
-	 * @remarks
-	 *
-	 * If any `Maybe` is absent, the state of the provided `Builder` is
-	 * undefined.
-	 */
-	export function allIntoPar<T, TFinish>(
-		elems: Iterable<Maybe<T> | PromiseLike<Maybe<T>>>,
-		builder: Builder<T, TFinish>,
-	): Promise<Maybe<TFinish>> {
-		return traverseIntoPar(elems, id, builder);
-	}
-
-	/**
-	 * Concurrently evaluate the promise-like `Maybe` elements in an iterable
-	 * of key-element pairs and collect the key-present-value pairs into a
-	 * `Builder`.
-	 *
-	 * @remarks
-	 *
-	 * If any `Maybe` is absent, the state of the provided `Builder` is
-	 * undefined.
-	 */
-	export function allEntriesIntoPar<
-		K extends number | string | symbol,
-		V,
-		TFinish,
-	>(
-		entries: Iterable<readonly [K, Maybe<V> | PromiseLike<Maybe<V>>]>,
-		builder: Builder<readonly [K, V], TFinish>,
-	): Promise<Maybe<TFinish>> {
-		return traverseEntriesIntoPar(entries, id, builder);
-	}
-
-	/**
-	 * Concurrently evaluate the promise-like `Maybe` elements in an array or a
-	 * tuple literal and collect the present values in an equivalent structure.
-	 *
-	 * @remarks
-	 *
-	 * This function essentially turns an array or a tuple literal of
-	 * promise-like `Maybe` elements "inside out". For example:
-	 *
-	 * -   `Promise<Maybe<T>>[]` becomes `Promise<Maybe<T[]>>`
-	 * -   `[Promise<Maybe<T1>>, Promise<Maybe<T2>>]`
-	 *     `Promise<Maybe<[T1, T2]>>`
-	 */
-	export function allPar<
-		TElems extends readonly (Maybe<any> | PromiseLike<Maybe<any>>)[] | [],
-	>(
-		elems: TElems,
-	): Promise<Maybe<{ [K in keyof TElems]: JustT<Awaited<TElems[K]>> }>>;
-
-	/**
-	 * Concurrently evaluate the promise-like `Maybe` elements in an iterable
-	 * and collect the present values in an array.
-	 *
-	 * @remarks
-	 *
-	 * This function essentially turns an iterable of promise-like `Maybe`
-	 * elements "inside out". For example, `Iterable<Promise<Maybe<T>>>` becomes
-	 * `Promise<Maybe<T[]>>`.
-	 */
-	export function allPar<T>(
-		elems: Iterable<Maybe<T> | PromiseLike<Maybe<T>>>,
-	): Promise<Maybe<T[]>>;
-
-	export function allPar<T>(
-		elems: Iterable<Maybe<T> | PromiseLike<Maybe<T>>>,
-	): Promise<Maybe<T[]>> {
-		return traversePar(elems, id);
-	}
-
-	/**
-	 * Concurrently evaluate the promise-like `Maybe` elements in an iterable of
-	 * key-element pairs and collect the key-present-value pairs in an object.
-	 */
-	export function allEntriesPar<K extends number | string | symbol, V>(
-		entries: Iterable<readonly [K, Maybe<V> | PromiseLike<Maybe<V>>]>,
-	): Promise<Maybe<Record<K, V>>> {
-		return traverseEntriesPar(entries, id);
-	}
-
-	/**
-	 * Concurrently evaluate the promise-like `Maybe` elements in a string-keyed
-	 * record or object literal and collect the present values in an equivalent
-	 * structure.
-	 *
-	 * @remarks
-	 *
-	 * This function essentially turns a string-keyed record or object literal
-	 * of promise-like `Maybe` elements "inside out". For example:
-	 *
-	 * -   `Record<string, Promise<Maybe<T>>>` becomes
-	 *     `Promise<Maybe<Record<string, T>>>`
-	 * -   `{ x: Promise<Maybe<T1>>, y: Promise<Maybe<T2>> }` becomes
-	 *     `Promise<Maybe<{ x: T1, y: T2 }>>`
-	 */
-	export function allPropsPar<
-		TProps extends Record<string, Maybe<any> | PromiseLike<Maybe<any>>>,
-	>(
-		props: TProps,
-	): Promise<Maybe<{ [K in keyof TProps]: JustT<Awaited<TProps[K]>> }>>;
-
-	export function allPropsPar<T>(
-		props: Record<string, Maybe<T> | PromiseLike<Maybe<T>>>,
-	): Promise<Maybe<Record<string, T>>> {
-		return traverseEntriesPar(Object.entries(props), id);
-	}
-
-	/**
-	 * Map the elements in an iterable to promise-like `Maybe` values,
-	 * concurrently evaluate the values, and ignore the present values.
-	 */
-	export function forEachPar<T>(
-		elems: Iterable<T>,
-		f: (elem: T, idx: number) => Maybe<any> | PromiseLike<Maybe<any>>,
-	): Promise<Maybe<void>> {
-		return traverseIntoPar(elems, f, new NoOpBuilder());
-	}
-
-	/**
-	 * Adapt a synchronous or an asynchronous function to accept promise-like
-	 * `Maybe` values as arguments and return a `Promise` that resolves with a
-	 * `Maybe`.
-	 *
-	 * @remarks
-	 *
-	 * The lifted function's arguments are evaluated concurrently.
-	 */
-	export function liftPar<TArgs extends unknown[], T>(
-		f: (...args: TArgs) => T | PromiseLike<T>,
-	): (
-		...elems: {
-			[K in keyof TArgs]: Maybe<TArgs[K]> | PromiseLike<Maybe<TArgs[K]>>;
-		}
-	) => Promise<Maybe<T>> {
-		return (...elems) =>
-			goAsync(
-				(async function* () {
-					return f(...(yield* await allPar(elems)));
-				})(),
-			);
-	}
-
-	/**
 	 * An enumeration that discriminates `Maybe`.
 	 */
 	export enum Kind {
@@ -1223,27 +962,295 @@ export namespace Maybe {
 	export type Go<TReturn> = Generator<Maybe<unknown>, TReturn, unknown>;
 
 	/**
-	 * An async generator that yields `Maybe` values and returns a result.
-	 *
-	 * @remarks
-	 *
-	 * Async `Maybe` generator comprehensions should use this type alias as
-	 * their return type. An async generator function that returns a
-	 * `Maybe.GoAsync<T>` may `yield*` zero or more `Maybe<any>` values and must
-	 * return a result of type `T`. `PromiseLike` values that resolve with
-	 * `Maybe` should be awaited before yielding. Async comprehensions may also
-	 * `yield*` other `Maybe.Go` and `Maybe.GoAsync` generators directly.
-	 */
-	export type GoAsync<TReturn> = AsyncGenerator<
-		Maybe<unknown>,
-		TReturn,
-		unknown
-	>;
-
-	/**
 	 * Extract the present value type `T` from the type `Maybe<T>`.
 	 */
 	export type JustT<TMaybe extends Maybe<any>> = TMaybe extends Maybe<infer T>
 		? T
 		: never;
+}
+
+/**
+ * A `PromiseLike` object that fulfills with a `Maybe`.
+ */
+export type AsyncMaybeLike<T> = PromiseLike<Maybe<T>>;
+
+/**
+ * A `Promise` that fulfills with a `Maybe`.
+ */
+export type AsyncMaybe<T> = Promise<Maybe<T>>;
+
+/**
+ * The companion namespace for the `AsyncMaybe` type.
+ */
+export namespace AsyncMaybe {
+	/**
+	 * Evaluate a `Maybe.GoAsync` async generator to return a `Promise` that
+	 * resolves with a `Maybe`.
+	 */
+	export async function go<TReturn>(
+		gen: Go<TReturn>,
+	): Promise<Maybe<TReturn>> {
+		let nxt = await gen.next();
+		let isHalted = false;
+		while (!nxt.done) {
+			const maybe = nxt.value;
+			if (maybe.isJust()) {
+				nxt = await gen.next(maybe.val);
+			} else {
+				isHalted = true;
+				nxt = await gen.return(undefined as any);
+			}
+		}
+		return isHalted ? Maybe.nothing : Maybe.just(nxt.value);
+	}
+
+	/**
+	 * Map the elements in an iterable to promise-like `Maybe` values,
+	 * concurrently evaluate the values, and collect the present values into a
+	 * `Builder`.
+	 *
+	 * @remarks
+	 *
+	 * If any `Maybe` is absent, the state of the provided `Builder` is
+	 * undefined.
+	 */
+	export function traverseIntoPar<T, T1, TFinish>(
+		elems: Iterable<T>,
+		f: (elem: T, idx: number) => Maybe<T1> | AsyncMaybeLike<T1>,
+		builder: Builder<T1, TFinish>,
+	): AsyncMaybe<TFinish> {
+		return new Promise((resolve, reject) => {
+			let remaining = 0;
+			for (const elem of elems) {
+				const idx = remaining;
+				remaining++;
+				Promise.resolve(f(elem, idx)).then((maybe) => {
+					if (maybe.isNothing()) {
+						resolve(maybe);
+						return;
+					}
+					builder.add(maybe.val);
+					remaining--;
+					if (remaining === 0) {
+						resolve(Maybe.just(builder.finish()));
+						return;
+					}
+				}, reject);
+			}
+		});
+	}
+
+	/**
+	 * Map the elements in an iterable of key-element pairs to promise-like
+	 * `Maybe` values, concurrently evaluate the values, and collect the
+	 * key-present-value pairs into a `Builder`.
+	 *
+	 * @remarks
+	 *
+	 * If any `Maybe` is absent, the state of the provided `Builder` is
+	 * undefined.
+	 */
+	export function traverseEntriesIntoPar<K, V, V1, TFinish>(
+		entries: Iterable<readonly [K, V]>,
+		f: (elem: V, key: K, idx: number) => Maybe<V1> | AsyncMaybeLike<V1>,
+		builder: Builder<readonly [K, V1], TFinish>,
+	): AsyncMaybe<TFinish> {
+		return traverseIntoPar(
+			entries,
+			async ([key, elem], idx) =>
+				(await f(elem, key, idx)).map((val): [K, V1] => [key, val]),
+			builder,
+		);
+	}
+
+	/**
+	 * Map the elements in an iterable to promise-like `Maybe` values,
+	 * concurrently evaluate the values, and collect the present values in an
+	 * array.
+	 */
+	export function traversePar<T, T1>(
+		elems: Iterable<T>,
+		f: (elem: T, idx: number) => Maybe<T1> | AsyncMaybeLike<T1>,
+	): AsyncMaybe<T1[]> {
+		return traverseIntoPar(
+			elems,
+			async (elem, idx) =>
+				(await f(elem, idx)).map((val): [number, T1] => [idx, val]),
+			new ArrayEntryBuilder(),
+		);
+	}
+
+	/**
+	 * Map the elements in an iterable of key-element pairs to promise-like
+	 * `Maybe` values, concurrently evaluate the values, and collect the
+	 * key-present-value pairs in an object.
+	 */
+	export function traverseEntriesPar<
+		K extends number | string | symbol,
+		V,
+		V1,
+	>(
+		entries: Iterable<readonly [K, V]>,
+		f: (elem: V, key: K, idx: number) => Maybe<V1> | AsyncMaybeLike<V1>,
+	): AsyncMaybe<Record<K, V1>> {
+		return traverseEntriesIntoPar(entries, f, new RecordEntryBuilder());
+	}
+
+	/**
+	 * Concurrently evaluate the promise-like `Maybe` elements in an iterable
+	 * and collect the present values into a `Builder`.
+	 *
+	 * @remarks
+	 *
+	 * If any `Maybe` is absent, the state of the provided `Builder` is
+	 * undefined.
+	 */
+	export function allIntoPar<T, TFinish>(
+		elems: Iterable<Maybe<T> | AsyncMaybeLike<T>>,
+		builder: Builder<T, TFinish>,
+	): AsyncMaybe<TFinish> {
+		return traverseIntoPar(elems, id, builder);
+	}
+
+	/**
+	 * Concurrently evaluate the promise-like `Maybe` elements in an iterable
+	 * of key-element pairs and collect the key-present-value pairs into a
+	 * `Builder`.
+	 *
+	 * @remarks
+	 *
+	 * If any `Maybe` is absent, the state of the provided `Builder` is
+	 * undefined.
+	 */
+	export function allEntriesIntoPar<K, V, TFinish>(
+		entries: Iterable<readonly [K, Maybe<V> | AsyncMaybeLike<V>]>,
+		builder: Builder<readonly [K, V], TFinish>,
+	): AsyncMaybe<TFinish> {
+		return traverseEntriesIntoPar(entries, id, builder);
+	}
+
+	/**
+	 * Concurrently evaluate the promise-like `Maybe` elements in an array or a
+	 * tuple literal and collect the present values in an equivalent structure.
+	 *
+	 * @remarks
+	 *
+	 * This function essentially turns an array or a tuple literal of
+	 * promise-like `Maybe` elements "inside out". For example:
+	 *
+	 * -   `Promise<Maybe<T>>[]` becomes `Promise<Maybe<T[]>>`
+	 * -   `[Promise<Maybe<T1>>, Promise<Maybe<T2>>]`
+	 *     `Promise<Maybe<[T1, T2]>>`
+	 */
+	export function allPar<
+		TElems extends readonly (Maybe<any> | AsyncMaybeLike<any>)[] | [],
+	>(
+		elems: TElems,
+	): AsyncMaybe<{ [K in keyof TElems]: Maybe.JustT<Awaited<TElems[K]>> }>;
+
+	/**
+	 * Concurrently evaluate the promise-like `Maybe` elements in an iterable
+	 * and collect the present values in an array.
+	 *
+	 * @remarks
+	 *
+	 * This function essentially turns an iterable of promise-like `Maybe`
+	 * elements "inside out". For example, `Iterable<Promise<Maybe<T>>>` becomes
+	 * `Promise<Maybe<T[]>>`.
+	 */
+	export function allPar<T>(
+		elems: Iterable<Maybe<T> | AsyncMaybeLike<T>>,
+	): AsyncMaybe<T[]>;
+
+	export function allPar<T>(
+		elems: Iterable<Maybe<T> | AsyncMaybeLike<T>>,
+	): AsyncMaybe<T[]> {
+		return traversePar(elems, id);
+	}
+
+	/**
+	 * Concurrently evaluate the promise-like `Maybe` elements in an iterable of
+	 * key-element pairs and collect the key-present-value pairs in an object.
+	 */
+	export function allEntriesPar<K extends number | string | symbol, V>(
+		entries: Iterable<readonly [K, Maybe<V> | AsyncMaybeLike<V>]>,
+	): AsyncMaybe<Record<K, V>> {
+		return traverseEntriesPar(entries, id);
+	}
+
+	/**
+	 * Concurrently evaluate the promise-like `Maybe` elements in a string-keyed
+	 * record or object literal and collect the present values in an equivalent
+	 * structure.
+	 *
+	 * @remarks
+	 *
+	 * This function essentially turns a string-keyed record or object literal
+	 * of promise-like `Maybe` elements "inside out". For example:
+	 *
+	 * -   `Record<string, Promise<Maybe<T>>>` becomes
+	 *     `Promise<Maybe<Record<string, T>>>`
+	 * -   `{ x: Promise<Maybe<T1>>, y: Promise<Maybe<T2>> }` becomes
+	 *     `Promise<Maybe<{ x: T1, y: T2 }>>`
+	 */
+	export function allPropsPar<
+		TProps extends Record<string, Maybe<any> | AsyncMaybeLike<any>>,
+	>(
+		props: TProps,
+	): AsyncMaybe<{ [K in keyof TProps]: Maybe.JustT<Awaited<TProps[K]>> }>;
+
+	export function allPropsPar<T>(
+		props: Record<string, Maybe<T> | AsyncMaybeLike<T>>,
+	): AsyncMaybe<Record<string, T>> {
+		return traverseEntriesPar(Object.entries(props), id);
+	}
+
+	/**
+	 * Map the elements in an iterable to promise-like `Maybe` values,
+	 * concurrently evaluate the values, and ignore the present values.
+	 */
+	export function forEachPar<T>(
+		elems: Iterable<T>,
+		f: (elem: T, idx: number) => Maybe<any> | AsyncMaybeLike<any>,
+	): AsyncMaybe<void> {
+		return traverseIntoPar(elems, f, new NoOpBuilder());
+	}
+
+	/**
+	 * Adapt a synchronous or an asynchronous function to accept promise-like
+	 * `Maybe` values as arguments and return a `Promise` that resolves with a
+	 * `Maybe`.
+	 *
+	 * @remarks
+	 *
+	 * The lifted function's arguments are evaluated concurrently.
+	 */
+	export function liftPar<TArgs extends unknown[], T>(
+		f: (...args: TArgs) => T | PromiseLike<T>,
+	): (
+		...elems: {
+			[K in keyof TArgs]: Maybe<TArgs[K]> | AsyncMaybeLike<TArgs[K]>;
+		}
+	) => Promise<Maybe<T>> {
+		return (...elems) =>
+			go(
+				(async function* () {
+					return f(...(yield* await allPar(elems)));
+				})(),
+			);
+	}
+
+	/**
+	 * An async generator that yields `Maybe` values and returns a result.
+	 *
+	 * @remarks
+	 *
+	 * Async `Maybe` generator comprehensions should use this type alias as
+	 * their return type. An async generator function that returns an
+	 * `AsyncMaybe.Go<T>` may `yield*` zero or more `Maybe<any>` values and must
+	 * return a result of type `T`. `PromiseLike` values that resolve with
+	 * `Maybe` should be awaited before yielding. Async comprehensions may also
+	 * `yield*` other `Maybe.Go` and `AsyncMaybe.Go` generators directly.
+	 */
+	export type Go<TReturn> = AsyncGenerator<Maybe<unknown>, TReturn, unknown>;
 }
