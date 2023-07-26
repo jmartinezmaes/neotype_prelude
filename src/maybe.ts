@@ -524,29 +524,6 @@ export namespace Maybe {
 	}
 
 	/**
-	 * Map the elements in an iterable of key-element pairs to `Maybe` values,
-	 * evaluate the values from left to right, and collect the key-present-value
-	 * pairs into a `Builder`.
-	 *
-	 * @remarks
-	 *
-	 * If any `Maybe` is absent, the state of the provided `Builder` is
-	 * undefined.
-	 */
-	export function traverseEntriesInto<K, V, V1, TFinish>(
-		entries: Iterable<readonly [K, V]>,
-		f: (elem: V, key: K, idx: number) => Maybe<V1>,
-		builder: Builder<readonly [K, V1], TFinish>,
-	): Maybe<TFinish> {
-		return traverseInto(
-			entries,
-			([key, elem], idx) =>
-				f(elem, key, idx).map((val): [K, V1] => [key, val]),
-			builder,
-		);
-	}
-
-	/**
 	 * Map the elements in an iterable to `Maybe` values, evaluate the values
 	 * from left to right, and collect the present values in an array.
 	 */
@@ -555,18 +532,6 @@ export namespace Maybe {
 		f: (elem: T, idx: number) => Maybe<T1>,
 	): Maybe<T1[]> {
 		return traverseInto(elems, f, new ArrayPushBuilder());
-	}
-
-	/**
-	 * Map the elements in an iterable of key-element pairs to `Maybe` values,
-	 * evaluate the values from left to right, and collect the key-present-value
-	 * pairs in an object.
-	 */
-	export function traverseEntries<K extends number | string | symbol, V, V1>(
-		entries: Iterable<readonly [K, V]>,
-		f: (elem: V, key: K, idx: number) => Maybe<V1>,
-	): Maybe<Record<K, V1>> {
-		return traverseEntriesInto(entries, f, new RecordEntryBuilder());
 	}
 
 	/**
@@ -583,22 +548,6 @@ export namespace Maybe {
 		builder: Builder<T, TFinish>,
 	): Maybe<TFinish> {
 		return traverseInto(maybes, id, builder);
-	}
-
-	/**
-	 * Evaluate the `Maybe` elements in an iterable of key-`Maybe` pairs from
-	 * left to right and collect the key-present-value pairs into a `Builder`.
-	 *
-	 * @remarks
-	 *
-	 * If any `Maybe` is absent, the state of the provided `Builder` is
-	 * undefined.
-	 */
-	export function allEntriesInto<K, V, TFinish>(
-		entries: Iterable<readonly [K, Maybe<V>]>,
-		builder: Builder<readonly [K, V], TFinish>,
-	): Maybe<TFinish> {
-		return traverseEntriesInto(entries, id, builder);
 	}
 
 	/**
@@ -633,16 +582,6 @@ export namespace Maybe {
 	}
 
 	/**
-	 * Evaluate the `Maybe` elements in an iterable of key-`Maybe` pairs from
-	 * left to right and collect the key-present-value pairs in an object.
-	 */
-	export function allEntries<K extends number | string | symbol, V>(
-		entries: Iterable<readonly [K, Maybe<V>]>,
-	): Maybe<Record<K, V>> {
-		return traverseEntries(entries, id);
-	}
-
-	/**
 	 * Evaluate the `Maybe` elements in a string-keyed record or object literal
 	 * and collect the present values in an equivalent structure.
 	 *
@@ -661,7 +600,11 @@ export namespace Maybe {
 	export function allProps<T>(
 		props: Record<string, Maybe<T>>,
 	): Maybe<Record<string, T>> {
-		return traverseEntries(Object.entries(props), id);
+		return traverseInto(
+			Object.entries(props),
+			([key, elem]) => elem.map((val) => [key, val] as const),
+			new RecordEntryBuilder(),
+		);
 	}
 
 	/**
@@ -1005,6 +948,82 @@ export namespace AsyncMaybe {
 	}
 
 	/**
+	 *
+	 */
+	export function reduce<T, TAcc>(
+		elems: AsyncIterable<T>,
+		accum: (acc: TAcc, val: T) => Maybe<TAcc> | AsyncMaybeLike<TAcc>,
+		initial: TAcc,
+	): AsyncMaybe<TAcc> {
+		return go(
+			(async function* () {
+				let acc = initial;
+				for await (const val of elems) {
+					acc = yield* await accum(acc, val);
+				}
+				return acc;
+			})(),
+		);
+	}
+
+	/**
+	 *
+	 */
+	export function traverseInto<T, T1, TFinish>(
+		elems: AsyncIterable<T>,
+		f: (elem: T, idx: number) => Maybe<T1> | AsyncMaybeLike<T1>,
+		builder: Builder<T1, TFinish>,
+	): AsyncMaybe<TFinish> {
+		return go(
+			(async function* () {
+				let idx = 0;
+				for await (const elem of elems) {
+					builder.add(yield* await f(elem, idx));
+					idx++;
+				}
+				return builder.finish();
+			})(),
+		);
+	}
+
+	/**
+	 *
+	 */
+	export function traverse<T, T1>(
+		elems: AsyncIterable<T>,
+		f: (elem: T, idx: number) => Maybe<T1> | AsyncMaybeLike<T1>,
+	): AsyncMaybe<T1[]> {
+		return traverseInto(elems, f, new ArrayPushBuilder());
+	}
+
+	/**
+	 *
+	 */
+	export function allInto<T, TFinish>(
+		elems: AsyncIterable<Maybe<T>>,
+		builder: Builder<T, TFinish>,
+	): AsyncMaybe<TFinish> {
+		return traverseInto(elems, id, builder);
+	}
+
+	/**
+	 *
+	 */
+	export function all<T>(elems: AsyncIterable<Maybe<T>>): AsyncMaybe<T[]> {
+		return traverse(elems, id);
+	}
+
+	/**
+	 *
+	 */
+	export function forEach<T>(
+		elems: AsyncIterable<T>,
+		f: (elem: T, idx: number) => Maybe<any> | AsyncMaybeLike<any>,
+	): AsyncMaybe<void> {
+		return traverseInto(elems, f, new NoOpBuilder());
+	}
+
+	/**
 	 * Map the elements in an iterable to promise-like `Maybe` values,
 	 * concurrently evaluate the values, and collect the present values into a
 	 * `Builder`.
@@ -1041,29 +1060,6 @@ export namespace AsyncMaybe {
 	}
 
 	/**
-	 * Map the elements in an iterable of key-element pairs to promise-like
-	 * `Maybe` values, concurrently evaluate the values, and collect the
-	 * key-present-value pairs into a `Builder`.
-	 *
-	 * @remarks
-	 *
-	 * If any `Maybe` is absent, the state of the provided `Builder` is
-	 * undefined.
-	 */
-	export function traverseEntriesIntoPar<K, V, V1, TFinish>(
-		entries: Iterable<readonly [K, V]>,
-		f: (elem: V, key: K, idx: number) => Maybe<V1> | AsyncMaybeLike<V1>,
-		builder: Builder<readonly [K, V1], TFinish>,
-	): AsyncMaybe<TFinish> {
-		return traverseIntoPar(
-			entries,
-			async ([key, elem], idx) =>
-				(await f(elem, key, idx)).map((val): [K, V1] => [key, val]),
-			builder,
-		);
-	}
-
-	/**
 	 * Map the elements in an iterable to promise-like `Maybe` values,
 	 * concurrently evaluate the values, and collect the present values in an
 	 * array.
@@ -1075,25 +1071,9 @@ export namespace AsyncMaybe {
 		return traverseIntoPar(
 			elems,
 			async (elem, idx) =>
-				(await f(elem, idx)).map((val): [number, T1] => [idx, val]),
+				(await f(elem, idx)).map((val) => [idx, val] as const),
 			new ArrayEntryBuilder(),
 		);
-	}
-
-	/**
-	 * Map the elements in an iterable of key-element pairs to promise-like
-	 * `Maybe` values, concurrently evaluate the values, and collect the
-	 * key-present-value pairs in an object.
-	 */
-	export function traverseEntriesPar<
-		K extends number | string | symbol,
-		V,
-		V1,
-	>(
-		entries: Iterable<readonly [K, V]>,
-		f: (elem: V, key: K, idx: number) => Maybe<V1> | AsyncMaybeLike<V1>,
-	): AsyncMaybe<Record<K, V1>> {
-		return traverseEntriesIntoPar(entries, f, new RecordEntryBuilder());
 	}
 
 	/**
@@ -1110,23 +1090,6 @@ export namespace AsyncMaybe {
 		builder: Builder<T, TFinish>,
 	): AsyncMaybe<TFinish> {
 		return traverseIntoPar(elems, id, builder);
-	}
-
-	/**
-	 * Concurrently evaluate the promise-like `Maybe` elements in an iterable
-	 * of key-element pairs and collect the key-present-value pairs into a
-	 * `Builder`.
-	 *
-	 * @remarks
-	 *
-	 * If any `Maybe` is absent, the state of the provided `Builder` is
-	 * undefined.
-	 */
-	export function allEntriesIntoPar<K, V, TFinish>(
-		entries: Iterable<readonly [K, Maybe<V> | AsyncMaybeLike<V>]>,
-		builder: Builder<readonly [K, V], TFinish>,
-	): AsyncMaybe<TFinish> {
-		return traverseEntriesIntoPar(entries, id, builder);
 	}
 
 	/**
@@ -1169,16 +1132,6 @@ export namespace AsyncMaybe {
 	}
 
 	/**
-	 * Concurrently evaluate the promise-like `Maybe` elements in an iterable of
-	 * key-element pairs and collect the key-present-value pairs in an object.
-	 */
-	export function allEntriesPar<K extends number | string | symbol, V>(
-		entries: Iterable<readonly [K, Maybe<V> | AsyncMaybeLike<V>]>,
-	): AsyncMaybe<Record<K, V>> {
-		return traverseEntriesPar(entries, id);
-	}
-
-	/**
 	 * Concurrently evaluate the promise-like `Maybe` elements in a string-keyed
 	 * record or object literal and collect the present values in an equivalent
 	 * structure.
@@ -1202,7 +1155,12 @@ export namespace AsyncMaybe {
 	export function allPropsPar<T>(
 		props: Record<string, Maybe<T> | AsyncMaybeLike<T>>,
 	): AsyncMaybe<Record<string, T>> {
-		return traverseEntriesPar(Object.entries(props), id);
+		return traverseIntoPar(
+			Object.entries(props),
+			async ([key, elem]) =>
+				(await elem).map((val) => [key, val] as const),
+			new RecordEntryBuilder(),
+		);
 	}
 
 	/**

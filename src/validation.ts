@@ -466,35 +466,6 @@ export namespace Validation {
 	}
 
 	/**
-	 * Map the elements in an iterable of key-element pairs to `Validation`
-	 * values, evaluate the values from left to right, and collect the
-	 * key-success pairs into a `Builder`.
-	 *
-	 * @remarks
-	 *
-	 * If any `Validation` fails, the state of the provided `Builder` is
-	 * undefined.
-	 */
-	export function traverseEntriesInto<
-		K,
-		V,
-		E extends Semigroup<E>,
-		V1,
-		TFinish,
-	>(
-		entries: Iterable<readonly [K, V]>,
-		f: (elem: V, key: K, idx: number) => Validation<E, V1>,
-		builder: Builder<readonly [K, V1], TFinish>,
-	): Validation<E, TFinish> {
-		return traverseInto(
-			entries,
-			([key, elem], idx) =>
-				f(elem, key, idx).map((val): [K, V1] => [key, val]),
-			builder,
-		);
-	}
-
-	/**
 	 * Map the elements in an iterable to `Validation` values, evaluate the
 	 * values from left to right, and collect the successes in an array.
 	 */
@@ -503,23 +474,6 @@ export namespace Validation {
 		f: (elem: T, idx: number) => Validation<E, T1>,
 	): Validation<E, T1[]> {
 		return traverseInto(elems, f, new ArrayPushBuilder());
-	}
-
-	/**
-	 * Map the elements in an iterable of key-element pairs to `Validation`
-	 * values, evaluate the values from left to right, and collect the
-	 * key-success pairs in an object.
-	 */
-	export function traverseEntries<
-		K extends number | string | symbol,
-		V,
-		E extends Semigroup<E>,
-		V1,
-	>(
-		entries: Iterable<readonly [K, V]>,
-		f: (elem: V, key: K, idx: number) => Validation<E, V1>,
-	): Validation<E, Record<K, V1>> {
-		return traverseEntriesInto(entries, f, new RecordEntryBuilder());
 	}
 
 	/**
@@ -536,23 +490,6 @@ export namespace Validation {
 		builder: Builder<T, TFinish>,
 	): Validation<E, TFinish> {
 		return traverseInto(vdns, id, builder);
-	}
-
-	/**
-	 * Evaluate the `Validation` elements in an iterable of key-`Validation`
-	 * pairs from left to right and collect the key-success pairs into a
-	 * `Builder`.
-	 *
-	 * @remarks
-	 *
-	 * If any `Validation` fails, the state of the provided `Builder` is
-	 * undefined.
-	 */
-	export function allEntriesInto<K, E extends Semigroup<E>, V, TFinish>(
-		entries: Iterable<readonly [K, Validation<E, V>]>,
-		builder: Builder<readonly [K, V], TFinish>,
-	): Validation<E, TFinish> {
-		return traverseEntriesInto(entries, id, builder);
 	}
 
 	/**
@@ -598,20 +535,6 @@ export namespace Validation {
 	}
 
 	/**
-	 * Evaluate the `Validation` elements in an iterable of key-`Validaiton`
-	 * pairs from left to right and collect the key-success pairs in an object.
-	 */
-	export function allEntries<
-		K extends number | string | symbol,
-		E extends Semigroup<E>,
-		V,
-	>(
-		entries: Iterable<readonly [K, Validation<E, V>]>,
-	): Validation<E, Record<K, V>> {
-		return traverseEntries(entries, id);
-	}
-
-	/**
 	 * Evaluate the `Validation` elements in a string-keyed record or object
 	 * literal and collect the successes in an equivalent structure.
 	 *
@@ -637,7 +560,11 @@ export namespace Validation {
 	export function allProps<E extends Semigroup<E>, T>(
 		props: Record<string, Validation<E, T>>,
 	): Validation<E, Record<string, T>> {
-		return traverseEntries(Object.entries(props), id);
+		return traverseInto(
+			Object.entries(props),
+			([key, elem]) => elem.map((val) => [key, val] as const),
+			new RecordEntryBuilder(),
+		);
 	}
 
 	/**
@@ -872,6 +799,75 @@ export type AsyncValidation<E, T> = Promise<Validation<E, T>>;
  */
 export namespace AsyncValidation {
 	/**
+	 *
+	 */
+	export async function traverseInto<T, E extends Semigroup<E>, T1, TFinish>(
+		elems: AsyncIterable<T>,
+		f: (
+			elem: T,
+			idx: number,
+		) => Validation<E, T1> | AsyncValidationLike<E, T1>,
+		builder: Builder<T1, TFinish>,
+	): AsyncValidation<E, TFinish> {
+		let acc = Validation.ok<Builder<T1, TFinish>, E>(builder);
+		let idx = 0;
+		for await (const elem of elems) {
+			const that = await f(elem, idx);
+			acc = acc.zipWith(that, (bldr, val) => {
+				bldr.add(val);
+				return bldr;
+			});
+			idx++;
+		}
+		return acc.map((bldr) => bldr.finish());
+	}
+
+	/**
+	 *
+	 */
+	export function traverse<T, E extends Semigroup<E>, T1>(
+		elems: AsyncIterable<T>,
+		f: (
+			elem: T,
+			idx: number,
+		) => Validation<E, T1> | AsyncValidationLike<E, T1>,
+	): AsyncValidation<E, T1[]> {
+		return traverseInto(elems, f, new ArrayPushBuilder());
+	}
+
+	/**
+	 *
+	 */
+	export function allInto<E extends Semigroup<E>, T, TFinish>(
+		elems: AsyncIterable<Validation<E, T>>,
+		builder: Builder<T, TFinish>,
+	): AsyncValidation<E, TFinish> {
+		return traverseInto(elems, id, builder);
+	}
+
+	/**
+	 *
+	 */
+	export function all<E extends Semigroup<E>, T>(
+		elems: AsyncIterable<Validation<E, T>>,
+	): AsyncValidation<E, T[]> {
+		return traverse(elems, id);
+	}
+
+	/**
+	 *
+	 */
+	export function forEach<T, E extends Semigroup<E>>(
+		elems: AsyncIterable<T>,
+		f: (
+			elem: T,
+			idx: number,
+		) => Validation<E, any> | AsyncValidationLike<E, any>,
+	): AsyncValidation<E, void> {
+		return traverseInto(elems, f, new NoOpBuilder());
+	}
+
+	/**
 	 * Map the elements in an iterable to promise-like `Validation` values,
 	 * concurrently evaluate the values, and collect the successes into a
 	 * `Builder`.
@@ -922,39 +918,6 @@ export namespace AsyncValidation {
 	}
 
 	/**
-	 * Map the elements in an iterable of key-element pairs to promise-like
-	 * `Validation` values, concurrently evaluate the values, and collect the
-	 * key-success pairs into a `Builder`.
-	 *
-	 * @remarks
-	 *
-	 * If any `Validation` fails, the state of the provided `Builder` is
-	 * undefined.
-	 */
-	export function traverseEntriesIntoPar<
-		K,
-		V,
-		E extends Semigroup<E>,
-		V1,
-		TFinish,
-	>(
-		entries: Iterable<readonly [K, V]>,
-		f: (
-			elem: V,
-			key: K,
-			idx: number,
-		) => Validation<E, V1> | AsyncValidationLike<E, V1>,
-		builder: Builder<readonly [K, V1], TFinish>,
-	): AsyncValidation<E, TFinish> {
-		return traverseIntoPar(
-			entries,
-			async ([key, elem], idx) =>
-				(await f(elem, key, idx)).map((val): [K, V1] => [key, val]),
-			builder,
-		);
-	}
-
-	/**
 	 * Map the elements in an iterable to promise-like `Validation` values,
 	 * concurrently evaluate the values, and collect the successes in an array.
 	 */
@@ -974,27 +937,6 @@ export namespace AsyncValidation {
 	}
 
 	/**
-	 * Map the elements in an iterable of key-element pairs to promise-like
-	 * `Validation` values, concurrently evaluate the values, and collect the
-	 * key-success pairs in an object.
-	 */
-	export function traverseEntriesPar<
-		K extends number | string | symbol,
-		V,
-		E extends Semigroup<E>,
-		V1,
-	>(
-		entries: Iterable<readonly [K, V]>,
-		f: (
-			elem: V,
-			key: K,
-			idx: number,
-		) => Validation<E, V1> | AsyncValidationLike<E, V1>,
-	): AsyncValidation<E, Record<K, V1>> {
-		return traverseEntriesIntoPar(entries, f, new RecordEntryBuilder());
-	}
-
-	/**
 	 * Concurrently evaluate the promise-like `Validation` elements in an
 	 * iterable and collect the successes into a `Builder`.
 	 *
@@ -1008,30 +950,6 @@ export namespace AsyncValidation {
 		builder: Builder<T, TFinish>,
 	): AsyncValidation<E, TFinish> {
 		return traverseIntoPar(elems, id, builder);
-	}
-
-	/**
-	 * Concurrently evaluate the promise-like `Validation` elements in an
-	 * iterable of key-element pairs and collect the key-success pairs into a
-	 * `Builder`.
-	 *
-	 * @remarks
-	 *
-	 * If any `Validation` fails, the state of the provided `Builder` is
-	 * undefined.
-	 */
-	export function allEntriesIntoPar<
-		K extends number | string | symbol,
-		E extends Semigroup<E>,
-		V,
-		TFinish,
-	>(
-		entries: Iterable<
-			readonly [K, Validation<E, V> | AsyncValidationLike<E, V>]
-		>,
-		builder: Builder<readonly [K, V], TFinish>,
-	): AsyncValidation<E, TFinish> {
-		return traverseEntriesIntoPar(entries, id, builder);
 	}
 
 	/**
@@ -1082,23 +1000,6 @@ export namespace AsyncValidation {
 	}
 
 	/**
-	 * Concurrently evaluate the promise-like `Validation` elements in an
-	 * iterable of key-element pairs and collect the key-success pairs in an
-	 * object.
-	 */
-	export function allEntriesPar<
-		K extends number | string | symbol,
-		E extends Semigroup<E>,
-		V,
-	>(
-		entries: Iterable<
-			readonly [K, Validation<E, V> | AsyncValidationLike<E, V>]
-		>,
-	): AsyncValidation<E, Record<K, V>> {
-		return traverseEntriesPar(entries, id);
-	}
-
-	/**
 	 * Concurrently evaluate the promise-like `Validation` elements in a
 	 * string-keyed record or object literal and collect the successes in an
 	 * equivalent structure.
@@ -1131,7 +1032,12 @@ export namespace AsyncValidation {
 	export function allPropsPar<E extends Semigroup<E>, T>(
 		props: Record<string, Validation<E, T> | AsyncValidationLike<E, T>>,
 	): AsyncValidation<E, Record<string, T>> {
-		return traverseEntriesPar(Object.entries(props), id);
+		return traverseIntoPar(
+			Object.entries(props),
+			async ([key, elem]) =>
+				(await elem).map((val) => [key, val] as const),
+			new RecordEntryBuilder(),
+		);
 	}
 
 	/**
