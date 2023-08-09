@@ -23,10 +23,8 @@
  * values. It is represented by two variants: {@link Either.Left | `Left<A>`}
  * and {@link Either.Right | `Right<B>`}.
  *
- * -   The `Left<A>` variant represents a *left-sided* `Either` and contains a
- *     value of type `A`.
- * -   The `Right<B>` variant represents a *right-sided* `Either` and contains a
- *     value of type `B`.
+ * -   A `Left<A>` is a left-sided `Either` and contains a value of type `A`.
+ * -   A `Right<B>` is a right-sided `Either` and contains a value of type `B`.
  *
  * The companion {@linkcode Either:namespace} namespace provides utilities for
  * working with the `Either` type.
@@ -34,15 +32,14 @@
  * ## Handling failure
  *
  * `Either` is also used to represent a value which is either a success or a
- * failure. The `Right` variant represents a successful value, and the `Left`
- * variant represents a failed value.
+ * failure. `Left` variant represents a failed value, while the `Right` variant
+ * represents a successful value.
  *
  * Some combinators for `Either` are specialized for this failure-handling
  * use case, and provide a right-biased behavior that "short-circuits" a
- * computation on the first failed `Either`. This behavior allows functions
- * that return `Either` to be composed in a way that propogates failures while
- * applying logic to successes -- a useful feature for railway-oriented
- * programming.
+ * computation on the first `Left`. This behavior allows functions that return
+ * `Either` to be composed in a way that propogates failures while applying
+ * logic to successes -- a useful feature for railway-oriented programming.
  *
  * ## Using `Either` with promises
  *
@@ -90,7 +87,8 @@ import { id } from "./fn.js";
 import type { Validation } from "./validation.js";
 
 /**
- * A type that represents one of two values (`Left` or `Right`).
+ * A type that represents one of two values ({@linkcode Either.Left} or
+ * {@linkcode Either.Right}).
  */
 export type Either<A, B> = Either.Left<A> | Either.Right<B>;
 
@@ -105,14 +103,14 @@ export type Either<A, B> = Either.Left<A> | Either.Right<B>;
  */
 export namespace Either {
 	/**
-	 * Construct a left-sided `Either` from a value.
+	 * Construct a `Left`.
 	 */
 	export function left<A, B = never>(val: A): Either<A, B> {
 		return new Left(val);
 	}
 
 	/**
-	 * Construct a right-sided `Either` from a value.
+	 * Construct a `Right`.
 	 */
 	export function right<B, A = never>(val: B): Either<A, B> {
 		return new Right(val);
@@ -147,7 +145,7 @@ export namespace Either {
 
 	/**
 	 * Accumulate the elements in an iterable using a reducer function that
-	 * returns an `Either`.
+	 * returns `Either`.
 	 */
 	export function reduce<T, TAcc, E>(
 		elems: Iterable<T>,
@@ -166,12 +164,13 @@ export namespace Either {
 	}
 
 	/**
-	 * Map the elements in an iterable to `Either` values and collect the
-	 * successes into a `Builder`.
+	 * Map the elements in an iterable to `Either` and collect the `Right`
+	 * values into a `Builder`.
 	 *
 	 * @remarks
 	 *
-	 * If any `Either` fails, the state of the provided `Builder` is undefined.
+	 * If any `Either` is `Left`, the state of the provided `Builder` is
+	 * undefined.
 	 */
 	export function traverseInto<T, E, T1, TFinish>(
 		elems: Iterable<T>,
@@ -191,8 +190,8 @@ export namespace Either {
 	}
 
 	/**
-	 * Map the elements in an iterable to `Either` values and collect the
-	 * successes in an array.
+	 * Map the elements in an iterable to `Either` and collect the `Right`
+	 * values in an array.
 	 */
 	export function traverse<T, E, T1>(
 		elems: Iterable<T>,
@@ -202,12 +201,13 @@ export namespace Either {
 	}
 
 	/**
-	 * Evaluate the `Either` elements in an iterable and collect the successes
-	 * into a `Builder`.
+	 * Evaluate the `Either` in an iterable and collect the `Right` values into
+	 * a `Builder`.
 	 *
 	 * @remarks
 	 *
-	 * If any `Either` fails, the state of the provided `Builder` is undefined.
+	 * If any `Either` is `Left`, the state of the provided `Builder` is
+	 * undefined.
 	 */
 	export function allInto<E, T, TFinish>(
 		eithers: Iterable<Either<E, T>>,
@@ -217,13 +217,13 @@ export namespace Either {
 	}
 
 	/**
-	 * Evaluate the `Either` elements in an array or a tuple literal and collect
-	 * the successes in an equivalent structure.
+	 * Evaluate the `Either` in an array or a tuple literal and collect the
+	 * `Right` values in an equivalent structure.
 	 *
 	 * @remarks
 	 *
-	 * This function turns an array or a tuple literal of `Either` elements
-	 * "inside out". For example:
+	 * This function turns an array or a tuple literal of `Either` "inside out".
+	 * For example:
 	 *
 	 * -   `Either<E, T>[]` becomes `Either<E, T[]>`
 	 * -   `[Either<E, T1>, Either<E, T2>]` becomes `Either<E, [T1, T2]>`
@@ -236,13 +236,13 @@ export namespace Either {
 	>;
 
 	/**
-	 * Evaluate the `Either` elements in an iterable and collect the successes
-	 * in an array.
+	 * Evaluate the `Either` in an iterable and collect the `Right` values in an
+	 * array.
 	 *
 	 * @remarks
 	 *
-	 * This function turns an iterable of `Either` elements "inside out". For
-	 * example, `Iterable<Either<E, T>>` becomes `Either<E, T[]>`.
+	 * This function turns an iterable of `Either` "inside out". For example,
+	 * `Iterable<Either<E, T>>` becomes `Either<E, T[]>`.
 	 */
 	export function all<E, T>(eithers: Iterable<Either<E, T>>): Either<E, T[]>;
 
@@ -251,13 +251,13 @@ export namespace Either {
 	}
 
 	/**
-	 * Evaluate the `Either` elements in a string-keyed record or object literal
-	 * and collect the successes in an equivalent structure.
+	 * Evaluate the `Either` in a string-keyed record or object literal and
+	 * collect the `Right` values in an equivalent structure.
 	 *
 	 * @remarks
 	 *
 	 * This function turns a string-keyed record or object literal of `Either`
-	 * elements "inside out". For example:
+	 * "inside out". For example:
 	 *
 	 * -   `Record<string, Either<E, T>>` becomes `Either<E, Record<string, T>>`
 	 * -   `{ x: Either<E, T1>, y: Either<E, T2> }` becomes `Either<E, { x: T1,
@@ -281,8 +281,8 @@ export namespace Either {
 	}
 
 	/**
-	 * Apply an action that returns an `Either` to the elements of an iterable
-	 * and ignore the successes.
+	 * Apply an action that returns `Either` to the elements in an iterable and
+	 * ignore the `Right` values.
 	 */
 	export function forEach<T, E>(
 		elems: Iterable<T>,
@@ -292,8 +292,7 @@ export namespace Either {
 	}
 
 	/**
-	 * Adapt a synchronous function to accept `Either` values as arguments and
-	 * return an `Either`.
+	 * Adapt a synchronous function to be applied in the context of `Either`.
 	 */
 	export function lift<TArgs extends unknown[], T>(
 		f: (...args: TArgs) => T,
@@ -326,8 +325,8 @@ export namespace Either {
 		 *
 		 * @remarks
 		 *
-		 * Two `Either` values are equal if they are the same variant and their
-		 * values are equal.
+		 * Two `Either` are equal if they are the same variant and their values
+		 * are equal.
 		 */
 		[Eq.eq]<A extends Eq<A>, B extends Eq<B>>(
 			this: Either<A, B>,
@@ -344,9 +343,9 @@ export namespace Either {
 		 *
 		 * @remarks
 		 *
-		 * When ordered, a left-sided `Either` always compares as less than any
-		 * right-sided `Either`. If the variants are the same, their values are
-		 * compared to determine the ordering.
+		 * When ordered, `Left` always compares as less than `Right`. If the
+		 * variants are the same, their values are compared to determine the
+		 * ordering.
 		 */
 		[Ord.cmp]<A extends Ord<A>, B extends Ord<B>>(
 			this: Either<A, B>,
@@ -359,7 +358,7 @@ export namespace Either {
 		}
 
 		/**
-		 * If this and that `Either` both succeed, combine their successes.
+		 * If this and that `Either` are `Right`, combine their values.
 		 */
 		[Semigroup.cmb]<E, T extends Semigroup<T>>(
 			this: Either<E, T>,
@@ -369,22 +368,22 @@ export namespace Either {
 		}
 
 		/**
-		 * Test whether this `Either` is left-sided.
+		 * Test whether this `Either` is `Left`.
 		 */
 		isLeft<A>(this: Either<A, any>): this is Left<A> {
 			return this.kind === Kind.LEFT;
 		}
 
 		/**
-		 * Test whether this `Either` is right-sided.
+		 * Test whether this `Either` is `Right`.
 		 */
 		isRight<B>(this: Either<any, B>): this is Right<B> {
 			return this.kind === Kind.RIGHT;
 		}
 
 		/**
-		 * Apply one of three function to the value of this `Either` depending
-		 * on the variant.
+		 * Apply one of two function to the value of this `Either` depending on
+		 * the variant.
 		 */
 		unwrap<A, B, T1, T2>(
 			this: Either<A, B>,
@@ -395,7 +394,7 @@ export namespace Either {
 		}
 
 		/**
-		 * If this `Either` fails, apply a function to its failure to return
+		 * If this `Either` is `Left`, apply a function to its value to return
 		 * another `Either`.
 		 */
 		orElse<E, T, E1, T1>(
@@ -406,7 +405,8 @@ export namespace Either {
 		}
 
 		/**
-		 * If this `Either` fails, ignore its failure and return that `Either`.
+		 * If this `Either` is `Left`, ignore its value and return that
+		 * `Either`.
 		 */
 		or<T, E1, T1>(
 			this: Either<any, T>,
@@ -416,7 +416,7 @@ export namespace Either {
 		}
 
 		/**
-		 * If this `Either` succeeds, apply a function to its success to return
+		 * If this `Either` is `Right`, apply a function to its value to return
 		 * another `Either`.
 		 */
 		andThen<E, T, E1, T1>(
@@ -427,7 +427,7 @@ export namespace Either {
 		}
 
 		/**
-		 * If this `Either` succeeds, apply a generator function to its success
+		 * If this `Either` is `Right`, apply a generator function to its value
 		 * to return another `Either`.
 		 */
 		andThenGo<E, T, E1, T1>(
@@ -438,7 +438,7 @@ export namespace Either {
 		}
 
 		/**
-		 * If this `Either` succeeds, ignore its success and return that
+		 * If this `Either` is `Right`, ignore its value and return that
 		 * `Either`.
 		 */
 		and<E, E1, T1>(
@@ -449,8 +449,8 @@ export namespace Either {
 		}
 
 		/**
-		 * If this and that `Either` both succeed, apply a function to combine
-		 * their successes.
+		 * If this and that `Either` are `Right`, apply a function to combine
+		 * their values.
 		 */
 		zipWith<E, T, E1, T1, T2>(
 			this: Either<E, T>,
@@ -461,14 +461,14 @@ export namespace Either {
 		}
 
 		/**
-		 * If this `Either` is left-sided, apply a function to map its value.
+		 * If this `Either` is `Left`, apply a function to map its value.
 		 */
 		lmap<A, B, A1>(this: Either<A, B>, f: (val: A) => A1): Either<A1, B> {
 			return this.orElse((val) => left(f(val)));
 		}
 
 		/**
-		 * If this `Either` is right-sided, apply a function to map its value.
+		 * If this `Either` is `Right`, apply a function to map its value.
 		 */
 		map<A, B, B1>(this: Either<A, B>, f: (val: B) => B1): Either<A, B1> {
 			return this.andThen((val) => right(f(val)));
@@ -518,7 +518,7 @@ export namespace Either {
 	}
 
 	/**
-	 * A generator that yields `Either` values and returns a result.
+	 * A generator that yields `Either` and returns a value.
 	 */
 	export type Go<E, TReturn> = Generator<
 		Either<E, unknown>,
@@ -527,7 +527,7 @@ export namespace Either {
 	>;
 
 	/**
-	 * Extract the left-sided value type `A` from the type `Either<A, B>`.
+	 * Extract the `Left` value type `A` from the type `Either<A, B>`.
 	 */
 	export type LeftT<TEither extends Either<any, any>> = [TEither] extends [
 		Either<infer A, any>,
@@ -536,7 +536,7 @@ export namespace Either {
 		: never;
 
 	/**
-	 * Extract the right-sided value type `B` from the type `Either<A, B>`.
+	 * Extract the `Right` value type `B` from the type `Either<A, B>`.
 	 */
 	export type RightT<TEither extends Either<any, any>> = [TEither] extends [
 		Either<any, infer B>,
@@ -546,12 +546,12 @@ export namespace Either {
 }
 
 /**
- * A `PromiseLike` object that fulfills with an `Either`.
+ * A promise-like object that fulfills with `Either`.
  */
 export type AsyncEitherLike<A, B> = PromiseLike<Either<A, B>>;
 
 /**
- * A `Promise` that fulfills with an `Either`.
+ * A promise that fulfills with `Either`.
  */
 export type AsyncEither<A, B> = Promise<Either<A, B>>;
 
@@ -584,7 +584,7 @@ export namespace AsyncEither {
 
 	/**
 	 * Accumulate the elements in an async iterable using a reducer function
-	 * that returns an `Either` or `AsyncEitherLike` value.
+	 * that returns `Either` or `AsyncEitherLike`.
 	 */
 	export function reduce<T, TAcc, E>(
 		elems: AsyncIterable<T>,
@@ -607,11 +607,12 @@ export namespace AsyncEither {
 
 	/**
 	 * Map the elements in an async iterable to `Either` or `AsyncEitherLike`
-	 * values and collect the successes into a `Builder`.
+	 * and collect the `Right` values into a `Builder`.
 	 *
 	 * @remarks
 	 *
-	 * If any `Either` fails, the state of the provided `Builder` is undefined.
+	 * If any `Either` is `Left`, the state of the provided `Builder` is
+	 * undefined.
 	 */
 	export function traverseInto<T, E, T1, TFinish>(
 		elems: AsyncIterable<T>,
@@ -631,8 +632,8 @@ export namespace AsyncEither {
 	}
 
 	/**
-	 * Map the elements in an iterable to `Either` or `AsyncEitherLike` values
-	 * and collect the successes in an array.
+	 * Map the elements in an async iterable to `Either` or `AsyncEitherLike`
+	 * and collect the `Right` values in an array.
 	 */
 	export function traverse<T, E, T1>(
 		elems: AsyncIterable<T>,
@@ -642,12 +643,13 @@ export namespace AsyncEither {
 	}
 
 	/**
-	 * Evaluate the `Either` elements in an async iterable and collect the
-	 * successes into a `Builder`.
+	 * Evaluate the `Either` in an async iterable and collect the `Right` values
+	 * into a `Builder`.
 	 *
 	 * @remarks
 	 *
-	 * If any `Either` fails, the state of the provided `Builder` is undefined.
+	 * If any `Either` is `Left`, the state of the provided `Builder` is
+	 * undefined.
 	 */
 	export function allInto<E, T, TFinish>(
 		elems: AsyncIterable<Either<E, T>>,
@@ -657,13 +659,13 @@ export namespace AsyncEither {
 	}
 
 	/**
-	 * Evaluate the `Either` elements in an async iterable and collect the
-	 * successes in an array.
+	 * Evaluate the `Either` in an async iterable and collect the `Right` values
+	 * in an array.
 	 *
 	 * @remarks
 	 *
-	 * This function turns an async iterable of `Either` elements "inside out".
-	 * For example, `AsyncIterable<Either<E, T>>` becomes `AsyncEither<E, T[]>`.
+	 * This function turns an async iterable of `Either` "inside out". For
+	 * example, `AsyncIterable<Either<E, T>>` becomes `AsyncEither<E, T[]>`.
 	 */
 	export function all<E, T>(
 		elems: AsyncIterable<Either<E, T>>,
@@ -672,8 +674,8 @@ export namespace AsyncEither {
 	}
 
 	/**
-	 * Apply an action that returns an `Either` or `AsyncEitherLike` value to
-	 * the elements of an async iterable and ignore the successes.
+	 * Apply an action that returns `Either` or `AsyncEitherLike` to the
+	 * elements in an async iterable and ignore the `Right` values.
 	 */
 	export function forEach<T, E>(
 		elems: AsyncIterable<T>,
@@ -684,11 +686,12 @@ export namespace AsyncEither {
 
 	/**
 	 * Concurrently map the elements in an iterable to `Either` or
-	 * `AsyncEitherLike` values and collect the successes into a `Builder`.
+	 * `AsyncEitherLike` and collect the `Right` values into a `Builder`.
 	 *
 	 * @remarks
 	 *
-	 * If any `Either` fails, the state of the provided `Builder` is undefined.
+	 * If any `Either` is `Left`, the state of the provided `Builder` is
+	 * undefined.
 	 */
 	export function traverseIntoPar<T, E, T1, TFinish>(
 		elems: Iterable<T>,
@@ -718,7 +721,7 @@ export namespace AsyncEither {
 
 	/**
 	 * Concurrently map the elements in an iterable to `Either` or
-	 * `AsyncEitherLike` values and collect the successes in an array.
+	 * `AsyncEitherLike` and collect the `Right` values in an array.
 	 */
 	export function traversePar<T, E, T1>(
 		elems: Iterable<T>,
@@ -733,12 +736,13 @@ export namespace AsyncEither {
 	}
 
 	/**
-	 * Concurrently evaluate the `Either` or `AsyncEitherLike` elements in an
-	 * iterable and collect the successes into a `Builder`.
+	 * Concurrently evaluate the `Either` or `AsyncEitherLike` in an iterable
+	 * iterable and collect the `Right` values into a `Builder`.
 	 *
 	 * @remarks
 	 *
-	 * If any `Either` fails, the state of the provided `Builder` is undefined.
+	 * If any `Either` is `Left`, the state of the provided `Builder` is
+	 * undefined.
 	 */
 	export function allIntoPar<E, T, TFinish>(
 		elems: Iterable<Either<E, T> | AsyncEitherLike<E, T>>,
@@ -748,14 +752,13 @@ export namespace AsyncEither {
 	}
 
 	/**
-	 * Concurrently evaluate the `Either` or `AsyncEitherLike` elements in an
-	 * array or a tuple literal and collect the successes in an equivalent
-	 * structure.
+	 * Concurrently evaluate the `Either` or `AsyncEitherLike` in an array or a
+	 * tuple literal and collect the `Right` values in an equivalent structure.
 	 *
 	 * @remarks
 	 *
 	 * This function turns an array or a tuple literal of `AsyncEitherLike`
-	 * elements "inside out". For example:
+	 * "inside out". For example:
 	 *
 	 * -   `AsyncEither<E, T>[]` becomes `AsyncEither<E, T[]>`
 	 * -   `[AsyncEither<E, T1>, AsyncEither<E, T2>]` becomes `AsyncEither<E,
@@ -773,14 +776,13 @@ export namespace AsyncEither {
 	>;
 
 	/**
-	 * Concurrently evaluate the `Either` or `AsyncEitherLike` elements in an
-	 * iterable and collect the successes in an array.
+	 * Concurrently evaluate the `Either` or `AsyncEitherLike` in an iterable
+	 * and collect the `Right` values in an array.
 	 *
 	 * @remarks
 	 *
-	 * This function turns an iterable of `AsyncEitherLike` elements "inside
-	 * out". For example, `Iterable<AsyncEither<E, T>>` becomes `AsyncEither<E,
-	 * T[]>`.
+	 * This function turns an iterable of `AsyncEitherLike` "inside out". For
+	 * example, `Iterable<AsyncEither<E, T>>` becomes `AsyncEither<E, T[]>`.
 	 */
 	export function allPar<E, T>(
 		elems: Iterable<Either<E, T> | AsyncEitherLike<E, T>>,
@@ -793,14 +795,14 @@ export namespace AsyncEither {
 	}
 
 	/**
-	 * Concurrently evaluate `Either` or `AsyncEitherLike` elements in a
-	 * string-keyed record or object literal and collect the successes in an
-	 * equivalent structure.
+	 * Concurrently evaluate `Either` or `AsyncEitherLike` in a string-keyed
+	 * record or object literal and collect the `Right` values in an equivalent
+	 * structure.
 	 *
 	 * @remarks
 	 *
 	 * This function turns a string-keyed record or object literal of
-	 * `AsyncEitherLike` elements "inside out". For example:
+	 * `AsyncEitherLike` "inside out". For example:
 	 *
 	 * -   `Record<string, AsyncEither<E, T>>` becomes `AsyncEither<E,
 	 *     Record<string, T>>`
@@ -831,9 +833,8 @@ export namespace AsyncEither {
 	}
 
 	/**
-	 * Concurrently apply an action that returns an `Either` or
-	 * `AsyncEitherLike` value to the elements in an iterable and ignore the
-	 * successes.
+	 * Concurrently apply an action that returns `Either` or `AsyncEitherLike`
+	 * to the elements in an iterable and ignore the `Right` values.
 	 */
 	export function forEachPar<T, E>(
 		elems: Iterable<T>,
@@ -843,8 +844,8 @@ export namespace AsyncEither {
 	}
 
 	/**
-	 * Adapt a synchronous or an asynchronous function to accept `Either` or
-	 * `AsyncEitherLike` values as arguments and return an `AsyncEither`.
+	 * Adapt a synchronous or an asynchronous function to be applied in the
+	 * context of `Either` or `AsyncEitherLike`.
 	 */
 	export function liftPar<TArgs extends unknown[], T>(
 		f: (...args: TArgs) => T | PromiseLike<T>,
@@ -869,7 +870,7 @@ export namespace AsyncEither {
 	}
 
 	/**
-	 * An async generator that yields `Either` values and returns a result.
+	 * An async generator that yields `Either` and returns a value.
 	 */
 	export type Go<E, TReturn> = AsyncGenerator<
 		Either<E, any>,
