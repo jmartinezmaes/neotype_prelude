@@ -32,10 +32,10 @@
  * working with the `Ior` type.
  *
  * `Ior` is often used to represent states of failure or success similar to
- * {@linkcode Either:type} and {@linkcode Validation:type}. However, `Ior` is
- * capable of also representing a unique state using the `Both` variant. `Both`
- * can represent a success that contains additional information, or a state of
- * "partial failure".
+ * {@linkcode either!Either:type} and {@linkcode validation!Validation:type}.
+ * However, `Ior` is capable of also representing a unique state using the
+ * `Both` variant. `Both` can represent a success that contains additional
+ * information, or a state of "partial failure".
  *
  * When composed, the behavior of `Ior` is a combination of the short-circuiting
  * behavior of `Either` and the failure-accumulating behavior of `Validation`:
