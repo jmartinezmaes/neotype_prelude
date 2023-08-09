@@ -96,7 +96,12 @@ export type Either<A, B> = Either.Left<A> | Either.Right<B>;
 
 /**
  * The companion namespace for the {@linkcode Either:type} type. This namespace
- * provides types and functions for working with `Either`.
+ * provides:
+ *
+ * -   Functions for constructing, chaining, and collecting into `Either`
+ * -   A base class with the fluent API for `Either`
+ * -   Variant classes
+ * -   Utility types
  */
 export namespace Either {
 	/**
@@ -552,7 +557,7 @@ export type AsyncEither<A, B> = Promise<Either<A, B>>;
 
 /**
  * The companion namespace for the {@linkcode AsyncEither:type} type. This
- * namespace provides utilities for working with `AsyncEither`.
+ * namespace provides functions for chaining and collecting into `AsyncEither`.
  */
 export namespace AsyncEither {
 	/**
