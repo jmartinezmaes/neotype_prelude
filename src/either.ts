@@ -382,8 +382,8 @@ export namespace Either {
 		}
 
 		/**
-		 * Apply one of two function to the value of this `Either` depending on
-		 * the variant.
+		 * Apply one of two functions to extract the value out of this `Either`
+		 * depending on the variant.
 		 */
 		unwrap<A, B, T1, T2>(
 			this: Either<A, B>,

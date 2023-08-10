@@ -382,8 +382,8 @@ export namespace Maybe {
 		}
 
 		/**
-		 * If this `Maybe` is `Just`, apply a function to its value; otherwise,
-		 * invoke a function to return a fallback value.
+		 * If this `Maybe` is `Just`, apply a function to extract its value;
+		 * otherwise, invoke a function to return a fallback value.
 		 */
 		unwrap<T, T1, T2>(
 			this: Maybe<T>,

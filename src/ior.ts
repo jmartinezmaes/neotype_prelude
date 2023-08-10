@@ -493,8 +493,8 @@ export namespace Ior {
 		}
 
 		/**
-		 * Apply one of three functions to the value(s) of this `Ior` depending
-		 * on the variant.
+		 * Apply one of three functions to extract the value(s) out of this
+		 * `Ior` depending on the variant.
 		 */
 		unwrap<A, B, T1, T2, T3>(
 			this: Ior<A, B>,
