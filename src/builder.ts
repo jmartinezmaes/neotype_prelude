@@ -17,82 +17,22 @@
 import { cmb, type Semigroup } from "./cmb.js";
 
 /**
- * Construction with the Builder pattern.
+ * Construction with the builder pattern.
  *
  * @remarks
  *
- * `Builder<T, TFinish>` provides an interface for constructing values. A
- * `Builder<T, TFinish>` accepts values of type `T` and produces a result of
- * type `TFinish`.
+ * {@link Builder | `Builder<T, TFinish>`} provides an interface for
+ * constructing values. A `Builder<T, TFinish>` accepts values of type `T` and
+ * produces a result of type `TFinish`.
  *
- * `Builder` objects are often used to construct various containers, but they
- * can be useful in any scenario that involves aggregating or combining values
- * to produce a final result.
+ * Builders are often used to construct various containers, but they can be
+ * useful in any task that involves collecting or combining values to produce a
+ * final result.
  *
  * ## Importing from this module
  *
- * The `Builder` interface can be imported as named:
- *
- * ```ts
- * import type { Builder } from "@neotype/prelude/builder.js";
- * ```
- *
- * Built-in implementors of `Builder` can also be imported as named.
- *
- * ## Implementing `Builder`
- *
- * Implementors of `Builder` must implement the `add` and `finish` methods.
- *
- * -   `add` accepts a value to combine with any existing values in the
- *     `Builder`.
- * -   `finish` returns the final result from the `Builder`. Implementors should
- *     specify the behavior of the `Builder` after `finish` is called, and
- *     whether any further sequences of method calls are allowed.
- *
- * ## Built-in builders
- *
- * ### String builders
- *
- * These builders construct a string:
- *
- * -   `StringAppendBuilder` appends strings.
- * -   `StringPrependBuilder` prepends strings.
- *
- * ### Array Builders
- *
- * These builders construct an array:
- *
- * -   `ArrayPushBuilder` appends elements.
- * -   `ArrayUnshiftBuilder` prepends elements.
- * -   `ArrayEntryBuilder` assigns elements to indices from index-element pairs.
- * -   `ArrayConcatBuilder` concatenates arrays.
- *
- * ### Record (object) builders
- *
- * These builders construct a record (object):
- *
- * -   `RecordEntryBuilder` assigns values to keys from key-value pairs.
- * -   `RecordSpreadBuilder` spreads objects.
- *
- * ### Map builders
- *
- * These builders construct a map:
- *
- * -   `MapEntryBuilder` assigns values to keys from key-value pairs.
- * -   `MapUnionBuilder` takes the union of maps.
- *
- * ### Set builders
- *
- * These builders construct a set:
- *
- * -   `SetValueBuilder` adds elements.
- * -   `SetUnionBuilder` takes the union of sets.
- *
- * ### Semigroup builders
- *
- * These builders construct a semigroup:
- *
- * -   `SemigroupBuilder` combines semigroups.
+ * All exports from this module can be imported as named or aliased as
+ * necessary.
  *
  * @module
  */
@@ -102,12 +42,12 @@ import { cmb, type Semigroup } from "./cmb.js";
  */
 export interface Builder<in T, out TFinish> {
 	/**
-	 * Add a single element to this `Builder`.
+	 * Add a single element to this builder.
 	 */
 	add(val: T): void;
 
 	/**
-	 * Return the result of all elements added to this `Builder`.
+	 * Return the result of all elements added to this builder.
 	 *
 	 * @remarks
 	 *
@@ -352,7 +292,7 @@ export class SetUnionBuilder<in out T> extends SetBuilder<Set<T>, T> {
 }
 
 /**
- * A builder that constrcuts a semigroup by combining semigroups.
+ * A builder that constructs a semigroup by combining semigroups.
  */
 export class SemigroupBuilder<in out T extends Semigroup<T>>
 	implements Builder<T, T>
