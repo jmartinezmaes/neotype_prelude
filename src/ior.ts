@@ -23,8 +23,8 @@
  * values. It is represented by three variants: {@link Ior.Left | `Left<A>`},
  * {@link Ior.Right | `Right<B>`}, and {@link Ior.Both | `Both<A, B>`}.
  *
- * -   A `Left<A>` contains a value of type `A`.
- * -   A `Right<B>` contains a value of type `B`.
+ * -   A `Left<A>` contains a left-hand value of type `A`.
+ * -   A `Right<B>` contains a right-hand value of type `B`.
  * -   A `Both<A, B>` contains a left-hand value of type `A` and a right-hand
  *     value of type `B`.
  *
@@ -40,9 +40,9 @@
  * When composed, the behavior of `Ior` is a combination of the short-circuiting
  * behavior of `Either` and the failure-accumulating behavior of `Validation`:
  *
- * -   `Left` short-circuits a computation completely and combines its value
+ * -   `Left` short-circuits a computation completely and combines its left-hand
  *     value with any existing left-hand value.
- * -   `Right` supplies its value value to the next computation.
+ * -   `Right` supplies its right-hand value to the next computation.
  * -   `Both` supplies its right-hand value to the next computation, and
  *     combines its left-hand value with any existing left-hand value.
  *
