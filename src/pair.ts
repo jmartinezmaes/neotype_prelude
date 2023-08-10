@@ -19,67 +19,23 @@
  *
  * @remarks
  *
- * `Pair<A, B>` is a type that represents a pair of values `A` and `B`. These
- * are referred to as the *first* value and *second* value, respectively. `Pair`
- * also provides an equivalence relation, a total order, and a semigroup.
+ * {@link Pair | `Pair<A, B>`} is a type that represents a pair of values `A`
+ * and `B`. `Pair` also provides an equivalence relation, a total order, and a
+ * semigroup.
  *
  * ## Importing from this module
  *
- * This module exports `Pair` as a class. The class can be imported as named:
+ * This module exports `Pair` as a class. It can be imported as named:
  *
  * ```ts
  * import { Pair } from "@neotype/prelude/pair.js";
  * ```
  *
- * Or, the type and class can be imported and alised separately:
+ * Or, the type and the class can be imported and alised separately:
  *
  * ```ts
  * import { type Pair, Pair as P } from "@neotype/prelude/pair.js";
  * ```
- *
- * ## Constructing `Pair`
- *
- * -   Instances of `Pair` can be constructed with the `new` keyword.
- * -   The `fromTuple` static method constructs a `Pair` from a 2-tuple of
- *     values.
- *
- * ## Extracting values
- *
- * The first value and second value of a `Pair` can be accessed via the `fst`
- * property and `snd` property, respectively. A 2-tuple of the values can be
- * accessed via the `val` property.
- *
- * The `unwrap` method unwraps a `Pair` by applying a function to its first
- * value and second value.
- *
- * ## Comparing `Pair`
- *
- * `Pair` has the following behavior an an equivalance relation:
- *
- * -   A `Pair<A, B>` implements `Eq` when both `A` and `B` implement `Eq`.
- * -   Two `Pair` values are equal if their first values and second values are
- *     respectively equal.
- *
- * `Pair` has the following behavior an a total order:
- *
- * -   A `Pair<A, B>` implements `Ord` when both `A` and `B` implement `Ord`.
- * -   When ordered, the first values and second values are compared
- *     lexicographically.
- *
- * ## `Pair` as a semigroup
- *
- * `Pair` has the following behavior an a semigroup:
- *
- * -   A `Pair<A, B>` implements `Semigroup` when both `A` and `B` implement
- *     `Semigroup`.
- * -   When combined, first and second values are combined pairwise.
- *
- * ## Transforming values
- *
- * These methods transform the first or the second value within a `Pair`:
- *
- * -   `lmap` applies a function to the first value.
- * -   `map` applies a function to the second value.
  *
  * @module
  */
@@ -121,8 +77,12 @@ export class Pair<out A, out B> {
 	}
 
 	/**
-	 * If the first values and second values of this and that `Pair` are
-	 * respectively equal, return `true`; otherwise, return `false`.
+	 * Compare this and that `Pair` to determine their equality.
+	 *
+	 * @remarks
+	 *
+	 * Two `Pair` are equal if their first values are equal and their second
+	 * values are equal.
 	 */
 	[Eq.eq]<A extends Eq<A>, B extends Eq<B>>(
 		this: Pair<A, B>,
@@ -132,7 +92,11 @@ export class Pair<out A, out B> {
 	}
 
 	/**
-	 * Compare the first values and second values of this and that `Pair`
+	 * Compare this and that `Pair` to determine their ordering.
+	 *
+	 * @remarks
+	 *
+	 * When ordered, `Pair` compares first values and second values
 	 * lexicographically.
 	 */
 	[Ord.cmp]<A extends Ord<A>, B extends Ord<B>>(
@@ -144,7 +108,7 @@ export class Pair<out A, out B> {
 
 	/**
 	 * Combine the first values and second values of this and that `Pair`
-	 * pairwise into a new `Pair`.
+	 * pairwise.
 	 */
 	[Semigroup.cmb]<A extends Semigroup<A>, B extends Semigroup<B>>(
 		this: Pair<A, B>,
@@ -154,24 +118,22 @@ export class Pair<out A, out B> {
 	}
 
 	/**
-	 * Apply a function to the first value and second value of this `Pair` and
-	 * return the result.
+	 * Apply a function to extract the first value and second value out of this
+	 * `Pair`.
 	 */
 	unwrap<T>(f: (fst: A, snd: B) => T): T {
 		return f(this.fst, this.snd);
 	}
 
 	/**
-	 * Apply a function to the first value of this `Pair`, and return a new
-	 * `Pair` of the result and the existing second value.
+	 * Apply a function to map the first value of this `Pair`.
 	 */
 	lmap<A1>(f: (val: A) => A1): Pair<A1, B> {
 		return new Pair(f(this.fst), this.snd);
 	}
 
 	/**
-	 * Apply a function to the second value of this `Pair`, and return a new
-	 * `Pair` of the existing first value and the result.
+	 * Apply a function to map the second value of this `Pair`.
 	 */
 	map<B1>(f: (val: B) => B1): Pair<A, B1> {
 		return new Pair(this.fst, f(this.snd));
