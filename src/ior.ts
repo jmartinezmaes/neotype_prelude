@@ -29,7 +29,7 @@
  *     value of type `B`.
  *
  * The companion {@linkcode Ior:namespace} namespace provides utilities for
- * working with the `Ior` type.
+ * working with the `Ior<A, B>` type.
  *
  * `Ior` is often used to represent states of failure or success similar to
  * {@linkcode either!Either:type} and {@linkcode validation!Validation:type}.
@@ -52,8 +52,8 @@
  * ## Using `Ior` with promises
  *
  * {@link AsyncIor:type | `AsyncIor<A, B>`} is an alias for `Promise<Ior<A,
- * B>>`. The corresponding {@linkcode AsyncIor:namespace} namespace provides
- * utilities for working with the `AsyncIor` type.
+ * B>>`. The companion {@linkcode AsyncIor:namespace} namespace provides
+ * utilities for working with the `AsyncIor<A, B>` type.
  *
  * To accommodate promise-like values, this module also provides the
  * {@link AsyncIorLike | `AsyncIorLike<A, B>`} type as an alias for
@@ -102,8 +102,8 @@ import type { Validation } from "./validation.js";
 export type Ior<A, B> = Ior.Left<A> | Ior.Right<B> | Ior.Both<A, B>;
 
 /**
- * The companion namespace for the {@linkcode Ior:type} type. This namespace
- * provides:
+ * The companion namespace for the {@link Ior:type | `Ior<A, B>`} type. This
+ * namespace provides:
  *
  * -   Functions for constructing, chaining, and collecting into `Ior`.
  * -   A base class with the fluent API for `Ior`
@@ -661,8 +661,9 @@ export type AsyncIorLike<A, B> = PromiseLike<Ior<A, B>>;
 export type AsyncIor<A, B> = Promise<Ior<A, B>>;
 
 /**
- * The companion namespace for the {@linkcode AsyncIor:type} type. This
- * namespace provides functions for chaining and collecting into `AsyncIor`.
+ * The companion namespace for the {@link AsyncIor:type | `AsyncIor<A, B>`}
+ * type. This namespace provides functions for chaining and collecting into
+ * `AsyncIor`.
  */
 export namespace AsyncIor {
 	/** Evaluate an `AsyncIor.Go` async generator to return an `AsyncIor`. */

@@ -27,7 +27,7 @@
  * -   A `Right<B>` is a right-sided `Either` and contains a value of type `B`.
  *
  * The companion {@linkcode Either:namespace} namespace provides utilities for
- * working with the `Either` type.
+ * working with the `Either<A, B>` type.
  *
  * ## Handling failure
  *
@@ -45,7 +45,7 @@
  *
  * {@link AsyncEither:type | `AsyncEither<A, B>`} is an alias for
  * `Promise<Either<A, B>>`. The companion {@linkcode AsyncEither:namespace}
- * namespace provides utilities for working with the `AsyncEither` type.
+ * namespace provides utilities for working with the `AsyncEither<A, B>` type.
  *
  * To accommodate promise-like values, this module also provides the
  * {@link AsyncEitherLike | `AsyncEitherLike<A, B>`} type as an alias for
@@ -93,8 +93,8 @@ import type { Validation } from "./validation.js";
 export type Either<A, B> = Either.Left<A> | Either.Right<B>;
 
 /**
- * The companion namespace for the {@linkcode Either:type} type. This namespace
- * provides:
+ * The companion namespace for the {@link Either:type | `Either<A, B>`} type.
+ * This namespace provides:
  *
  * -   Functions for constructing, chaining, and collecting into `Either`
  * -   A base class with the fluent API for `Either`
@@ -514,8 +514,9 @@ export type AsyncEitherLike<A, B> = PromiseLike<Either<A, B>>;
 export type AsyncEither<A, B> = Promise<Either<A, B>>;
 
 /**
- * The companion namespace for the {@linkcode AsyncEither:type} type. This
- * namespace provides functions for chaining and collecting into `AsyncEither`.
+ * The companion namespace for the
+ * {@link AsyncEither:type | `AsyncEither<A, B>`} type. This namespace provides
+ * functions for chaining and collecting into `AsyncEither`.
  */
 export namespace AsyncEither {
 	/**

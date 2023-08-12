@@ -28,7 +28,7 @@
  *     `T`.
  *
  * The companion {@linkcode Validation:namespace} namespace provides utilities
- * for working with the `Validation` type.
+ * for working with the `Validation<E, T>` type.
  *
  * `Validation` is useful for collecting information about all failures in a
  * program rather than halting evaluation on the first failure. This behavior
@@ -44,7 +44,7 @@
  * {@link AsyncValidation:type | `AsyncValidation<E, T>`} is an alias for
  * `Promise<Validation<E, T>>`. The companion
  * {@linkcode AsyncValidation:namespace} namespace provides utilities for
- * working with the `AsyncValidation` type.
+ * working with the `AsyncValidation<E, T>` type.
  *
  * To accommodate promise-like values, this module also provides the
  * {@link AsyncValidationLike | `AsyncValidationLike<E, T>`} type as an alias
@@ -92,8 +92,8 @@ import { id } from "./fn.js";
 export type Validation<E, T> = Validation.Err<E> | Validation.Ok<T>;
 
 /**
- * The companion namespace for the {@linkcode Validation:type} type. This
- * namespace provides:
+ * The companion namespace for the {@link Validation:type | `Validation<E, T>`}
+ * type. This namespace provides:
  *
  * -   Functions for constructing and collecting into `Validation`
  * -   A base class with the fluent API for `Validation`
@@ -444,8 +444,9 @@ export type AsyncValidationLike<E, T> = PromiseLike<Validation<E, T>>;
 export type AsyncValidation<E, T> = Promise<Validation<E, T>>;
 
 /**
- * The companion namespace for the {@linkcode AsyncValidation:type} type. This
- * namespace provides functions for collecting into `AsyncValidation`.
+ * The companion namespace for the
+ * {@link AsyncValidation:type | `AsyncValidation<E, T>`} type. This namespace
+ * provides functions for collecting into `AsyncValidation`.
  */
 export namespace AsyncValidation {
 	/**

@@ -27,7 +27,7 @@
  * -   A `Just<T>` is a present `Maybe` and contains a value of type `T`.
  *
  * The companion {@linkcode Maybe:namespace} namespace provides utilities for
- * working with the `Maybe` type.
+ * working with the `Maybe<T>` type.
  *
  * Common uses for `Maybe` include:
  *
@@ -42,7 +42,7 @@
  *
  * {@link AsyncMaybe:type | `AsyncMaybe<T>`} is an alias for
  * `Promise<Maybe<T>>`. The companion {@linkcode AsyncMaybe:namespace} namespace
- * provides utilities for working with the `AsyncMaybe` type.
+ * provides utilities for working with the `AsyncMaybe<T>` type.
  *
  * To accommodate promise-like values, this module also provides the
  * {@link AsyncMaybeLike | `AsyncMaybeLike<T>`} type as an alias for
@@ -89,8 +89,8 @@ import { id } from "./fn.js";
 export type Maybe<T> = Maybe.Nothing | Maybe.Just<T>;
 
 /**
- * The companion namespace for the {@linkcode Maybe:type} type. This namespace
- * provides:
+ * The companion namespace for the {@link Maybe:type | `Maybe<T>`} type. This
+ * namespace provides:
  *
  * -   Functions for constructing, chaining, and collecting into `Maybe`
  * -   A base class with the fluent API for `Maybe`
@@ -544,8 +544,9 @@ export type AsyncMaybeLike<T> = PromiseLike<Maybe<T>>;
 export type AsyncMaybe<T> = Promise<Maybe<T>>;
 
 /**
- * The companion namespace for the {@linkcode AsyncMaybe:type} type. This
- * namespace provides functions for chaining and collecting into `AsyncMaybe`.
+ * The companion namespace for the {@link AsyncMaybe:type | `AsyncMaybe<T>`}
+ * type. This namespace provides functions for chaining and collecting into
+ * `AsyncMaybe`.
  */
 export namespace AsyncMaybe {
 	/**
