@@ -93,7 +93,11 @@ export type Validation<E, T> = Validation.Err<E> | Validation.Ok<T>;
 
 /**
  * The companion namespace for the {@link Validation:type | `Validation<E, T>`}
- * type. This namespace provides:
+ * type.
+ *
+ * @remarks
+ *
+ * This namespace provides:
  *
  * -   Functions for constructing and collecting into `Validation`
  * -   A base class with the fluent API for `Validation`
@@ -445,8 +449,11 @@ export type AsyncValidation<E, T> = Promise<Validation<E, T>>;
 
 /**
  * The companion namespace for the
- * {@link AsyncValidation:type | `AsyncValidation<E, T>`} type. This namespace
- * provides functions for collecting into `AsyncValidation`.
+ * {@link AsyncValidation:type | `AsyncValidation<E, T>`} type.
+ *
+ * @remarks
+ *
+ * This namespace provides functions for collecting into `AsyncValidation`.
  */
 export namespace AsyncValidation {
 	/**

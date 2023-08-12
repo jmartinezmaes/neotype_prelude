@@ -102,8 +102,11 @@ import type { Validation } from "./validation.js";
 export type Ior<A, B> = Ior.Left<A> | Ior.Right<B> | Ior.Both<A, B>;
 
 /**
- * The companion namespace for the {@link Ior:type | `Ior<A, B>`} type. This
- * namespace provides:
+ * The companion namespace for the {@link Ior:type | `Ior<A, B>`} type.
+ *
+ * @remarks
+ *
+ * This namespace provides:
  *
  * -   Functions for constructing, chaining, and collecting into `Ior`.
  * -   A base class with the fluent API for `Ior`
@@ -662,7 +665,11 @@ export type AsyncIor<A, B> = Promise<Ior<A, B>>;
 
 /**
  * The companion namespace for the {@link AsyncIor:type | `AsyncIor<A, B>`}
- * type. This namespace provides functions for chaining and collecting into
+ * type.
+ *
+ * @remarks
+ *
+ * This namespace provides functions for chaining and collecting into
  * `AsyncIor`.
  */
 export namespace AsyncIor {

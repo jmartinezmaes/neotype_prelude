@@ -89,8 +89,11 @@ import { id } from "./fn.js";
 export type Maybe<T> = Maybe.Nothing | Maybe.Just<T>;
 
 /**
- * The companion namespace for the {@link Maybe:type | `Maybe<T>`} type. This
- * namespace provides:
+ * The companion namespace for the {@link Maybe:type | `Maybe<T>`} type.
+ *
+ * @remarks
+ *
+ * This namespace provides:
  *
  * -   Functions for constructing, chaining, and collecting into `Maybe`
  * -   A base class with the fluent API for `Maybe`
@@ -545,7 +548,11 @@ export type AsyncMaybe<T> = Promise<Maybe<T>>;
 
 /**
  * The companion namespace for the {@link AsyncMaybe:type | `AsyncMaybe<T>`}
- * type. This namespace provides functions for chaining and collecting into
+ * type.
+ *
+ * @remarks
+ *
+ * This namespace provides functions for chaining and collecting into
  * `AsyncMaybe`.
  */
 export namespace AsyncMaybe {
