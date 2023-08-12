@@ -22,8 +22,8 @@ import { cmb, type Semigroup } from "./cmb.js";
  * @remarks
  *
  * {@link Builder | `Builder<T, TFinish>`} provides an interface for
- * constructing values. A `Builder<T, TFinish>` accepts values of type `T` and
- * produces a result of type `TFinish`.
+ * constructing values. A `Builder<T, TFinish>` accepts inputs of type `T` and
+ * produces an output of type `TFinish`.
  *
  * Builders are often used to construct various containers, but they can be
  * useful in any task that involves collecting or combining values to produce a
@@ -55,30 +55,30 @@ export interface Builder<in T, out TFinish> {
 
 /** A builder that constructs a string. */
 export abstract class StringBuilder<in T> implements Builder<T, string> {
-	protected val: string;
+	protected output: string;
 
 	constructor(initial = "") {
-		this.val = initial;
+		this.output = initial;
 	}
 
-	abstract add(elem: T): void;
+	abstract add(input: T): void;
 
 	finish(): string {
-		return this.val;
+		return this.output;
 	}
 }
 
 /** A builder that constructs a string by appending strings. */
 export class StringAppendBuilder extends StringBuilder<string> {
-	add(elem: string): void {
-		this.val += elem;
+	add(input: string): void {
+		this.output += input;
 	}
 }
 
 /** A builder that constructs a string by prepending strings. */
 export class StringPrependBuilder extends StringBuilder<string> {
-	add(elem: string): void {
-		this.val = elem + this.val;
+	add(input: string): void {
+		this.output = input + this.output;
 	}
 }
 
@@ -86,30 +86,30 @@ export class StringPrependBuilder extends StringBuilder<string> {
 export abstract class ArrayBuilder<in T, out TFinish>
 	implements Builder<T, TFinish[]>
 {
-	protected elems: TFinish[];
+	protected output: TFinish[];
 
 	constructor(initial: TFinish[] = []) {
-		this.elems = initial;
+		this.output = initial;
 	}
 
-	abstract add(elem: T): void;
+	abstract add(input: T): void;
 
 	finish(): TFinish[] {
-		return this.elems;
+		return this.output;
 	}
 }
 
 /** A builder that constructs an array by appending elements. */
 export class ArrayPushBuilder<in out T> extends ArrayBuilder<T, T> {
-	add(elem: T): void {
-		this.elems.push(elem);
+	add(input: T): void {
+		this.output.push(input);
 	}
 }
 
 /** A builder that constructs an array by prepending elements. */
 export class ArrayUnshiftBuilder<in out T> extends ArrayBuilder<T, T> {
-	add(elem: T): void {
-		this.elems.unshift(elem);
+	add(input: T): void {
+		this.output.unshift(input);
 	}
 }
 
@@ -117,39 +117,33 @@ export class ArrayUnshiftBuilder<in out T> extends ArrayBuilder<T, T> {
  * A builder that constructs an array by assigning elements to indices from
  * index-element pairs.
  */
-export class ArrayEntryBuilder<in out T> extends ArrayBuilder<
+export class ArrayAssignBuilder<in out T> extends ArrayBuilder<
 	readonly [number, T],
 	T
 > {
-	add([idx, elem]: readonly [number, T]): void {
-		this.elems[idx] = elem;
-	}
-}
-
-/** A builder that constructs an array by concatenating arrays. */
-export class ArrayConcatBuilder<in out T> extends ArrayBuilder<T[], T> {
-	add(elem: T[]): void {
-		this.elems = this.elems.concat(elem);
+	add(input: readonly [number, T]): void {
+		const [idx, elem] = input;
+		this.output[idx] = elem;
 	}
 }
 
 /** A builder that constructs an object. */
-export abstract class RecordBuilder<
+export abstract class ObjectBuilder<
 	in T,
 	in out K extends number | string | symbol,
 	out V,
 > implements Builder<T, Record<K, V>>
 {
-	protected elems: Record<K, V>;
+	protected output: Record<K, V>;
 
 	constructor(initial: Record<K, V> = {} as Record<K, V>) {
-		this.elems = initial;
+		this.output = initial;
 	}
 
-	abstract add(elem: T): void;
+	abstract add(input: T): void;
 
 	finish(): Record<K, V> {
-		return this.elems;
+		return this.output;
 	}
 }
 
@@ -157,22 +151,13 @@ export abstract class RecordBuilder<
  * A builder that constructs an object by assigning values to keys from
  * key-value pairs.
  */
-export class RecordEntryBuilder<
+export class ObjectAssignBuilder<
 	in out K extends number | string | symbol,
 	in out V,
-> extends RecordBuilder<readonly [K, V], K, V> {
-	add([key, val]: readonly [K, V]): void {
-		this.elems[key] = val;
-	}
-}
-
-/** A builder that constructs an object by merging objects. */
-export class RecordSpreadBuilder<
-	in out K extends number | string | symbol,
-	in out V,
-> extends RecordBuilder<Record<K, V>, K, V> {
-	add(elem: Record<K, V>): void {
-		this.elems = { ...this.elems, ...elem };
+> extends ObjectBuilder<readonly [K, V], K, V> {
+	add(input: readonly [K, V]): void {
+		const [key, val] = input;
+		this.output[key] = val;
 	}
 }
 
@@ -180,16 +165,16 @@ export class RecordSpreadBuilder<
 export abstract class MapBuilder<in T, out K, out V>
 	implements Builder<T, Map<K, V>>
 {
-	protected elems: Map<K, V>;
+	protected output: Map<K, V>;
 
 	constructor(initial: Map<K, V> = new Map()) {
-		this.elems = initial;
+		this.output = initial;
 	}
 
-	abstract add(elem: T): void;
+	abstract add(input: T): void;
 
 	finish(): Map<K, V> {
-		return this.elems;
+		return this.output;
 	}
 }
 
@@ -197,29 +182,14 @@ export abstract class MapBuilder<in T, out K, out V>
  * A builder that constucts a map by assigning values to keys from key-value
  * pairs.
  */
-export class MapEntryBuilder<in out K, in out V> extends MapBuilder<
+export class MapSetBuilder<in out K, in out V> extends MapBuilder<
 	readonly [K, V],
 	K,
 	V
 > {
-	add([key, val]: readonly [K, V]): void {
-		this.elems.set(key, val);
-	}
-}
-
-/** A builder that constucts a map by taking the union of maps. */
-export class MapUnionBuilder<in out K, in out V> extends MapBuilder<
-	Map<K, V>,
-	K,
-	V
-> {
-	add(elem: Map<K, V>): void {
-		this.elems = new Map(
-			(function* (elems: Map<K, V>) {
-				yield* elems;
-				yield* elem;
-			})(this.elems),
-		);
+	add(input: readonly [K, V]): void {
+		const [key, val] = input;
+		this.output.set(key, val);
 	}
 }
 
@@ -227,54 +197,66 @@ export class MapUnionBuilder<in out K, in out V> extends MapBuilder<
 export abstract class SetBuilder<in T, out TFinish>
 	implements Builder<T, Set<TFinish>>
 {
-	protected elems: Set<TFinish>;
+	protected output: Set<TFinish>;
 
 	constructor(initial: Set<TFinish> = new Set()) {
-		this.elems = initial;
+		this.output = initial;
 	}
 
-	abstract add(elem: T): void;
+	abstract add(input: T): void;
 
 	finish(): Set<TFinish> {
-		return this.elems;
+		return this.output;
 	}
 }
 
 /** A builder that constucts a set by adding elements. */
-export class SetValueBuilder<in out T> extends SetBuilder<T, T> {
-	add(elem: T): void {
-		this.elems.add(elem);
-	}
-}
-
-/** A builder that constucts a set by taking the union of sets. */
-export class SetUnionBuilder<in out T> extends SetBuilder<Set<T>, T> {
-	add(elem: Set<T>): void {
-		this.elems = new Set(
-			(function* (elems: Set<T>) {
-				yield* elems;
-				yield* elem;
-			})(this.elems),
-		);
+export class SetAddBuilder<in out T> extends SetBuilder<T, T> {
+	add(input: T): void {
+		this.output.add(input);
 	}
 }
 
 /** A builder that constructs a semigroup by combining semigroups. */
-export class SemigroupBuilder<in out T extends Semigroup<T>>
+export class SemigroupCmbBuilder<in out T extends Semigroup<T>>
 	implements Builder<T, T>
 {
-	protected val: T;
+	protected output: T;
 
 	constructor(initial: T) {
-		this.val = initial;
+		this.output = initial;
 	}
 
-	add(elem: T): void {
-		this.val = cmb(this.val, elem);
+	add(input: T): void {
+		this.output = cmb(this.output, input);
 	}
 
 	finish(): T {
-		return this.val;
+		return this.output;
+	}
+}
+
+/**
+ * A higher-order builder that wraps an existing builder to add multiple values
+ * at once.
+ */
+export class AddManyBuilder<in T, out TFinish>
+	implements Builder<Iterable<T>, TFinish>
+{
+	protected builder: Builder<T, TFinish>;
+
+	constructor(builder: Builder<T, TFinish>) {
+		this.builder = builder;
+	}
+
+	add(input: Iterable<T>): void {
+		for (const elem of input) {
+			this.builder.add(elem);
+		}
+	}
+
+	finish(): TFinish {
+		return this.builder.finish();
 	}
 }
 

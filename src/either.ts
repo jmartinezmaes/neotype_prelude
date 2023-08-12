@@ -75,10 +75,10 @@
  */
 
 import {
-	ArrayEntryBuilder,
+	ArrayAssignBuilder,
 	ArrayPushBuilder,
 	NoOpBuilder,
-	RecordEntryBuilder,
+	ObjectAssignBuilder,
 	type Builder,
 } from "./builder.js";
 import { Semigroup, cmb } from "./cmb.js";
@@ -271,7 +271,7 @@ export namespace Either {
 		return traverseInto(
 			Object.entries(props),
 			([key, elem]) => elem.map((val) => [key, val] as const),
-			new RecordEntryBuilder(),
+			new ObjectAssignBuilder(),
 		);
 	}
 
@@ -697,7 +697,7 @@ export namespace AsyncEither {
 			elems,
 			async (elem, idx) =>
 				(await f(elem, idx)).map((val) => [idx, val] as const),
-			new ArrayEntryBuilder(),
+			new ArrayAssignBuilder(),
 		);
 	}
 
@@ -794,7 +794,7 @@ export namespace AsyncEither {
 			Object.entries(props),
 			async ([key, elem]) =>
 				(await elem).map((val) => [key, val] as const),
-			new RecordEntryBuilder(),
+			new ObjectAssignBuilder(),
 		);
 	}
 

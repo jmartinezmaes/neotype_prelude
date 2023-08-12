@@ -74,10 +74,10 @@
  */
 
 import {
-	ArrayEntryBuilder,
+	ArrayAssignBuilder,
 	ArrayPushBuilder,
 	NoOpBuilder,
-	RecordEntryBuilder,
+	ObjectAssignBuilder,
 	type Builder,
 } from "./builder.js";
 import { Semigroup, cmb } from "./cmb.js";
@@ -244,7 +244,7 @@ export namespace Validation {
 		return traverseInto(
 			Object.entries(props),
 			([key, elem]) => elem.map((val) => [key, val] as const),
-			new RecordEntryBuilder(),
+			new ObjectAssignBuilder(),
 		);
 	}
 
@@ -610,7 +610,7 @@ export namespace AsyncValidation {
 			elems,
 			async (elem, idx) =>
 				(await f(elem, idx)).map((val): [number, T1] => [idx, val]),
-			new ArrayEntryBuilder(),
+			new ArrayAssignBuilder(),
 		);
 	}
 
@@ -715,7 +715,7 @@ export namespace AsyncValidation {
 			Object.entries(props),
 			async ([key, elem]) =>
 				(await elem).map((val) => [key, val] as const),
-			new RecordEntryBuilder(),
+			new ObjectAssignBuilder(),
 		);
 	}
 

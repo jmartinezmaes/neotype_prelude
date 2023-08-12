@@ -83,10 +83,10 @@
  */
 
 import {
-	ArrayEntryBuilder,
+	ArrayAssignBuilder,
 	ArrayPushBuilder,
 	NoOpBuilder,
-	RecordEntryBuilder,
+	ObjectAssignBuilder,
 	type Builder,
 } from "./builder.js";
 import { Semigroup, cmb } from "./cmb.js";
@@ -319,7 +319,7 @@ export namespace Ior {
 		return traverseInto(
 			Object.entries(props),
 			([key, elem]) => elem.map((val) => [key, val] as const),
-			new RecordEntryBuilder(),
+			new ObjectAssignBuilder(),
 		);
 	}
 
@@ -876,7 +876,7 @@ export namespace AsyncIor {
 			elems,
 			async (elem, idx) =>
 				(await f(elem, idx)).map((val): [number, B] => [idx, val]),
-			new ArrayEntryBuilder(),
+			new ArrayAssignBuilder(),
 		);
 	}
 
@@ -974,7 +974,7 @@ export namespace AsyncIor {
 			Object.entries(props),
 			async ([key, elem]) =>
 				(await elem).map((val) => [key, val] as const),
-			new RecordEntryBuilder(),
+			new ObjectAssignBuilder(),
 		);
 	}
 
