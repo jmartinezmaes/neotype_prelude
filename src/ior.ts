@@ -111,51 +111,37 @@ export type Ior<A, B> = Ior.Left<A> | Ior.Right<B> | Ior.Both<A, B>;
  * -   Utility types
  */
 export namespace Ior {
-	/**
-	 * Construct a `Left`.
-	 */
+	/** Construct a `Left`. */
 	export function left<A, B = never>(val: A): Ior<A, B> {
 		return new Left(val);
 	}
 
-	/**
-	 * Construct a `Right`.
-	 */
+	/** Construct a `Right`. */
 	export function right<B, A = never>(val: B): Ior<A, B> {
 		return new Right(val);
 	}
 
-	/**
-	 * Construct a `Both`.
-	 */
+	/** Construct a `Both`. */
 	export function both<A, B>(fst: A, snd: B): Ior<A, B> {
 		return new Both(fst, snd);
 	}
 
-	/**
-	 * Construct an `Ior` from an `Either`.
-	 */
+	/** Construct an `Ior` from an `Either`. */
 	export function fromEither<A, B>(either: Either<A, B>): Ior<A, B> {
 		return either.unwrap(left, right);
 	}
 
-	/**
-	 * Construct an `Ior` from a `Validation`.
-	 */
+	/** Construct an `Ior` from a `Validation`. */
 	export function fromValidation<E, T>(vdn: Validation<E, T>): Ior<E, T> {
 		return vdn.unwrap(left, right);
 	}
 
-	/**
-	 * Construct an `Ior` from a 2-tuple of values.
-	 */
+	/** Construct an `Ior` from a 2-tuple of values. */
 	export function fromTuple<A, B>(tuple: readonly [A, B]): Ior<A, B> {
 		return both(tuple[0], tuple[1]);
 	}
 
-	/**
-	 * Evaluate an `Ior.Go` generator to return an `Ior`.
-	 */
+	/** Evaluate an `Ior.Go` generator to return an `Ior`. */
 	export function go<A extends Semigroup<A>, TReturn>(
 		gen: Go<A, TReturn>,
 	): Ior<A, TReturn> {
@@ -345,9 +331,7 @@ export namespace Ior {
 		return traverseInto(elems, f, new NoOpBuilder());
 	}
 
-	/**
-	 * Adapt a synchronous function to be applied in the context of `Ior`.
-	 */
+	/** Adapt a synchronous function to be applied in the context of `Ior`. */
 	export function lift<TArgs extends unknown[], T>(
 		f: (...args: TArgs) => T,
 	): <A extends Semigroup<A>>(
@@ -357,22 +341,16 @@ export namespace Ior {
 			all(iors).map((args) => f(...(args as TArgs))) as Ior<any, T>;
 	}
 
-	/**
-	 * An enumeration that discriminates `Ior`.
-	 */
+	/** An enumeration that discriminates `Ior`. */
 	export enum Kind {
 		LEFT,
 		RIGHT,
 		BOTH,
 	}
 
-	/**
-	 * The fluent syntax for `Ior`.
-	 */
+	/** The fluent syntax for `Ior`. */
 	export abstract class Syntax {
-		/**
-		 * The property that discriminates `Ior`.
-		 */
+		/** The property that discriminates `Ior`. */
 		abstract readonly kind: Kind;
 
 		/**
@@ -471,23 +449,17 @@ export namespace Ior {
 			return both(cmb(this.fst, that.fst), cmb(this.snd, that.snd));
 		}
 
-		/**
-		 * Test whether this `Ior` is `Left`.
-		 */
+		/** Test whether this `Ior` is `Left`. */
 		isLeft<A>(this: Ior<A, any>): this is Left<A> {
 			return this.kind === Kind.LEFT;
 		}
 
-		/**
-		 * Test whether this `Ior` is `Right`.
-		 */
+		/** Test whether this `Ior` is `Right`. */
 		isRight<B>(this: Ior<any, B>): this is Right<B> {
 			return this.kind === Kind.RIGHT;
 		}
 
-		/**
-		 * Test whether this `Ior` is `Both`.
-		 */
+		/** Test whether this `Ior` is `Both`. */
 		isBoth<A, B>(this: Ior<A, B>): this is Both<A, B> {
 			return this.kind === Kind.BOTH;
 		}
@@ -598,15 +570,11 @@ export namespace Ior {
 		}
 	}
 
-	/**
-	 * An `Ior` with a left-hand value.
-	 */
+	/** An `Ior` with a left-hand value. */
 	export class Left<out A> extends Syntax {
 		readonly kind = Kind.LEFT;
 
-		/**
-		 * The value of this `Ior`.
-		 */
+		/** The value of this `Ior`. */
 		readonly val: A;
 
 		constructor(val: A) {
@@ -619,15 +587,11 @@ export namespace Ior {
 		}
 	}
 
-	/**
-	 * An `Ior` with a right-hand value.
-	 */
+	/** An `Ior` with a right-hand value. */
 	export class Right<out B> extends Syntax {
 		readonly kind = Kind.RIGHT;
 
-		/**
-		 * The value of this `Ior`.
-		 */
+		/** The value of this `Ior`. */
 		readonly val: B;
 
 		constructor(val: B) {
@@ -640,20 +604,14 @@ export namespace Ior {
 		}
 	}
 
-	/**
-	 * An `Ior` with a left-hand and a right-hand value.
-	 */
+	/** An `Ior` with a left-hand and a right-hand value. */
 	export class Both<out A, out B> extends Syntax {
 		readonly kind = Kind.BOTH;
 
-		/**
-		 * The left-hand value of this `Ior`.
-		 */
+		/** The left-hand value of this `Ior`. */
 		readonly fst: A;
 
-		/**
-		 * The right-hand value of this `Ior`.
-		 */
+		/** The right-hand value of this `Ior`. */
 		readonly snd: B;
 
 		/**
@@ -674,27 +632,21 @@ export namespace Ior {
 		}
 	}
 
-	/**
-	 * A generator that yields `Ior` and returns a value.
-	 */
+	/** A generator that yields `Ior` and returns a value. */
 	export type Go<A extends Semigroup<A>, TReturn> = Generator<
 		Ior<A, unknown>,
 		TReturn,
 		unknown
 	>;
 
-	/**
-	 * Extract the left-hand value type `A` from the type `Ior<A, B>`.
-	 */
+	/** Extract the left-hand value type `A` from the type `Ior<A, B>`. */
 	export type LeftT<TIor extends Ior<any, any>> = [TIor] extends [
 		Ior<infer A, any>,
 	]
 		? A
 		: never;
 
-	/**
-	 * Extract the right-hand value type `B` from the type `Ior<A, B>`.
-	 */
+	/** Extract the right-hand value type `B` from the type `Ior<A, B>`. */
 	export type RightT<TIor extends Ior<any, any>> = [TIor] extends [
 		Ior<any, infer B>,
 	]
@@ -702,14 +654,10 @@ export namespace Ior {
 		: never;
 }
 
-/**
- * A promise-like object that fulfills with `Ior`.
- */
+/** A promise-like object that fulfills with `Ior`. */
 export type AsyncIorLike<A, B> = PromiseLike<Ior<A, B>>;
 
-/**
- * A promise that fulfills with `Ior`.
- */
+/** A promise that fulfills with `Ior`. */
 export type AsyncIor<A, B> = Promise<Ior<A, B>>;
 
 /**
@@ -717,9 +665,7 @@ export type AsyncIor<A, B> = Promise<Ior<A, B>>;
  * namespace provides functions for chaining and collecting into `AsyncIor`.
  */
 export namespace AsyncIor {
-	/**
-	 * Evaluate an `AsyncIor.Go` async generator to return an `AsyncIor`.
-	 */
+	/** Evaluate an `AsyncIor.Go` async generator to return an `AsyncIor`. */
 	export async function go<A extends Semigroup<A>, TReturn>(
 		gen: Go<A, TReturn>,
 	): AsyncIor<A, TReturn> {
@@ -1056,9 +1002,7 @@ export namespace AsyncIor {
 			);
 	}
 
-	/**
-	 * An async generator that yields `Ior` and returns a value.
-	 */
+	/** An async generator that yields `Ior` and returns a value. */
 	export type Go<A extends Semigroup<A>, TReturn> = AsyncGenerator<
 		Ior<A, unknown>,
 		TReturn,

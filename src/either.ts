@@ -102,30 +102,22 @@ export type Either<A, B> = Either.Left<A> | Either.Right<B>;
  * -   Utility types
  */
 export namespace Either {
-	/**
-	 * Construct a `Left`.
-	 */
+	/** Construct a `Left`. */
 	export function left<A, B = never>(val: A): Either<A, B> {
 		return new Left(val);
 	}
 
-	/**
-	 * Construct a `Right`.
-	 */
+	/** Construct a `Right`. */
 	export function right<B, A = never>(val: B): Either<A, B> {
 		return new Right(val);
 	}
 
-	/**
-	 * Construct an `Either` from a `Validation`.
-	 */
+	/** Construct an `Either` from a `Validation`. */
 	export function fromValidation<E, T>(vdn: Validation<E, T>): Either<E, T> {
 		return vdn.unwrap(left, right);
 	}
 
-	/**
-	 * Evaluate an `Either.Go` generator to return an `Either`.
-	 */
+	/** Evaluate an `Either.Go` generator to return an `Either`. */
 	export function go<E, TReturn>(gen: Go<E, TReturn>): Either<E, TReturn> {
 		let nxt = gen.next();
 		let err: any;
@@ -303,21 +295,15 @@ export namespace Either {
 			all(eithers).map((args) => f(...(args as TArgs)));
 	}
 
-	/**
-	 * An enumeration that discriminates `Either`.
-	 */
+	/** An enumeration that discriminates `Either`. */
 	export enum Kind {
 		LEFT,
 		RIGHT,
 	}
 
-	/**
-	 * The fluent syntax for `Either`.
-	 */
+	/** The fluent syntax for `Either`. */
 	export abstract class Syntax {
-		/**
-		 * The property that discriminates `Either`.
-		 */
+		/** The property that discriminates `Either`. */
 		abstract readonly kind: Kind;
 
 		/**
@@ -357,9 +343,7 @@ export namespace Either {
 			return that.isRight() ? cmp(this.val, that.val) : Ordering.greater;
 		}
 
-		/**
-		 * If this and that `Either` are `Right`, combine their values.
-		 */
+		/** If this and that `Either` are `Right`, combine their values. */
 		[Semigroup.cmb]<E, T extends Semigroup<T>>(
 			this: Either<E, T>,
 			that: Either<E, T>,
@@ -367,16 +351,12 @@ export namespace Either {
 			return this.zipWith(that, cmb);
 		}
 
-		/**
-		 * Test whether this `Either` is `Left`.
-		 */
+		/** Test whether this `Either` is `Left`. */
 		isLeft<A>(this: Either<A, any>): this is Left<A> {
 			return this.kind === Kind.LEFT;
 		}
 
-		/**
-		 * Test whether this `Either` is `Right`.
-		 */
+		/** Test whether this `Either` is `Right`. */
 		isRight<B>(this: Either<any, B>): this is Right<B> {
 			return this.kind === Kind.RIGHT;
 		}
@@ -460,30 +440,22 @@ export namespace Either {
 			return this.andThen((lhs) => that.map((rhs) => f(lhs, rhs)));
 		}
 
-		/**
-		 * If this `Either` is `Left`, apply a function to map its value.
-		 */
+		/** If this `Either` is `Left`, apply a function to map its value. */
 		lmap<A, B, A1>(this: Either<A, B>, f: (val: A) => A1): Either<A1, B> {
 			return this.orElse((val) => left(f(val)));
 		}
 
-		/**
-		 * If this `Either` is `Right`, apply a function to map its value.
-		 */
+		/** If this `Either` is `Right`, apply a function to map its value. */
 		map<A, B, B1>(this: Either<A, B>, f: (val: B) => B1): Either<A, B1> {
 			return this.andThen((val) => right(f(val)));
 		}
 	}
 
-	/**
-	 * A left-sided Either.
-	 */
+	/** A left-sided Either. */
 	export class Left<out A> extends Syntax {
 		readonly kind = Kind.LEFT;
 
-		/**
-		 * The value of this `Either`.
-		 */
+		/** The value of this `Either`. */
 		readonly val: A;
 
 		constructor(val: A) {
@@ -496,15 +468,11 @@ export namespace Either {
 		}
 	}
 
-	/**
-	 * A right-sided Either.
-	 */
+	/** A right-sided Either. */
 	export class Right<out B> extends Syntax {
 		readonly kind = Kind.RIGHT;
 
-		/**
-		 * The value of this `Either`.
-		 */
+		/** The value of this `Either`. */
 		readonly val: B;
 
 		constructor(val: B) {
@@ -517,27 +485,21 @@ export namespace Either {
 		}
 	}
 
-	/**
-	 * A generator that yields `Either` and returns a value.
-	 */
+	/** A generator that yields `Either` and returns a value. */
 	export type Go<E, TReturn> = Generator<
 		Either<E, unknown>,
 		TReturn,
 		unknown
 	>;
 
-	/**
-	 * Extract the `Left` value type `A` from the type `Either<A, B>`.
-	 */
+	/** Extract the `Left` value type `A` from the type `Either<A, B>`. */
 	export type LeftT<TEither extends Either<any, any>> = [TEither] extends [
 		Either<infer A, any>,
 	]
 		? A
 		: never;
 
-	/**
-	 * Extract the `Right` value type `B` from the type `Either<A, B>`.
-	 */
+	/** Extract the `Right` value type `B` from the type `Either<A, B>`. */
 	export type RightT<TEither extends Either<any, any>> = [TEither] extends [
 		Either<any, infer B>,
 	]
@@ -545,14 +507,10 @@ export namespace Either {
 		: never;
 }
 
-/**
- * A promise-like object that fulfills with `Either`.
- */
+/** A promise-like object that fulfills with `Either`. */
 export type AsyncEitherLike<A, B> = PromiseLike<Either<A, B>>;
 
-/**
- * A promise that fulfills with `Either`.
- */
+/** A promise that fulfills with `Either`. */
 export type AsyncEither<A, B> = Promise<Either<A, B>>;
 
 /**
@@ -869,9 +827,7 @@ export namespace AsyncEither {
 			);
 	}
 
-	/**
-	 * An async generator that yields `Either` and returns a value.
-	 */
+	/** An async generator that yields `Either` and returns a value. */
 	export type Go<E, TReturn> = AsyncGenerator<
 		Either<E, any>,
 		TReturn,

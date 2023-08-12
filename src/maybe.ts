@@ -98,9 +98,7 @@ export type Maybe<T> = Maybe.Nothing | Maybe.Just<T>;
  * -   Utility types
  */
 export namespace Maybe {
-	/**
-	 * Construct a `Just`.
-	 */
+	/** Construct a `Just`. */
 	export function just<T>(val: T): Maybe<T> {
 		return new Just(val);
 	}
@@ -123,9 +121,7 @@ export namespace Maybe {
 		return (...args) => fromNullish(f(...args));
 	}
 
-	/**
-	 * Adapt a predicate into a function that returns `Maybe`.
-	 */
+	/** Adapt a predicate into a function that returns `Maybe`. */
 	export function wrapPred<T, T1 extends T>(
 		f: (val: T) => val is T1,
 	): (val: T) => Maybe<T1>;
@@ -136,9 +132,7 @@ export namespace Maybe {
 		return (val) => (f(val) ? just(val) : nothing);
 	}
 
-	/**
-	 * Evaluate a `Maybe.Go` generator to return a `Maybe`.
-	 */
+	/** Evaluate a `Maybe.Go` generator to return a `Maybe`. */
 	export function go<TReturn>(gen: Go<TReturn>): Maybe<TReturn> {
 		let nxt = gen.next();
 		let isHalted = false;
@@ -295,30 +289,22 @@ export namespace Maybe {
 		return traverseInto(elems, f, new NoOpBuilder());
 	}
 
-	/**
-	 * Adapt a synchronous function to be applied in the context of `Maybe`.
-	 */
+	/** Adapt a synchronous function to be applied in the context of `Maybe`. */
 	export function lift<TArgs extends unknown[], T>(
 		f: (...args: TArgs) => T,
 	): (...maybes: { [K in keyof TArgs]: Maybe<TArgs[K]> }) => Maybe<T> {
 		return (...maybes) => all(maybes).map((args) => f(...args));
 	}
 
-	/**
-	 * An enumeration that discriminates `Maybe`.
-	 */
+	/** An enumeration that discriminates `Maybe`. */
 	export enum Kind {
 		NOTHING,
 		JUST,
 	}
 
-	/**
-	 * The fluent syntax for `Maybe`.
-	 */
+	/** The fluent syntax for `Maybe`. */
 	export abstract class Syntax {
-		/**
-		 * The property that discriminates `Maybe`.
-		 */
+		/** The property that discriminates `Maybe`. */
 		abstract readonly kind: Kind;
 
 		/**
@@ -367,16 +353,12 @@ export namespace Maybe {
 			return that;
 		}
 
-		/**
-		 * Test whether this `Maybe` is `Nothing`.
-		 */
+		/** Test whether this `Maybe` is `Nothing`. */
 		isNothing(this: Maybe<any>): this is Nothing {
 			return this.kind === Kind.NOTHING;
 		}
 
-		/**
-		 * Test whether this `Maybe` is `Just`.
-		 */
+		/** Test whether this `Maybe` is `Just`. */
 		isJust<T>(this: Maybe<T>): this is Just<T> {
 			return this.kind === Kind.JUST;
 		}
@@ -425,9 +407,7 @@ export namespace Maybe {
 			return this.isNothing() ? f() : this;
 		}
 
-		/**
-		 * If this `Maybe` is `Nothing`, return that `Maybe`.
-		 */
+		/** If this `Maybe` is `Nothing`, return that `Maybe`. */
 		or<T, T1>(this: Maybe<T>, that: Maybe<T1>): Maybe<T | T1> {
 			return this.orElse(() => that);
 		}
@@ -499,24 +479,21 @@ export namespace Maybe {
 			return this.andThen((lhs) => that.map((rhs) => f(lhs, rhs)));
 		}
 
-		/**
-		 * If this `Maybe` is `Just`, apply a function to map its value.
-		 */
+		/** If this `Maybe` is `Just`, apply a function to map its value. */
 		map<T, T1>(this: Maybe<T>, f: (val: T) => T1): Maybe<T1> {
 			return this.andThen((val) => just(f(val)));
 		}
 	}
 
-	/**
-	 * An absent `Maybe`.
-	 */
+	/** An absent `Maybe`. */
 	export class Nothing extends Syntax {
 		/**
-		 * The singleton instance of the `Nothing` variant of `Maybe`.
+		 * The singleton instance of `Nothing`.
 		 *
 		 * @remarks
 		 *
-		 * The `nothing` constant is a more accessible alias for this object.
+		 * The {@linkcode nothing} constant is a more accessible alias for this
+		 * object.
 		 */
 		static readonly singleton = new Nothing();
 
@@ -531,15 +508,11 @@ export namespace Maybe {
 		}
 	}
 
-	/**
-	 * A present `Maybe`.
-	 */
+	/** A present `Maybe`. */
 	export class Just<out T> extends Syntax {
 		readonly kind = Kind.JUST;
 
-		/**
-		 * The value of this `Maybe`.
-		 */
+		/** The value of this `Maybe`. */
 		readonly val: T;
 
 		constructor(val: T) {
@@ -552,32 +525,22 @@ export namespace Maybe {
 		}
 	}
 
-	/**
-	 * The absent `Maybe`.
-	 */
+	/** The absent `Maybe`. */
 	export const nothing = Maybe.Nothing.singleton as Maybe<never>;
 
-	/**
-	 * A generator that yields `Maybe` and returns a value.
-	 */
+	/** A generator that yields `Maybe` and returns a value. */
 	export type Go<TReturn> = Generator<Maybe<unknown>, TReturn, unknown>;
 
-	/**
-	 * Extract the `Just` value type `T` from the type `Maybe<T>`.
-	 */
+	/** Extract the `Just` value type `T` from the type `Maybe<T>`. */
 	export type JustT<TMaybe extends Maybe<any>> = TMaybe extends Maybe<infer T>
 		? T
 		: never;
 }
 
-/**
- * A promise-like object that fulfills with `Maybe`.
- */
+/** A promise-like object that fulfills with `Maybe`. */
 export type AsyncMaybeLike<T> = PromiseLike<Maybe<T>>;
 
-/**
- * A promise that fulfills with `Maybe`.
- */
+/** A promise that fulfills with `Maybe`. */
 export type AsyncMaybe<T> = Promise<Maybe<T>>;
 
 /**
@@ -868,8 +831,6 @@ export namespace AsyncMaybe {
 			);
 	}
 
-	/**
-	 * An async generator that yields `Maybe` and returns a value.
-	 */
+	/** An async generator that yields `Maybe` and returns a value. */
 	export type Go<TReturn> = AsyncGenerator<Maybe<unknown>, TReturn, unknown>;
 }

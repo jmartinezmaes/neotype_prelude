@@ -101,23 +101,17 @@ export type Validation<E, T> = Validation.Err<E> | Validation.Ok<T>;
  * -   Utility types
  */
 export namespace Validation {
-	/**
-	 * Construct a failed `Validation`.
-	 */
+	/** Construct a failed `Validation`. */
 	export function err<E, T = never>(val: E): Validation<E, T> {
 		return new Err(val);
 	}
 
-	/**
-	 * Construct a successful `Validation`.
-	 */
+	/** Construct a successful `Validation`. */
 	export function ok<T, E = never>(val: T): Validation<E, T> {
 		return new Ok(val);
 	}
 
-	/**
-	 * Construct a `Validation` from an `Either`.
-	 */
+	/** Construct a `Validation` from an `Either`. */
 	export function fromEither<A, B>(either: Either<A, B>): Validation<A, B> {
 		return either.unwrap(err, ok);
 	}
@@ -277,21 +271,15 @@ export namespace Validation {
 			>;
 	}
 
-	/**
-	 * An enumeration that discriminates `Validation`.
-	 */
+	/** An enumeration that discriminates `Validation`. */
 	export enum Kind {
 		ERR,
 		OK,
 	}
 
-	/**
-	 * The fluent syntax for `Validation`.
-	 */
+	/** The fluent syntax for `Validation`. */
 	export abstract class Syntax {
-		/**
-		 * The property that discriminates `Validation`.
-		 */
+		/** The property that discriminates `Validation`. */
 		abstract readonly kind: Kind;
 
 		/**
@@ -341,16 +329,12 @@ export namespace Validation {
 			return this.zipWith(that, cmb);
 		}
 
-		/**
-		 * Test whether this `Validation` has failed.
-		 */
+		/** Test whether this `Validation` has failed. */
 		isErr<E>(this: Validation<E, any>): this is Err<E> {
 			return this.kind === Kind.ERR;
 		}
 
-		/**
-		 * Test whether this `Validation` has succeeded.
-		 */
+		/** Test whether this `Validation` has succeeded. */
 		isOk<T>(this: Validation<any, T>): this is Ok<T> {
 			return this.kind === Kind.OK;
 		}
@@ -393,9 +377,7 @@ export namespace Validation {
 			return that.isErr() ? that : ok(f(this.val, that.val));
 		}
 
-		/**
-		 * If this `Validation` fails, apply a function to map its failure.
-		 */
+		/** If this `Validation` fails, apply a function to map its failure. */
 		lmap<E, T, E1>(
 			this: Validation<E, T>,
 			f: (val: E) => E1,
@@ -414,15 +396,11 @@ export namespace Validation {
 		}
 	}
 
-	/**
-	 * A failed `Validation`.
-	 */
+	/** A failed `Validation`. */
 	export class Err<out E> extends Syntax {
 		readonly kind = Kind.ERR;
 
-		/**
-		 * The failure of this `Validation`.
-		 */
+		/** The failure of this `Validation`. */
 		readonly val: E;
 
 		constructor(val: E) {
@@ -431,15 +409,11 @@ export namespace Validation {
 		}
 	}
 
-	/**
-	 * A successful `Validation`.
-	 */
+	/** A successful `Validation`. */
 	export class Ok<out T> extends Syntax {
 		readonly kind = Kind.OK;
 
-		/**
-		 * The success of this `Validation`.
-		 */
+		/** The success of this `Validation`. */
 		readonly val: T;
 
 		constructor(val: T) {
@@ -448,18 +422,14 @@ export namespace Validation {
 		}
 	}
 
-	/**
-	 * Extract the failure type `E` from the type `Validation<E, T>`.
-	 */
+	/** Extract the failure type `E` from the type `Validation<E, T>`. */
 	export type ErrT<TVdn extends Validation<any, any>> = [TVdn] extends [
 		Validation<infer E, any>,
 	]
 		? E
 		: never;
 
-	/**
-	 * Extract the success type `T` from the type `Validation<E, T>`.
-	 */
+	/** Extract the success type `T` from the type `Validation<E, T>`. */
 	export type OkT<TVdn extends Validation<any, any>> = [TVdn] extends [
 		Validation<any, infer T>,
 	]
@@ -467,14 +437,10 @@ export namespace Validation {
 		: never;
 }
 
-/**
- * A promise-like object that fulfills with `Validation`.
- */
+/** A promise-like object that fulfills with `Validation`. */
 export type AsyncValidationLike<E, T> = PromiseLike<Validation<E, T>>;
 
-/**
- * A promise that fulfills with `Validation`.
- */
+/** A promise that fulfills with `Validation`. */
 export type AsyncValidation<E, T> = Promise<Validation<E, T>>;
 
 /**

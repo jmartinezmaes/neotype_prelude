@@ -20,9 +20,7 @@
  * @module
  */
 
-/**
- * The identity function.
- */
+/** The identity function. */
 export function id<T>(val: T): T {
 	return val;
 }
@@ -39,9 +37,7 @@ export function constant<T>(val: T): (...args: any[]) => T {
 	return () => val;
 }
 
-/**
- * Adapt a predicate into an identical predicate that negates its result.
- */
+/** Adapt a predicate into an identical predicate that negates its result. */
 export function negatePred<T, T1 extends T>(
 	f: (val: T) => val is T1,
 ): (val: T) => val is Exclude<T, T1>;
@@ -56,9 +52,7 @@ export function negatePred<TArgs extends unknown[]>(
 	return (...args) => !f(...args);
 }
 
-/**
- * Adapt a constructor into a callable function.
- */
+/** Adapt a constructor into a callable function. */
 export function wrapCtor<TArgs extends unknown[], T>(
 	ctor: new (...args: TArgs) => T,
 ): (...args: TArgs) => T {

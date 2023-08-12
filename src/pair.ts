@@ -43,30 +43,20 @@
 import { Semigroup, cmb } from "./cmb.js";
 import { Eq, Ord, cmp, eq, type Ordering } from "./cmp.js";
 
-/**
- * A pair of values.
- */
+/** A pair of values. */
 export class Pair<out A, out B> {
-	/**
-	 * Construct a `Pair` from a 2-tuple of values.
-	 */
+	/** Construct a `Pair` from a 2-tuple of values. */
 	static fromTuple<A, B>(tuple: readonly [A, B]): Pair<A, B> {
 		return new Pair(tuple[0], tuple[1]);
 	}
 
-	/**
-	 * The first value of this `Pair`.
-	 */
+	/** The first value of this `Pair`. */
 	readonly fst: A;
 
-	/**
-	 * The second value of this `Pair`.
-	 */
+	/** The second value of this `Pair`. */
 	readonly snd: B;
 
-	/**
-	 * A 2-tuple of the first value and second value of this `Pair`.
-	 */
+	/** A 2-tuple of the first value and second value of this `Pair`. */
 	get val(): [A, B] {
 		return [this.fst, this.snd];
 	}
@@ -125,16 +115,12 @@ export class Pair<out A, out B> {
 		return f(this.fst, this.snd);
 	}
 
-	/**
-	 * Apply a function to map the first value of this `Pair`.
-	 */
+	/** Apply a function to map the first value of this `Pair`. */
 	lmap<A1>(f: (val: A) => A1): Pair<A1, B> {
 		return new Pair(f(this.fst), this.snd);
 	}
 
-	/**
-	 * Apply a function to map the second value of this `Pair`.
-	 */
+	/** Apply a function to map the second value of this `Pair`. */
 	map<B1>(f: (val: B) => B1): Pair<A, B1> {
 		return new Pair(this.fst, f(this.snd));
 	}
