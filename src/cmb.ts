@@ -30,42 +30,13 @@
  *
  * ## Implementing semigroups
  *
- * -   The `Semigroup` interface provides a contract for implementing
- *     [semigroups]. See the documentation for implementation patterns.
- * -   The `Semigroup` companion namespace provides the unique symbol required
- *     to implement the associated interface.
- *
- * ## Combining semigroups
- *
- * The `cmb` function combines two of the same `Semigroup` values.
- *
- * ## Working with generic semigroups
- *
- * Sometimes it is necessary to work with arbitrary semigroups. To require that
- * a generic type `T` implements `Semigroup`, we write `T extends Semigroup<T>`.
+ * -   The {@link Semigroup:interface | `Semigroup<T>`} interface provides a
+ *     contract for implementing [semigroups]. See the documentation for
+ *     implementation patterns.
+ * -   The {@linkcode Semigroup:namespace} companion namespace provides the
+ *     unique symbol required to implement its associated interface.
  *
  * [semigroups]: https://mathworld.wolfram.com/Semigroup.html
- *
- * @example Working with generic semigroups
- *
- * Consider a program that combines an arbitrary semigroup with itself a finite
- * number of times:
- *
- * ```ts
- * import { Semigroup, cmb } from "@neotype/prelude/cmp.js";
- *
- * function cmbTimes<T extends Semigroup<T>>(val: T, times: number): T {
- *     if (times < 2 || times === Infinity) {
- *         return val;
- *     }
- *
- *     let acc = val;
- *     for (let i = 0; i < times; i++) {
- *         acc = cmb(acc, val);
- *     }
- *     return acc;
- * }
- * ```
  *
  * @module
  */
@@ -184,8 +155,8 @@
  *
  * @example Generic implementation with a `Semigroup` requirement
  *
- * Consider a type that combines `Promise` values by combining their results,
- * which requires that the results also implement `Semigroup`:
+ * Consider a type that combines promises by combining their results, which
+ * requires that the results also implement `Semigroup`:
  *
  * ```ts
  * import { Semigroup, cmb } from "@neotype/prelude/cmb.js";
@@ -281,23 +252,26 @@
  */
 export interface Semigroup<in out T> {
 	/**
-	 * Combine this and that `Semigroup` value using an associative operation.
+	 * Combine this and that semigroup using an associative operation.
 	 */
 	[Semigroup.cmb](that: T): T;
 }
 
 /**
- * The companion namespace for the `Semigroup` interface.
+ * The companion namespace for the {@link Semigroup:interface `Semigroup<T>`}
+ * interface.
+ *
+ * @remarks
+ *
+ * This namespace provides the unique symbol required to implement `Semigroup`.
  */
 export namespace Semigroup {
-	/**
-	 * The unique symbol used by implementors of `Semigroup`.
-	 */
+	/** The unique symbol used by implementors of `Semigroup`. */
 	export const cmb = Symbol();
 }
 
 /**
- * Combine two of the same `Semigroup` values.
+ * Combine two of the same semigroup.
  *
  * @remarks
  *
