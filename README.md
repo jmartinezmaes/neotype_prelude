@@ -1,4 +1,4 @@
-# Neotype Prelude
+# neotype_prelude
 
 Functional programming essentials for TypeScript
 
@@ -57,8 +57,6 @@ exports.
 This library takes inspiration from many existing functional programming
 languages and libraries, including:
 
--   [Haskell](https://www.haskell.org)
--   [Scala](https://scala-lang.org) and [Cats](https://typelevel.org/cats/)
 -   [Rust](https://www.rust-lang.org/)
--   [fp-ts](https://github.com/gcanti/fp-ts)
--   [true-myth](https://github.com/true-myth/true-myth)
+-   [Haskell](https://www.haskell.org)
+-   [Scala](https://scala-lang.org)

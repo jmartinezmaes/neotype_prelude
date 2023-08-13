@@ -1,10 +1,9 @@
 ---
 name: Bug report
 about: Create a report to help us improve this library.
-title: ''
+title: ""
 labels: Potential Bug
-assignees: ''
-
+assignees: ""
 ---
 
 ## Search terms
@@ -13,9 +12,9 @@ assignees: ''
 
 ## Version information
 
-- neotype_prelude version:
-- TypeScript version:
-- Node.js version:
+-   neotype_prelude version:
+-   TypeScript version:
+-   Node.js version:
 
 ## Code sample
 

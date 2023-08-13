@@ -1,13 +1,13 @@
 blank_issues_enabled: true
 contact_links:
-  - name: Request a New Feature
+  - name: Request a new feature
     url: https://github.com/jmartinezmaes/neotype_prelude/discussions/categories/ideas
     about: Please open an "Idea" Discussion with your idea.
 
-  - name: Ask a Question
+  - name: Ask a question
     url: https://github.com/jmartinezmaes/neotype_prelude/discussions/categories/q-a
     about: Please open a "Q&A" Discussion to ask a question or get help.
 
-  - name: Get in Touch
+  - name: Get in touch
     url: https://discord.gg/hpD6TCeMWT
     about: Join our Discord server to connect with the community in more ways!
