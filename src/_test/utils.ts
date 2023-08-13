@@ -16,11 +16,12 @@
 
 import * as fc from "fast-check";
 import { expect } from "vitest";
+import type { Builder } from "../builder.js";
 import { Semigroup, cmb } from "../cmb.js";
 import { Eq, Ord, Ordering, eq, le } from "../cmp.js";
 
-export function delay<T>(ms: number, val: T | PromiseLike<T>): Promise<T> {
-	return new Promise((resolve) => setTimeout(() => resolve(val), ms));
+export function delay(ms: number): Promise<void> {
+	return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 export class Num implements Ord<Num> {
@@ -53,6 +54,18 @@ export function arbNum(): fc.Arbitrary<Num> {
 
 export function arbStr(): fc.Arbitrary<Str> {
 	return fc.string().map((val) => new Str(val));
+}
+
+export class TestBuilder<in out T> implements Builder<T, T[]> {
+	elems: T[] = [];
+
+	add(elem: T): void {
+		this.elems.push(elem);
+	}
+
+	finish(): T[] {
+		return this.elems;
+	}
 }
 
 export function expectLawfulEq<T extends Eq<T>>(arb: fc.Arbitrary<T>): void {

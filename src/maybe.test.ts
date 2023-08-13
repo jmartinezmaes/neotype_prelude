@@ -17,6 +17,7 @@
 import * as fc from "fast-check";
 import { describe, expect, it } from "vitest";
 import {
+	TestBuilder,
 	arbNum,
 	arbStr,
 	delay,
@@ -28,13 +29,9 @@ import {
 } from "./_test/utils.js";
 import { cmb } from "./cmb.js";
 import { Ordering, cmp, eq } from "./cmp.js";
-import { Maybe } from "./maybe.js";
+import { AsyncMaybe, Maybe } from "./maybe.js";
 
 describe("Maybe", () => {
-	function nothing<T>(): Maybe<T> {
-		return Maybe.nothing;
-	}
-
 	function arbMaybe<T>(arbVal: fc.Arbitrary<T>): fc.Arbitrary<Maybe<T>> {
 		return fc.oneof(fc.constant(Maybe.nothing), arbVal.map(Maybe.just));
 	}
@@ -108,7 +105,7 @@ describe("Maybe", () => {
 		it("short-circuits on the first yielded Nothing", () => {
 			function* f(): Maybe.Go<[1, 2]> {
 				const one = yield* Maybe.just<1>(1);
-				const two = yield* nothing<2>();
+				const two = yield* Maybe.nothing;
 				return [one, two];
 			}
 			const maybe = Maybe.go(f());
@@ -129,7 +126,7 @@ describe("Maybe", () => {
 			const logs: string[] = [];
 			function* f(): Maybe.Go<1> {
 				try {
-					return yield* nothing<1>();
+					return yield* Maybe.nothing;
 				} finally {
 					logs.push("finally");
 				}
@@ -144,7 +141,7 @@ describe("Maybe", () => {
 				try {
 					return 1;
 				} finally {
-					yield* nothing<1>();
+					yield* Maybe.nothing;
 				}
 			}
 			const maybe = Maybe.go(f());
@@ -163,15 +160,57 @@ describe("Maybe", () => {
 		});
 	});
 
+	describe("traverseInto", () => {
+		it("applies the function to the elements and collects the present values into the Builder if all results are Just", () => {
+			const builder = new TestBuilder<[number, string]>();
+			const maybe = Maybe.traverseInto(
+				["a", "b"],
+				(char, idx) => Maybe.just<[number, string]>([idx, char]),
+				builder,
+			);
+			expect(maybe).to.deep.equal(
+				Maybe.just([
+					[0, "a"],
+					[1, "b"],
+				]),
+			);
+		});
+	});
+
+	describe("traverse", () => {
+		it("applies the function to the elements and collects the present values in an array if all results are Just", () => {
+			const maybe = Maybe.traverse(["a", "b"], (char, idx) =>
+				Maybe.just<[number, string]>([idx, char]),
+			);
+			expect(maybe).to.deep.equal(
+				Maybe.just([
+					[0, "a"],
+					[1, "b"],
+				]),
+			);
+		});
+	});
+
+	describe("allInto", () => {
+		it("collects the present values into the Builder if all elements are Just", () => {
+			const builder = new TestBuilder<number>();
+			const maybe = Maybe.allInto(
+				[Maybe.just(1), Maybe.just(2)],
+				builder,
+			);
+			expect(maybe).to.deep.equal(Maybe.just([1, 2]));
+		});
+	});
+
 	describe("all", () => {
-		it("turns the array or the tuple literal of Maybe elements inside out", () => {
+		it("collects the present values in an array if all elements are Just", () => {
 			const maybe = Maybe.all([Maybe.just<1>(1), Maybe.just<2>(2)]);
 			expect(maybe).to.deep.equal(Maybe.just([1, 2]));
 		});
 	});
 
 	describe("allProps", () => {
-		it("turns the record or the object literal of Maybe elements inside out", () => {
+		it("collects the present values in an object if all elements are Just", () => {
 			const maybe = Maybe.allProps({
 				one: Maybe.just<1>(1),
 				two: Maybe.just<2>(2),
@@ -180,150 +219,27 @@ describe("Maybe", () => {
 		});
 	});
 
+	describe("forEach", () => {
+		it("applies the function to the elements while the result is Just", () => {
+			const results: [number, string][] = [];
+			const maybe = Maybe.forEach(["a", "b"], (char, idx) => {
+				results.push([idx, char]);
+				return Maybe.just(undefined);
+			});
+			expect(maybe).to.deep.equal(Maybe.just(undefined));
+			expect(results).to.deep.equal([
+				[0, "a"],
+				[1, "b"],
+			]);
+		});
+	});
+
 	describe("lift", () => {
-		it("lifts the function into the context of Maybe values", () => {
+		it("applies the function to the present values if all arguments are Just", () => {
 			function f<A, B>(lhs: A, rhs: B): [A, B] {
 				return [lhs, rhs];
 			}
 			const maybe = Maybe.lift(f)(Maybe.just(1), Maybe.just(2));
-			expect(maybe).to.deep.equal(Maybe.just([1, 2]));
-		});
-	});
-
-	describe("goAsync", async () => {
-		it("short-circuits on the first yielded Nothing", async () => {
-			async function* f(): Maybe.GoAsync<[1, 2]> {
-				const one = yield* await Promise.resolve(Maybe.just<1>(1));
-				const two = yield* await Promise.resolve(nothing<2>());
-				return [one, two];
-			}
-			const maybe = await Maybe.goAsync(f());
-			expect(maybe).to.equal(Maybe.nothing);
-		});
-
-		it("completes if all yielded values are Just", async () => {
-			async function* f(): Maybe.GoAsync<[1, 2]> {
-				const one = yield* await Promise.resolve(Maybe.just<1>(1));
-				const two = yield* await Promise.resolve(Maybe.just<2>(2));
-				return [one, two];
-			}
-			const maybe = await Maybe.goAsync(f());
-			expect(maybe).to.deep.equal(Maybe.just([1, 2]));
-		});
-
-		it("unwraps Promises in Just variants and in return", async () => {
-			async function* f(): Maybe.GoAsync<[1, 2]> {
-				const one = yield* await Promise.resolve(
-					Maybe.just(Promise.resolve<1>(1)),
-				);
-				const two = yield* await Promise.resolve(
-					Maybe.just(Promise.resolve<2>(2)),
-				);
-				return Promise.resolve([one, two]);
-			}
-			const maybe = await Maybe.goAsync(f());
-			expect(maybe).to.deep.equal(Maybe.just([1, 2]));
-		});
-
-		it("executes the finally block if Nothing is yielded in the try block", async () => {
-			const logs: string[] = [];
-			async function* f(): Maybe.GoAsync<1> {
-				try {
-					return yield* await Promise.resolve(nothing<1>());
-				} finally {
-					logs.push("finally");
-				}
-			}
-			const maybe = await Maybe.goAsync(f());
-			expect(maybe).to.equal(Maybe.nothing);
-			expect(logs).to.deep.equal(["finally"]);
-		});
-
-		it("returns Nothing if Nothing is yielded in the finally block", async () => {
-			async function* f(): Maybe.GoAsync<1> {
-				try {
-					return 1;
-				} finally {
-					yield* await Promise.resolve(nothing<1>());
-				}
-			}
-			const maybe = await Maybe.goAsync(f());
-			expect(maybe).to.equal(Maybe.nothing);
-		});
-	});
-
-	describe("allAsync", () => {
-		it("short-circuits on the first Nothing", async () => {
-			const maybe = await Maybe.allAsync([
-				delay(10, Maybe.just<1>(1)),
-				delay(5, nothing<2>()),
-			]);
-			expect(maybe).to.deep.equal(Maybe.nothing);
-		});
-
-		it("extracts the values if all variants are Just", async () => {
-			const maybe = await Maybe.allAsync([
-				delay(10, Maybe.just<1>(1)),
-				delay(5, Maybe.just<2>(2)),
-			]);
-			expect(maybe).to.deep.equal(Maybe.just([1, 2]));
-		});
-
-		it("accepts plain Maybe values", async () => {
-			const maybe = await Maybe.allAsync([
-				Maybe.just<1>(1),
-				Maybe.just<2>(2),
-			]);
-			expect(maybe).to.deep.equal(Maybe.just([1, 2]));
-		});
-	});
-
-	describe("allPropsAsync", () => {
-		it("short-circuits on the first Nothing", async () => {
-			const maybe = await Maybe.allPropsAsync({
-				one: delay(10, Maybe.just<1>(1)),
-				two: delay(5, nothing<2>()),
-			});
-			expect(maybe).to.deep.equal(Maybe.nothing);
-		});
-
-		it("extracts the values if all variants are Just", async () => {
-			const maybe = await Maybe.allPropsAsync({
-				one: delay(10, Maybe.just<1>(1)),
-				two: delay(5, Maybe.just<2>(2)),
-			});
-			expect(maybe).to.deep.equal(Maybe.just({ one: 1, two: 2 }));
-		});
-
-		it("accepts plain Maybe values", async () => {
-			const maybe = await Maybe.allPropsAsync({
-				one: Maybe.just<1>(1),
-				two: Maybe.just<2>(2),
-			});
-			expect(maybe).to.deep.equal(Maybe.just({ one: 1, two: 2 }));
-		});
-	});
-
-	describe("liftAsync", () => {
-		it("lifts the function into the async context of Maybe", async () => {
-			function f<A, B>(lhs: A, rhs: B): [A, B] {
-				return [lhs, rhs];
-			}
-			const maybe = await Maybe.liftAsync(f<1, 2>)(
-				delay(10, Maybe.just(1)),
-				delay(5, Maybe.just(2)),
-			);
-			expect(maybe).to.deep.equal(Maybe.just([1, 2]));
-		});
-
-		it("lifts the async function into the async context of Maybe", async () => {
-			async function f<A, B>(lhs: A, rhs: B): Promise<[A, B]> {
-				return [lhs, rhs];
-			}
-			const maybe = await Maybe.liftAsync(f<1, 2>)(
-				delay(10, Maybe.just(1)),
-				delay(5, Maybe.just(2)),
-			);
 			expect(maybe).to.deep.equal(Maybe.just([1, 2]));
 		});
 	});
@@ -441,7 +357,7 @@ describe("Maybe", () => {
 
 	describe("#isNothing", () => {
 		it("returns true if the variant is Nothing", () => {
-			expect(nothing<1>().isNothing()).to.be.true;
+			expect(Maybe.nothing.isNothing()).to.be.true;
 		});
 
 		it("returns false if the variant is Just", () => {
@@ -451,7 +367,7 @@ describe("Maybe", () => {
 
 	describe("#isJust", () => {
 		it("returns false if the variant is Nothing", () => {
-			expect(nothing<1>().isJust()).to.be.false;
+			expect(Maybe.nothing.isJust()).to.be.false;
 		});
 
 		it("returns true if the variant is Just", () => {
@@ -461,7 +377,7 @@ describe("Maybe", () => {
 
 	describe("#unwrap", () => {
 		it("evaluates the first function if the variant is Nothing", () => {
-			const result = nothing<1>().unwrap(
+			const result = (Maybe.nothing as Maybe<1>).unwrap(
 				(): 3 => 3,
 				(one): [1, 2] => [one, 2],
 			);
@@ -479,7 +395,7 @@ describe("Maybe", () => {
 
 	describe("getOrElse", () => {
 		it("evaluates the function if the variant is Nothing", () => {
-			const result = nothing<1>().getOrElse((): 2 => 2);
+			const result = (Maybe.nothing as Maybe<1>).getOrElse((): 2 => 2);
 			expect(result).to.equal(2);
 		});
 
@@ -491,7 +407,7 @@ describe("Maybe", () => {
 
 	describe("#getOr", () => {
 		it("returns the fallback value if the variant is Nothing", () => {
-			const result = nothing<1>().getOr(2 as const);
+			const result = (Maybe.nothing as Maybe<1>).getOr(2 as const);
 			expect(result).to.equal(2);
 		});
 
@@ -503,7 +419,7 @@ describe("Maybe", () => {
 
 	describe("#toNullish", () => {
 		it("returns undefined if the variant is Nothing", () => {
-			const result = nothing<1>().toNullish();
+			const result = (Maybe.nothing as Maybe<1>).toNullish();
 			expect(result).to.be.undefined;
 		});
 
@@ -515,7 +431,9 @@ describe("Maybe", () => {
 
 	describe("#orElse", () => {
 		it("evaluates the function if the variant is Nothing", () => {
-			const maybe = nothing<1>().orElse(() => Maybe.just<2>(2));
+			const maybe = (Maybe.nothing as Maybe<1>).orElse(() =>
+				Maybe.just<2>(2),
+			);
 			expect(maybe).to.deep.equal(Maybe.just(2));
 		});
 
@@ -527,7 +445,7 @@ describe("Maybe", () => {
 
 	describe("#or", () => {
 		it("returns the other Maybe if the variant is Nothing", () => {
-			const maybe = nothing<1>().or(Maybe.just<2>(2));
+			const maybe = (Maybe.nothing as Maybe<1>).or(Maybe.just<2>(2));
 			expect(maybe).to.deep.equal(Maybe.just(2));
 		});
 
@@ -539,7 +457,7 @@ describe("Maybe", () => {
 
 	describe("#andThen", () => {
 		it("does not apply the continuation if the variant is Nothing", () => {
-			const maybe = nothing<1>().andThen(
+			const maybe = (Maybe.nothing as Maybe<1>).andThen(
 				(one): Maybe<[1, 2]> => Maybe.just([one, 2]),
 			);
 			expect(maybe).to.equal(Maybe.nothing);
@@ -555,7 +473,7 @@ describe("Maybe", () => {
 
 	describe("#andThenGo", () => {
 		it("does not apply the continuation if the variant is Nothing", () => {
-			const maybe = nothing<1>().andThenGo(function* (
+			const maybe = (Maybe.nothing as Maybe<1>).andThenGo(function* (
 				one,
 			): Maybe.Go<[1, 2]> {
 				const two = yield* Maybe.just<2>(2);
@@ -577,7 +495,7 @@ describe("Maybe", () => {
 
 	describe("#and", () => {
 		it("returns the original Maybe if the variant is Nothing", () => {
-			const maybe = nothing<1>().and(Maybe.just<2>(2));
+			const maybe = (Maybe.nothing as Maybe<1>).and(Maybe.just<2>(2));
 			expect(maybe).to.deep.equal(Maybe.nothing);
 		});
 
@@ -589,10 +507,9 @@ describe("Maybe", () => {
 
 	describe("#mapNullish", () => {
 		it("does not apply the continuation if the variant is Nothing", () => {
-			const maybe = nothing<1>().mapNullish((one): [1, 2] | null => [
-				one,
-				2,
-			]);
+			const maybe = (Maybe.nothing as Maybe<1>).mapNullish(
+				(one): [1, 2] | null => [one, 2],
+			);
 			expect(maybe).to.equal(Maybe.nothing);
 		});
 
@@ -620,7 +537,9 @@ describe("Maybe", () => {
 
 	describe("#filter", () => {
 		it("does not apply the predicate if the variant is Nothing", () => {
-			const maybe = nothing<number>().filter((one) => one === 1);
+			const maybe = (Maybe.nothing as Maybe<number>).filter(
+				(one) => one === 1,
+			);
 			expect(maybe).to.equal(Maybe.nothing);
 		});
 
@@ -648,6 +567,285 @@ describe("Maybe", () => {
 	describe("#map", () => {
 		it("applies the function to the value if the variant is Just", () => {
 			const maybe = Maybe.just<1>(1).map((one): [1, 2] => [one, 2]);
+			expect(maybe).to.deep.equal(Maybe.just([1, 2]));
+		});
+	});
+});
+
+describe("AsyncMaybe", () => {
+	describe("goAsync", async () => {
+		it("short-circuits on the first yielded Nothing", async () => {
+			async function* f(): AsyncMaybe.Go<[1, 2]> {
+				const one = yield* await Promise.resolve(Maybe.just<1>(1));
+				const two = yield* await Promise.resolve(Maybe.nothing);
+				return [one, two];
+			}
+			const maybe = await AsyncMaybe.go(f());
+			expect(maybe).to.equal(Maybe.nothing);
+		});
+
+		it("completes if all yielded values are Just", async () => {
+			async function* f(): AsyncMaybe.Go<[1, 2]> {
+				const one = yield* await Promise.resolve(Maybe.just<1>(1));
+				const two = yield* await Promise.resolve(Maybe.just<2>(2));
+				return [one, two];
+			}
+			const maybe = await AsyncMaybe.go(f());
+			expect(maybe).to.deep.equal(Maybe.just([1, 2]));
+		});
+
+		it("unwraps Promises in Just variants and in return", async () => {
+			async function* f(): AsyncMaybe.Go<[1, 2]> {
+				const one = yield* await Promise.resolve(
+					Maybe.just(Promise.resolve<1>(1)),
+				);
+				const two = yield* await Promise.resolve(
+					Maybe.just(Promise.resolve<2>(2)),
+				);
+				return Promise.resolve([one, two]);
+			}
+			const maybe = await AsyncMaybe.go(f());
+			expect(maybe).to.deep.equal(Maybe.just([1, 2]));
+		});
+
+		it("executes the finally block if Nothing is yielded in the try block", async () => {
+			const logs: string[] = [];
+			async function* f(): AsyncMaybe.Go<1> {
+				try {
+					return yield* await Promise.resolve(Maybe.nothing);
+				} finally {
+					logs.push("finally");
+				}
+			}
+			const maybe = await AsyncMaybe.go(f());
+			expect(maybe).to.equal(Maybe.nothing);
+			expect(logs).to.deep.equal(["finally"]);
+		});
+
+		it("returns Nothing if Nothing is yielded in the finally block", async () => {
+			async function* f(): AsyncMaybe.Go<1> {
+				try {
+					return 1;
+				} finally {
+					yield* await Promise.resolve(Maybe.nothing);
+				}
+			}
+			const maybe = await AsyncMaybe.go(f());
+			expect(maybe).to.equal(Maybe.nothing);
+		});
+	});
+
+	describe("reduce", () => {
+		it("reduces the finite async iterable from left to right in the context of Maybe", async () => {
+			async function* gen(): AsyncGenerator<string> {
+				yield delay(50).then(() => "x");
+				yield delay(10).then(() => "y");
+			}
+			const maybe = await AsyncMaybe.reduce(
+				gen(),
+				(chars, char) => delay(1).then(() => Maybe.just(chars + char)),
+				"",
+			);
+			expect(maybe).to.deep.equal(Maybe.just("xy"));
+		});
+	});
+
+	describe("traverseInto", () => {
+		it("applies the function to the elements and collects the present values into the Builder if all results are Just", async () => {
+			async function* gen(): AsyncGenerator<string> {
+				yield delay(50).then(() => "a");
+				yield delay(10).then(() => "b");
+			}
+			const builder = new TestBuilder<[number, string]>();
+			const maybe = await AsyncMaybe.traverseInto(
+				gen(),
+				(char, idx) =>
+					delay(1).then(() =>
+						Maybe.just<[number, string]>([idx, char]),
+					),
+				builder,
+			);
+			expect(maybe).to.deep.equal(
+				Maybe.just([
+					[0, "a"],
+					[1, "b"],
+				]),
+			);
+		});
+	});
+
+	describe("traverse", () => {
+		it("applies the function to the elements and collects the present values in an array if all results are Just", async () => {
+			async function* gen(): AsyncGenerator<string> {
+				yield delay(50).then(() => "a");
+				yield delay(10).then(() => "b");
+			}
+			const maybe = await AsyncMaybe.traverse(gen(), (char, idx) =>
+				delay(1).then(() => Maybe.just<[number, string]>([idx, char])),
+			);
+			expect(maybe).to.deep.equal(
+				Maybe.just([
+					[0, "a"],
+					[1, "b"],
+				]),
+			);
+		});
+	});
+
+	describe("allInto", () => {
+		it("collects the present values into the Builder if all elements are Just", async () => {
+			async function* gen(): AsyncGenerator<Maybe<number>> {
+				yield delay(50).then(() => Maybe.just(1));
+				yield delay(10).then(() => Maybe.just(2));
+			}
+			const builder = new TestBuilder<number>();
+			const maybe = await AsyncMaybe.allInto(gen(), builder);
+			expect(maybe).to.deep.equal(Maybe.just([1, 2]));
+		});
+	});
+
+	describe("all", () => {
+		it("collects the present values in an array if all elements are Just", async () => {
+			async function* gen(): AsyncGenerator<Maybe<number>> {
+				yield delay(50).then(() => Maybe.just(1));
+				yield delay(10).then(() => Maybe.just(2));
+			}
+			const maybe = await AsyncMaybe.all(gen());
+			expect(maybe).to.deep.equal(Maybe.just([1, 2]));
+		});
+	});
+
+	describe("forEach", () => {
+		it("applies the function to the elements while the result is Just", async () => {
+			async function* gen(): AsyncGenerator<string> {
+				yield delay(50).then(() => "a");
+				yield delay(10).then(() => "b");
+			}
+			const results: [number, string][] = [];
+			const maybe = await AsyncMaybe.forEach(gen(), (char, idx) =>
+				delay(1).then(() => {
+					results.push([idx, char]);
+					return Maybe.just(undefined);
+				}),
+			);
+			expect(maybe).to.deep.equal(Maybe.just(undefined));
+			expect(results).to.deep.equal([
+				[0, "a"],
+				[1, "b"],
+			]);
+		});
+	});
+
+	describe("traverseIntoPar", () => {
+		it("applies the function to the elements and short-cicruits on the first Nothing", async () => {
+			const maybe = await AsyncMaybe.traverseIntoPar(
+				["a", "b"],
+				(char, idx) =>
+					delay(char === "a" ? 50 : 10).then(() =>
+						char === "a" ? Maybe.nothing : Maybe.just([idx, char]),
+					),
+				new TestBuilder<[number, string]>(),
+			);
+			expect(maybe).to.equal(Maybe.nothing);
+		});
+
+		it("applies the function to the elements and collects the present values into the Builder if all results are Just", async () => {
+			const builder = new TestBuilder<[number, string]>();
+			const maybe = await AsyncMaybe.traverseIntoPar(
+				["a", "b"],
+				(char, idx) =>
+					delay(char === "a" ? 50 : 10).then(() =>
+						Maybe.just([idx, char]),
+					),
+				builder,
+			);
+			expect(maybe).to.deep.equal(
+				Maybe.just([
+					[1, "b"],
+					[0, "a"],
+				]),
+			);
+		});
+	});
+
+	describe("traversePar", () => {
+		it("applies the function to the elements and collects the present values in an array if all results are Just", async () => {
+			const maybe = await AsyncMaybe.traversePar(
+				["a", "b"],
+				(char, idx) =>
+					delay(char === "a" ? 50 : 10).then(() =>
+						Maybe.just<[number, string]>([idx, char]),
+					),
+			);
+			expect(maybe).to.deep.equal(
+				Maybe.just([
+					[0, "a"],
+					[1, "b"],
+				]),
+			);
+		});
+	});
+
+	describe("allIntoPar", () => {
+		it("collects the present values into the Builder if all elements are Just", async () => {
+			const builder = new TestBuilder<number>();
+			const maybe = await AsyncMaybe.allIntoPar(
+				[
+					delay(50).then(() => Maybe.just(1)),
+					delay(10).then(() => Maybe.just(2)),
+				],
+				builder,
+			);
+			expect(maybe).to.deep.equal(Maybe.just([2, 1]));
+		});
+	});
+
+	describe("allPar", () => {
+		it("collects the present values in an array if all elements are Just", async () => {
+			const maybe = await AsyncMaybe.allPar([
+				delay(50).then<Maybe<1>>(() => Maybe.just(1)),
+				delay(10).then<Maybe<2>>(() => Maybe.just(2)),
+			]);
+			expect(maybe).to.deep.equal(Maybe.just([1, 2]));
+		});
+	});
+
+	describe("allPropsPar", () => {
+		it("collects the present values in an object if all elements are Just", async () => {
+			const maybe = await AsyncMaybe.allPropsPar({
+				one: delay(50).then<Maybe<1>>(() => Maybe.just(1)),
+				two: delay(10).then<Maybe<2>>(() => Maybe.just(2)),
+			});
+			expect(maybe).to.deep.equal(Maybe.just({ one: 1, two: 2 }));
+		});
+	});
+
+	describe("forEachPar", () => {
+		it("applies the function to the elements and continues while the result is Just", async () => {
+			const results: [number, string][] = [];
+			const maybe = await AsyncMaybe.forEachPar(["a", "b"], (char, idx) =>
+				delay(char === "a" ? 50 : 10).then(() => {
+					results.push([idx, char]);
+					return Maybe.just(undefined);
+				}),
+			);
+			expect(maybe).to.deep.equal(Maybe.just(undefined));
+			expect(results).to.deep.equal([
+				[1, "b"],
+				[0, "a"],
+			]);
+		});
+	});
+
+	describe("liftPar", () => {
+		it("applies the function to the present values if all arguments are Just", async () => {
+			async function f<A, B>(lhs: A, rhs: B): Promise<[A, B]> {
+				return [lhs, rhs];
+			}
+			const maybe = await AsyncMaybe.liftPar(f)(
+				delay(50).then(() => Maybe.just<1>(1)),
+				delay(10).then(() => Maybe.just<2>(2)),
+			);
 			expect(maybe).to.deep.equal(Maybe.just([1, 2]));
 		});
 	});

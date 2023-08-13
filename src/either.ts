@@ -19,402 +19,108 @@
  *
  * @remarks
  *
- * `Either<A, B>` is a type that represents one of two values. It is represented
- * by two variants: `Left<A>` and `Right<B>`.
+ * {@link Either:type | `Either<A, B>`} is a type that represents one of two
+ * values. It is represented by two variants: {@link Either.Left | `Left<A>`}
+ * and {@link Either.Right | `Right<B>`}.
  *
- * -   The `Left<A>` variant represents a *left-sided* `Either` and contains a
- *     value of type `A`.
- * -   The `Right<B>` variant represents a *right-sided* `Either` and contains a
- *     value of type `B`.
+ * -   A `Left<A>` is a left-sided `Either` and contains a value of type `A`.
+ * -   A `Right<B>` is a right-sided `Either` and contains a value of type `B`.
  *
- * ### Handling failure with `Either`
+ * The companion {@linkcode Either:namespace} namespace provides utilities for
+ * working with the `Either<A, B>` type.
+ *
+ * ## Handling failure
  *
  * `Either` is also used to represent a value which is either a success or a
- * failure. In this context, the type is written as `Either<E, T>` and its two
- * variants are `Left<E>` and `Right<T>`.
- *
- * -   The `Left<E>` variant represents a *failed* `Either` and contains a
- *     *failure* of type `E`.
- * -   The `Right<T>` variant represents a *successful* `Either` and contains a
- *     *success* of type `T`.
+ * failure. `Left` variant represents a failed value, while the `Right` variant
+ * represents a successful value.
  *
  * Some combinators for `Either` are specialized for this failure-handling
  * use case, and provide a right-biased behavior that "short-circuits" a
- * computation on the first failed `Either`. This behavior allows functions
- * that return `Either` to be composed in a way that propogates failures while
- * applying logic to successes -- a useful feature for railway-oriented
- * programming.
+ * computation on the first `Left`. This behavior allows functions that return
+ * `Either` to be composed in a way that propogates failures while applying
+ * logic to successes -- a useful feature for railway-oriented programming.
+ *
+ * ## Using `Either` with promises
+ *
+ * {@link AsyncEither:type | `AsyncEither<A, B>`} is an alias for
+ * `Promise<Either<A, B>>`. The companion {@linkcode AsyncEither:namespace}
+ * namespace provides utilities for working with the `AsyncEither<A, B>` type.
+ *
+ * To accommodate promise-like values, this module also provides the
+ * {@link AsyncEitherLike | `AsyncEitherLike<A, B>`} type as an alias for
+ * `PromiseLike<Either<A, B>>`.
  *
  * ## Importing from this module
  *
- * This module exports `Either` as both a type and a namespace. The `Either`
- * type is an alias for a discriminated union, and the `Either` namespace
- * provides:
- *
- * -   The `Left` and `Right` variant classes
- * -   The abstract `Syntax` class that provides the fluent API for `Either`
- * -   The `Kind` enumeration that discriminates `Either`
- * -   Functions for constructing, chaining, collecting into, and lifting into
- *     `Either`
- *
- * The type and namespace can be imported under the same alias:
+ * The types and namespaces from this module can be imported under the same
+ * aliases:
  *
  * ```ts
- * import { Either } from "@neotype/prelude/either.js";
+ * import { AsyncEither, Either } from "@neotype/prelude/either.js";
  * ```
  *
- * Or, the type and namespace can be imported and aliased separately:
+ * Or, they can be imported and aliased separately:
  *
  * ```ts
- * import { type Either, Either as E } from "@neotype/prelude/either.js";
- * ```
- *
- * ## Constructing `Either`
- *
- * These functions construct an Either:
- *
- * -   `left` constructs a left-sided `Either`.
- * -   `right` constructs a right-sided `Either`.
- * -   `fromValidation` constructs an `Either` from a `Validation`.
- *
- * ## Querying and narrowing the variant
- *
- * The `isLeft` and `isRight` methods return `true` if an `Either` is left-sided
- * or right-sided, respectively. These methods also narrow the type of an
- * `Either` to the queried variant.
- *
- * The variant can also be queried and narrowed via the `kind` property, which
- * returns a member of the `Kind` enumeration.
- *
- * ## Extracting values
- *
- * The value within an `Either` can be accessed via the `val` property. The type
- * of the property can be narrowed by first querying the variant.
- *
- * The `unwrap` method unwraps an `Either` by applying one of two functions to
- * its value, depending on the variant.
- *
- * ## Comparing `Either`
- *
- * `Either` has the following behavior as an equivalence relation:
- *
- * -   An `Either<A, B>` implements `Eq` when both `A` and `B` implement `Eq`.
- * -   Two `Either` values are equal if they are the same variant and their
- *     values are equal.
- *
- * `Either` has the following behavior as a total order:
- *
- * -   An `Either<A, B>` implements `Ord` when both `A` and `B` implement `Ord`.
- * -   When ordered, a left-sided `Either` always compares as less than any
- *     right-sided `Either`. If the variants are the same, their values are
- *     compared to determine the ordering.
- *
- * ## `Either` as a semigroup
- *
- * `Either` has the following behavior as a semigroup:
- *
- * -   An `Either<E, T>` implements `Semigroup` when `T` implements `Semigroup`.
- * -   When combined, any left-sided `Either` short-circuits the combination and
- *     is returned instead. If both are right-sided, their values are combined
- *     and returned in a `Right`.
- *
- * ## Transforming values
- *
- * These methods transform the value within an `Either`:
- *
- * -   `lmap` applies a function to the value in a left-sided `Either`.
- * -   `map` applies a function to the value in a right-sided `Either`.
- *
- * ## Recovering from `Left` variants
- *
- * These methods act on a failed `Either` to produce a fallback `Either`:
- *
- * -   `orElse` applies a function to the failure to return a fallback `Either`.
- * -   `or` ignores the failure and returns a fallback `Either`.
- *
- * ## Chaining `Either`
- *
- * These methods act on a successful `Either` to produce another `Either`:
- *
- * -   `andThen` applies a function to the success to return another `Either`.
- * -   `andThenGo` applies a synchronous generator comprehension function to the
- *     success and evaluates the generator to return another `Either`.
- * -   `and` ignores the success and returns another `Either`.
- * -   `zipWith` evaluates another `Either`, and if successful, applies a
- *     function to both successes.
- *
- * ## Generator comprehenshions
- *
- * Generator comprehensions provide an imperative syntax for chaining together
- * synchronous or asynchronous computations that return or resolve with `Either`
- * values.
- *
- * ### Writing comprehensions
- *
- * Synchronus and asynchronous comprehensions are written using `function*` and
- * `async function*` declarations, respectively.
- *
- * Synchronous generator functions should use the `Either.Go` type alias as
- * their return type. A generator function that returns an `Either.Go<E, T>` may
- * `yield*` zero or more `Either<E, any>` values and must return a result of
- * type `T`. Synchronous comprehensions may also `yield*` other `Either.Go`
- * generators directly.
- *
- * Async generator functions should use the `Either.GoAsync` type alias as their
- * return type. An async generator function that returns an `Either.GoAsync<E,
- * T>` may `yield*` zero or more `Either<E, any>` values and must return a
- * result of type `T`. `PromiseLike` values that resolve with `Either` should
- * be awaited before yielding. Async comprehensions may also `yield*` other
- * `Either.Go` and `Either.GoAsync` generators directly.
- *
- * Each `yield*` expression may bind a variable of the success value type of the
- * yielded `Either`. Comprehensions should always use `yield*` instead of
- * `yield`. Using `yield*` allows TypeScript to accurately infer the success
- * value type of the yielded `Either` when binding the value of each `yield*`
- * expression.
- *
- * ### Evaluating comprehensions
- *
- * `Either.Go` and `Either.GoAsync` generators must be evaluated before
- * accessing their results.
- *
- * The `go` function evaluates an `Either.Go<E, T>` generator to return an
- * `Either<E, T>`. If any yielded `Either` fails, the generator halts and `go`
- * returns the failed `Either`; otherwise, when the generator returns, `go`
- * returns the result as a success.
- *
- * The `goAsync` function evaluates an `Either.GoAsync<E, T>` async generator to
- * return a `Promise<Either<E, T>>`. If any yielded `Either` fails, the
- * generator halts and `goAsync` resolves with the failed `Either`; otherwise,
- * when the generator returns, `goAsync` resolves with the result as a success.
- * Thrown errors are captured as rejections.
- *
- * ## Collecting into `Either`
- *
- * These functions turn a container of `Either` elements "inside out":
- *
- * -   `all` turns an iterable or a tuple literal of `Either` elements inside
- *     out.
- * -   `allProps` turns a string-keyed record or object literal of `Either`
- *     elements inside out.
- *
- * These functions concurrently turn a container of promise-like `Either`
- * elements "inside out":
- *
- * -   `allAsync` turns an iterable or a tuple literal of promise-like `Either`
- *     elements inside out.
- * -   `allPropsAsync` turns a string-keyed record or object literal of
- *     promise-like `Either` elements inside out.
- *
- * The `reduce` function reduces a finite iterable from left to right in the
- * context of `Either`.
- *
- * ## Lifting functions into the context of `Either`
- *
- * These functions adapt a function to work with `Either` values:
- *
- * -   `lift` adapts a synchronous function to accept `Either` values as
- *     arguments and return an `Either`.
- * -   `liftAsync` adapts a synchronous or an asynchronous function to accept
- *     promise-like `Either` values as arguments and return a `Promise` that
- *     resolves with an `Either`.
- *
- * @example Basic matching and unwrapping
- *
- * ```ts
- * import { Either } from "@neotype/prelude/either.js";
- *
- * const strOrNum: Either<string, number> = Either.right(1);
- *
- * // Querying and narrowing using methods
- * if (strOrNum.isLeft()) {
- *     console.log(`Queried Left: ${strOrNum.val}`);
- * } else {
- *     console.log(`Queried Right: ${strOrNum.val}`);
- * }
- *
- * // Querying and narrowing using the `kind` property
- * switch (strOrNum.kind) {
- *     case Either.Kind.LEFT:
- *         console.log(`Matched Left: ${strOrNum.val}`);
- *         break;
- *     case Either.Kind.RIGHT:
- *         console.log(`Matched Right: ${strOrNum.val}`);
- * }
- *
- * // Case analysis using `unwrap`
- * strOrNum.unwrap(
- *     (str) => console.log(`Unwrapped Left: ${str}`),
- *     (num) => console.log(`Unwrapped Right: ${num}`),
- * );
- * ```
- *
- * @example Parsing with `Either`
- *
- * First, the necessary imports:
- *
- * ```ts
- * import { Either } from "@neotype/prelude/either.js";
- * ```
- *
- * Now, consider a program that uses `Either` to parse an even integer:
- *
- * ```ts
- * function parseInt(input: string): Either<string, number> {
- *     const n = Number.parseInt(input);
- *     return Number.isNaN(n)
- *         ? Either.left(`cannot parse '${input}' as int`)
- *         : Either.right(n);
- * }
- *
- * function guardEven(n: number): Either<string, number> {
- *     return n % 2 === 0
- *         ? Either.right(n)
- *         : Either.left(`${n} is not even`);
- * }
- *
- * function parseEvenInt(input: string): Either<string, number> {
- *     return parseInt(input).andThen(guardEven);
- * }
- *
- * ["a", "1", "2", "-4", "+42", "0x2A"].forEach((input) => {
- *     const result = JSON.stringify(parseEvenInt(input).val);
- *     console.log(`input "${input}": ${result}`);
- * });
- *
- * // input "a": "cannot parse 'a' as int"
- * // input "1": "1 is not even"
- * // input "2": 2
- * // input "-4": -4
- * // input "+42": 42
- * // input "0x2A": 42
- * ```
- *
- * Suppose we want to parse an array of inputs and collect the successful
- * results, or fail on the first parse error. We may write the following:
- *
- * ```ts
- * function parseEvenInts(inputs: string[]): Either<string, number[]> {
- *     return Either.all(inputs.map(parseEvenInt));
- * }
- *
- * [
- *     ["a", "-4"],
- *     ["2", "-7"],
- *     ["+42", "0x2A"],
- * ].forEach((inputs) => {
- *     const result = JSON.stringify(parseEvenInts(inputs).val);
- *     console.log(`inputs ${JSON.stringify(inputs)}: ${result}`);
- * });
- *
- * // inputs ["a","-4"]: "cannot parse 'a' as int"
- * // inputs ["2","-7"]: "-7 is not even"
- * // inputs ["+42","0x2A"]: [42,42]
- * ```
- *
- * Perhaps we want to associate the original input strings with our successful
- * parses:
- *
- * ```ts
- * function parseEvenIntsKeyed(
- *     inputs: string[],
- * ): Either<string, Record<string, number>> {
- *     return Either.allProps(
- *         Object.fromEntries(
- *             inputs.map((input) => [input, parseEvenInt(input)] as const),
- *         ),
- *     );
- * }
- *
- * [
- *     ["a", "-4"],
- *     ["2", "-7"],
- *     ["+42", "0x2A"],
- * ].forEach((inputs) => {
- *     const result = JSON.stringify(parseEvenIntsKeyed(inputs).val);
- *     console.log(`inputs ${JSON.stringify(inputs)}: ${result}`);
- * });
- *
- * // inputs ["a","-4"]: "cannot parse 'a' as int"
- * // inputs ["2","-7"]: "-7 is not even"
- * // inputs ["+42","0x2A"]: {"+42":42,"0x2A":42}
- * ```
- *
- * Or, perhaps we want to sum our successful parses and return a total:
- *
- * ```ts
- * function parseEvenIntsAndSum(inputs: string[]): Either<string, number> {
- *     return Either.reduce(
- *         inputs,
- *         (total, input) => parseEvenInt(input).map((even) => total + even),
- *         0,
- *     );
- * }
- *
- * [
- *     ["a", "-4"],
- *     ["2", "-7"],
- *     ["+42", "0x2A"],
- * ].forEach((inputs) => {
- *     const result = JSON.strigify(parseEvenIntsAndSum(inputs).val);
- *     console.log(`inputs ${JSON.stringify(inputs)}: ${result}`);
- * });
- *
- * // inputs ["a","-4"]: "cannot parse 'a' as int"
- * // inputs ["2","-7"]: "-7 is not even"
- * // inputs ["+42","0x2A"]: 84
+ * import {
+ *     type AsyncEither,
+ *     type Either,
+ *     AsyncEither as AE,
+ *     Either as E
+ * } from "@neotype/prelude/either.js";
  * ```
  *
  * @module
  */
 
+import {
+	ArrayAssignBuilder,
+	ArrayPushBuilder,
+	NoOpBuilder,
+	ObjectAssignBuilder,
+	type Builder,
+} from "./builder.js";
 import { Semigroup, cmb } from "./cmb.js";
 import { Eq, Ord, Ordering, cmp, eq } from "./cmp.js";
+import { id } from "./fn.js";
 import type { Validation } from "./validation.js";
 
 /**
- * A type that represents one of two values (`Left` or `Right`).
+ * A type that represents one of two values ({@linkcode Either.Left} or
+ * {@linkcode Either.Right}).
  */
 export type Either<A, B> = Either.Left<A> | Either.Right<B>;
 
 /**
- * The companion namespace for the `Either` type.
+ * The companion namespace for the {@link Either:type | `Either<A, B>`} type.
+ *
+ * @remarks
+ *
+ * This namespace provides:
+ *
+ * -   Functions for constructing, chaining, and collecting into `Either`
+ * -   A base class with the fluent API for `Either`
+ * -   Variant classes
+ * -   Utility types
  */
 export namespace Either {
-	/**
-	 * Construct a left-sided `Either` from a value.
-	 */
+	/** Construct a `Left`. */
 	export function left<A, B = never>(val: A): Either<A, B> {
 		return new Left(val);
 	}
 
-	/**
-	 * Construct a right-sided `Either` from a value.
-	 */
+	/** Construct a `Right`. */
 	export function right<B, A = never>(val: B): Either<A, B> {
 		return new Right(val);
 	}
 
-	/**
-	 * Construct an `Either` from a `Validation`.
-	 *
-	 * @remarks
-	 *
-	 * If the `Validation` is an `Err`, return its failure in a `Left`;
-	 * otherwise, return its success in a `Right`.
-	 */
+	/** Construct an `Either` from a `Validation`. */
 	export function fromValidation<E, T>(vdn: Validation<E, T>): Either<E, T> {
 		return vdn.unwrap(left, right);
 	}
 
-	/**
-	 * Evaluate an `Either.Go` generator to return an `Either`.
-	 *
-	 * @remarks
-	 *
-	 * If any yielded `Either` fails, return the failed `Either`; otherwise,
-	 * when the generator returns, return the the result as a success.
-	 */
+	/** Evaluate an `Either.Go` generator to return an `Either`. */
 	export function go<E, TReturn>(gen: Go<E, TReturn>): Either<E, TReturn> {
 		let nxt = gen.next();
 		let err: any;
@@ -433,18 +139,19 @@ export namespace Either {
 	}
 
 	/**
-	 * Reduce a finite iterable from left to right in the context of `Either`.
+	 * Accumulate the elements in an iterable using a reducer function that
+	 * returns `Either`.
 	 */
 	export function reduce<T, TAcc, E>(
-		vals: Iterable<T>,
+		elems: Iterable<T>,
 		accum: (acc: TAcc, val: T) => Either<E, TAcc>,
 		initial: TAcc,
 	): Either<E, TAcc> {
 		return go(
 			(function* () {
 				let acc = initial;
-				for (const val of vals) {
-					acc = yield* accum(acc, val);
+				for (const elem of elems) {
+					acc = yield* accum(acc, elem);
 				}
 				return acc;
 			})(),
@@ -452,10 +159,65 @@ export namespace Either {
 	}
 
 	/**
-	 * Turn an array or a tuple literal of `Either` elements "inside out".
+	 * Map the elements in an iterable to `Either` and collect the `Right`
+	 * values into a `Builder`.
 	 *
 	 * @remarks
 	 *
+	 * If any `Either` is `Left`, the state of the provided `Builder` is
+	 * undefined.
+	 */
+	export function traverseInto<T, E, T1, TFinish>(
+		elems: Iterable<T>,
+		f: (elem: T, idx: number) => Either<E, T1>,
+		builder: Builder<T1, TFinish>,
+	): Either<E, TFinish> {
+		return go(
+			(function* () {
+				let idx = 0;
+				for (const elem of elems) {
+					builder.add(yield* f(elem, idx));
+					idx++;
+				}
+				return builder.finish();
+			})(),
+		);
+	}
+
+	/**
+	 * Map the elements in an iterable to `Either` and collect the `Right`
+	 * values in an array.
+	 */
+	export function traverse<T, E, T1>(
+		elems: Iterable<T>,
+		f: (elem: T, idx: number) => Either<E, T1>,
+	): Either<E, T1[]> {
+		return traverseInto(elems, f, new ArrayPushBuilder());
+	}
+
+	/**
+	 * Evaluate the `Either` in an iterable and collect the `Right` values into
+	 * a `Builder`.
+	 *
+	 * @remarks
+	 *
+	 * If any `Either` is `Left`, the state of the provided `Builder` is
+	 * undefined.
+	 */
+	export function allInto<E, T, TFinish>(
+		eithers: Iterable<Either<E, T>>,
+		builder: Builder<T, TFinish>,
+	): Either<E, TFinish> {
+		return traverseInto(eithers, id, builder);
+	}
+
+	/**
+	 * Evaluate the `Either` in an array or a tuple literal and collect the
+	 * `Right` values in an equivalent structure.
+	 *
+	 * @remarks
+	 *
+	 * This function turns an array or a tuple literal of `Either` "inside out".
 	 * For example:
 	 *
 	 * -   `Either<E, T>[]` becomes `Either<E, T[]>`
@@ -469,61 +231,63 @@ export namespace Either {
 	>;
 
 	/**
-	 * Turn an iterable of `Either` elements "inside out" using an array.
+	 * Evaluate the `Either` in an iterable and collect the `Right` values in an
+	 * array.
 	 *
 	 * @remarks
 	 *
-	 * For example, `Iterable<Either<E, T>>` becomes `Either<E, T[]>`.
+	 * This function turns an iterable of `Either` "inside out". For example,
+	 * `Iterable<Either<E, T>>` becomes `Either<E, T[]>`.
 	 */
 	export function all<E, T>(eithers: Iterable<Either<E, T>>): Either<E, T[]>;
 
 	export function all<E, T>(eithers: Iterable<Either<E, T>>): Either<E, T[]> {
-		return go(
-			(function* () {
-				const results = [];
-				for (const either of eithers) {
-					results.push(yield* either);
-				}
-				return results;
-			})(),
-		);
+		return traverse(eithers, id);
 	}
 
 	/**
-	 * Turn a string-keyed record or object literal of `Either` elements "inside
-	 * out".
+	 * Evaluate the `Either` in a string-keyed record or object literal and
+	 * collect the `Right` values in an equivalent structure.
 	 *
 	 * @remarks
 	 *
-	 * This function enumerates only the object's own enumerable, string-keyed
-	 * property key-value pairs.
-	 *
-	 * For example:
+	 * This function turns a string-keyed record or object literal of `Either`
+	 * "inside out". For example:
 	 *
 	 * -   `Record<string, Either<E, T>>` becomes `Either<E, Record<string, T>>`
 	 * -   `{ x: Either<E, T1>, y: Either<E, T2> }` becomes `Either<E, { x: T1,
 	 *     y: T2 }>`
 	 */
-	export function allProps<TEithers extends Record<string, Either<any, any>>>(
-		eithers: TEithers,
+	export function allProps<TProps extends Record<string, Either<any, any>>>(
+		props: TProps,
 	): Either<
-		LeftT<TEithers[keyof TEithers]>,
-		{ -readonly [K in keyof TEithers]: RightT<TEithers[K]> }
-	> {
-		return go(
-			(function* () {
-				const results: Record<string, any> = {};
-				for (const [key, either] of Object.entries(eithers)) {
-					results[key] = yield* either;
-				}
-				return results as any;
-			})(),
+		LeftT<TProps[keyof TProps]>,
+		{ -readonly [K in keyof TProps]: RightT<TProps[K]> }
+	>;
+
+	export function allProps<E, T>(
+		props: Record<string, Either<E, T>>,
+	): Either<E, Record<string, T>> {
+		return traverseInto(
+			Object.entries(props),
+			([key, elem]) => elem.map((val) => [key, val] as const),
+			new ObjectAssignBuilder(),
 		);
 	}
 
 	/**
-	 * Adapt a synchronous function to accept `Either` values as arguments and
-	 * return an `Either`.
+	 * Apply an action that returns `Either` to the elements in an iterable and
+	 * ignore the `Right` values.
+	 */
+	export function forEach<T, E>(
+		elems: Iterable<T>,
+		f: (elem: T, idx: number) => Either<E, any>,
+	): Either<E, void> {
+		return traverseInto(elems, f, new NoOpBuilder());
+	}
+
+	/**
+	 * Adapt a synchronous function to be applied in the context of `Either`.
 	 */
 	export function lift<TArgs extends unknown[], T>(
 		f: (...args: TArgs) => T,
@@ -534,198 +298,24 @@ export namespace Either {
 			all(eithers).map((args) => f(...(args as TArgs)));
 	}
 
-	/**
-	 * Evaluate an `Either.GoAsync` async generator to return a `Promise` that
-	 * resolves with an `Either`.
-	 *
-	 * @remarks
-	 *
-	 * If any yielded `Either` fails, resolve with the failed `Either`;
-	 * otherwise, when the generator returns, resolve with with the result as a
-	 * success. If an error is thrown, reject with the error.
-	 */
-	export async function goAsync<E, TReturn>(
-		gen: GoAsync<E, TReturn>,
-	): Promise<Either<E, TReturn>> {
-		let nxt = await gen.next();
-		let err: any;
-		let isHalted = false;
-		while (!nxt.done) {
-			const either = nxt.value;
-			if (either.isRight()) {
-				nxt = await gen.next(either.val);
-			} else {
-				isHalted = true;
-				err = either.val;
-				nxt = await gen.return(undefined as any);
-			}
-		}
-		return isHalted ? left(err) : right(nxt.value);
-	}
-
-	/**
-	 * Concurrently turn an array or a tuple literal of promise-like `Either`
-	 * elements "inside out".
-	 *
-	 * @remarks
-	 *
-	 * For example:
-	 *
-	 * -   `Promise<Either<E, T>>[]` becomes `Promise<Either<E, T[]>>`
-	 * -   `[Promise<Either<E, T1>>, Promise<Either<E, T2>>]` becomes
-	 *     `Promise<Either<E, [T1, T2]>>`
-	 */
-	export function allAsync<
-		TElems extends
-			| readonly (Either<any, any> | PromiseLike<Either<any, any>>)[]
-			| [],
-	>(
-		elems: TElems,
-	): Promise<
-		Either<
-			LeftT<{ [K in keyof TElems]: Awaited<TElems[K]> }[number]>,
-			{ [K in keyof TElems]: RightT<Awaited<TElems[K]>> }
-		>
-	>;
-
-	/**
-	 * Concurrently turn an iterable of promise-like `Either` elements "inside
-	 * out" using an array.
-	 *
-	 * @remarks
-	 *
-	 * For example, `Iterable<Promise<Either<E, T>>>` becomes `Promise<Either<E,
-	 * T[]>>.
-	 */
-	export function allAsync<E, T>(
-		elems: Iterable<Either<E, T> | PromiseLike<Either<E, T>>>,
-	): Promise<Either<E, T[]>>;
-
-	export function allAsync<E, T>(
-		elems: Iterable<Either<E, T> | PromiseLike<Either<E, T>>>,
-	): Promise<Either<E, T[]>> {
-		return new Promise((resolve, reject) => {
-			const results: T[] = [];
-			let remaining = 0;
-			for (const elem of elems) {
-				const idx = remaining;
-				remaining++;
-				Promise.resolve(elem).then((either) => {
-					if (either.isLeft()) {
-						resolve(either);
-						return;
-					}
-					results[idx] = either.val;
-					remaining--;
-					if (remaining === 0) {
-						resolve(right(results));
-						return;
-					}
-				}, reject);
-			}
-		});
-	}
-
-	/**
-	 * Concurrently turn a string-keyed record or object literal of promise-like
-	 * `Either` elements "inside out".
-	 *
-	 * @remarks
-	 *
-	 * This function enumerates only the object's own enumerable, string-keyed
-	 * property key-value pairs.
-	 *
-	 * For example:
-	 *
-	 * -   `Record<string, Promise<Either<E, T>>>` becomes `Promise<Either<E,
-	 *     Record<string, T>>>`
-	 * -   `{ x: Promise<Either<E, T1>>, y: Promise<Either<E, T2>> }` becomes
-	 *     `Promise<Either<E, { x: T1, y: T2 }>>`
-	 */
-	export function allPropsAsync<
-		TElems extends Record<
-			string,
-			Either<any, any> | PromiseLike<Either<any, any>>
-		>,
-	>(
-		elems: TElems,
-	): Promise<
-		Either<
-			LeftT<{ [K in keyof TElems]: Awaited<TElems[K]> }[keyof TElems]>,
-			{ [K in keyof TElems]: RightT<Awaited<TElems[K]>> }
-		>
-	> {
-		return new Promise((resolve, reject) => {
-			const entries = Object.entries(elems);
-			const results: Record<string, any> = {};
-			let remaining = entries.length;
-			for (const [key, elem] of entries) {
-				Promise.resolve(elem).then((either) => {
-					if (either.isLeft()) {
-						resolve(either);
-						return;
-					}
-					results[key] = either.val;
-					remaining--;
-					if (remaining === 0) {
-						resolve(right(results as any));
-						return;
-					}
-				}, reject);
-			}
-		});
-	}
-
-	/**
-	 * Adapt a synchronous or an asynchronous function to accept promise-like
-	 * `Either` values as arguments and return a `Promise` that resolves with an
-	 * `Either`.
-	 *
-	 * @remarks
-	 *
-	 * The lifted function's arguments are evaluated concurrently.
-	 */
-	export function liftAsync<TArgs extends unknown[], T>(
-		f: (...args: TArgs) => T | PromiseLike<T>,
-	): <
-		TElems extends {
-			[K in keyof TArgs]:
-				| Either<any, TArgs[K]>
-				| PromiseLike<Either<any, TArgs[K]>>;
-		},
-	>(
-		...elems: TElems
-	) => Promise<
-		Either<LeftT<{ [K in keyof TElems]: Awaited<TElems[K]> }[number]>, T>
-	> {
-		return (...elems) =>
-			goAsync(
-				(async function* () {
-					return f(...((yield* await allAsync(elems)) as TArgs));
-				})(),
-			);
-	}
-
-	/**
-	 * An enumeration that discriminates `Either`.
-	 */
+	/** An enumeration that discriminates `Either`. */
 	export enum Kind {
 		LEFT,
 		RIGHT,
 	}
 
-	/**
-	 * The fluent syntax for `Either`.
-	 */
+	/** The fluent syntax for `Either`. */
 	export abstract class Syntax {
-		/**
-		 * The property that discriminates `Either`.
-		 */
+		/** The property that discriminates `Either`. */
 		abstract readonly kind: Kind;
 
 		/**
-		 * If this and that `Either` are the same variant and their values are
-		 * equal, return `true`; otherwise, return `false`.
+		 * Compare this and that `Either` to determine their equality.
+		 *
+		 * @remarks
+		 *
+		 * Two `Either` are equal if they are the same variant and their values
+		 * are equal.
 		 */
 		[Eq.eq]<A extends Eq<A>, B extends Eq<B>>(
 			this: Either<A, B>,
@@ -742,9 +332,9 @@ export namespace Either {
 		 *
 		 * @remarks
 		 *
-		 * When ordered, a left-sided `Either` always compares as less than any
-		 * right-sided `Either`. If the variants are the same, their values are
-		 * compared to determine the ordering.
+		 * When ordered, `Left` always compares as less than `Right`. If the
+		 * variants are the same, their values are compared to determine the
+		 * ordering.
 		 */
 		[Ord.cmp]<A extends Ord<A>, B extends Ord<B>>(
 			this: Either<A, B>,
@@ -756,10 +346,7 @@ export namespace Either {
 			return that.isRight() ? cmp(this.val, that.val) : Ordering.greater;
 		}
 
-		/**
-		 * If this and that `Either` both succeed, combine their successes and
-		 * succeed with the result; otherwise, return the first failed `Either`.
-		 */
+		/** If this and that `Either` are `Right`, combine their values. */
 		[Semigroup.cmb]<E, T extends Semigroup<T>>(
 			this: Either<E, T>,
 			that: Either<E, T>,
@@ -767,23 +354,19 @@ export namespace Either {
 			return this.zipWith(that, cmb);
 		}
 
-		/**
-		 * Test whether this `Either` is left-sided.
-		 */
+		/** Test whether this `Either` is `Left`. */
 		isLeft<A>(this: Either<A, any>): this is Left<A> {
 			return this.kind === Kind.LEFT;
 		}
 
-		/**
-		 * Test whether this `Either` is right-sided.
-		 */
+		/** Test whether this `Either` is `Right`. */
 		isRight<B>(this: Either<any, B>): this is Right<B> {
 			return this.kind === Kind.RIGHT;
 		}
 
 		/**
-		 * Apply one of two functions to the value of this `Either` depending
-		 * on its variant, and return the result.
+		 * Apply one of two functions to extract the value out of this `Either`
+		 * depending on the variant.
 		 */
 		unwrap<A, B, T1, T2>(
 			this: Either<A, B>,
@@ -794,8 +377,8 @@ export namespace Either {
 		}
 
 		/**
-		 * If this `Either` fails, apply a function to its failure to return
-		 * another `Either`; otherwise, return this `Either` as is.
+		 * If this `Either` is `Left`, apply a function to its value to return
+		 * another `Either`.
 		 */
 		orElse<E, T, E1, T1>(
 			this: Either<E, T>,
@@ -805,8 +388,8 @@ export namespace Either {
 		}
 
 		/**
-		 * If this `Either` fails, ignore the failure and return that `Either`;
-		 * otherwise, return this `Either` as is.
+		 * If this `Either` is `Left`, ignore its value and return that
+		 * `Either`.
 		 */
 		or<T, E1, T1>(
 			this: Either<any, T>,
@@ -816,8 +399,8 @@ export namespace Either {
 		}
 
 		/**
-		 * If this `Either` succeeds, apply a function to its success to return
-		 * another `Either`; otherwise, return this `Either` as is.
+		 * If this `Either` is `Right`, apply a function to its value to return
+		 * another `Either`.
 		 */
 		andThen<E, T, E1, T1>(
 			this: Either<E, T>,
@@ -827,9 +410,8 @@ export namespace Either {
 		}
 
 		/**
-		 * If this `Either`, suceeds, apply a generator comprehension function
-		 * to its success and evaluate the `Either.Go` generator to return
-		 * another `Either`; otherwise, return this `Either` as is.
+		 * If this `Either` is `Right`, apply a generator function to its value
+		 * to return another `Either`.
 		 */
 		andThenGo<E, T, E1, T1>(
 			this: Either<E, T>,
@@ -839,8 +421,8 @@ export namespace Either {
 		}
 
 		/**
-		 * If this `Either` succeeds, ignore the success and return that
-		 * `Either`; otherwise, return this `Either` as is.
+		 * If this `Either` is `Right`, ignore its value and return that
+		 * `Either`.
 		 */
 		and<E, E1, T1>(
 			this: Either<E, any>,
@@ -850,9 +432,8 @@ export namespace Either {
 		}
 
 		/**
-		 * If this and that `Either` both succeed, apply a function to their
-		 * successes and succeed with the result; otherwise, return the first
-		 * failed `Either`.
+		 * If this and that `Either` are `Right`, apply a function to combine
+		 * their values.
 		 */
 		zipWith<E, T, E1, T1, T2>(
 			this: Either<E, T>,
@@ -862,33 +443,22 @@ export namespace Either {
 			return this.andThen((lhs) => that.map((rhs) => f(lhs, rhs)));
 		}
 
-		/**
-		 * If this `Either` is left-sided, apply a function to its value and
-		 * return the result in a `Left`; otherwise, return this `Either` as is.
-		 */
+		/** If this `Either` is `Left`, apply a function to map its value. */
 		lmap<A, B, A1>(this: Either<A, B>, f: (val: A) => A1): Either<A1, B> {
 			return this.orElse((val) => left(f(val)));
 		}
 
-		/**
-		 * If this `Either` is right-sided, apply a function to its value and
-		 * return the result in a `Right`; otherwise, return this `Either` as
-		 * is.
-		 */
+		/** If this `Either` is `Right`, apply a function to map its value. */
 		map<A, B, B1>(this: Either<A, B>, f: (val: B) => B1): Either<A, B1> {
 			return this.andThen((val) => right(f(val)));
 		}
 	}
 
-	/**
-	 * A left-sided Either.
-	 */
+	/** A left-sided Either. */
 	export class Left<out A> extends Syntax {
 		readonly kind = Kind.LEFT;
 
-		/**
-		 * The value of this `Either`.
-		 */
+		/** The value of this `Either`. */
 		readonly val: A;
 
 		constructor(val: A) {
@@ -896,26 +466,16 @@ export namespace Either {
 			this.val = val;
 		}
 
-		/**
-		 * Return an `Either.Go` generator that yields this `Either` and returns
-		 * its right-hand value if one is present. This allows `Either` values
-		 * to be yielded directly in `Either` generator comprehensions using
-		 * `yield*`.
-		 */
 		*[Symbol.iterator](): Generator<Either<A, never>, never, unknown> {
 			return (yield this) as never;
 		}
 	}
 
-	/**
-	 * A right-sided Either.
-	 */
+	/** A right-sided Either. */
 	export class Right<out B> extends Syntax {
 		readonly kind = Kind.RIGHT;
 
-		/**
-		 * The value of this `Either`.
-		 */
+		/** The value of this `Either`. */
 		readonly val: B;
 
 		constructor(val: B) {
@@ -923,67 +483,362 @@ export namespace Either {
 			this.val = val;
 		}
 
-		/**
-		 * Return an `Either.Go` generator that yields this `Either` and returns
-		 * its right-hand value if one is present. This allows `Either` values
-		 * to be yielded directly in `Either` generator comprehensions using
-		 * `yield*`.
-		 */
 		*[Symbol.iterator](): Generator<Either<never, B>, B, unknown> {
 			return (yield this) as B;
 		}
 	}
 
-	/**
-	 * A generator that yields `Either` values and returns a result.
-	 *
-	 * @remarks
-	 *
-	 * Synchronous `Either` generator comprehensions should use this type alias
-	 * as their return type. A generator function that returns an `Either.Go<E,
-	 * T>` may `yield*` zero or more `Either<E, any>` values and must return a
-	 * result of type `T`. Synchronous comprehensions may also `yield*` other
-	 * `Either.Go` generators directly.
-	 */
+	/** A generator that yields `Either` and returns a value. */
 	export type Go<E, TReturn> = Generator<
 		Either<E, unknown>,
 		TReturn,
 		unknown
 	>;
 
-	/**
-	 * An async generator that yields `Either` values and returns a result.
-	 *
-	 * @remarks
-	 *
-	 * Async `Either` generator comprehensions should use this type alias as
-	 * their return type. An async generator function that returns an
-	 * `Either.GoAsync<E, T>` may `yield*` zero or more `Either<E, any>` values
-	 * and must return a result of type `T`. `PromiseLike` values that resolve
-	 * with `Either` should be awaited before yielding. Async comprehensions may
-	 * also `yield*` other `Either.Go` and `Either.GoAsync` generators directly.
-	 */
-	export type GoAsync<E, TReturn> = AsyncGenerator<
-		Either<E, any>,
-		TReturn,
-		unknown
-	>;
-
-	/**
-	 * Extract the left-sided value type `A` from the type `Either<A, B>`.
-	 */
+	/** Extract the `Left` value type `A` from the type `Either<A, B>`. */
 	export type LeftT<TEither extends Either<any, any>> = [TEither] extends [
 		Either<infer A, any>,
 	]
 		? A
 		: never;
 
-	/**
-	 * Extract the right-sided value type `B` from the type `Either<A, B>`.
-	 */
+	/** Extract the `Right` value type `B` from the type `Either<A, B>`. */
 	export type RightT<TEither extends Either<any, any>> = [TEither] extends [
 		Either<any, infer B>,
 	]
 		? B
 		: never;
+}
+
+/** A promise-like object that fulfills with `Either`. */
+export type AsyncEitherLike<A, B> = PromiseLike<Either<A, B>>;
+
+/** A promise that fulfills with `Either`. */
+export type AsyncEither<A, B> = Promise<Either<A, B>>;
+
+/**
+ * The companion namespace for the
+ * {@link AsyncEither:type | `AsyncEither<A, B>`} type.
+ *
+ * @remarks
+ *
+ * This namespace provides functions for chaining and collecting into
+ * `AsyncEither`.
+ */
+export namespace AsyncEither {
+	/**
+	 * Evaluate an `AsyncEither.Go` async generator to return an `AsyncEither`.
+	 */
+	export async function go<E, TReturn>(
+		gen: Go<E, TReturn>,
+	): AsyncEither<E, TReturn> {
+		let nxt = await gen.next();
+		let err: any;
+		let isHalted = false;
+		while (!nxt.done) {
+			const either = nxt.value;
+			if (either.isRight()) {
+				nxt = await gen.next(either.val);
+			} else {
+				isHalted = true;
+				err = either.val;
+				nxt = await gen.return(undefined as any);
+			}
+		}
+		return isHalted ? Either.left(err) : Either.right(nxt.value);
+	}
+
+	/**
+	 * Accumulate the elements in an async iterable using a reducer function
+	 * that returns `Either` or `AsyncEitherLike`.
+	 */
+	export function reduce<T, TAcc, E>(
+		elems: AsyncIterable<T>,
+		accum: (
+			acc: TAcc,
+			val: T,
+		) => Either<E, TAcc> | AsyncEitherLike<E, TAcc>,
+		initial: TAcc,
+	): AsyncEither<E, TAcc> {
+		return go(
+			(async function* () {
+				let acc = initial;
+				for await (const elem of elems) {
+					acc = yield* await accum(acc, elem);
+				}
+				return acc;
+			})(),
+		);
+	}
+
+	/**
+	 * Map the elements in an async iterable to `Either` or `AsyncEitherLike`
+	 * and collect the `Right` values into a `Builder`.
+	 *
+	 * @remarks
+	 *
+	 * If any `Either` is `Left`, the state of the provided `Builder` is
+	 * undefined.
+	 */
+	export function traverseInto<T, E, T1, TFinish>(
+		elems: AsyncIterable<T>,
+		f: (elem: T, idx: number) => Either<E, T1> | AsyncEitherLike<E, T1>,
+		builder: Builder<T1, TFinish>,
+	): AsyncEither<E, TFinish> {
+		return go(
+			(async function* () {
+				let idx = 0;
+				for await (const elem of elems) {
+					builder.add(yield* await f(elem, idx));
+					idx++;
+				}
+				return builder.finish();
+			})(),
+		);
+	}
+
+	/**
+	 * Map the elements in an async iterable to `Either` or `AsyncEitherLike`
+	 * and collect the `Right` values in an array.
+	 */
+	export function traverse<T, E, T1>(
+		elems: AsyncIterable<T>,
+		f: (elem: T, idx: number) => Either<E, T1> | AsyncEitherLike<E, T1>,
+	): AsyncEither<E, T1[]> {
+		return traverseInto(elems, f, new ArrayPushBuilder());
+	}
+
+	/**
+	 * Evaluate the `Either` in an async iterable and collect the `Right` values
+	 * into a `Builder`.
+	 *
+	 * @remarks
+	 *
+	 * If any `Either` is `Left`, the state of the provided `Builder` is
+	 * undefined.
+	 */
+	export function allInto<E, T, TFinish>(
+		elems: AsyncIterable<Either<E, T>>,
+		builder: Builder<T, TFinish>,
+	): AsyncEither<E, TFinish> {
+		return traverseInto(elems, id, builder);
+	}
+
+	/**
+	 * Evaluate the `Either` in an async iterable and collect the `Right` values
+	 * in an array.
+	 *
+	 * @remarks
+	 *
+	 * This function turns an async iterable of `Either` "inside out". For
+	 * example, `AsyncIterable<Either<E, T>>` becomes `AsyncEither<E, T[]>`.
+	 */
+	export function all<E, T>(
+		elems: AsyncIterable<Either<E, T>>,
+	): AsyncEither<E, T[]> {
+		return traverse(elems, id);
+	}
+
+	/**
+	 * Apply an action that returns `Either` or `AsyncEitherLike` to the
+	 * elements in an async iterable and ignore the `Right` values.
+	 */
+	export function forEach<T, E>(
+		elems: AsyncIterable<T>,
+		f: (elem: T, idx: number) => Either<E, any> | AsyncEitherLike<E, any>,
+	): AsyncEither<E, void> {
+		return traverseInto(elems, f, new NoOpBuilder());
+	}
+
+	/**
+	 * Concurrently map the elements in an iterable to `Either` or
+	 * `AsyncEitherLike` and collect the `Right` values into a `Builder`.
+	 *
+	 * @remarks
+	 *
+	 * If any `Either` is `Left`, the state of the provided `Builder` is
+	 * undefined.
+	 */
+	export function traverseIntoPar<T, E, T1, TFinish>(
+		elems: Iterable<T>,
+		f: (elem: T, idx: number) => Either<E, T1> | AsyncEitherLike<E, T1>,
+		builder: Builder<T1, TFinish>,
+	): AsyncEither<E, TFinish> {
+		return new Promise((resolve, reject) => {
+			let remaining = 0;
+			for (const elem of elems) {
+				const idx = remaining;
+				remaining++;
+				Promise.resolve(f(elem, idx)).then((either) => {
+					if (either.isLeft()) {
+						resolve(either);
+						return;
+					}
+					builder.add(either.val);
+					remaining--;
+					if (remaining === 0) {
+						resolve(Either.right(builder.finish()));
+						return;
+					}
+				}, reject);
+			}
+		});
+	}
+
+	/**
+	 * Concurrently map the elements in an iterable to `Either` or
+	 * `AsyncEitherLike` and collect the `Right` values in an array.
+	 */
+	export function traversePar<T, E, T1>(
+		elems: Iterable<T>,
+		f: (elem: T, idx: number) => Either<E, T1> | AsyncEitherLike<E, T1>,
+	): AsyncEither<E, T1[]> {
+		return traverseIntoPar(
+			elems,
+			async (elem, idx) =>
+				(await f(elem, idx)).map((val) => [idx, val] as const),
+			new ArrayAssignBuilder(),
+		);
+	}
+
+	/**
+	 * Concurrently evaluate the `Either` or `AsyncEitherLike` in an iterable
+	 * iterable and collect the `Right` values into a `Builder`.
+	 *
+	 * @remarks
+	 *
+	 * If any `Either` is `Left`, the state of the provided `Builder` is
+	 * undefined.
+	 */
+	export function allIntoPar<E, T, TFinish>(
+		elems: Iterable<Either<E, T> | AsyncEitherLike<E, T>>,
+		builder: Builder<T, TFinish>,
+	): AsyncEither<E, TFinish> {
+		return traverseIntoPar(elems, id, builder);
+	}
+
+	/**
+	 * Concurrently evaluate the `Either` or `AsyncEitherLike` in an array or a
+	 * tuple literal and collect the `Right` values in an equivalent structure.
+	 *
+	 * @remarks
+	 *
+	 * This function turns an array or a tuple literal of `AsyncEitherLike`
+	 * "inside out". For example:
+	 *
+	 * -   `AsyncEither<E, T>[]` becomes `AsyncEither<E, T[]>`
+	 * -   `[AsyncEither<E, T1>, AsyncEither<E, T2>]` becomes `AsyncEither<E,
+	 *     [T1, T2]>`
+	 */
+	export function allPar<
+		TElems extends
+			| readonly (Either<any, any> | AsyncEitherLike<any, any>)[]
+			| [],
+	>(
+		elems: TElems,
+	): AsyncEither<
+		Either.LeftT<{ [K in keyof TElems]: Awaited<TElems[K]> }[number]>,
+		{ [K in keyof TElems]: Either.RightT<Awaited<TElems[K]>> }
+	>;
+
+	/**
+	 * Concurrently evaluate the `Either` or `AsyncEitherLike` in an iterable
+	 * and collect the `Right` values in an array.
+	 *
+	 * @remarks
+	 *
+	 * This function turns an iterable of `AsyncEitherLike` "inside out". For
+	 * example, `Iterable<AsyncEither<E, T>>` becomes `AsyncEither<E, T[]>`.
+	 */
+	export function allPar<E, T>(
+		elems: Iterable<Either<E, T> | AsyncEitherLike<E, T>>,
+	): AsyncEither<E, T[]>;
+
+	export function allPar<E, T>(
+		elems: Iterable<Either<E, T> | AsyncEitherLike<E, T>>,
+	): AsyncEither<E, T[]> {
+		return traversePar(elems, id);
+	}
+
+	/**
+	 * Concurrently evaluate `Either` or `AsyncEitherLike` in a string-keyed
+	 * record or object literal and collect the `Right` values in an equivalent
+	 * structure.
+	 *
+	 * @remarks
+	 *
+	 * This function turns a string-keyed record or object literal of
+	 * `AsyncEitherLike` "inside out". For example:
+	 *
+	 * -   `Record<string, AsyncEither<E, T>>` becomes `AsyncEither<E,
+	 *     Record<string, T>>`
+	 * -   `{ x: AsyncEither<E, T1>, y: AsyncEither<E, T2> }` becomes
+	 *     `AsyncEither<E, { x: T1, y: T2 }>`
+	 */
+	export function allPropsPar<
+		TProps extends Record<
+			string,
+			Either<any, any> | AsyncEitherLike<any, any>
+		>,
+	>(
+		props: TProps,
+	): AsyncEither<
+		Either.LeftT<{ [K in keyof TProps]: Awaited<TProps[K]> }[keyof TProps]>,
+		{ [K in keyof TProps]: Either.RightT<Awaited<TProps[K]>> }
+	>;
+
+	export function allPropsPar<E, T>(
+		props: Record<string, Either<E, T> | AsyncEitherLike<E, T>>,
+	): AsyncEither<E, Record<string, T>> {
+		return traverseIntoPar(
+			Object.entries(props),
+			async ([key, elem]) =>
+				(await elem).map((val) => [key, val] as const),
+			new ObjectAssignBuilder(),
+		);
+	}
+
+	/**
+	 * Concurrently apply an action that returns `Either` or `AsyncEitherLike`
+	 * to the elements in an iterable and ignore the `Right` values.
+	 */
+	export function forEachPar<T, E>(
+		elems: Iterable<T>,
+		f: (elem: T, idx: number) => Either<E, any> | AsyncEitherLike<E, any>,
+	): AsyncEither<E, void> {
+		return traverseIntoPar(elems, f, new NoOpBuilder());
+	}
+
+	/**
+	 * Adapt a synchronous or an asynchronous function to be applied in the
+	 * context of `Either` or `AsyncEitherLike`.
+	 */
+	export function liftPar<TArgs extends unknown[], T>(
+		f: (...args: TArgs) => T | PromiseLike<T>,
+	): <
+		TElems extends {
+			[K in keyof TArgs]:
+				| Either<any, TArgs[K]>
+				| AsyncEitherLike<any, TArgs[K]>;
+		},
+	>(
+		...elems: TElems
+	) => AsyncEither<
+		Either.LeftT<{ [K in keyof TElems]: Awaited<TElems[K]> }[number]>,
+		T
+	> {
+		return (...elems) =>
+			go(
+				(async function* () {
+					return f(...((yield* await allPar(elems)) as TArgs));
+				})(),
+			);
+	}
+
+	/** An async generator that yields `Either` and returns a value. */
+	export type Go<E, TReturn> = AsyncGenerator<
+		Either<E, any>,
+		TReturn,
+		unknown
+	>;
 }

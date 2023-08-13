@@ -19,499 +19,132 @@
  *
  * @remarks
  *
- * `Ior<A, B>` is a type that represents one or both of two values. It is
- * represented by three variants: `Left<A>`, `Right<B>`, and `Both<A, B>`.
+ * {@link Ior:type | `Ior<A, B>`} is a type that represents one or both of two
+ * values. It is represented by three variants: {@link Ior.Left | `Left<A>`},
+ * {@link Ior.Right | `Right<B>`}, and {@link Ior.Both | `Both<A, B>`}.
  *
- * -   A `Left<A>` contains a *left-hand* value of type `A`.
- * -   A `Right<B>` contains a *right-hand* value of type `B`.
+ * -   A `Left<A>` contains a left-hand value of type `A`.
+ * -   A `Right<B>` contains a right-hand value of type `B`.
  * -   A `Both<A, B>` contains a left-hand value of type `A` and a right-hand
  *     value of type `B`.
  *
+ * The companion {@linkcode Ior:namespace} namespace provides utilities for
+ * working with the `Ior<A, B>` type.
+ *
  * `Ior` is often used to represent states of failure or success similar to
- * `Either` and `Validation`. However, `Ior` is capable of also representing a
- * unique state using the `Both` variant. `Both` can represent a success that
- * contains additional information, or a state of "partial failure".
+ * {@linkcode either!Either:type} and {@linkcode validation!Validation:type}.
+ * However, `Ior` is capable of also representing a unique state using the
+ * `Both` variant. `Both` can represent a success that contains additional
+ * information, or a state of "partial failure".
  *
  * When composed, the behavior of `Ior` is a combination of the short-circuiting
  * behavior of `Either` and the failure-accumulating behavior of `Validation`:
  *
- * -   A `Left` short-circuits a computation completely and combines its
- *     left-hand value with any existing left-hand value.
- * -   A `Right` supplies its right-hand value to the next computation.
- * -   A `Both` supplies its right-hand value to the next computation, and
+ * -   `Left` short-circuits a computation completely and combines its left-hand
+ *     value with any existing left-hand value.
+ * -   `Right` supplies its right-hand value to the next computation.
+ * -   `Both` supplies its right-hand value to the next computation, and
  *     combines its left-hand value with any existing left-hand value.
  *
  * Combinators with this behavior require a `Semigroup` implementation from the
  * accumulating left-hand value.
  *
+ * ## Using `Ior` with promises
+ *
+ * {@link AsyncIor:type | `AsyncIor<A, B>`} is an alias for `Promise<Ior<A,
+ * B>>`. The companion {@linkcode AsyncIor:namespace} namespace provides
+ * utilities for working with the `AsyncIor<A, B>` type.
+ *
+ * To accommodate promise-like values, this module also provides the
+ * {@link AsyncIorLike | `AsyncIorLike<A, B>`} type as an alias for
+ * `PromiseLike<Ior<A, B>>`.
+ *
  * ## Importing from this module
  *
- * This module exports `Ior` as both a type and a namespace. The `Ior` type is
- * an alias for a discriminated union, and the `Ior` namespace provides:
- *
- * -   The `Left`, `Right`, and `Both` variant classes
- * -   The abstract `Syntax` class that provides the fluent API for `Ior`
- * -   The `Kind` enumeration that discriminates `Ior`
- * -   Functions for constructing, chaining, collecting into, and lifting into
- *     `Ior`
- *
- * The type and namespace can be imported under the same alias:
+ * The types and namespaces from this module can be imported under the same
+ * aliases:
  *
  * ```ts
- * import { Ior } from "@neotype/prelude/ior.js";
+ * import { AsyncIor, Ior } from "@neotype/prelude/ior.js";
  * ```
  *
- * Or, the type and namespace can be imported and aliased separately:
+ * Or, the types and namespaces can be imported and aliased separately:
  *
  * ```ts
- * import { type Ior, Ior as I } from "@neotype/prelude/ior.js";
- * ```
- *
- * ## Constructing `Ior`
- *
- * These methods construct an `Ior`:
- *
- * -   `left` constructs a `Left` variant.
- * -   `right` constructs a `Right` variant.
- * -   `both` constructs a `Both` variant.
- * -   `fromEither` constructs an `Ior` from an `Either`.
- * -   `fromValidation` constructs an `Ior` from a `Validation`.
- * -   `fromTuple` constructs an `Ior` from a 2-tuple of values.
- *
- * ## Querying and narrowing the variant
- *
- * The `isLeft`, `isRight`, and `isBoth` methods return `true` if an `Ior` is
- * a `Left`, a `Right`, or a `Both`, respectively. These methods also narrow the
- * type of an `Ior` to the queried variant.
- *
- * The variant can also be queried and narrowed via the `kind` property, which
- * returns a member of the `Kind` enumeration.
- *
- * ## Extracting values
- *
- * The value(s) within an `Ior` can be accessed via the `val` property. If an
- * `Ior` is a `Left` or a `Right`, the `val` property accesses the left-hand
- * value or right-hand value, respectively. If an `Ior` is a `Both`, the `val`
- * property accesses a 2-tuple of the left-hand value and right-hand value. The
- * type of the property can be narrowed by first querying the variant.
- *
- * The left-hand value and right-hand value of a `Both` variant can be accessed
- * individually via the `fst` property and `snd` property, respectively.
- *
- * The `unwrap` method unwraps an `Ior` by applying one of three functions to
- * its left-hand and/or right-hand value(s).
- *
- * ## Comparing `Ior`
- *
- * `Ior` has the following behavior as an equivalence relation:
- *
- * -   An `Ior<A, B>` implements `Eq` when both `A` and `B` implement `Eq`.
- * -   Two `Ior` values are equal if they are the same variant and their
- *     left-hand and/or right-hand value(s) are equal.
- *
- * `Ior` has the following behavior as a total order:
- *
- * -   An `Ior<A, B>` implements `Ord` when both `A` and `B` implement `Ord`.
- * -   When ordered, a `Left` always compares as less than any `Right`, and a
- *     `Right` always compares as less than any `Both`. If the variants are the
- *     same, their left-hand and/or right-hand values are compared to determine
- *     the ordering. `Both` variants compare their left-hand values and
- *     right-hand values lexicographically.
- *
- * ## `Ior` as a semigroup
- *
- * `Ior` has the following behavior as a semigroup:
- *
- * -   An `Ior<A, B>` implements `Semigroup` when both `A` and `B` implement
- *     `Semigroup`.
- * -   When combined, left-hand values and right-hand values are combined
- *     pairwise. Combination is lossless and merges values into `Both` variants
- *     when there is no existing value to combine with.
- *
- * ## Transforming values
- *
- * These methods transform the value(s) within an `Ior`:
- *
- * -   `lmap` applies a function to the left-hand value.
- * -   `map` applies a function to the right-hand value.
- *
- * ## Chaining `Ior`
- *
- * These methods act on an `Ior` with a right-hand value to produce another
- * `Ior`:
- *
- * -   `andThen` applies a function to the right-hand value to return another
- *     `Ior`.
- * -   `andThenGo` applies a synchronous generator comprehension function to the
- *     right-hand value and evaluates the generator to return another `Ior`.
- * -   `and` ignores the right-hand value and returns another `Ior`.
- * -   `zipWith` evaluates another `Ior`, and if it has a right-hand value,
- *     applies a function to both right-hand values.
- *
- * ## Generator comprehenshions
- *
- * Generator comprehensions provide an imperative syntax for chaining together
- * synchronous or asynchronous computations that return or resolve with `Ior`
- * values.
- *
- * ### Writing comprehensions
- *
- * Synchronus and asynchronous comprehensions are written using `function*` and
- * `async function*` declarations, respectively.
- *
- * Synchronous generator functions should use the `Ior.Go` type alias as their
- * return type. A generator function that returns an `Ior.Go<A, T>` may `yield*`
- * zero or more `Ior<A, any>` values and must return a result of type `T`.
- * Synchronous comprehensions may also `yield*` other `Ior.Go` generators
- * directly.
- *
- * Async generator functions should use the `Ior.GoAsync` type alias as their
- * return type. An async generator function that returns an `Ior.GoAsync<A, T>`
- * may `yield*` zero or more `Ior<A, any>` values and must return a result of
- * type `T`. `PromiseLike` values that resolve with `Ior` should be awaited
- * before yielding. Async comprehensions may also `yield*` other `Ior.Go` and
- * `Ior.GoAsync` generators directly.
- *
- * Each `yield*` expression may bind a variable of the right-hand value type of
- * the yielded `Ior`. Comprehensions should always use `yield*` instead of
- * `yield`. Using `yield*` allows TypeScript to accurately infer the right-hand
- * value type of the yielded `Ior` when binding the value of each `yield*`
- * expression.
- *
- * Comprehensions require that the left-hand values of all yielded `Ior` values
- * are implementors of the same `Semigroup` so the values may accumulate as the
- * generator yields.
- *
- * ### Evaluating comprehensions
- *
- * `Ior.Go` and `Ior.GoAsync` generators must be evaluated before accessing
- * their results.
- *
- * The `go` function evaluates an `Ior.Go<A, T>` generator to return an `Ior<A,
- * T>`. If any yielded `Ior` is a `Left`, the generator halts and the left-hand
- * value is combined with any existing left-hand value, and `go` returns the
- * result in a `Left`; otherwise, when the generator returns, `go` returns the
- * result as a right-hand value.
- *
- * The `goAsync` function evaluates an `Ior.GoAsync<A, T>` async generator to
- * return a `Promise<Ior<A, T>>`. If any yielded `Ior` is a `Left`, the
- * generator halts and the left-hand value is combined with any existing
- * left-hand value, and `goAsync` resolves with the result in a `Left`;
- * otherwise, when the generator returns, `goAsync` resolves with the result as
- * a right-hand value. Thrown errors are captured as rejections.
- *
- * In both synchronous and asynchronous comprehensions, the left-hand values of
- * yielded `Both` variants accumulate using their behavior as a semigroup.
- *
- * ## Collecting into `Ior`
- *
- * These functions turn a container of `Ior` elements "inside out".
- *
- * -   `all` turns an iterable or a tuple literal of `Ior` elements inside out.
- * -   `allProps` turns a string-keyed record or object literal of `Ior`
- *     elements inside out.
- *
- * These functions concurrently turn a container of promise-like `Ior` elements
- * "inside out":
- *
- * -   `allAsync` turns an iterable or a tuple literal of promise-like `Ior`
- *     elements inside out.
- * -   `allPropsAsync` turns a string-keyed record or object literal of
- *     promise-like `Ior` elements inside out.
- *
- * The `reduce` function reduces a finite iterable from left to right in the
- * context of `Ior`.
- *
- * ## Lifting functions into the context of `Ior`
- *
- * These functions adapt a function to accept and return `Ior` values:
- *
- * -   `lift` adapts a synchronous function to accept `Ior` values as arguments
- *     and return an `Ior`.
- * -   `liftAsync` adapts a synchronous or an asynchronous function to accept
- *     promise-like `Ior` values as arguments and return a `Promise` that
- *     resolves with an `Ior`.
- *
- * @example Basic matching and unwrapping
- *
- * ```ts
- * import { Ior } from "@neotype/prelude/ior.js"
- *
- * const strIorNum: Ior<string, number> = Ior.both("a", 1);
- *
- * // Querying and narrowing using methods
- * if (strIorNum.isLeft()) {
- *     console.log(`Queried Left: ${strIorNum.val}`);
- * } else if (strIorNum.isRight()) {
- *     console.log(`Queried Right: ${strIorNum.val}`);
- * } else {
- *     console.log(`Queried Both: ${strIorNum.fst} and ${strIorNum.snd}`);
- * }
- *
- * // Querying and narrowing using the `kind` property
- * switch (strIorNum.kind) {
- *     case Ior.Kind.LEFT:
- *         console.log(`Matched Left: ${strIorNum.val}`);
- *         break;
- *     case Ior.Kind.RIGHT:
- *         console.log(`Matched Right: ${strIorNum.val}`);
- *         break;
- *     case Ior.Kind.BOTH:
- *         console.log(`Matched Both: ${strIorNum.fst} and ${strIorNum.snd}`);
- * }
- *
- * // Case analysis using `unwrap`
- * strIorNum.unwrap(
- *     (str) => console.log(`Unwrapped Left: ${str}`),
- *     (num) => console.log(`Unwrapped Right: ${num}`),
- *     (str, num) => console.log(`Unwrapped Both: ${str} and ${num}`),
- * );
- * ```
- *
- * @example Parsing with `Ior`
- *
- * First, the necessary imports:
- *
- * ```ts
- * import { Semigroup } from "@neotype/prelude/cmb.js";
- * import { Ior } from "@neotype/prelude/ior.js";
- * ```
- *
- * For our example, let's also define a helper semigroup type and some other
- * utilities:
- *
- * ```ts
- * // A semigroup that wraps arrays.
- * class List<out T> {
- *     readonly val: T[];
- *
- *     constructor(...vals: T[]) {
- *         this.val = vals;
- *     }
- *
- *     [Semigroup.cmb](that: List<T>): List<T> {
- *         return new List(...this.val, ...that.val);
- *     }
- *
- *     toJSON(): T[] {
- *         return this.val;
- *     }
- * }
- *
- * // A `Log` represents a List of entries relevant to our program. Log entries
- * // have a log level of "info" or "err".
- * type Log = List<string>;
- *
- * function info(msg: string): Log {
- *     return new List(`info: ${msg}`);
- * }
- *
- * function err(msg: string): Log {
- *     return new List(`err: ${msg}`);
- * }
- * ```
- *
- * Now, consider a program that uses `Ior` to parse an even integer.
- *
- * ```ts
- * function parseInt(input: string): Ior<Log, number> {
- *     const n = Number.parseInt(input);
- *     return Number.isNaN(n)
- *         ? Ior.left(err(`cannot parse '${input}' as int`))
- *         : Ior.both(info(`parse '${input}' ok`), n);
- * }
- *
- * function guardEven(n: number): Ior<Log, number> {
- *     return n % 2 === 0 ? Ior.right(n) : Ior.left(err(`${n} is not even`));
- * }
- *
- * function parseEvenInt(input: string): Ior<Log, number> {
- *     return parseInt(input).andThen(guardEven);
- * }
- *
- * ["a", "1", "2", "-4", "+42", "0x2A"].forEach((input) => {
- *     const result = JSON.stringify(parseEvenInt(input).val);
- *     console.log(`input "${input}": ${result}`);
- * });
- *
- * // input "a": ["err: cannot parse 'a' as int]
- * // input "1": ["err: 1 is not even"]
- * // input "2": [["info: parse '2' ok"],2]
- * // input "-4": [["info: parse '-4' ok"],-4]
- * // input "+42": [["info: parse '+42' ok"],42]
- * // input "0x2A: [["info: parse '0x2A' ok"],42]
- * ```
- *
- * Suppose we want to parse an array of inputs and collect the successful
- * results, or fail on the first parse error. We may write the following:
- *
- * ```ts
- * function parseEvenInts(inputs: string[]): Ior<Log, number[]> {
- *     return Ior.all(inputs.map(parseEvenInt));
- * }
- *
- * [
- *     ["a", "-4"],
- *     ["2", "-7"],
- *     ["+42", "0x2A"],
- * ].forEach((inputs) => {
- *     const result = JSON.stringify(parseEvenInts(inputs).val);
- *     console.log(`inputs ${JSON.stringify(inputs)}:\n  ${result}`);
- * });
- *
- * // inputs ["a","-4"]:
- * //   ["err: cannot parse 'a' as int"]
- * // inputs ["2","-7"]:
- * //   ["info: parse '2' ok","info: parse '-7' ok","err: -7 is not even"]
- * // inputs ["+42" "0x2A"]:
- * //   [["info: parse '+42' ok","info: parse '0x2A' ok"],[42,42]]
- * ```
- *
- * Perhaps we want to associate the original input strings with our successful
- * parses:
- *
- * ```ts
- * function parseEvenIntsKeyed(
- *     inputs: string[],
- * ): Ior<Log, Record<string, number>> {
- *     return Ior.allProps(
- *         Object.fromEntries(
- *             inputs.map((input) => [input, parseEvenInt(input)] as const),
- *         ),
- *     );
- * }
- *
- * [
- *     ["a", "-4"],
- *     ["2", "-7"],
- *     ["+42", "0x2A"],
- * ].forEach((inputs) => {
- *     const result = JSON.stringify(parseEvenIntsKeyed(inputs).val);
- *     console.log(`inputs ${JSON.stringify(inputs)}:\n  ${result}`);
- * });
- *
- * // inputs ["a","-4"]:
- * //   ["err: cannot parse 'a' as int"]
- * // inputs ["2","-7"]:
- * //   ["info: parse '2' ok","info: parse '-7' ok","err: -7 is not even"]
- * // inputs ["+42" "0x2A"]:
- * //   [["info: parse '+42' ok","info: parse '0x2A' ok"],{"+42":42,"0x2A":42}]
- * ```
- *
- * Or, perhaps we want to sum our successful parses and return a total:
- *
- * ```ts
- * function parseEvenIntsAndSum(inputs: string[]): Ior<Log, number> {
- *     return Ior.reduce(
- *         inputs,
- *         (total, input) => parseEvenInt(input).map((even) => total + even),
- *         0,
- *     );
- * }
- *
- * [
- *     ["a", "-4"],
- *     ["2", "-7"],
- *     ["+42", "0x2A"],
- * ].forEach((inputs) => {
- *     const result = JSON.stringify(parseEvenIntsAndSum(inputs).val);
- *     console.log(`inputs ${JSON.stringify(inputs)}:\n  ${result}`);
- * });
- *
- * // inputs ["a","-4"]:
- * //   ["err: cannot parse 'a' as int"]
- * // inputs ["2","-7"]:
- * //   ["info: parse '2' ok","info: parse '-7' ok","err: -7 is not even"]
- * // inputs ["+42" "0x2A"]:
- * //   [["info: parse '+42' ok","info: parse '0x2A' ok"],84]
+ * import {
+ *     type AsyncIor,
+ *     type Ior,
+ *     AsyncIor as AI,
+ *     Ior as I
+ * } from "@neotype/prelude/ior.js";
  * ```
  *
  * @module
  */
 
+import {
+	ArrayAssignBuilder,
+	ArrayPushBuilder,
+	NoOpBuilder,
+	ObjectAssignBuilder,
+	type Builder,
+} from "./builder.js";
 import { Semigroup, cmb } from "./cmb.js";
 import { Eq, Ord, Ordering, cmp, eq } from "./cmp.js";
 import type { Either } from "./either.js";
+import { id } from "./fn.js";
 import type { Validation } from "./validation.js";
 
 /**
- * A type that represents one or both of two values (`Left`, `Right`, or
- * `Both`).
+ * A type that represents one or both of two values ({@linkcode Ior.Left},
+ * {@linkcode Ior.Right}, or {@linkcode Ior.Both}).
  */
 export type Ior<A, B> = Ior.Left<A> | Ior.Right<B> | Ior.Both<A, B>;
 
 /**
- * The companion namespace for the `Ior` type.
+ * The companion namespace for the {@link Ior:type | `Ior<A, B>`} type.
+ *
+ * @remarks
+ *
+ * This namespace provides:
+ *
+ * -   Functions for constructing, chaining, and collecting into `Ior`.
+ * -   A base class with the fluent API for `Ior`
+ * -   Variant classes
+ * -   Utility types
  */
 export namespace Ior {
-	/**
-	 * Construct a `Left` variant of `Ior` from a value.
-	 */
+	/** Construct a `Left`. */
 	export function left<A, B = never>(val: A): Ior<A, B> {
 		return new Left(val);
 	}
 
-	/**
-	 * Construct a `Right` variant of `Ior` from a value.
-	 */
+	/** Construct a `Right`. */
 	export function right<B, A = never>(val: B): Ior<A, B> {
 		return new Right(val);
 	}
 
-	/**
-	 * Construct a `Both` variant of `Ior` from two values.
-	 */
+	/** Construct a `Both`. */
 	export function both<A, B>(fst: A, snd: B): Ior<A, B> {
 		return new Both(fst, snd);
 	}
 
-	/**
-	 * Construct an `Ior` from an `Either`.
-	 *
-	 * @remarks
-	 *
-	 * If the `Either` is a `Left`, return its value in a `Left` variant of
-	 * `Ior`; otherwise return its value in a `Right` variant of `Ior`.
-	 */
+	/** Construct an `Ior` from an `Either`. */
 	export function fromEither<A, B>(either: Either<A, B>): Ior<A, B> {
 		return either.unwrap(left, right);
 	}
 
-	/**
-	 * Construct an `Ior` from a `Validation`.
-	 *
-	 * @remarks
-	 *
-	 * If the `Validation` is an `Err`, return its failure in a `Left`;
-	 * otherwise, return its success in a `Right`.
-	 */
+	/** Construct an `Ior` from a `Validation`. */
 	export function fromValidation<E, T>(vdn: Validation<E, T>): Ior<E, T> {
 		return vdn.unwrap(left, right);
 	}
 
-	/**
-	 * Construct an `Ior` from a 2-tuple of values.
-	 *
-	 * @remarks
-	 *
-	 * This will always construct a `Both` variant from the first value and
-	 * second value of the tuple.
-	 */
+	/** Construct an `Ior` from a 2-tuple of values. */
 	export function fromTuple<A, B>(tuple: readonly [A, B]): Ior<A, B> {
 		return both(tuple[0], tuple[1]);
 	}
 
-	/**
-	 * Evaluate an `Ior.Go` generator to return an `Ior`.
-	 *
-	 * @remarks
-	 *
-	 * If any yielded `Ior` is a `Left`, combine the left-hand value with any
-	 * existing left-hand value and return the result in a `Left`; otherwise,
-	 * when the generator returns, return the result as a right-hand value.
-	 * Accumulate the left-hand values of yielded `Both` variants using their
-	 * behavior as a semigroup.
-	 */
+	/** Evaluate an `Ior.Go` generator to return an `Ior`. */
 	export function go<A extends Semigroup<A>, TReturn>(
 		gen: Go<A, TReturn>,
 	): Ior<A, TReturn> {
@@ -551,18 +184,19 @@ export namespace Ior {
 	}
 
 	/**
-	 * Reduce a finite iterable from left to right in the context of `Ior`.
+	 * Accumulate the elements in an iterable using a reducer function that
+	 * returns `Ior`.
 	 */
 	export function reduce<T, TAcc, A extends Semigroup<A>>(
-		vals: Iterable<T>,
+		elems: Iterable<T>,
 		accum: (acc: TAcc, val: T) => Ior<A, TAcc>,
 		initial: TAcc,
 	): Ior<A, TAcc> {
 		return go(
 			(function* () {
 				let acc = initial;
-				for (const val of vals) {
-					acc = yield* accum(acc, val);
+				for (const elem of elems) {
+					acc = yield* accum(acc, elem);
 				}
 				return acc;
 			})(),
@@ -570,14 +204,67 @@ export namespace Ior {
 	}
 
 	/**
-	 * Turn an array or a tuple literal of `Ior` elements "inside out".
+	 * Map the elements in an iterable to `Ior` and collect the right-hand
+	 * values into a `Builder`.
 	 *
 	 * @remarks
 	 *
+	 * If any `Ior` is `Left`, the state of the provided `Builder` is undefined.
+	 */
+	export function traverseInto<T, A extends Semigroup<A>, B, TFinish>(
+		elems: Iterable<T>,
+		f: (elem: T, idx: number) => Ior<A, B>,
+		builder: Builder<B, TFinish>,
+	): Ior<A, TFinish> {
+		return go(
+			(function* () {
+				let idx = 0;
+				for (const elem of elems) {
+					builder.add(yield* f(elem, idx));
+					idx++;
+				}
+				return builder.finish();
+			})(),
+		);
+	}
+
+	/**
+	 * Map the elements in an iterable to `Ior` and collect the right-hand
+	 * values in an array.
+	 */
+	export function traverse<T, A extends Semigroup<A>, B>(
+		elems: Iterable<T>,
+		f: (elem: T, idx: number) => Ior<A, B>,
+	): Ior<A, B[]> {
+		return traverseInto(elems, f, new ArrayPushBuilder());
+	}
+
+	/**
+	 * Evaluate the `Ior` in an iterable and collect the right-hand values into
+	 * a `Builder`.
+	 *
+	 * @remarks
+	 *
+	 * If any `Ior` is `Left`, the state of the provided `Builder` is undefined.
+	 */
+	export function allInto<A extends Semigroup<A>, B, TFinish>(
+		iors: Iterable<Ior<A, B>>,
+		builder: Builder<B, TFinish>,
+	): Ior<A, TFinish> {
+		return traverseInto(iors, id, builder);
+	}
+
+	/**
+	 * Evaluate the `Ior` in an array or a tuple literal and collect the
+	 * right-hand values in an equivalent structure.
+	 *
+	 * @remarks
+	 *
+	 * This function turns an array or a tuple literal of `Ior` "inside out".
 	 * For example:
 	 *
-	 * -   `Ior<A, B>[]` becomes `Ior<A, B[]>`
-	 * -   `[Ior<A, B1>, Ior<A, B2>]` becomes `Ior<A, [B1, B2]>`
+	 * -   `Ior<E, T>[]` becomes `Ior<E, T[]>`
+	 * -   `[Ior<E, T1>, Ior<E, T2>]` becomes `Ior<E, [T1, T2]>`
 	 */
 	export function all<TIors extends readonly Ior<Semigroup<any>, any>[] | []>(
 		iors: TIors,
@@ -587,11 +274,13 @@ export namespace Ior {
 	>;
 
 	/**
-	 * Turn an iterable of `Ior` elements "inside out" using an array.
+	 * Evaluate the `Ior` in an iterable and collect the right-hand values in
+	 * an array.
 	 *
 	 * @remarks
 	 *
-	 * For example, `Iterable<Ior<A, B>>` becomes `Ior<A, B[]>`.
+	 * This function turns an iterable of `Ior` "inside out". For example,
+	 * `Iterable<Ior<E, T>>` becomes `Ior<E, T[]>`.
 	 */
 	export function all<A extends Semigroup<A>, B>(
 		iors: Iterable<Ior<A, B>>,
@@ -600,54 +289,52 @@ export namespace Ior {
 	export function all<A extends Semigroup<A>, B>(
 		iors: Iterable<Ior<A, B>>,
 	): Ior<A, B[]> {
-		return go(
-			(function* () {
-				const results = [];
-				for (const ior of iors) {
-					results.push(yield* ior);
-				}
-				return results;
-			})(),
-		);
+		return traverse(iors, id);
 	}
 
 	/**
-	 * Turn a string-keyed record or object literal of `Ior` elements "inside
-	 * out".
+	 * Evaluate the `Ior` in a string-keyed record or object literal and collect
+	 * the right-hand values in an equivalent structure.
 	 *
 	 * @remarks
 	 *
-	 * This function enumerates only the object's own enumerable, string-keyed
-	 * property key-value pairs.
+	 * This function turns a string-keyed record or object literal of `Ior`
+	 * "inside out". For example:
 	 *
-	 * For example:
-	 *
-	 * -   `Record<string, Ior<A, B>>` becomes `Ior<A, Record<string, B>>`
-	 * -   `{ x: Ior<A, B1>, y: Ior<A, B2> }` becomes `Ior<A, { x: B1, y: B2 }>`
+	 * -   `Record<string, Ior<E, T>>` becomes `Ior<E, Record<string, T>>`
+	 * -   `{ x: Ior<E, T1>, y: Ior<E, T2> }` becomes `Ior<E, { x: T1, y: T2 }>`
 	 */
 	export function allProps<
-		TIors extends Record<string, Ior<Semigroup<any>, any>>,
+		TProps extends Record<string, Ior<Semigroup<any>, any>>,
 	>(
-		iors: TIors,
+		props: TProps,
 	): Ior<
-		LeftT<TIors[keyof TIors]>,
-		{ -readonly [K in keyof TIors]: RightT<TIors[K]> }
-	> {
-		return go(
-			(function* (): Go<any, any> {
-				const results: Record<string, any> = {};
-				for (const [key, ior] of Object.entries(iors)) {
-					results[key] = yield* ior;
-				}
-				return results;
-			})(),
+		LeftT<TProps[keyof TProps]>,
+		{ -readonly [K in keyof TProps]: RightT<TProps[K]> }
+	>;
+
+	export function allProps<A extends Semigroup<A>, B>(
+		props: Record<string, Ior<A, B>>,
+	): Ior<A, Record<string, B>> {
+		return traverseInto(
+			Object.entries(props),
+			([key, elem]) => elem.map((val) => [key, val] as const),
+			new ObjectAssignBuilder(),
 		);
 	}
 
 	/**
-	 * Adapt a synchronous function to accept `Ior` values as arguments and
-	 * return an `Ior`.
+	 * Apply an action that returns `Ior` to the elements in an iterable and
+	 * ignore the right-hand values.
 	 */
+	export function forEach<T, A extends Semigroup<A>>(
+		elems: Iterable<T>,
+		f: (elem: T, idx: number) => Ior<A, any>,
+	): Ior<A, void> {
+		return traverseInto(elems, f, new NoOpBuilder());
+	}
+
+	/** Adapt a synchronous function to be applied in the context of `Ior`. */
 	export function lift<TArgs extends unknown[], T>(
 		f: (...args: TArgs) => T,
 	): <A extends Semigroup<A>>(
@@ -657,274 +344,25 @@ export namespace Ior {
 			all(iors).map((args) => f(...(args as TArgs))) as Ior<any, T>;
 	}
 
-	/**
-	 * Evaluate an `Ior.GoAsync` async generator to return a `Promise` that
-	 * resolves with an `Ior`.
-	 *
-	 * @remarks
-	 *
-	 * If any yielded `Ior` is a `Left`, combine the left-hand value with any
-	 * existing left-hand value and resolve with the result in a `Left`;
-	 * otherwise, when the generator returns, resolve with the result as a
-	 * right-hand value. Accumulate the left-hand values of yielded `Both`
-	 * variants using their behavior as a semigroup. If an error is thrown,
-	 * reject with the error.
-	 */
-	export async function goAsync<A extends Semigroup<A>, TReturn>(
-		gen: GoAsync<A, TReturn>,
-	): Promise<Ior<A, TReturn>> {
-		let nxt = await gen.next();
-		let acc: A | undefined;
-		let isHalted = false;
-
-		while (!nxt.done) {
-			const ior = nxt.value;
-			if (ior.isRight()) {
-				nxt = await gen.next(ior.val);
-			} else if (ior.isBoth()) {
-				if (acc === undefined) {
-					acc = ior.fst;
-				} else {
-					acc = cmb(acc, ior.fst);
-				}
-				nxt = await gen.next(ior.snd);
-			} else {
-				isHalted = true;
-				if (acc === undefined) {
-					acc = ior.val;
-				} else {
-					acc = cmb(acc, ior.val);
-				}
-				nxt = await gen.return(undefined as any);
-			}
-		}
-
-		if (isHalted) {
-			return left(acc as A);
-		}
-		if (acc === undefined) {
-			return right(nxt.value);
-		}
-		return both(acc, nxt.value);
-	}
-
-	/**
-	 * Concurrently turn an array or a tuple literal of promise-like `Ior`
-	 * elements "inside out".
-	 *
-	 * @remarks
-	 *
-	 * For example:
-	 *
-	 * -   `Promise<Ior<A, B>>[]` becomes `Promise<Ior<A, B[]>>`
-	 * -   `[Promise<Ior<A, B1>>, Promise<Ior<A, B2>>]` becomes `Promise<Ior<A,
-	 *     [B1, B2]>>`
-	 *
-	 * Left-hand values are combined in the order the promise-like elements
-	 * resolve.
-	 */
-	export function allAsync<
-		TElems extends
-			| readonly (
-					| Ior<Semigroup<any>, any>
-					| PromiseLike<Ior<Semigroup<any>, any>>
-			  )[]
-			| [],
-	>(
-		elems: TElems,
-	): Promise<
-		Ior<
-			LeftT<{ [K in keyof TElems]: Awaited<TElems[K]> }[number]>,
-			{ [K in keyof TElems]: RightT<Awaited<TElems[K]>> }
-		>
-	>;
-
-	/**
-	 * Concurrently turn an iterable of promise-like `Ior` elements "inside
-	 * out" using an array.
-	 *
-	 * @remarks
-	 *
-	 * For example, `Iterable<Promise<Ior<A, B>>>` becomes `Promise<Ior<A,
-	 * B[]>>`.
-	 *
-	 * Left-hand values are combined in the order the promise-like elements
-	 * resolve.
-	 */
-	export function allAsync<A extends Semigroup<A>, B>(
-		elems: Iterable<Ior<A, B> | PromiseLike<Ior<A, B>>>,
-	): Promise<Ior<A, B[]>>;
-
-	export function allAsync<A extends Semigroup<A>, B>(
-		elems: Iterable<Ior<A, B> | PromiseLike<Ior<A, B>>>,
-	): Promise<Ior<A, B[]>> {
-		return new Promise((resolve, reject) => {
-			const results: B[] = [];
-			let remaining = 0;
-			let acc: A | undefined;
-
-			for (const elem of elems) {
-				const idx = remaining;
-				remaining++;
-				Promise.resolve(elem).then((ior) => {
-					if (ior.isLeft()) {
-						if (acc === undefined) {
-							resolve(ior);
-						} else {
-							resolve(left(cmb(acc, ior.val)));
-						}
-						return;
-					}
-
-					if (ior.isRight()) {
-						results[idx] = ior.val;
-					} else {
-						if (acc === undefined) {
-							acc = ior.fst;
-						} else {
-							acc = cmb(acc, ior.fst);
-						}
-						results[idx] = ior.snd;
-					}
-
-					remaining--;
-					if (remaining === 0) {
-						if (acc === undefined) {
-							resolve(right(results));
-						} else {
-							resolve(both(acc, results));
-						}
-						return;
-					}
-				}, reject);
-			}
-		});
-	}
-
-	/**
-	 * Concurrently turn a string-keyed record or object literal of promise-like
-	 * `Ior` elements "inside out".
-	 *
-	 * @remarks
-	 *
-	 * This function enumerates only the object's own enumerable, string-keyed
-	 * property key-value pairs.
-	 *
-	 * For example:
-	 *
-	 * -   `Record<string, Promise<Ior<A, B>>>` becomes `Promise<Ior<A,
-	 *     Record<string, B>>>`
-	 * -   `{ x: Promise<Ior<A, B1>>, y: Promise<Ior<A, B2>> }` becomes
-	 *     `Promise<Ior<A, { x: B1, y: B2 }>>`
-	 *
-	 * Left-hand values are combined in the order the promise-like elements
-	 * resolve.
-	 */
-	export function allPropsAsync<
-		TElems extends Record<
-			string,
-			Ior<Semigroup<any>, any> | PromiseLike<Ior<Semigroup<any>, any>>
-		>,
-	>(
-		elems: TElems,
-	): Promise<
-		Ior<
-			LeftT<{ [K in keyof TElems]: Awaited<TElems[K]> }[keyof TElems]>,
-			{ [K in keyof TElems]: RightT<Awaited<TElems[K]>> }
-		>
-	> {
-		return new Promise((resolve, reject) => {
-			const entries = Object.entries(elems);
-			const results: Record<string, any> = {};
-			let remaining = entries.length;
-			let acc: Semigroup<any> | undefined;
-
-			for (const [key, elem] of entries) {
-				Promise.resolve(elem).then((ior) => {
-					if (ior.isLeft()) {
-						if (acc === undefined) {
-							resolve(ior as Left<any>);
-						} else {
-							resolve(left(cmb(acc, ior.val)) as Left<any>);
-						}
-						return;
-					}
-
-					if (ior.isRight()) {
-						results[key] = ior.val;
-					} else {
-						if (acc === undefined) {
-							acc = ior.fst;
-						} else {
-							acc = cmb(acc, ior.fst);
-						}
-						results[key] = ior.snd;
-					}
-
-					remaining--;
-					if (remaining === 0) {
-						if (acc === undefined) {
-							resolve(right(results as any));
-						} else {
-							resolve(both(acc as any, results as any));
-						}
-						return;
-					}
-				}, reject);
-			}
-		});
-	}
-
-	/**
-	 * Adapt a synchronous or an asynchronous function to accept promise-like
-	 * `Ior` values as arguments and return a `Promise` that resolves with an
-	 * `Ior`.
-	 *
-	 * @remarks
-	 *
-	 * The lifted function's arguments are evaluated concurrently. Left-hand
-	 * values are combined in the order the arguments resolve.
-	 */
-	export function liftAsync<TArgs extends unknown[], T>(
-		f: (...args: TArgs) => T | PromiseLike<T>,
-	): <A extends Semigroup<A>>(
-		...elems: {
-			[K in keyof TArgs]:
-				| Ior<A, TArgs[K]>
-				| PromiseLike<Ior<A, TArgs[K]>>;
-		}
-	) => Promise<Ior<A, T>> {
-		return (...elems) =>
-			goAsync(
-				(async function* (): Ior.GoAsync<any, T> {
-					return f(
-						...((yield* await allAsync(elems)) as TArgs),
-					) as Awaited<T>;
-				})(),
-			);
-	}
-
-	/**
-	 * An enumeration that discriminates `Ior`.
-	 */
+	/** An enumeration that discriminates `Ior`. */
 	export enum Kind {
 		LEFT,
 		RIGHT,
 		BOTH,
 	}
 
-	/**
-	 * The fluent syntax for `Ior`.
-	 */
+	/** The fluent syntax for `Ior`. */
 	export abstract class Syntax {
-		/**
-		 * The property that discriminates `Ior`.
-		 */
+		/** The property that discriminates `Ior`. */
 		abstract readonly kind: Kind;
 
 		/**
-		 * If this and that `Ior` are the same variant and their values are
-		 * equal, return `true`; otherwise, return `false`.
+		 * Compare this and that `Ior` to determine their equality.
+		 *
+		 * @remarks
+		 *
+		 * Two `Ior` are equal if they are the same variant and their value(s)
+		 * is (are) equal.
 		 */
 		[Eq.eq]<A extends Eq<A>, B extends Eq<B>>(
 			this: Ior<A, B>,
@@ -948,11 +386,10 @@ export namespace Ior {
 		 *
 		 * @remarks
 		 *
-		 * When ordered, a `Left` always compares as less than any `Right`, and
-		 * a `Right` always compares as less than any `Both`. If the variants
-		 * are the same, their left-hand and/or right-hand values are compared
-		 * to determine the ordering. `Both` variants compare their left-hand
-		 * values and right-hand values lexicographically.
+		 * When ordered, `Left` always compares as less than `Right`, and
+		 * `Right` always compares as less than `Both`. If the variants are the
+		 * same, their value(s) are compared to determine the ordering. `Both`
+		 * compares left-hand values and right-hand values lexicographically.
 		 */
 		[Ord.cmp]<A extends Ord<A>, B extends Ord<B>>(
 			this: Ior<A, B>,
@@ -974,13 +411,13 @@ export namespace Ior {
 		}
 
 		/**
-		 * Combine the values of this and that `Ior` into a new `Ior`.
+		 * Combine the values of this and that `Ior`.
 		 *
 		 * @remarks
 		 *
 		 * When combined, left-hand values and right-hand values are combined
 		 * pairwise. Combination is lossless and merges values into `Both`
-		 * variants when there is no existing value to combine with.
+		 * when there is no existing value to combine with.
 		 */
 		[Semigroup.cmb]<A extends Semigroup<A>, B extends Semigroup<B>>(
 			this: Ior<A, B>,
@@ -1015,31 +452,24 @@ export namespace Ior {
 			return both(cmb(this.fst, that.fst), cmb(this.snd, that.snd));
 		}
 
-		/**
-		 * Test whether this `Ior` is the `Left` variant.
-		 */
+		/** Test whether this `Ior` is `Left`. */
 		isLeft<A>(this: Ior<A, any>): this is Left<A> {
 			return this.kind === Kind.LEFT;
 		}
 
-		/**
-		 * Test whether this `Ior` is the `Right` variant.
-		 */
+		/** Test whether this `Ior` is `Right`. */
 		isRight<B>(this: Ior<any, B>): this is Right<B> {
 			return this.kind === Kind.RIGHT;
 		}
 
-		/**
-		 * Test whether this `Ior` is the `Both` variant.
-		 */
+		/** Test whether this `Ior` is `Both`. */
 		isBoth<A, B>(this: Ior<A, B>): this is Both<A, B> {
 			return this.kind === Kind.BOTH;
 		}
 
 		/**
-		 * Apply one of three functions to the left-hand value and/or the
-		 * right-hand value of this `Ior` depending on the variant, and return
-		 * the result.
+		 * Apply one of three functions to extract the value(s) out of this
+		 * `Ior` depending on the variant.
 		 */
 		unwrap<A, B, T1, T2, T3>(
 			this: Ior<A, B>,
@@ -1058,10 +488,7 @@ export namespace Ior {
 
 		/**
 		 * If this `Ior` has a right-hand value, apply a function to the value
-		 * to return another `Ior`. Accumulate the left-hand values of `Both`
-		 * variants using their behavior as a semigroup. If either `Ior` is a
-		 * `Left`, combine the left-hand value with any existing left-hand value
-		 * and return the result in a `Left`.
+		 * to return another `Ior`.
 		 */
 		andThen<A extends Semigroup<A>, B, B1>(
 			this: Ior<A, B>,
@@ -1084,12 +511,8 @@ export namespace Ior {
 		}
 
 		/**
-		 * If this `Ior` has a right-hand value, apply a generator comprehension
-		 * function to the value and evaluate the `Ior.Go` generator to return
-		 * another `Ior`. Accumulate the left-hand values of `Both` variants
-		 * using their behavior as a semigroup. If either `Ior` is a `Left`,
-		 * combine the left-hand value with any existing left-hand value and
-		 * return the result in a `Left`.
+		 * If this `Ior` has a right-hand value, apply a generator function to
+		 * the value to return another `Ior`.
 		 */
 		andThenGo<A extends Semigroup<A>, B, B1>(
 			this: Ior<A, B>,
@@ -1099,11 +522,8 @@ export namespace Ior {
 		}
 
 		/**
-		 * If this and that `Ior` have a right-hand value, return that `Ior`.
-		 * Accumulate the left-hand values of `Both` variants using their
-		 * behavior as a semigroup. If either `Ior` is a `Left`, combine the
-		 * left-hand value with any existing left-hand value and return the
-		 * result in a `Left`.
+		 * If this `Ior` has a right-hand value, ignore the value and return
+		 * that `Ior`.
 		 */
 		and<A extends Semigroup<A>, B1>(
 			this: Ior<A, any>,
@@ -1113,11 +533,8 @@ export namespace Ior {
 		}
 
 		/**
-		 * If this and that `Ior` have a right-hand value, apply a function to
-		 * the values and return the result as a right-hand value. Accumulate
-		 * the left-hand values of `Both` variants using their behavior as a
-		 * semigroup. If either `Ior` is a `Left`, combine the left-hand value
-		 * with any existing left-hand value and return the result in a `Left`.
+		 * If this and that `Ior` have right-hand values, apply a function to
+		 * combine the values.
 		 */
 		zipWith<A extends Semigroup<A>, B, B1, B2>(
 			this: Ior<A, B>,
@@ -1128,9 +545,8 @@ export namespace Ior {
 		}
 
 		/**
-		 * If this `Ior` has a left-hand value, apply a function to the value
-		 * and return the result as a left-hand value; otherwise, return this
-		 * `Ior` as is.
+		 * If this `Ior` has a left-hand value, apply a function to map the
+		 * value.
 		 */
 		lmap<A, B, A1>(this: Ior<A, B>, f: (val: A) => A1): Ior<A1, B> {
 			if (this.isLeft()) {
@@ -1143,9 +559,8 @@ export namespace Ior {
 		}
 
 		/**
-		 * If this `Ior` has a right-hand value, apply a function to the value
-		 * and return the result as a right-hand value; otherwise, return this
-		 * `Ior` as is.
+		 * If this `Ior` has a right-hand value, apply a function to map the
+		 * value.
 		 */
 		map<A, B, B1>(this: Ior<A, B>, f: (val: B) => B1): Ior<A, B1> {
 			if (this.isLeft()) {
@@ -1158,15 +573,11 @@ export namespace Ior {
 		}
 	}
 
-	/**
-	 * An `Ior` with a left-hand value.
-	 */
+	/** An `Ior` with a left-hand value. */
 	export class Left<out A> extends Syntax {
 		readonly kind = Kind.LEFT;
 
-		/**
-		 * The value of this `Ior`.
-		 */
+		/** The value of this `Ior`. */
 		readonly val: A;
 
 		constructor(val: A) {
@@ -1174,25 +585,16 @@ export namespace Ior {
 			this.val = val;
 		}
 
-		/**
-		 * Return an `Ior.Go` generator that yields this `Ior` and returns its
-		 * right-hand value if one is present. This allows `Ior` values to be
-		 * yielded directly in `Ior` generator comprehensions using `yield*`.
-		 */
 		*[Symbol.iterator](): Generator<Ior<A, never>, never, unknown> {
 			return (yield this) as never;
 		}
 	}
 
-	/**
-	 * An `Ior` with a right-hand value.
-	 */
+	/** An `Ior` with a right-hand value. */
 	export class Right<out B> extends Syntax {
 		readonly kind = Kind.RIGHT;
 
-		/**
-		 * The value of this `Ior`.
-		 */
+		/** The value of this `Ior`. */
 		readonly val: B;
 
 		constructor(val: B) {
@@ -1200,34 +602,23 @@ export namespace Ior {
 			this.val = val;
 		}
 
-		/**
-		 * Return an `Ior.Go` generator that yields this `Ior` and returns its
-		 * right-hand value if one is present. This allows `Ior` values to be
-		 * yielded directly in `Ior` generator comprehensions using `yield*`.
-		 */
 		*[Symbol.iterator](): Generator<Ior<never, B>, B, unknown> {
 			return (yield this) as B;
 		}
 	}
 
-	/**
-	 * An `Ior` with a left-hand and a right-hand value.
-	 */
+	/** An `Ior` with a left-hand and a right-hand value. */
 	export class Both<out A, out B> extends Syntax {
 		readonly kind = Kind.BOTH;
 
-		/**
-		 * The first value of this `Ior`.
-		 */
+		/** The left-hand value of this `Ior`. */
 		readonly fst: A;
 
-		/**
-		 * The second value of this `Ior`.
-		 */
+		/** The right-hand value of this `Ior`. */
 		readonly snd: B;
 
 		/**
-		 * A 2-tuple of the first value and second value of this `Ior`.
+		 * A 2-tuple of the left-hand value and right-hand value of this `Ior`.
 		 */
 		get val(): [A, B] {
 			return [this.fst, this.snd];
@@ -1239,74 +630,390 @@ export namespace Ior {
 			this.snd = snd;
 		}
 
-		/**
-		 * Return an `Ior.Go` generator that yields this `Ior` and returns its
-		 * right-hand value if one is present. This allows `Ior` values to be
-		 * yielded directly in `Ior` generator comprehensions using `yield*`.
-		 */
 		*[Symbol.iterator](): Generator<Ior<A, B>, B, unknown> {
 			return (yield this) as B;
 		}
 	}
 
-	/**
-	 * A generator that yields `Ior` values and returns a result.
-	 *
-	 * @remarks
-	 *
-	 * Synchronous `Ior` generator comprehensions should use this type alias as
-	 * their return type. A generator function that returns an `Ior.Go<A, T>`
-	 * may `yield*` zero or more `Ior<A, any>` values and must return a result
-	 * of type `T`. Synchronous comprehensions may also `yield*` other `Ior.Go`
-	 * generators directly.
-	 *
-	 * Comprehensions require that the left-hand values of all yielded `Ior`
-	 * values are implementors of the same `Semigroup` so the values may
-	 * accumulate as the generator yields.
-	 */
+	/** A generator that yields `Ior` and returns a value. */
 	export type Go<A extends Semigroup<A>, TReturn> = Generator<
 		Ior<A, unknown>,
 		TReturn,
 		unknown
 	>;
 
-	/**
-	 * An async generator that yields `Ior` values and returns a result.
-	 *
-	 * @remarks
-	 *
-	 * Async `Ior` generator comprehensions should use this type alias as their
-	 * return type. An async generator function that returns an `Ior.GoAsync<A,
-	 * T>` may `yield*` zero or more `Ior<A, any>` values and must return a
-	 * result of type `T`. `PromiseLike` values that resolve with `Ior` should
-	 * be awaited before yielding. Async comprehensions may also `yield*` other
-	 * `Ior.Go` and `Ior.GoAsync` generators directly.
-	 *
-	 * Comprehensions require that the left-hand values of all yielded `Ior`
-	 * values are implementors of the same `Semigroup` so the values may
-	 * accumulate as the generator yields.
-	 */
-	export type GoAsync<A extends Semigroup<A>, TReturn> = AsyncGenerator<
-		Ior<A, unknown>,
-		TReturn,
-		unknown
-	>;
-
-	/**
-	 * Extract the left-hand value type `A` from the type `Ior<A, B>`.
-	 */
+	/** Extract the left-hand value type `A` from the type `Ior<A, B>`. */
 	export type LeftT<TIor extends Ior<any, any>> = [TIor] extends [
 		Ior<infer A, any>,
 	]
 		? A
 		: never;
 
-	/**
-	 * Extract the right-hand value type `B` from the type `Ior<A, B>`.
-	 */
+	/** Extract the right-hand value type `B` from the type `Ior<A, B>`. */
 	export type RightT<TIor extends Ior<any, any>> = [TIor] extends [
 		Ior<any, infer B>,
 	]
 		? B
 		: never;
+}
+
+/** A promise-like object that fulfills with `Ior`. */
+export type AsyncIorLike<A, B> = PromiseLike<Ior<A, B>>;
+
+/** A promise that fulfills with `Ior`. */
+export type AsyncIor<A, B> = Promise<Ior<A, B>>;
+
+/**
+ * The companion namespace for the {@link AsyncIor:type | `AsyncIor<A, B>`}
+ * type.
+ *
+ * @remarks
+ *
+ * This namespace provides functions for chaining and collecting into
+ * `AsyncIor`.
+ */
+export namespace AsyncIor {
+	/** Evaluate an `AsyncIor.Go` async generator to return an `AsyncIor`. */
+	export async function go<A extends Semigroup<A>, TReturn>(
+		gen: Go<A, TReturn>,
+	): AsyncIor<A, TReturn> {
+		let nxt = await gen.next();
+		let acc: A | undefined;
+		let isHalted = false;
+
+		while (!nxt.done) {
+			const ior = nxt.value;
+			if (ior.isRight()) {
+				nxt = await gen.next(ior.val);
+			} else if (ior.isBoth()) {
+				if (acc === undefined) {
+					acc = ior.fst;
+				} else {
+					acc = cmb(acc, ior.fst);
+				}
+				nxt = await gen.next(ior.snd);
+			} else {
+				isHalted = true;
+				if (acc === undefined) {
+					acc = ior.val;
+				} else {
+					acc = cmb(acc, ior.val);
+				}
+				nxt = await gen.return(undefined as any);
+			}
+		}
+
+		if (isHalted) {
+			return Ior.left(acc as A);
+		}
+		if (acc === undefined) {
+			return Ior.right(nxt.value);
+		}
+		return Ior.both(acc, nxt.value);
+	}
+
+	/**
+	 * Accumulate the elements in an async iterable using a reducer function
+	 * that returns `Ior` `AsyncIorLike`.
+	 */
+	export function reduce<T, TAcc, A extends Semigroup<A>>(
+		elems: AsyncIterable<T>,
+		accum: (acc: TAcc, val: T) => Ior<A, TAcc> | AsyncIorLike<A, TAcc>,
+		initial: TAcc,
+	): AsyncIor<A, TAcc> {
+		return go(
+			(async function* () {
+				let acc = initial;
+				for await (const elem of elems) {
+					acc = yield* await accum(acc, elem);
+				}
+				return acc;
+			})(),
+		);
+	}
+
+	/**
+	 * Map the elements in an async iterable to `Ior` and collect the right-hand
+	 * values into a `Builder`.
+	 *
+	 * @remarks
+	 *
+	 * If any `Ior` is `Left`, the state of the provided `Builder` is undefined.
+	 */
+	export function traverseInto<T, A extends Semigroup<A>, B, TFinish>(
+		elems: AsyncIterable<T>,
+		f: (elem: T, idx: number) => Ior<A, B> | AsyncIorLike<A, B>,
+		builder: Builder<B, TFinish>,
+	): AsyncIor<A, TFinish> {
+		return go(
+			(async function* () {
+				let idx = 0;
+				for await (const elem of elems) {
+					builder.add(yield* await f(elem, idx));
+					idx++;
+				}
+				return builder.finish();
+			})(),
+		);
+	}
+
+	/**
+	 * Map the elements in an async iterable to `Ior` and collect the right-hand
+	 * values in an array.
+	 */
+	export function traverse<T, A extends Semigroup<A>, B>(
+		elems: AsyncIterable<T>,
+		f: (elem: T, idx: number) => Ior<A, B> | AsyncIorLike<A, B>,
+	): AsyncIor<A, B[]> {
+		return traverseInto(elems, f, new ArrayPushBuilder());
+	}
+
+	/**
+	 * Evaluate the `Ior` in an async iterable and collect the right-hand values
+	 * into a `Builder`.
+	 *
+	 * @remarks
+	 *
+	 * If any `Ior` is `Left`, the state of the provided `Builder` is undefined.
+	 */
+	export function allInto<A extends Semigroup<A>, B, TFinish>(
+		elems: AsyncIterable<Ior<A, B>>,
+		builder: Builder<B, TFinish>,
+	): AsyncIor<A, TFinish> {
+		return traverseInto(elems, id, builder);
+	}
+
+	/**
+	 * Evaluate the `Ior` in an async iterable and collect the right-hand values
+	 * in an array.
+	 *
+	 * @remarks
+	 *
+	 * This function turns an async iterable of `Ior` "inside out". For example,
+	 * `AsyncIterable<Ior<E, T>>` becomes `AsyncIor<E, T[]>`.
+	 */
+	export function all<A extends Semigroup<A>, B>(
+		elems: AsyncIterable<Ior<A, B>>,
+	): AsyncIor<A, B[]> {
+		return traverse(elems, id);
+	}
+
+	/**
+	 * Apply an action that returns `Ior` or `AsyncIorLike` to the elements in
+	 * an async iterable and ignore the right-hand values.
+	 */
+	export function forEach<T, A extends Semigroup<A>>(
+		elems: AsyncIterable<T>,
+		f: (elem: T, idx: number) => Ior<A, any> | AsyncIorLike<A, any>,
+	): AsyncIor<A, void> {
+		return traverseInto(elems, f, new NoOpBuilder());
+	}
+
+	/**
+	 * Concurrently map the elements in an iterable to `Ior` or `AsyncIorLike`
+	 * and collect the right-hand values into a `Builder`.
+	 *
+	 * @remarks
+	 *
+	 * If any `Ior` is `Left`, the state of the provided `Builder` is undefined.
+	 */
+	export function traverseIntoPar<T, A extends Semigroup<A>, B, TFinish>(
+		elems: Iterable<T>,
+		f: (elem: T, idx: number) => Ior<A, B> | AsyncIorLike<A, B>,
+		builder: Builder<B, TFinish>,
+	): AsyncIor<A, TFinish> {
+		return new Promise((resolve, reject) => {
+			let remaining = 0;
+			let acc: A | undefined;
+
+			for (const elem of elems) {
+				const idx = remaining;
+				remaining++;
+				Promise.resolve(f(elem, idx)).then((ior) => {
+					if (ior.isLeft()) {
+						if (acc === undefined) {
+							resolve(ior);
+						} else {
+							resolve(Ior.left(cmb(acc, ior.val)));
+						}
+						return;
+					}
+
+					if (ior.isRight()) {
+						builder.add(ior.val);
+					} else {
+						if (acc === undefined) {
+							acc = ior.fst;
+						} else {
+							acc = cmb(acc, ior.fst);
+						}
+						builder.add(ior.snd);
+					}
+
+					remaining--;
+					if (remaining === 0) {
+						if (acc === undefined) {
+							resolve(Ior.right(builder.finish()));
+						} else {
+							resolve(Ior.both(acc, builder.finish()));
+						}
+						return;
+					}
+				}, reject);
+			}
+		});
+	}
+
+	/**
+	 * Concurrently map the elements in an iterable to `Ior` or `AsyncIorLike`
+	 * and collect the right-hand values in an array.
+	 */
+	export function traversePar<T, A extends Semigroup<A>, B>(
+		elems: Iterable<T>,
+		f: (elem: T, idx: number) => Ior<A, B> | AsyncIorLike<A, B>,
+	): AsyncIor<A, B[]> {
+		return traverseIntoPar(
+			elems,
+			async (elem, idx) =>
+				(await f(elem, idx)).map((val): [number, B] => [idx, val]),
+			new ArrayAssignBuilder(),
+		);
+	}
+
+	/**
+	 * Concurrently evaluate the `Ior` or `AsyncIorLike` in an iterable and
+	 * collect the right-hand values into a `Builder`.
+	 *
+	 * @remarks
+	 *
+	 * If any `Ior` is `Left`, the state of the provided `Builder` is undefined.
+	 */
+	export function allIntoPar<A extends Semigroup<A>, B, TFinish>(
+		elems: Iterable<Ior<A, B> | AsyncIorLike<A, B>>,
+		builder: Builder<B, TFinish>,
+	): AsyncIor<A, TFinish> {
+		return traverseIntoPar(elems, id, builder);
+	}
+
+	/**
+	 * Concurrently evaluate the `Ior` or `AsyncIorLike` in an array or a tuple
+	 * literal and collect the right-hand values in an equivalent structure.
+	 *
+	 * @remarks
+	 *
+	 * This function turns an array or a tuple literal of `Ior` or
+	 * `AsyncIorLike` "inside out". For example:
+	 *
+	 * -   `AsyncIor<E, T>[]` becomes `AsyncIor<E, T[]>`
+	 * -   `[AsyncIor<E, T1>, AsyncIor<E, T2>]` becomes `AsyncIor<E, [T1, T2]>`
+	 */
+	export function allPar<
+		TElems extends
+			| readonly (
+					| Ior<Semigroup<any>, any>
+					| AsyncIorLike<Semigroup<any>, any>
+			  )[]
+			| [],
+	>(
+		elems: TElems,
+	): AsyncIor<
+		Ior.LeftT<{ [K in keyof TElems]: Awaited<TElems[K]> }[number]>,
+		{ [K in keyof TElems]: Ior.RightT<Awaited<TElems[K]>> }
+	>;
+
+	/**
+	 * Concurrently evaluate the `Ior` or `AsyncIorLike` in an iterable and
+	 * collect the right-hand values in an array.
+	 *
+	 * @remarks
+	 *
+	 * This function turns an iterable of `Ior` or `AsyncIorLike` "inside out".
+	 * For example, `Iterable<AsyncIor<E, T>>` becomes `AsyncIor<E, T[]>`.
+	 */
+	export function allPar<A extends Semigroup<A>, B>(
+		elems: Iterable<Ior<A, B> | AsyncIorLike<A, B>>,
+	): AsyncIor<A, B[]>;
+
+	export function allPar<A extends Semigroup<A>, B>(
+		elems: Iterable<Ior<A, B> | AsyncIorLike<A, B>>,
+	): AsyncIor<A, B[]> {
+		return traversePar(elems, id);
+	}
+
+	/**
+	 * Concurrently evaluate the `Ior` or `AsyncIorLike` in a string-keyed
+	 * record or object literal and collect the right-hand values in an
+	 * equivalent structure.
+	 *
+	 * @remarks
+	 *
+	 * This function turns a string-keyed record or object literal of `Ior` or
+	 * `AsyncIorLike` "inside out". For example:
+	 *
+	 * -   `Record<string, AsyncIor<E, T>>` becomes `AsyncIor<E, Record<string,
+	 *     T>>`
+	 * -   `{ x: AsyncIor<E, T1>, y: AsyncIor<E, T2> }` becomes `AsyncIor<E,
+	 *     { x: T1, y: T2 }>`
+	 */
+	export function allPropsPar<
+		TProps extends Record<
+			string,
+			Ior<Semigroup<any>, any> | AsyncIorLike<Semigroup<any>, any>
+		>,
+	>(
+		props: TProps,
+	): AsyncIor<
+		Ior.LeftT<{ [K in keyof TProps]: Awaited<TProps[K]> }[keyof TProps]>,
+		{ [K in keyof TProps]: Ior.RightT<Awaited<TProps[K]>> }
+	>;
+
+	export function allPropsPar<A extends Semigroup<A>, B>(
+		props: Record<string, Ior<A, B> | AsyncIorLike<A, B>>,
+	): AsyncIor<A, Record<string, B>> {
+		return traverseIntoPar(
+			Object.entries(props),
+			async ([key, elem]) =>
+				(await elem).map((val) => [key, val] as const),
+			new ObjectAssignBuilder(),
+		);
+	}
+
+	/**
+	 * Concurrently apply an action that returns `Ior` or `AsyncIorLike` to the
+	 * elements in an iterable and ignore the right-hand values.
+	 */
+	export function forEachPar<T, A extends Semigroup<A>>(
+		elems: Iterable<T>,
+		f: (elem: T, idx: number) => Ior<A, any> | AsyncIorLike<A, any>,
+	): AsyncIor<A, void> {
+		return traverseIntoPar(elems, f, new NoOpBuilder());
+	}
+
+	/**
+	 * Adapt a synchronous or an asynchronous function to be applied in the
+	 * context of `Ior` or `AsyncIorLike`.
+	 */
+	export function liftPar<TArgs extends unknown[], T>(
+		f: (...args: TArgs) => T | PromiseLike<T>,
+	): <A extends Semigroup<A>>(
+		...elems: {
+			[K in keyof TArgs]: Ior<A, TArgs[K]> | AsyncIorLike<A, TArgs[K]>;
+		}
+	) => AsyncIor<A, T> {
+		return (...elems) =>
+			go(
+				(async function* (): Go<any, T> {
+					return f(
+						...((yield* await allPar(elems)) as TArgs),
+					) as Awaited<T>;
+				})(),
+			);
+	}
+
+	/** An async generator that yields `Ior` and returns a value. */
+	export type Go<A extends Semigroup<A>, TReturn> = AsyncGenerator<
+		Ior<A, unknown>,
+		TReturn,
+		unknown
+	>;
 }

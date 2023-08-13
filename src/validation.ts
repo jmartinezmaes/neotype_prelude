@@ -19,407 +19,169 @@
  *
  * @remarks
  *
- * `Validation<E, T>` is a type that represents a state of accumulated failure
- * or success. It is represented by two variants: `Err<E>` and `Ok<T>`.
+ * {@link Validation:type | `Validation<E, T>`} is a type that represents a
+ * state of accumulated failure or success. It is represented by two variants:
+ * {@link Validation.Err | `Err<E>`} and {@link Validation.Ok | `Ok<T>`}.
  *
- * -   The `Err<E>` variant represents a *failed* `Validation` and contains a
- *     *failure* of type `E`.
- * -   The `Ok<T>` variant represents a *successful* `Validation` and contains a
- *     *success* of type `T`.
+ * -   An `Err<E>` is a failed `Validation` and contains a failure of type `E`.
+ * -   An `Ok<T>` is a successful `Validation` and contains a success of type
+ *     `T`.
  *
- * `Validation` is useful for collecting information about **all** failures in a
- * program, rather than halting evaluation on the first failure. This behavior
+ * The companion {@linkcode Validation:namespace} namespace provides utilities
+ * for working with the `Validation<E, T>` type.
+ *
+ * `Validation` is useful for collecting information about all failures in a
+ * program rather than halting evaluation on the first failure. This behavior
  * makes `Validation` a suitable type for validating data from inputs, forms,
- * and other arbitrary information sources.
+ * and other sources.
  *
  * Most combinators for `Validation` begin accumulating failures on the first
  * failed `Validation`. Combinators with this behavior require a `Semigroup`
  * implementation from the accumulating failures.
  *
+ * ## Using `Validation` with promises
+ *
+ * {@link AsyncValidation:type | `AsyncValidation<E, T>`} is an alias for
+ * `Promise<Validation<E, T>>`. The companion
+ * {@linkcode AsyncValidation:namespace} namespace provides utilities for
+ * working with the `AsyncValidation<E, T>` type.
+ *
+ * To accommodate promise-like values, this module also provides the
+ * {@link AsyncValidationLike | `AsyncValidationLike<E, T>`} type as an alias
+ * for `PromiseLike<Validation<E, T>>`.
+ *
  * ## Importing from this module
  *
- * This module exports `Validation` as both a type and a namespace. The
- * `Validation` type is an alias for a discriminated union, and the `Validation`
- * namespace provides:
- *
- * -   The `Err` and `Ok` variant classes
- * -   The abstract `Syntax` class that provides the fluent API for `Validation`
- * -   The `Kind` enumeration that discriminates `Validation`
- * -   Functions for constructing, collecting into, and lifting into
- *     `Validation`
- *
- * The type and namespace can be imported under the same alias:
+ * The types and namespaces from this module can be imported under the same
+ * aliases:
  *
  * ```ts
- * import { Validation } from "@neotype/prelude/validation.js";
+ * import { AsyncValidation, Validation } from "@neotype/prelude/validation.js";
  * ```
  *
- * Or, the type and namespace can be imported and aliased separately:
+ * Or, the types and namespaces can be imported and aliased separately:
  *
  * ```ts
  * import {
+ *     type AsyncValidation,
  *     type Validation,
+ *     AsyncValidation as AV,
  *     Validation as V
  * } from "@neotype/prelude/validation.js";
- * ```
- *
- * ## Constructing `Validation`
- *
- * These functions construct a `Validation`:
- *
- * -   `err` constructs a failed `Validation`
- * -   `ok` constructs a successful `Validation`.
- * -   `fromEither` constructs a `Validation` from an `Either`.
- *
- * ## Querying and narrowing the variant
- *
- * The `isErr` and `isOk` methods return `true` if a `Validation` fails or
- * succeeds, respectively. These methods also narrow the type of a `Validation`
- * to the queried variant.
- *
- * The variant can also be queried and narrowed via the `kind` property, which
- * returns a member of the `Kind` enumeration.
- *
- * ## Extracting values
- *
- * The failure or the success within a `Validation` can be accessed via the
- * `val` property. The type of the property can be narrowed by first querying
- * variant.
- *
- * The `unwrap` method unwraps a `Validation` by applying one of two functions
- * to its failure or success, depending on the variant.
- *
- * ## Comparing `Validation`
- *
- * `Validation` has the following behavior as an equivalence relation:
- *
- * -   A `Validation<E, T>` implements `Eq` when both `E` and `T` implement
- *     `Eq`.
- * -   Two `Validation` values are equal if they are the same variant and their
- *     failures or successes are equal.
- *
- * `Validation` has the following behavior as a total order:
- *
- * -   A `Validation<E, T>` implements `Ord` when both `E` and `T` implement
- *     `Ord`.
- * -   When ordered, a failed `Validation` always compares as less than any
- *     successful `Validation`. If the variants are the same, their failures or
- *     successes are compared to determine the ordering.
- *
- * ## `Validation` as a semigroup
- *
- * `Validation` has the following behavior as a semigroup:
- *
- * -   A `Validation<E, T>` implements `Semigroup` when both `E` and `T`
- *     implement `Semigroup`.
- * -   When combined, a failed `Validation` ignores the combination and begins
- *     accumulating failures instead. If both succeed, their successes are
- *     combined and returned as a success.
- *
- * ## Transforming values
- *
- * These methods transform the failure or the success within a `Validation`:
- *
- * -   `lmap` applies a function to the failure.
- * -   `map` applies a function to the success.
- *
- * ## Chaining `Validation`
- *
- * These methods act on a successful `Validation` to produce another
- * `Validation`:
- *
- * -   `and` ignores the success and returns another `Validation`.
- * -   `zipWith` evaluates another `Validation`, and if successful, applies a
- *     function to both successes.
- *
- * ## Collecting into `Validation`
- *
- * These functions turn a container of `Validation` elements "inside out":
- *
- * -   `all` turns an iterable or a tuple literal of `Validation` elements
- *     inside out.
- * -   `allProps` turns a string-keyed record or object literal of `Validation`
- *     elements inside out.
- *
- * These functions concurrently turn a container of promise-like `Validation`
- * elements "inside out":
- *
- * -   `allAsync` turns an iterable or a tuple literal of promise-like
- *     `Validation` elements inside out.
- * -   `allPropsAsync` turns a string-keyed record or object literal of
- *     promise-like`Validation` elements inside out.
- *
- * ## Lifting functions into the context of `Validation`
- *
- * These functions adapt a function to work with `Validation` values:
- *
- * -   `lift` adapts a synchronous function to accept `Validation` values as
- *     arguments and return a `Validation`.
- * -   `liftAsync` adapts a synchronous or an asynchronous function to accept
- *     promise-like `Validation` values as arguments and return a `Promise` that
- *     resolves with a `Validation`.
- *
- * @example Validating a single property
- *
- * First, the necessary imports:
- *
- * ```ts
- * import { Semigroup } from "@neotype/prelude/cmb.js";
- * import { Validation } from "@neotype/prelude/validation.js";
- * ```
- *
- * Let's also define a helper semigroup type:
- *
- * ```ts
- * // A semigroup that wraps arrays
- * class List<out T> {
- *     readonly val: T[]
- *
- *     constructor(...vals: T[]) {
- *         this.val = vals;
- *     }
- *
- *     [Semigroup.cmb](that: List<T>): List<T> {
- *         return new List(...this.val, ...that.val);
- *     }
- *
- *     toJSON(): T[] {
- *         return this.val;
- *     }
- * }
- * ```
- *
- * Now, consider a program that performs a trivial email validation:
- *
- * ```ts
- * function requireNonEmpty(input: string): Validation<List<string>, string> {
- *     return input.length > 0
- *         ? Validation.ok(input)
- *         : Validation.err(new List("empty input"));
- * }
- *
- * function requireAtSign(input: string): Validation<List<string>, string> {
- *     return input.includes("@")
- *         ? Validation.ok(input)
- *         : Validation.err(new List("missing @"));
- * }
- *
- * function requirePeriod(input: string): Validation<List<string>, string> {
- *     return input.includes(".")
- *         ? Validation.ok(input)
- *         : Validation.err(new List("missing period"));
- * }
- *
- * function validateEmail(input: string): Validation<List<string>, string> {
- *     return requireNonEmpty(input)
- *         .and(requireAtSign(input))
- *         .and(requirePeriod(input));
- * }
- *
- * ["", "neo", "neogmail.com", "neo@gmailcom", "neo@gmail.com"].forEach(
- *     (input) => {
- *         const result = JSON.stringify(validateEmail(input).val);
- *         console.log(`input "${input}": ${result}`);
- *     }
- * );
- *
- * // input "": ["empty input","missing @","missing period"]
- * // input "neo": ["missing @","missing period"]
- * // input "neogmail.com": ["missing @"]
- * // input "neo@gmailcom": ["missing period"]
- * // input "neo@gmail.com": "neo@gmail.com"
- * ```
- *
- * @example Validating multiple properties
- *
- * First, the necessary imports:
- *
- * ```ts
- * import { Semigroup } from "@neotype/prelude/cmb.js";
- * import { Validation } from "@neotype/prelude/validation.js";
- * ```
- *
- * Let's also define a helper semigroup type:
- *
- * ```ts
- * // A semigroup that wraps arrays
- * class List<out T> {
- *     readonly val: T[]
- *
- *     constructor(...vals: T[]) {
- *         this.val = vals;
- *     }
- *
- *     [Semigroup.cmb](that: List<T>): List<T> {
- *         return new List(...this.val, ...that.val);
- *     }
- *
- *     toJSON(): T[] {
- *         return this.val;
- *     }
- * }
- * ```
- *
- * Now, consider a program that validates a `Person` object with a `name` and an
- * `age`:
- *
- * ```ts
- * interface Person {
- *     name: string;
- *     age: number;
- * }
- *
- * function validateName(input: string): Validation<List<string>, string> {
- *     return input.length
- *         ? Validation.ok(input)
- *         : Validation.err(new List("empty name"));
- * }
- *
- * function validateAge(input: number): Validation<List<string>, number> {
- *     return input >= 0 && input <= 100
- *         ? Validation.ok(input)
- *         : Validation.err(new List("age not in range"));
- * }
- *
- * function validatePerson(
- *     rawName: string,
- *     rawAge: number,
- * ): Validation<List<string>, Person> {
- *     return Validation.allProps({
- *         name: validateName(rawName),
- *         age: validateAge(rawAge),
- *     });
- * }
- *
- * [
- *     ["", 182] as const,
- *     ["", 30] as const,
- *     ["Neo", 150] as const,
- *     ["Neo", 45] as const,
- * ].forEach((inputs) => {
- *     const [rawName, rawAge] = inputs;
- *     const result = JSON.stringify(validatePerson(rawName, rawAge).val);
- *     console.log(`inputs ${JSON.stringify(inputs)}: ${result}`);
- * });
- *
- * // inputs ["",182]: ["empty name","age not in range"]
- * // inputs ["",30]: ["empty name"]
- * // inputs ["Neo",150]: ["age not in range"]
- * // inputs ["Neo",45]: {"name":"Neo","age":45}
- * ```
- *
- * @example Validating arbitrary properties
- *
- * First, the necessary imports:
- *
- * ```ts
- * import { Semigroup } from "@neotype/prelude/cmb.js";
- * import { Validation } from "@neotype/prelude/validation.js";
- * ```
- *
- * Let's also define a helper semigroup type:
- *
- * ```ts
- * // A semigroup that wraps arrays
- * class List<out T> {
- *     readonly val: T[]
- *
- *     constructor(...vals: T[]) {
- *         this.val = vals;
- *     }
- *
- *     [Semigroup.cmb](that: List<T>): List<T> {
- *         return new List(...this.val, ...that.val);
- *     }
- *
- *     toJSON(): T[] {
- *         return this.val;
- *     }
- * }
- * ```
- *
- * Now, consider a program that validates an arbitrary-length array of strings:
- *
- * ```ts
- * function requireLowercase(input: string): Validation<List<string>, string> {
- *     return input === input.toLowerCase()
- *         ? Validation.ok(input)
- *         : Validation.err(new List(input));
- * }
- *
- * function requireLowercaseElems(
- *     inputs: string[]
- * ): Validation<List<string>, string[]> {
- *     return Validation.all(inputs.map(requireLowercase));
- * }
- *
- * [
- *     ["New York", "Oregon"],
- *     ["foo", "Bar", "baz"],
- *     ["banana", "apple", "orange"],
- * ].forEach((inputs) => {
- *     const result = JSON.stringify(
- *         requireLowercaseElems(inputs).unwrap(
- *             (invalidInputs) => ({ invalid: invalidInputs }),
- *             (validInputs) => ({ valid: validInputs }),
- *         ),
- *     );
- *     console.log(`inputs ${JSON.stringify(inputs)}: ${result}`);
- * });
- *
- * // inputs ["New York","Oregon"]: {"invalid":["New York","Oregon"]}
- * // inputs ["Code","of","Conduct"]: {"invalid":["Code","Conduct"]}
- * // inputs ["banana","apple","orange"]: {"valid":["banana","apple","orange"]}
  * ```
  *
  * @module
  */
 
+import {
+	ArrayAssignBuilder,
+	ArrayPushBuilder,
+	NoOpBuilder,
+	ObjectAssignBuilder,
+	type Builder,
+} from "./builder.js";
 import { Semigroup, cmb } from "./cmb.js";
 import { Eq, Ord, Ordering, cmp, eq } from "./cmp.js";
 import type { Either } from "./either.js";
+import { id } from "./fn.js";
 
 /**
- * A type that represents either accumulating failure (`Err`) or success (`Ok`).
+ * A type that represents either accumulating failure
+ * ({@linkcode Validation.Err}) or success ({@linkcode Validation.Ok}).
  */
 export type Validation<E, T> = Validation.Err<E> | Validation.Ok<T>;
 
 /**
- * The companion namespace for the `Validation` type.
+ * The companion namespace for the {@link Validation:type | `Validation<E, T>`}
+ * type.
+ *
+ * @remarks
+ *
+ * This namespace provides:
+ *
+ * -   Functions for constructing and collecting into `Validation`
+ * -   A base class with the fluent API for `Validation`
+ * -   Variant classes
+ * -   Utility types
  */
 export namespace Validation {
-	/**
-	 * Construct a failed `Validation` from a value.
-	 */
+	/** Construct a failed `Validation`. */
 	export function err<E, T = never>(val: E): Validation<E, T> {
 		return new Err(val);
 	}
 
-	/**
-	 * Construct a successful `Validation` from a value.
-	 */
+	/** Construct a successful `Validation`. */
 	export function ok<T, E = never>(val: T): Validation<E, T> {
 		return new Ok(val);
 	}
 
-	/**
-	 * Construct a `Validation` from an `Either`.
-	 *
-	 * @remarks
-	 *
-	 * If the `Either` is a `Left`, return its value in an `Err`; otherwise,
-	 * return its value in an `Ok`.
-	 */
+	/** Construct a `Validation` from an `Either`. */
 	export function fromEither<A, B>(either: Either<A, B>): Validation<A, B> {
 		return either.unwrap(err, ok);
 	}
 
 	/**
-	 * Turn an array or a tuple literal of `Validation` elements "inside out".
+	 * Map the elements in an iterable to `Validation` and collect the successes
+	 * into a `Builder`.
 	 *
 	 * @remarks
 	 *
-	 * For example:
+	 * If any `Validation` fails, the state of the provided `Builder` is
+	 * undefined.
+	 */
+	export function traverseInto<T, E extends Semigroup<E>, T1, TFinish>(
+		elems: Iterable<T>,
+		f: (elem: T, idx: number) => Validation<E, T1>,
+		builder: Builder<T1, TFinish>,
+	): Validation<E, TFinish> {
+		let acc = ok<Builder<T1, TFinish>, E>(builder);
+		let idx = 0;
+		for (const elem of elems) {
+			const that = f(elem, idx);
+			acc = acc.zipWith(that, (bldr, val) => {
+				bldr.add(val);
+				return bldr;
+			});
+			idx++;
+		}
+		return acc.map((bldr) => bldr.finish());
+	}
+
+	/**
+	 * Map the elements in an iterable to `Validation` and collect the successes
+	 * in an array.
+	 */
+	export function traverse<T, E extends Semigroup<E>, T1>(
+		elems: Iterable<T>,
+		f: (elem: T, idx: number) => Validation<E, T1>,
+	): Validation<E, T1[]> {
+		return traverseInto(elems, f, new ArrayPushBuilder());
+	}
+
+	/**
+	 * Evaluate the `Validation` in an iterable and collect the successes into a
+	 * `Builder`.
+	 *
+	 * @remarks
+	 *
+	 * If any `Validation` fails, the state of the provided `Builder` is
+	 * undefined.
+	 */
+	export function allInto<E extends Semigroup<E>, T, TFinish>(
+		vdns: Iterable<Validation<E, T>>,
+		builder: Builder<T, TFinish>,
+	): Validation<E, TFinish> {
+		return traverseInto(vdns, id, builder);
+	}
+
+	/**
+	 * Evaluate the `Validation` in an array or a tuple literal and collect the
+	 * successes in an equivalent structure.
+	 *
+	 * @remarks
+	 *
+	 * This function turns an array or a tuple literal of `Validation` "inside
+	 * out". For example:
 	 *
 	 * -   `Validation<E, T>[]` becomes `Validation<E, T[]>`
 	 * -   `[Validation<E, T1>, Validation<E, T2>]` becomes `Validation<E, [T1,
@@ -435,11 +197,13 @@ export namespace Validation {
 	>;
 
 	/**
-	 * Turn an iterable of `Validation` elements "inside out" using an array.
+	 * Evaluate the `Validation` in an iterable and collect the successes in an
+	 * array.
 	 *
 	 * @remarks
 	 *
-	 * For example, `Iterable<Validation<E, T>>` becomes `Validation<E, T[]>`.
+	 * This function turns an iterable of `Validation` "inside out". For
+	 * example, `Iterable<Validation<E, T>>` becomes `Validation<E, T[]>`.
 	 */
 	export function all<E extends Semigroup<E>, T>(
 		vdns: Iterable<Validation<E, T>>,
@@ -448,26 +212,17 @@ export namespace Validation {
 	export function all<E extends Semigroup<E>, T>(
 		vdns: Iterable<Validation<E, T>>,
 	): Validation<E, T[]> {
-		let acc = ok<T[], E>([]);
-		for (const vdn of vdns) {
-			acc = acc.zipWith(vdn, (results, val) => {
-				results.push(val);
-				return results;
-			});
-		}
-		return acc;
+		return traverse(vdns, id);
 	}
 
 	/**
-	 * Turn a string-keyed record or object literal of `Validation` elements
-	 * "inside out".
+	 * Evaluate the `Validation` in a string-keyed record or object literal and
+	 * collect the successes in an equivalent structure.
 	 *
 	 * @remarks
 	 *
-	 * This function enumerates only the object's own enumerable string-keyed
-	 * property key-value pairs.
-	 *
-	 * For example:
+	 * This function turns a string-keyed record or object literal of
+	 * `Validation` inside out". For example:
 	 *
 	 * -   `Record<string, Validation<E, T>>` becomes `Validation<E,
 	 *     Record<string, T>>`
@@ -477,24 +232,36 @@ export namespace Validation {
 	export function allProps<
 		TVdns extends Record<string, Validation<Semigroup<any>, any>>,
 	>(
-		vdns: TVdns,
+		props: TVdns,
 	): Validation<
 		ErrT<TVdns[keyof TVdns]>,
 		{ -readonly [K in keyof TVdns]: OkT<TVdns[K]> }
-	> {
-		let acc = ok<any, any>({});
-		for (const [key, vdn] of Object.entries(vdns)) {
-			acc = acc.zipWith(vdn, (results, val) => {
-				results[key] = val;
-				return results;
-			});
-		}
-		return acc;
+	>;
+
+	export function allProps<E extends Semigroup<E>, T>(
+		props: Record<string, Validation<E, T>>,
+	): Validation<E, Record<string, T>> {
+		return traverseInto(
+			Object.entries(props),
+			([key, elem]) => elem.map((val) => [key, val] as const),
+			new ObjectAssignBuilder(),
+		);
 	}
 
 	/**
-	 * Adapt a synchronous function to accept `Validation` values as arguments
-	 * and return a `Validation`.
+	 * Apply an action that returns `Validation` to the elements in an iterable
+	 * and ignore the successes.
+	 */
+	export function forEach<T, E extends Semigroup<E>>(
+		elems: Iterable<T>,
+		f: (elem: T, idx: number) => Validation<E, any>,
+	): Validation<E, void> {
+		return traverseInto(elems, f, new NoOpBuilder());
+	}
+
+	/**
+	 * Adapt a synchronous function to be applied in the context of
+	 * `Validation`.
 	 */
 	export function lift<TArgs extends unknown[], T>(
 		f: (...args: TArgs) => T,
@@ -508,201 +275,24 @@ export namespace Validation {
 			>;
 	}
 
-	/**
-	 * Concurrently turn an array or a tuple literal of promise-like
-	 * `Validation` elements "inside out".
-	 *
-	 * @remarks
-	 *
-	 * For example:
-	 *
-	 * -   `Promise<Validation<E, T>>[]` becomes `Promise<Validation<E, T[]>>`
-	 * -   `[Promise<Validation<E, T1L>, Promise<Validation<E, T2>>]` becomes
-	 *     `Promise<Validation<E, [T1, T2]>>`
-	 *
-	 * Failures are combined in the order the promise-like elements resolve.
-	 */
-	export function allAsync<
-		TElems extends
-			| readonly (
-					| Validation<Semigroup<any>, any>
-					| PromiseLike<Validation<Semigroup<any>, any>>
-			  )[]
-			| [],
-	>(
-		elems: TElems,
-	): Promise<
-		Validation<
-			ErrT<{ [K in keyof TElems]: Awaited<TElems[K]> }[number]>,
-			{ [K in keyof TElems]: OkT<Awaited<TElems[K]>> }
-		>
-	>;
-
-	/**
-	 * Concurrently turn an iterable of promise-like `Validation` elements
-	 * "inside out" using an array.
-	 *
-	 * @remarks
-	 *
-	 * For example, `Iterable<Promise<Validation<E, T>>>` becomes
-	 * `Promise<Validation<E, T[]>>`.
-	 *
-	 * Failures are combined in the order the promise-like elements resolve.
-	 */
-	export function allAsync<E extends Semigroup<E>, T>(
-		elems: Iterable<Validation<E, T> | PromiseLike<Validation<E, T>>>,
-	): Promise<Validation<E, T[]>>;
-
-	export function allAsync<E extends Semigroup<E>, T>(
-		elems: Iterable<Validation<E, T> | PromiseLike<Validation<E, T>>>,
-	): Promise<Validation<E, T[]>> {
-		return new Promise((resolve, reject) => {
-			const results: T[] = [];
-			let remaining = 0;
-			let acc: E | undefined;
-
-			for (const elem of elems) {
-				const idx = remaining;
-				remaining++;
-				Promise.resolve(elem).then((vdn) => {
-					if (vdn.isErr()) {
-						if (acc === undefined) {
-							acc = vdn.val;
-						} else {
-							acc = cmb(acc, vdn.val);
-						}
-					} else if (acc === undefined) {
-						results[idx] = vdn.val;
-					}
-
-					remaining--;
-					if (remaining === 0) {
-						if (acc === undefined) {
-							resolve(ok(results));
-						} else {
-							resolve(err(acc));
-						}
-						return;
-					}
-				}, reject);
-			}
-		});
-	}
-
-	/**
-	 * Concurrently turn a string-keyed record or object literal of promise-like
-	 * `Validation` elements "inside out".
-	 *
-	 * @remarks
-	 *
-	 * This function enumerates only the object's own enumerable string-keyed
-	 * property key-value pairs.
-	 *
-	 * For example:
-	 *
-	 * -   `Record<string, Validation<E, T>>` becomes `Validation<E,
-	 *     Record<string, T>>`
-	 * -   `{ x: Validation<E, T1>, y: Validation<E, T2> }` becomes
-	 *     `Validation<E, { x: T1, y: T2 }>`
-	 *
-	 * Failures are combined in the order the promise-like elements resolve.
-	 */
-	export function allPropsAsync<
-		TElems extends Record<
-			string,
-			| Validation<Semigroup<any>, any>
-			| PromiseLike<Validation<Semigroup<any>, any>>
-		>,
-	>(
-		elems: TElems,
-	): Promise<
-		Validation<
-			ErrT<{ [K in keyof TElems]: Awaited<TElems[K]> }[keyof TElems]>,
-			{ [K in keyof TElems]: OkT<Awaited<TElems[K]>> }
-		>
-	> {
-		return new Promise((resolve, reject) => {
-			const entries = Object.entries(elems);
-			const results: Record<string, any> = {};
-			let remaining = entries.length;
-			let acc: Semigroup<any> | undefined;
-
-			for (const [key, elem] of entries) {
-				Promise.resolve(elem).then((vdn) => {
-					if (vdn.isErr()) {
-						if (acc === undefined) {
-							acc = vdn.val;
-						} else {
-							acc = cmb(acc, vdn.val);
-						}
-					} else if (acc === undefined) {
-						results[key] = vdn.val;
-					}
-
-					remaining--;
-					if (remaining === 0) {
-						if (acc === undefined) {
-							resolve(ok(results as any));
-						} else {
-							resolve(err(acc as any));
-						}
-						return;
-					}
-				}, reject);
-			}
-		});
-	}
-
-	/**
-	 * Adapt a synchronous or an asynchronous function to accept promise-like
-	 * `Validation` values as arguments and return a `Promise` that resolves
-	 * with a `Validation`.
-	 *
-	 * @remarks
-	 *
-	 * The lifted function's arguments are evaluated concurrently. Failures are
-	 * combined in the order the arguments resolve.
-	 */
-	export function liftAsync<TArgs extends unknown[], T>(
-		f: (...args: TArgs) => T | PromiseLike<T>,
-	): <E extends Semigroup<E>>(
-		...elems: {
-			[K in keyof TArgs]:
-				| Validation<E, TArgs[K]>
-				| PromiseLike<Validation<E, TArgs[K]>>;
-		}
-	) => Promise<Validation<E, T>> {
-		return async (...elems) => {
-			const result = (await allAsync(elems)).map((args) =>
-				f(...(args as TArgs)),
-			);
-			if (result.isErr()) {
-				return result;
-			}
-			return ok(await result.val) as Validation<any, any>;
-		};
-	}
-
-	/**
-	 * An enumeration that discriminates `Validation`.
-	 */
+	/** An enumeration that discriminates `Validation`. */
 	export enum Kind {
 		ERR,
 		OK,
 	}
 
-	/**
-	 * The fluent syntax for `Validation`.
-	 */
+	/** The fluent syntax for `Validation`. */
 	export abstract class Syntax {
-		/**
-		 * The property that discriminates `Validation`.
-		 */
+		/** The property that discriminates `Validation`. */
 		abstract readonly kind: Kind;
 
 		/**
-		 * If this and that `Validation` are the same variant and their values
-		 * are equal, return `true`; otherwise, return `false`.
+		 * Compare this and that `Validation` to determine their equality.
+		 *
+		 * @remarks
+		 *
+		 * Two `Validation` are equal if they are the same variant and their
+		 * failures or successes are equal.
 		 */
 		[Eq.eq]<E extends Eq<E>, T extends Eq<T>>(
 			this: Validation<E, T>,
@@ -719,9 +309,9 @@ export namespace Validation {
 		 *
 		 * @remarks
 		 *
-		 * When ordered, a failed `Validation` always compares as less than any
-		 * successful `Validation`. If the variants are the same, their failures
-		 * or successes are compared to determine the ordering.
+		 * When ordered, `Err` always compares as less than `Ok`. If the
+		 * variants are the same, their failures or successes are compared to
+		 * determine the ordering.
 		 */
 		[Ord.cmp]<E extends Ord<E>, T extends Ord<T>>(
 			this: Validation<E, T>,
@@ -734,9 +324,7 @@ export namespace Validation {
 		}
 
 		/**
-		 * If this and that `Validation` both succeed, combine their successes
-		 * and succeed with the result; otherwise, begin accumulating failures
-		 * on the first failed `Validation`.
+		 * If this and that `Validation` both succeed, combine their successes.
 		 */
 		[Semigroup.cmb]<E extends Semigroup<E>, T extends Semigroup<T>>(
 			this: Validation<E, T>,
@@ -745,22 +333,19 @@ export namespace Validation {
 			return this.zipWith(that, cmb);
 		}
 
-		/**
-		 * Test whether this `Validation` has failed.
-		 */
+		/** Test whether this `Validation` has failed. */
 		isErr<E>(this: Validation<E, any>): this is Err<E> {
 			return this.kind === Kind.ERR;
 		}
 
-		/**
-		 * Test whether this `Validation` has succeeded.
-		 */
+		/** Test whether this `Validation` has succeeded. */
 		isOk<T>(this: Validation<any, T>): this is Ok<T> {
 			return this.kind === Kind.OK;
 		}
 
 		/**
-		 * Case analysis for `Validation`.
+		 * Apply one of two functions to extract the failure or success out of
+		 * this `Validation`, depending on the variant.
 		 */
 		unwrap<E, T, T1, T2>(
 			this: Validation<E, T>,
@@ -771,8 +356,8 @@ export namespace Validation {
 		}
 
 		/**
-		 * If this `Validation` succeeds, return that `Validation`; otherwise,
-		 * begin accumulating failures on this `Validation`.
+		 * If this `Validation` succeeds, ignore the success and return that
+		 * `Validation`.
 		 */
 		and<E extends Semigroup<E>, T1>(
 			this: Validation<E, any>,
@@ -782,9 +367,8 @@ export namespace Validation {
 		}
 
 		/**
-		 * If this and that `Validation` both succeed, apply a function to their
-		 * successes and succeed with the result; otherwise, begin accumulating
-		 * failures on the first failed `Validation`.
+		 * If this and that `Validation` succeed, apply a function to combine
+		 * their successes.
 		 */
 		zipWith<E extends Semigroup<E>, T, T1, T2>(
 			this: Validation<E, T>,
@@ -797,10 +381,7 @@ export namespace Validation {
 			return that.isErr() ? that : ok(f(this.val, that.val));
 		}
 
-		/**
-		 * If this `Validation` fails, apply a function to its failure and fail
-		 * with the result; otherwise, return this `Validation` as is.
-		 */
+		/** If this `Validation` fails, apply a function to map its failure. */
 		lmap<E, T, E1>(
 			this: Validation<E, T>,
 			f: (val: E) => E1,
@@ -809,8 +390,7 @@ export namespace Validation {
 		}
 
 		/**
-		 * If this `Validation` succeeds, apply a function to its success and
-		 * succeed with the result; otherwise, return this `Validation` as is.
+		 * If this `Validation` succeeds, apply a function to map its success.
 		 */
 		map<E, T, T1>(
 			this: Validation<E, T>,
@@ -820,15 +400,11 @@ export namespace Validation {
 		}
 	}
 
-	/**
-	 * A failed `Validation`.
-	 */
+	/** A failed `Validation`. */
 	export class Err<out E> extends Syntax {
 		readonly kind = Kind.ERR;
 
-		/**
-		 * The value of this `Validation`.
-		 */
+		/** The failure of this `Validation`. */
 		readonly val: E;
 
 		constructor(val: E) {
@@ -837,15 +413,11 @@ export namespace Validation {
 		}
 	}
 
-	/**
-	 * A successful `Validation`.
-	 */
+	/** A successful `Validation`. */
 	export class Ok<out T> extends Syntax {
 		readonly kind = Kind.OK;
 
-		/**
-		 * The value of this `Validation`.
-		 */
+		/** The success of this `Validation`. */
 		readonly val: T;
 
 		constructor(val: T) {
@@ -854,21 +426,335 @@ export namespace Validation {
 		}
 	}
 
-	/**
-	 * Extract the failure type `E` from the type `Validation<E, T>`.
-	 */
+	/** Extract the failure type `E` from the type `Validation<E, T>`. */
 	export type ErrT<TVdn extends Validation<any, any>> = [TVdn] extends [
 		Validation<infer E, any>,
 	]
 		? E
 		: never;
 
-	/**
-	 * Extract the success type `T` from the type `Validation<E, T>`.
-	 */
+	/** Extract the success type `T` from the type `Validation<E, T>`. */
 	export type OkT<TVdn extends Validation<any, any>> = [TVdn] extends [
 		Validation<any, infer T>,
 	]
 		? T
 		: never;
+}
+
+/** A promise-like object that fulfills with `Validation`. */
+export type AsyncValidationLike<E, T> = PromiseLike<Validation<E, T>>;
+
+/** A promise that fulfills with `Validation`. */
+export type AsyncValidation<E, T> = Promise<Validation<E, T>>;
+
+/**
+ * The companion namespace for the
+ * {@link AsyncValidation:type | `AsyncValidation<E, T>`} type.
+ *
+ * @remarks
+ *
+ * This namespace provides functions for collecting into `AsyncValidation`.
+ */
+export namespace AsyncValidation {
+	/**
+	 * Map the elements in an async iterable to `Validation` or
+	 * `AsyncValidationLike` and collect the successes into a `Builder`.
+	 *
+	 * @remarks
+	 *
+	 * If any `Validation` fails, the state of the provided `Builder` is
+	 * undefined.
+	 */
+	export async function traverseInto<T, E extends Semigroup<E>, T1, TFinish>(
+		elems: AsyncIterable<T>,
+		f: (
+			elem: T,
+			idx: number,
+		) => Validation<E, T1> | AsyncValidationLike<E, T1>,
+		builder: Builder<T1, TFinish>,
+	): AsyncValidation<E, TFinish> {
+		let acc = Validation.ok<Builder<T1, TFinish>, E>(builder);
+		let idx = 0;
+		for await (const elem of elems) {
+			const that = await f(elem, idx);
+			acc = acc.zipWith(that, (bldr, val) => {
+				bldr.add(val);
+				return bldr;
+			});
+			idx++;
+		}
+		return acc.map((bldr) => bldr.finish());
+	}
+
+	/**
+	 * Map the elements in an async iterable to `Validation` or
+	 * `AsyncValidationLike` and collect the successes in an array.
+	 */
+	export function traverse<T, E extends Semigroup<E>, T1>(
+		elems: AsyncIterable<T>,
+		f: (
+			elem: T,
+			idx: number,
+		) => Validation<E, T1> | AsyncValidationLike<E, T1>,
+	): AsyncValidation<E, T1[]> {
+		return traverseInto(elems, f, new ArrayPushBuilder());
+	}
+
+	/**
+	 * Evaluate the `Validation` in an async iterable and collect the successes
+	 * into a `Builder`.
+	 *
+	 * @remarks
+	 *
+	 * If any `Validation` fails, the state of the provided `Builder` is
+	 * undefined.
+	 */
+	export function allInto<E extends Semigroup<E>, T, TFinish>(
+		elems: AsyncIterable<Validation<E, T>>,
+		builder: Builder<T, TFinish>,
+	): AsyncValidation<E, TFinish> {
+		return traverseInto(elems, id, builder);
+	}
+
+	/**
+	 * Evaluate the `Validation` in an async iterable and collect the successes
+	 * in an array.
+	 *
+	 * @remarks
+	 *
+	 * This function turns an iterable of `Validation` "inside out". For
+	 * example, `AsyncIterable<Validation<E, T>>` becomes `AsyncValidation<E,
+	 * T[]>`.
+	 */
+	export function all<E extends Semigroup<E>, T>(
+		elems: AsyncIterable<Validation<E, T>>,
+	): AsyncValidation<E, T[]> {
+		return traverse(elems, id);
+	}
+
+	/**
+	 * Apply an action that returns `Validation` or `AsyncValidationLike` to the
+	 * elements in an async iterable and ignore the successes.
+	 */
+	export function forEach<T, E extends Semigroup<E>>(
+		elems: AsyncIterable<T>,
+		f: (
+			elem: T,
+			idx: number,
+		) => Validation<E, any> | AsyncValidationLike<E, any>,
+	): AsyncValidation<E, void> {
+		return traverseInto(elems, f, new NoOpBuilder());
+	}
+
+	/**
+	 * Concurrently map the elements in an iterable to `Validation` or
+	 * `AsyncValidationLike` and collect the successes into a `Builder`.
+	 *
+	 * @remarks
+	 *
+	 * If any `Validation` fails, the state of the provided `Builder` is
+	 * undefined.
+	 */
+	export function traverseIntoPar<T, E extends Semigroup<E>, T1, TFinish>(
+		elems: Iterable<T>,
+		f: (
+			elem: T,
+			idx: number,
+		) => Validation<E, T1> | AsyncValidationLike<E, T1>,
+		builder: Builder<T1, TFinish>,
+	): AsyncValidation<E, TFinish> {
+		return new Promise((resolve, reject) => {
+			let remaining = 0;
+			let acc: E | undefined;
+
+			for (const elem of elems) {
+				const idx = remaining;
+				remaining++;
+				Promise.resolve(f(elem, idx)).then((vdn) => {
+					if (vdn.isErr()) {
+						if (acc === undefined) {
+							acc = vdn.val;
+						} else {
+							acc = cmb(acc, vdn.val);
+						}
+					} else if (acc === undefined) {
+						builder.add(vdn.val);
+					}
+
+					remaining--;
+					if (remaining === 0) {
+						if (acc === undefined) {
+							resolve(Validation.ok(builder.finish()));
+						} else {
+							resolve(Validation.err(acc));
+						}
+						return;
+					}
+				}, reject);
+			}
+		});
+	}
+
+	/**
+	 * Concurrently map the elements in an iterable to `Validation` or
+	 * `AsyncValidationLike` and collect the successes in an array.
+	 */
+	export function traversePar<T, E extends Semigroup<E>, T1>(
+		elems: Iterable<T>,
+		f: (
+			elem: T,
+			idx: number,
+		) => Validation<E, T1> | AsyncValidationLike<E, T1>,
+	): AsyncValidation<E, T1[]> {
+		return traverseIntoPar(
+			elems,
+			async (elem, idx) =>
+				(await f(elem, idx)).map((val): [number, T1] => [idx, val]),
+			new ArrayAssignBuilder(),
+		);
+	}
+
+	/**
+	 * Concurrently evaluate `Validation` or `AsyncValidationLike` in an
+	 * iterable and collect the successes into a `Builder`.
+	 *
+	 * @remarks
+	 *
+	 * If any `Validation` fails, the state of the provided `Builder` is
+	 * undefined.
+	 */
+	export function allIntoPar<E extends Semigroup<E>, T, TFinish>(
+		elems: Iterable<Validation<E, T> | AsyncValidationLike<E, T>>,
+		builder: Builder<T, TFinish>,
+	): AsyncValidation<E, TFinish> {
+		return traverseIntoPar(elems, id, builder);
+	}
+
+	/**
+	 * Concurrently evaluate the `Validation` or `AsyncValidationLike` in an
+	 * array or a tuple literal and collect the successes in an equivalent
+	 * structure.
+	 *
+	 * @remarks
+	 *
+	 * This function turns an array or a tuple literal of `Validation` or
+	 * `AsyncValidationLike` "inside out". For example:
+	 *
+	 * -   `AsyncValidation<E, T>[]` becomes `AsyncValidation<E, T[]>`
+	 * -   `[AsyncValidation<E, T1>, AsyncValidation<E, T2>]` becomes
+	 *     `AsyncValidation<E, [T1, T2]>`
+	 */
+	export function allPar<
+		TElems extends
+			| readonly (
+					| Validation<Semigroup<any>, any>
+					| AsyncValidationLike<Semigroup<any>, any>
+			  )[]
+			| [],
+	>(
+		elems: TElems,
+	): AsyncValidation<
+		Validation.ErrT<{ [K in keyof TElems]: Awaited<TElems[K]> }[number]>,
+		{ [K in keyof TElems]: Validation.OkT<Awaited<TElems[K]>> }
+	>;
+
+	/**
+	 * Concurrently evaluate the `Validation` or `AsyncValidationLike` in an
+	 * iterable and collect the successes in an array.
+	 *
+	 * @remarks
+	 *
+	 * This function turns an iterable of `Validation` or `AsyncValidationLike`
+	 * "inside out". For example, `Iterable<AsyncValidation<E, T>>` becomes
+	 * `AsyncValidation<E, T[]>`.
+	 */
+	export function allPar<E extends Semigroup<E>, T>(
+		elems: Iterable<Validation<E, T> | AsyncValidationLike<E, T>>,
+	): AsyncValidation<E, T[]>;
+
+	export function allPar<E extends Semigroup<E>, T>(
+		elems: Iterable<Validation<E, T> | AsyncValidationLike<E, T>>,
+	): AsyncValidation<E, T[]> {
+		return traversePar(elems, id);
+	}
+
+	/**
+	 * Concurrently evaluate the `Validation` or `AsyncValidationLike` in a
+	 * string-keyed record or object literal and collect the successes in an
+	 * equivalent structure.
+	 *
+	 * @remarks
+	 *
+	 * This function turns a string-keyed record or object literal of
+	 * `Validation` or `AsyncValidationLike` "inside out". For example:
+	 *
+	 * -   `Record<string, AsyncValidation<E, T>>` becomes `AsyncValidation<E,
+	 *     Record<string, T>>`
+	 * -   `{ x: AsyncValidation<E, T1>, y: AsyncValidation<E, T2> }` becomes
+	 *     `AsyncValidation<E, { x: T1, y: T2 }>`
+	 */
+	export function allPropsPar<
+		TProps extends Record<
+			string,
+			| Validation<Semigroup<any>, any>
+			| AsyncValidationLike<Semigroup<any>, any>
+		>,
+	>(
+		props: TProps,
+	): AsyncValidation<
+		Validation.ErrT<
+			{ [K in keyof TProps]: Awaited<TProps[K]> }[keyof TProps]
+		>,
+		{ [K in keyof TProps]: Validation.OkT<Awaited<TProps[K]>> }
+	>;
+
+	export function allPropsPar<E extends Semigroup<E>, T>(
+		props: Record<string, Validation<E, T> | AsyncValidationLike<E, T>>,
+	): AsyncValidation<E, Record<string, T>> {
+		return traverseIntoPar(
+			Object.entries(props),
+			async ([key, elem]) =>
+				(await elem).map((val) => [key, val] as const),
+			new ObjectAssignBuilder(),
+		);
+	}
+
+	/**
+	 * Concurrently apply an action that returns `Validation` or\
+	 * `AsyncValidationLike` to the elements in an iterable and ignore the
+	 * successes.
+	 */
+	export function forEachPar<T, E extends Semigroup<E>>(
+		elems: Iterable<T>,
+		f: (
+			elem: T,
+			idx: number,
+		) => Validation<E, any> | AsyncValidationLike<E, any>,
+	): AsyncValidation<E, void> {
+		return traverseIntoPar(elems, f, new NoOpBuilder());
+	}
+
+	/**
+	 * Adapt a synchronous or an asynchronous function to be applied in the
+	 * context of `Validation` or `AsyncValidationLike`.
+	 */
+	export function liftPar<TArgs extends unknown[], T>(
+		f: (...args: TArgs) => T | PromiseLike<T>,
+	): <E extends Semigroup<E>>(
+		...elems: {
+			[K in keyof TArgs]:
+				| Validation<E, TArgs[K]>
+				| AsyncValidationLike<E, TArgs[K]>;
+		}
+	) => AsyncValidation<E, T> {
+		return async (...elems) => {
+			const result = (await allPar(elems)).map((args) =>
+				f(...(args as TArgs)),
+			);
+			if (result.isErr()) {
+				return result;
+			}
+			return Validation.ok(await result.val) as Validation<any, any>;
+		};
+	}
 }

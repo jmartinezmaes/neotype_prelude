@@ -35,6 +35,7 @@
 	},
 	"exports": {
 		"./_*": null,
+		"./builder.js": "./dist/builder.js",
 		"./cmb.js": "./dist/cmb.js",
 		"./cmp.js": "./dist/cmp.js",
 		"./either.js": "./dist/either.js",
