@@ -324,6 +324,7 @@ export function ieqBy<T>(
 ): boolean {
 	const lhsIter = lhs[Symbol.iterator]();
 	const rhsIter = rhs[Symbol.iterator]();
+	let result = false;
 
 	for (
 		let lhsNxt = lhsIter.next(), rhsNxt = rhsIter.next();
@@ -331,15 +332,17 @@ export function ieqBy<T>(
 		lhsNxt = lhsIter.next(), rhsNxt = rhsIter.next()
 	) {
 		if (lhsNxt.done) {
-			return !!rhsNxt.done;
+			result = !!rhsNxt.done;
+			break;
 		}
 		if (rhsNxt.done) {
-			return false;
+			break;
 		}
 		if (!eqBy(lhsNxt.value, rhsNxt.value)) {
-			return false;
+			break;
 		}
 	}
+	return result;
 }
 
 /**
@@ -683,6 +686,7 @@ export function icmpBy<T>(
 ): Ordering {
 	const lhsIter = lhs[Symbol.iterator]();
 	const rhsIter = rhs[Symbol.iterator]();
+	let result: Ordering;
 
 	for (
 		let lhsNxt = lhsIter.next(), rhsNxt = rhsIter.next();
@@ -690,16 +694,20 @@ export function icmpBy<T>(
 		lhsNxt = lhsIter.next(), rhsNxt = rhsIter.next()
 	) {
 		if (lhsNxt.done) {
-			return rhsNxt.done ? Ordering.equal : Ordering.less;
+			result = rhsNxt.done ? Ordering.equal : Ordering.less;
+			break;
 		}
 		if (rhsNxt.done) {
-			return Ordering.greater;
+			result = Ordering.greater;
+			break;
 		}
 		const ordering = cmpBy(lhsNxt.value, rhsNxt.value);
 		if (ordering.isNe()) {
-			return ordering;
+			result = ordering;
+			break;
 		}
 	}
+	return result;
 }
 
 /**
