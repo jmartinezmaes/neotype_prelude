@@ -57,14 +57,14 @@ export function arbStr(): fc.Arbitrary<Str> {
 }
 
 export class TestBuilder<in out T> implements Builder<T, T[]> {
-	elems: T[] = [];
+	output: T[] = [];
 
-	add(elem: T): void {
-		this.elems.push(elem);
+	add(input: T): void {
+		this.output.push(input);
 	}
 
 	finish(): T[] {
-		return this.elems;
+		return this.output;
 	}
 }
 
