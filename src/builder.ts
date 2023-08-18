@@ -40,7 +40,7 @@ import { cmb, type Semigroup } from "./cmb.js";
 /** An interface that produces a result from added values. */
 export interface Builder<in T, out TFinish> {
 	/** Add a single element to this builder. */
-	add(val: T): void;
+	add(input: T): void;
 
 	/**
 	 * Return the result of all elements added to this builder.
