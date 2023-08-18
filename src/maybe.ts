@@ -152,6 +152,16 @@ export namespace Maybe {
 	}
 
 	/**
+	 * Adapt a generator function that returns `Maybe.Go` into a function that
+	 * returns `Maybe`.
+	 */
+	export function wrapGo<T, TReturn>(
+		f: (val: T) => Go<TReturn>,
+	): (val: T) => Maybe<TReturn> {
+		return (val) => go(f(val));
+	}
+
+	/**
 	 * Accumulate the elements in an iterable using a reducer function that
 	 * returns `Maybe`.
 	 */
@@ -574,6 +584,16 @@ export namespace AsyncMaybe {
 			}
 		}
 		return isHalted ? Maybe.nothing : Maybe.just(nxt.value);
+	}
+
+	/**
+	 * Adapt an async generator function that returns `AsyncMaybe.Go` into an
+	 * async function that returns `AsyncMaybe`.
+	 */
+	export function wrapGo<T, TReturn>(
+		f: (val: T) => Go<TReturn>,
+	): (val: T) => AsyncMaybe<TReturn> {
+		return (val) => go(f(val));
 	}
 
 	/**

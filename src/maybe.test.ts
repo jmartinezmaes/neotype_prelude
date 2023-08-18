@@ -149,6 +149,18 @@ describe("Maybe", () => {
 		});
 	});
 
+	describe("wrapGo", () => {
+		it("adapts the generator function to return a Maybe", () => {
+			function* f(two: 2): Maybe.Go<[2, 4]> {
+				const four = yield* Maybe.just<4>(4);
+				return [two, four];
+			}
+			const wrapped = Maybe.wrapGo(f);
+			const maybe = wrapped(2);
+			expect(maybe).to.deep.equal(Maybe.just([2, 4]));
+		});
+	});
+
 	describe("reduce", () => {
 		it("reduces the finite iterable from left to right in the context of Maybe", () => {
 			const maybe = Maybe.reduce(
@@ -573,7 +585,7 @@ describe("Maybe", () => {
 });
 
 describe("AsyncMaybe", () => {
-	describe("goAsync", async () => {
+	describe("go", async () => {
 		it("short-circuits on the first yielded Nothing", async () => {
 			async function* f(): AsyncMaybe.Go<[1, 2]> {
 				const one = yield* await Promise.resolve(Maybe.just<1>(1));
@@ -632,6 +644,18 @@ describe("AsyncMaybe", () => {
 			}
 			const maybe = await AsyncMaybe.go(f());
 			expect(maybe).to.equal(Maybe.nothing);
+		});
+	});
+
+	describe("wrapGo", () => {
+		it("adapts the async generator function to return an AsyncMaybe", async () => {
+			async function* f(two: 2): AsyncMaybe.Go<[2, 4]> {
+				const four = yield* await Promise.resolve(Maybe.just<4>(4));
+				return [two, four];
+			}
+			const wrapped = AsyncMaybe.wrapGo(f);
+			const maybe = await wrapped(2);
+			expect(maybe).to.deep.equal(Maybe.just([2, 4]));
 		});
 	});
 

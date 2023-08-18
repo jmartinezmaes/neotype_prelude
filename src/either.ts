@@ -139,6 +139,16 @@ export namespace Either {
 	}
 
 	/**
+	 * Adapt a generator function that returns `Either.Go` into a function that
+	 * returns `Either`.
+	 */
+	export function wrapGo<T, E, TReturn>(
+		f: (val: T) => Go<E, TReturn>,
+	): (val: T) => Either<E, TReturn> {
+		return (val) => go(f(val));
+	}
+
+	/**
 	 * Accumulate the elements in an iterable using a reducer function that
 	 * returns `Either`.
 	 */
@@ -546,6 +556,16 @@ export namespace AsyncEither {
 			}
 		}
 		return isHalted ? Either.left(err) : Either.right(nxt.value);
+	}
+
+	/**
+	 * Adapt an async generator function that returns `AsyncEither.Go` into an
+	 * async function that returns `AsyncEither`.
+	 */
+	export function wrapGo<T, E, TReturn>(
+		f: (val: T) => Go<E, TReturn>,
+	): (val: T) => AsyncEither<E, TReturn> {
+		return (val) => go(f(val));
 	}
 
 	/**
