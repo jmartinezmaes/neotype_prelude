@@ -4,7 +4,7 @@
 	"description": "Functional programming essentials for TypeScript",
 	"repository": {
 		"type": "git",
-		"url": "https://github.com/jm4rtinez/neotype_prelude.git"
+		"url": "https://github.com/jmartinezmaes/neotype_prelude.git"
 	},
 	"keywords": [
 		"adt",
@@ -17,9 +17,9 @@
 	],
 	"author": "Josh Martinez",
 	"license": "Apache-2.0",
-	"homepage": "https://github.com/jm4rtinez/neotype_prelude#readme",
+	"homepage": "https://github.com/jmartinezmaes/neotype_prelude#readme",
 	"bugs": {
-		"url": "https://github.com/jm4rtinez/neotype_prelude/issues"
+		"url": "https://github.com/jmartinezmaes/neotype_prelude/issues"
 	},
 	"files": [
 		"dist",

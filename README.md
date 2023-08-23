@@ -2,12 +2,12 @@
 
 Functional programming essentials for TypeScript
 
-[![Build and Test](https://github.com/jm4rtinez/neotype_prelude/actions/workflows/build_and_test.yml/badge.svg)](https://github.com/jm4rtinez/neotype_prelude/actions/workflows/build_and_test.yml)
+[![Build and Test](https://github.com/jmartinezmaes/neotype_prelude/actions/workflows/build_and_test.yml/badge.svg)](https://github.com/jmartinezmaes/neotype_prelude/actions/workflows/build_and_test.yml)
 [![NPM Version](https://img.shields.io/npm/v/@neotype/prelude?color=33cd56&logo=npm)](https://www.npmjs.com/package/@neotype/prelude)
 
 ## Quick links
 
--   [Documentation](https://jm4rtinez.github.io/neotype_prelude/)
+-   [Documentation](https://jmartinezmaes.github.io/neotype_prelude/)
 
 ## Features
 
