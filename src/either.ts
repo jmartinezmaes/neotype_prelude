@@ -124,18 +124,18 @@ export namespace Either {
 	export function go<E, TReturn>(gen: Go<E, TReturn>): Either<E, TReturn> {
 		let nxt = gen.next();
 		let err: any;
-		let isHalted = false;
+		let halted = false;
 		while (!nxt.done) {
 			const either = nxt.value;
 			if (either.isRight()) {
 				nxt = gen.next(either.val);
 			} else {
-				isHalted = true;
+				halted = true;
 				err = either.val;
 				nxt = gen.return(undefined as any);
 			}
 		}
-		return isHalted ? left(err) : right(nxt.value);
+		return halted ? left(err) : right(nxt.value);
 	}
 
 	/**
@@ -544,18 +544,18 @@ export namespace AsyncEither {
 	): AsyncEither<E, TReturn> {
 		let nxt = await gen.next();
 		let err: any;
-		let isHalted = false;
+		let halted = false;
 		while (!nxt.done) {
 			const either = nxt.value;
 			if (either.isRight()) {
 				nxt = await gen.next(either.val);
 			} else {
-				isHalted = true;
+				halted = true;
 				err = either.val;
 				nxt = await gen.return(undefined as any);
 			}
 		}
-		return isHalted ? Either.left(err) : Either.right(nxt.value);
+		return halted ? Either.left(err) : Either.right(nxt.value);
 	}
 
 	/**

@@ -138,17 +138,17 @@ export namespace Maybe {
 	/** Evaluate a `Maybe.Go` generator to return a `Maybe`. */
 	export function go<TReturn>(gen: Go<TReturn>): Maybe<TReturn> {
 		let nxt = gen.next();
-		let isHalted = false;
+		let halted = false;
 		while (!nxt.done) {
 			const maybe = nxt.value;
 			if (maybe.isJust()) {
 				nxt = gen.next(maybe.val);
 			} else {
-				isHalted = true;
+				halted = true;
 				nxt = gen.return(undefined as any);
 			}
 		}
-		return isHalted ? nothing : just(nxt.value);
+		return halted ? nothing : just(nxt.value);
 	}
 
 	/**
@@ -573,17 +573,17 @@ export namespace AsyncMaybe {
 		gen: Go<TReturn>,
 	): Promise<Maybe<TReturn>> {
 		let nxt = await gen.next();
-		let isHalted = false;
+		let halted = false;
 		while (!nxt.done) {
 			const maybe = nxt.value;
 			if (maybe.isJust()) {
 				nxt = await gen.next(maybe.val);
 			} else {
-				isHalted = true;
+				halted = true;
 				nxt = await gen.return(undefined as any);
 			}
 		}
-		return isHalted ? Maybe.nothing : Maybe.just(nxt.value);
+		return halted ? Maybe.nothing : Maybe.just(nxt.value);
 	}
 
 	/**

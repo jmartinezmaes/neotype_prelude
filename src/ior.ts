@@ -150,7 +150,7 @@ export namespace Ior {
 	): Ior<A, TReturn> {
 		let nxt = gen.next();
 		let acc: A | undefined;
-		let isHalted = false;
+		let halted = false;
 
 		while (!nxt.done) {
 			const ior = nxt.value;
@@ -164,7 +164,7 @@ export namespace Ior {
 				}
 				nxt = gen.next(ior.snd);
 			} else {
-				isHalted = true;
+				halted = true;
 				if (acc === undefined) {
 					acc = ior.val;
 				} else {
@@ -174,7 +174,7 @@ export namespace Ior {
 			}
 		}
 
-		if (isHalted) {
+		if (halted) {
 			return left(acc as A);
 		}
 		if (acc === undefined) {
@@ -689,7 +689,7 @@ export namespace AsyncIor {
 	): AsyncIor<A, TReturn> {
 		let nxt = await gen.next();
 		let acc: A | undefined;
-		let isHalted = false;
+		let halted = false;
 
 		while (!nxt.done) {
 			const ior = nxt.value;
@@ -703,7 +703,7 @@ export namespace AsyncIor {
 				}
 				nxt = await gen.next(ior.snd);
 			} else {
-				isHalted = true;
+				halted = true;
 				if (acc === undefined) {
 					acc = ior.val;
 				} else {
@@ -713,7 +713,7 @@ export namespace AsyncIor {
 			}
 		}
 
-		if (isHalted) {
+		if (halted) {
 			return Ior.left(acc as A);
 		}
 		if (acc === undefined) {
