@@ -150,7 +150,7 @@ describe("SemigroupCmbBuilder", () => {
 
 describe("NoOpBuilder", () => {
 	it("does not build anything and ignores all elements", () => {
-		const builder: Builder<unknown, void> = new NoOpBuilder();
+		const builder: Builder<unknown, unknown> = new NoOpBuilder();
 		builder.add(1);
 		builder.add(2);
 		const output = builder.finish();

@@ -139,7 +139,7 @@ describe("Validation", () => {
 			const results: [number, string][] = [];
 			const vdn = Validation.forEach(["a", "b"], (char, idx) => {
 				results.push([idx, char]);
-				return Validation.ok<void, Str>(undefined);
+				return Validation.ok<undefined, Str>(undefined);
 			});
 			expect(vdn).to.deep.equal(Validation.ok(undefined));
 			expect(results).to.deep.equal([
@@ -439,7 +439,7 @@ describe("AsyncValidation", () => {
 			const vdn = await AsyncValidation.forEach(gen(), (char, idx) =>
 				delay(1).then(() => {
 					results.push([idx, char]);
-					return Validation.ok<void, Str>(undefined);
+					return Validation.ok<undefined, Str>(undefined);
 				}),
 			);
 			expect(vdn).to.deep.equal(Validation.ok(undefined));
@@ -544,7 +544,7 @@ describe("AsyncValidation", () => {
 				(char, idx) =>
 					delay(char === "a" ? 50 : 10).then(() => {
 						results.push([idx, char]);
-						return Validation.ok<void, Str>(undefined);
+						return Validation.ok<undefined, Str>(undefined);
 					}),
 			);
 			expect(vdn).to.deep.equal(Validation.ok(undefined));

@@ -145,7 +145,7 @@ export namespace Maybe {
 				nxt = gen.next(maybe.val);
 			} else {
 				halted = true;
-				nxt = gen.return(undefined as any);
+				nxt = gen.return(undefined as never);
 			}
 		}
 		return halted ? nothing : just(nxt.value);
@@ -516,7 +516,7 @@ export namespace Maybe {
 			super();
 		}
 
-		*[Symbol.iterator](): Generator<Maybe<never>, never, unknown> {
+		*[Symbol.iterator](): Generator<Maybe<never>, never> {
 			return (yield this) as never;
 		}
 	}
@@ -533,7 +533,7 @@ export namespace Maybe {
 			this.val = val;
 		}
 
-		*[Symbol.iterator](): Generator<Maybe<T>, T, unknown> {
+		*[Symbol.iterator](): Generator<Maybe<T>, T> {
 			return (yield this) as T;
 		}
 	}
@@ -542,7 +542,7 @@ export namespace Maybe {
 	export const nothing = Maybe.Nothing.singleton as Maybe<never>;
 
 	/** A generator that yields `Maybe` and returns a value. */
-	export type Go<TReturn> = Generator<Maybe<unknown>, TReturn, unknown>;
+	export type Go<TReturn> = Generator<Maybe<unknown>, TReturn>;
 
 	/** Extract the `Just` value type `T` from the type `Maybe<T>`. */
 	export type JustT<TMaybe extends Maybe<any>> = TMaybe extends Maybe<infer T>
@@ -580,7 +580,7 @@ export namespace AsyncMaybe {
 				nxt = await gen.next(maybe.val);
 			} else {
 				halted = true;
-				nxt = await gen.return(undefined as any);
+				nxt = await gen.return(undefined as never);
 			}
 		}
 		return halted ? Maybe.nothing : Maybe.just(nxt.value);
@@ -860,5 +860,5 @@ export namespace AsyncMaybe {
 	}
 
 	/** An async generator that yields `Maybe` and returns a value. */
-	export type Go<TReturn> = AsyncGenerator<Maybe<unknown>, TReturn, unknown>;
+	export type Go<TReturn> = AsyncGenerator<Maybe<unknown>, TReturn>;
 }

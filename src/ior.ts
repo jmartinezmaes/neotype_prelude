@@ -170,12 +170,13 @@ export namespace Ior {
 				} else {
 					acc = cmb(acc, ior.val);
 				}
-				nxt = gen.return(undefined as any);
+				nxt = gen.return(undefined as never);
 			}
 		}
 
 		if (halted) {
-			return left(acc as A);
+			// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+			return left(acc!);
 		}
 		if (acc === undefined) {
 			return right(nxt.value);
@@ -595,7 +596,7 @@ export namespace Ior {
 			this.val = val;
 		}
 
-		*[Symbol.iterator](): Generator<Ior<A, never>, never, unknown> {
+		*[Symbol.iterator](): Generator<Ior<A, never>, never> {
 			return (yield this) as never;
 		}
 	}
@@ -612,7 +613,7 @@ export namespace Ior {
 			this.val = val;
 		}
 
-		*[Symbol.iterator](): Generator<Ior<never, B>, B, unknown> {
+		*[Symbol.iterator](): Generator<Ior<never, B>, B> {
 			return (yield this) as B;
 		}
 	}
@@ -640,7 +641,7 @@ export namespace Ior {
 			this.snd = snd;
 		}
 
-		*[Symbol.iterator](): Generator<Ior<A, B>, B, unknown> {
+		*[Symbol.iterator](): Generator<Ior<A, B>, B> {
 			return (yield this) as B;
 		}
 	}
@@ -648,8 +649,7 @@ export namespace Ior {
 	/** A generator that yields `Ior` and returns a value. */
 	export type Go<A extends Semigroup<A>, TReturn> = Generator<
 		Ior<A, unknown>,
-		TReturn,
-		unknown
+		TReturn
 	>;
 
 	/** Extract the left-hand value type `A` from the type `Ior<A, B>`. */
@@ -709,12 +709,13 @@ export namespace AsyncIor {
 				} else {
 					acc = cmb(acc, ior.val);
 				}
-				nxt = await gen.return(undefined as any);
+				nxt = await gen.return(undefined as never);
 			}
 		}
 
 		if (halted) {
-			return Ior.left(acc as A);
+			// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+			return Ior.left(acc!);
 		}
 		if (acc === undefined) {
 			return Ior.right(nxt.value);
@@ -1033,7 +1034,6 @@ export namespace AsyncIor {
 	/** An async generator that yields `Ior` and returns a value. */
 	export type Go<A extends Semigroup<A>, TReturn> = AsyncGenerator<
 		Ior<A, unknown>,
-		TReturn,
-		unknown
+		TReturn
 	>;
 }

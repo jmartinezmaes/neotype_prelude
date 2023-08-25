@@ -132,7 +132,7 @@ export namespace Either {
 			} else {
 				halted = true;
 				err = either.val;
-				nxt = gen.return(undefined as any);
+				nxt = gen.return(undefined as never);
 			}
 		}
 		return halted ? left(err) : right(nxt.value);
@@ -476,7 +476,7 @@ export namespace Either {
 			this.val = val;
 		}
 
-		*[Symbol.iterator](): Generator<Either<A, never>, never, unknown> {
+		*[Symbol.iterator](): Generator<Either<A, never>, never> {
 			return (yield this) as never;
 		}
 	}
@@ -493,17 +493,13 @@ export namespace Either {
 			this.val = val;
 		}
 
-		*[Symbol.iterator](): Generator<Either<never, B>, B, unknown> {
+		*[Symbol.iterator](): Generator<Either<never, B>, B> {
 			return (yield this) as B;
 		}
 	}
 
 	/** A generator that yields `Either` and returns a value. */
-	export type Go<E, TReturn> = Generator<
-		Either<E, unknown>,
-		TReturn,
-		unknown
-	>;
+	export type Go<E, TReturn> = Generator<Either<E, unknown>, TReturn>;
 
 	/** Extract the `Left` value type `A` from the type `Either<A, B>`. */
 	export type LeftT<TEither extends Either<any, any>> = [TEither] extends [
@@ -552,7 +548,7 @@ export namespace AsyncEither {
 			} else {
 				halted = true;
 				err = either.val;
-				nxt = await gen.return(undefined as any);
+				nxt = await gen.return(undefined as never);
 			}
 		}
 		return halted ? Either.left(err) : Either.right(nxt.value);
@@ -856,9 +852,5 @@ export namespace AsyncEither {
 	}
 
 	/** An async generator that yields `Either` and returns a value. */
-	export type Go<E, TReturn> = AsyncGenerator<
-		Either<E, any>,
-		TReturn,
-		unknown
-	>;
+	export type Go<E, TReturn> = AsyncGenerator<Either<E, unknown>, TReturn>;
 }

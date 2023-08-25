@@ -6,21 +6,26 @@
 	},
 	"extends": [
 		"eslint:recommended",
-		"plugin:@typescript-eslint/recommended",
+		"plugin:@typescript-eslint/strict-type-checked",
+		"plugin:@typescript-eslint/stylistic-type-checked",
 		"prettier"
 	],
 	"ignorePatterns": ["dist"],
 	"parser": "@typescript-eslint/parser",
 	"parserOptions": {
 		"ecmaVersion": "latest",
+		"project": "./tsconfig.json",
 		"sourceType": "module"
 	},
 	"plugins": ["@typescript-eslint"],
+	"root": true,
 	"rules": {
+		"@typescript-eslint/consistent-generic-constructors": "off",
 		"@typescript-eslint/consistent-type-imports": "error",
 		"@typescript-eslint/no-explicit-any": "off",
 		"@typescript-eslint/no-import-type-side-effects": "error",
 		"@typescript-eslint/no-namespace": "off",
+		"@typescript-eslint/require-await": "off",
 		"no-inner-declarations": "off",
 		"quotes": ["error", "double"],
 		"semi": ["error", "always"]
