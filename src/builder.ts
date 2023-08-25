@@ -42,14 +42,7 @@ export interface Builder<in T, out TFinish> {
 	/** Add a single element to this builder. */
 	add(input: T): void;
 
-	/**
-	 * Return the result of all elements added to this builder.
-	 *
-	 * @remarks
-	 *
-	 * Implementors of `Builder` should define their behavior after `finish` is
-	 * called, and whether any further sequences of method calls are allowed.
-	 */
+	/** Return the result of all elements added to this builder. */
 	finish(): TFinish;
 }
 
