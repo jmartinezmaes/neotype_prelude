@@ -27,7 +27,7 @@ Functional programming essentials for TypeScript
 
 ## Install
 
-Neotype Prelude is available on NPM.
+neotype_prelude is available on NPM.
 
 ```sh
 npm install @neotype/prelude
