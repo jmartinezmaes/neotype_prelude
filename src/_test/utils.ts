@@ -16,9 +16,9 @@
 
 import * as fc from "fast-check";
 import { expect } from "vitest";
-import type { Builder } from "../builder.js";
 import { Semigroup, cmb } from "../cmb.js";
 import { Eq, Ord, Ordering, eq, le } from "../cmp.js";
+import type { Builder } from "../builder.js";
 
 export function delay(ms: number): Promise<void> {
 	return new Promise((resolve) => setTimeout(resolve, ms));

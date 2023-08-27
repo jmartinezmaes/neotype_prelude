@@ -82,8 +82,8 @@ import {
 } from "./builder.js";
 import { Semigroup, cmb } from "./cmb.js";
 import { Eq, Ord, Ordering, cmp, eq } from "./cmp.js";
-import type { Either } from "./either.js";
 import { id } from "./fn.js";
+import type { Either } from "./either.js";
 
 /**
  * A type that represents either accumulating failure

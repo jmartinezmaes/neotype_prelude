@@ -485,19 +485,19 @@ describe("Maybe", () => {
 
 	describe("#andThenGo", () => {
 		it("does not apply the continuation if the variant is Nothing", () => {
-			const maybe = (Maybe.nothing as Maybe<1>).andThenGo(function* (
-				one,
-			): Maybe.Go<[1, 2]> {
-				const two = yield* Maybe.just<2>(2);
-				return [one, two];
-			});
+			const maybe = (Maybe.nothing as Maybe<1>).andThenGo(
+				function* (one): Maybe.Go<[1, 2]> {
+					const two = yield* Maybe.just<2>(2);
+					return [one, two];
+				},
+			);
 			expect(maybe).to.equal(Maybe.nothing);
 		});
 
 		it("applies the continuation to the value if the variant is Just", () => {
-			const maybe = Maybe.just<1>(1).andThenGo(function* (
-				one,
-			): Maybe.Go<[1, 2]> {
+			const maybe = Maybe.just<1>(1).andThenGo(function* (one): Maybe.Go<
+				[1, 2]
+			> {
 				const two = yield* Maybe.just<2>(2);
 				return [one, two];
 			});
