@@ -6,6 +6,7 @@
 	},
 	"extends": [
 		"eslint:recommended",
+		"plugin:import/recommended",
 		"plugin:@typescript-eslint/strict-type-checked",
 		"plugin:@typescript-eslint/stylistic-type-checked",
 		"prettier"
@@ -26,8 +27,39 @@
 		"@typescript-eslint/no-import-type-side-effects": "error",
 		"@typescript-eslint/no-namespace": "off",
 		"@typescript-eslint/require-await": "off",
+		"import/named": "off",
+		"import/order": [
+			"error",
+			{
+				"newlines-between": "never",
+				"groups": [
+					"external",
+					"builtin",
+					"internal",
+					"parent",
+					"index",
+					"sibling",
+					"object",
+					"type"
+				],
+				"alphabetize": {
+					"order": "asc"
+				}
+			}
+		],
 		"no-inner-declarations": "off",
 		"quotes": ["error", "double"],
 		"semi": ["error", "always"]
+	},
+	"settings": {
+		"import/parsers": {
+			"@typescript-eslint/parser": [".ts"]
+		},
+		"import/resolver": {
+			"node": true,
+			"typescript": {
+				"project": "./tsconfig.json"
+			}
+		}
 	}
 }
