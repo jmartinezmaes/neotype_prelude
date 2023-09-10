@@ -3,6 +3,34 @@
 All notable changes to this project will be documented in this file. This
 project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## Version 0.10.0 - 2023-09-10
+
+### What's Changed
+
+#### 💥 Breaking Changes
+
+-   Introduce builders and refactor collection by
+    [@jmartinezmaes](https://github.com/jmartinezmaes) in
+    [#107](https://github.com/jmartinezmaes/neotype_prelude/pull/107)
+
+#### 🚀 Enhancements
+
+-   Add a `kind` property to all abstract `Syntax` classes by
+    [@jmartinezmaes](https://github.com/jmartinezmaes) in
+    [#105](https://github.com/jmartinezmaes/neotype_prelude/pull/105)
+-   Introduce the `wrapGo` functions by
+    [@jmartinezmaes](https://github.com/jmartinezmaes) in
+    [#110](https://github.com/jmartinezmaes/neotype_prelude/pull/110)
+-   Add support for TypeScript 5.1 by
+    [@jmartinezmaes](https://github.com/jmartinezmaes) in
+    [#112](https://github.com/jmartinezmaes/neotype_prelude/pull/112)
+-   Add support for TypeScript 5.2 by
+    [@jmartinezmaes](https://github.com/jmartinezmaes) in
+    [#114](https://github.com/jmartinezmaes/neotype_prelude/pull/114)
+
+**Full Changelog**:
+https://github.com/jmartinezmaes/neotype_prelude/compare/v0.9.0...v0.10.0
+
 ## Version 0.9.0 - 2023-04-22
 
 ### What's Changed
