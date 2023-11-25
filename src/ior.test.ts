@@ -220,10 +220,11 @@ describe("Ior", () => {
 		it("reduces the finite iterable from left to right in the context of Ior", () => {
 			const ior = Ior.reduce(
 				["x", "y"],
-				(chars, char) => Ior.both(new Str("a"), chars + char),
+				(chars, char, idx) =>
+					Ior.both(new Str("a"), chars + char + idx),
 				"",
 			);
-			expect(ior).to.deep.equal(Ior.both(new Str("aa"), "xy"));
+			expect(ior).to.deep.equal(Ior.both(new Str("aa"), "x0y1"));
 		});
 	});
 
@@ -1042,11 +1043,13 @@ describe("AsyncIor", () => {
 			}
 			const ior = await AsyncIor.reduce(
 				gen(),
-				(chars, char) =>
-					delay(1).then(() => Ior.both(new Str("a"), chars + char)),
+				(chars, char, idx) =>
+					delay(1).then(() =>
+						Ior.both(new Str("a"), chars + char + idx),
+					),
 				"",
 			);
-			expect(ior).to.deep.equal(Ior.both(new Str("aa"), "xy"));
+			expect(ior).to.deep.equal(Ior.both(new Str("aa"), "x0y1"));
 		});
 	});
 

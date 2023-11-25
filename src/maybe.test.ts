@@ -165,10 +165,10 @@ describe("Maybe", () => {
 		it("reduces the finite iterable from left to right in the context of Maybe", () => {
 			const maybe = Maybe.reduce(
 				["x", "y"],
-				(chars, char) => Maybe.just(chars + char),
+				(chars, char, idx) => Maybe.just(chars + char + idx),
 				"",
 			);
-			expect(maybe).to.deep.equal(Maybe.just("xy"));
+			expect(maybe).to.deep.equal(Maybe.just("x0y1"));
 		});
 	});
 
@@ -667,10 +667,11 @@ describe("AsyncMaybe", () => {
 			}
 			const maybe = await AsyncMaybe.reduce(
 				gen(),
-				(chars, char) => delay(1).then(() => Maybe.just(chars + char)),
+				(chars, char, idx) =>
+					delay(1).then(() => Maybe.just(chars + char + idx)),
 				"",
 			);
-			expect(maybe).to.deep.equal(Maybe.just("xy"));
+			expect(maybe).to.deep.equal(Maybe.just("x0y1"));
 		});
 	});
 
