@@ -37,9 +37,9 @@
  *     interfaces provide contracts for implementing [equivalence relations] and
  *     [total orders], respectively. See their respective documentation for
  *     implementation patterns.
- * -   The {@linkcode Eq:namespace} and {@linkcode Ord:namespace} companion
- *     namespaces provide the unique symbols required to implement their
- *     associated interfaces.
+ * -   The {@link Eq:namespace | `Eq`} and {@link Ord:namespace | `Ord`}
+ *     companion namespaces provide the unique symbols required to implement
+ *     their associated interfaces.
  *
  * [equivalence relations]:
  *     https://mathworld.wolfram.com/EquivalenceRelation.html

@@ -33,8 +33,9 @@
  * -   The {@link Semigroup:interface | `Semigroup<T>`} interface provides a
  *     contract for implementing [semigroups]. See the documentation for
  *     implementation patterns.
- * -   The {@linkcode Semigroup:namespace} companion namespace provides the
- *     unique symbol required to implement its associated interface.
+ * -   The {@link Semigroup:namespace | `Semigroup`} companion namespace
+ *     provides the unique symbol required to implement its associated
+ *     interface.
  *
  * [semigroups]: https://mathworld.wolfram.com/Semigroup.html
  *

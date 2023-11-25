@@ -26,8 +26,8 @@
  * -   `Nothing` is the absent `Maybe` and contains no value.
  * -   A `Just<T>` is a present `Maybe` and contains a value of type `T`.
  *
- * The companion {@linkcode Maybe:namespace} namespace provides utilities for
- * working with the `Maybe<T>` type.
+ * The {@link Maybe:namespace | `Maybe`} companion namespace provides utilities
+ * for working with the `Maybe<T>` type.
  *
  * Common uses for `Maybe` include:
  *
@@ -41,8 +41,9 @@
  * ## Using `Maybe` with promises
  *
  * {@link AsyncMaybe:type | `AsyncMaybe<T>`} is an alias for
- * `Promise<Maybe<T>>`. The companion {@linkcode AsyncMaybe:namespace} namespace
- * provides utilities for working with the `AsyncMaybe<T>` type.
+ * `Promise<Maybe<T>>`. The {@link AsyncMaybe:namespace | `AsyncMaybe`}
+ * companion namespace provides utilities for working with the `AsyncMaybe<T>`
+ * type.
  *
  * To accommodate promise-like values, this module also provides the
  * {@link AsyncMaybeLike | `AsyncMaybeLike<T>`} type as an alias for
