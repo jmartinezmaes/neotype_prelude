@@ -62,14 +62,20 @@ export abstract class StringBuilder<in T> implements Builder<T, string> {
 }
 
 /** A builder that constructs a string by appending strings. */
-export class StringAppendBuilder extends StringBuilder<string> {
+export class StringAppendBuilder
+	extends StringBuilder<string>
+	implements Builder<string, string>
+{
 	add(input: string): void {
 		this.output += input;
 	}
 }
 
 /** A builder that constructs a string by prepending strings. */
-export class StringPrependBuilder extends StringBuilder<string> {
+export class StringPrependBuilder
+	extends StringBuilder<string>
+	implements Builder<string, string>
+{
 	add(input: string): void {
 		this.output = input + this.output;
 	}
@@ -93,14 +99,20 @@ export abstract class ArrayBuilder<in T, out TFinish>
 }
 
 /** A builder that constructs an array by appending elements. */
-export class ArrayPushBuilder<in out T> extends ArrayBuilder<T, T> {
+export class ArrayPushBuilder<in out T>
+	extends ArrayBuilder<T, T>
+	implements Builder<T, T[]>
+{
 	add(input: T): void {
 		this.output.push(input);
 	}
 }
 
 /** A builder that constructs an array by prepending elements. */
-export class ArrayUnshiftBuilder<in out T> extends ArrayBuilder<T, T> {
+export class ArrayUnshiftBuilder<in out T>
+	extends ArrayBuilder<T, T>
+	implements Builder<T, T[]>
+{
 	add(input: T): void {
 		this.output.unshift(input);
 	}
@@ -110,10 +122,10 @@ export class ArrayUnshiftBuilder<in out T> extends ArrayBuilder<T, T> {
  * A builder that constructs an array by assigning elements to indices from
  * index-element pairs.
  */
-export class ArrayAssignBuilder<in out T> extends ArrayBuilder<
-	readonly [number, T],
-	T
-> {
+export class ArrayAssignBuilder<in out T>
+	extends ArrayBuilder<readonly [number, T], T>
+	implements Builder<readonly [number, T], T[]>
+{
 	add(input: readonly [number, T]): void {
 		const [idx, elem] = input;
 		this.output[idx] = elem;
@@ -145,9 +157,12 @@ export abstract class ObjectBuilder<
  * key-value pairs.
  */
 export class ObjectAssignBuilder<
-	in out K extends number | string | symbol,
-	in out V,
-> extends ObjectBuilder<readonly [K, V], K, V> {
+		in out K extends number | string | symbol,
+		in out V,
+	>
+	extends ObjectBuilder<readonly [K, V], K, V>
+	implements Builder<readonly [K, V], Record<K, V>>
+{
 	add(input: readonly [K, V]): void {
 		const [key, val] = input;
 		this.output[key] = val;
@@ -175,11 +190,10 @@ export abstract class MapBuilder<in T, out K, out V>
  * A builder that constucts a map by assigning values to keys from key-value
  * pairs.
  */
-export class MapSetBuilder<in out K, in out V> extends MapBuilder<
-	readonly [K, V],
-	K,
-	V
-> {
+export class MapSetBuilder<in out K, in out V>
+	extends MapBuilder<readonly [K, V], K, V>
+	implements Builder<readonly [K, V], Map<K, V>>
+{
 	add(input: readonly [K, V]): void {
 		const [key, val] = input;
 		this.output.set(key, val);
@@ -204,7 +218,10 @@ export abstract class SetBuilder<in T, out TFinish>
 }
 
 /** A builder that constucts a set by adding elements. */
-export class SetAddBuilder<in out T> extends SetBuilder<T, T> {
+export class SetAddBuilder<in out T>
+	extends SetBuilder<T, T>
+	implements Builder<T, Set<T>>
+{
 	add(input: T): void {
 		this.output.add(input);
 	}
