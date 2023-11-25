@@ -168,14 +168,16 @@ export namespace Maybe {
 	 */
 	export function reduce<T, TAcc>(
 		elems: Iterable<T>,
-		accum: (acc: TAcc, val: T) => Maybe<TAcc>,
+		accum: (acc: TAcc, val: T, idx: number) => Maybe<TAcc>,
 		initial: TAcc,
 	): Maybe<TAcc> {
 		return go(
 			(function* () {
 				let acc = initial;
+				let idx = 0;
 				for (const val of elems) {
-					acc = yield* accum(acc, val);
+					acc = yield* accum(acc, val, idx);
+					idx++;
 				}
 				return acc;
 			})(),
@@ -603,14 +605,20 @@ export namespace AsyncMaybe {
 	 */
 	export function reduce<T, TAcc>(
 		elems: AsyncIterable<T>,
-		accum: (acc: TAcc, val: T) => Maybe<TAcc> | AsyncMaybeLike<TAcc>,
+		accum: (
+			acc: TAcc,
+			val: T,
+			idx: number,
+		) => Maybe<TAcc> | AsyncMaybeLike<TAcc>,
 		initial: TAcc,
 	): AsyncMaybe<TAcc> {
 		return go(
 			(async function* () {
 				let acc = initial;
+				let idx = 0;
 				for await (const val of elems) {
-					acc = yield* await accum(acc, val);
+					acc = yield* await accum(acc, val, idx);
+					idx++;
 				}
 				return acc;
 			})(),

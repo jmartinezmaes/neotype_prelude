@@ -155,14 +155,16 @@ export namespace Either {
 	 */
 	export function reduce<T, TAcc, E>(
 		elems: Iterable<T>,
-		accum: (acc: TAcc, val: T) => Either<E, TAcc>,
+		accum: (acc: TAcc, val: T, idx: number) => Either<E, TAcc>,
 		initial: TAcc,
 	): Either<E, TAcc> {
 		return go(
 			(function* () {
 				let acc = initial;
+				let idx = 0;
 				for (const elem of elems) {
-					acc = yield* accum(acc, elem);
+					acc = yield* accum(acc, elem, idx);
+					idx++;
 				}
 				return acc;
 			})(),
@@ -574,14 +576,17 @@ export namespace AsyncEither {
 		accum: (
 			acc: TAcc,
 			val: T,
+			idx: number,
 		) => Either<E, TAcc> | AsyncEitherLike<E, TAcc>,
 		initial: TAcc,
 	): AsyncEither<E, TAcc> {
 		return go(
 			(async function* () {
 				let acc = initial;
+				let idx = 0;
 				for await (const elem of elems) {
-					acc = yield* await accum(acc, elem);
+					acc = yield* await accum(acc, elem, idx);
+					idx++;
 				}
 				return acc;
 			})(),

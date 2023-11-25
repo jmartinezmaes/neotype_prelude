@@ -201,14 +201,16 @@ export namespace Ior {
 	 */
 	export function reduce<T, TAcc, A extends Semigroup<A>>(
 		elems: Iterable<T>,
-		accum: (acc: TAcc, val: T) => Ior<A, TAcc>,
+		accum: (acc: TAcc, val: T, idx: number) => Ior<A, TAcc>,
 		initial: TAcc,
 	): Ior<A, TAcc> {
 		return go(
 			(function* () {
 				let acc = initial;
+				let idx = 0;
 				for (const elem of elems) {
-					acc = yield* accum(acc, elem);
+					acc = yield* accum(acc, elem, idx);
+					idx++;
 				}
 				return acc;
 			})(),
@@ -740,14 +742,20 @@ export namespace AsyncIor {
 	 */
 	export function reduce<T, TAcc, A extends Semigroup<A>>(
 		elems: AsyncIterable<T>,
-		accum: (acc: TAcc, val: T) => Ior<A, TAcc> | AsyncIorLike<A, TAcc>,
+		accum: (
+			acc: TAcc,
+			val: T,
+			idx: number,
+		) => Ior<A, TAcc> | AsyncIorLike<A, TAcc>,
 		initial: TAcc,
 	): AsyncIor<A, TAcc> {
 		return go(
 			(async function* () {
 				let acc = initial;
+				let idx = 0;
 				for await (const elem of elems) {
-					acc = yield* await accum(acc, elem);
+					acc = yield* await accum(acc, elem, idx);
+					idx++;
 				}
 				return acc;
 			})(),

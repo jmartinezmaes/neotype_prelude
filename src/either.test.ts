@@ -132,10 +132,11 @@ describe("Either", () => {
 		it("reduces the finite iterable from left to right in the context of Either", () => {
 			const either = Either.reduce(
 				["x", "y"],
-				(chars, char) => Either.right<string, 1>(chars + char),
+				(chars, char, idx) =>
+					Either.right<string, 1>(chars + char + idx),
 				"",
 			);
-			expect(either).to.deep.equal(Either.right("xy"));
+			expect(either).to.deep.equal(Either.right("x0y1"));
 		});
 	});
 
@@ -550,11 +551,11 @@ describe("AsyncEither", () => {
 			}
 			const either = await AsyncEither.reduce(
 				gen(),
-				(chars, char) =>
-					delay(1).then(() => Either.right(chars + char)),
+				(chars, char, idx) =>
+					delay(1).then(() => Either.right(chars + char + idx)),
 				"",
 			);
-			expect(either).to.deep.equal(Either.right("xy"));
+			expect(either).to.deep.equal(Either.right("x0y1"));
 		});
 	});
 
