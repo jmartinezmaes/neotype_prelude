@@ -28,14 +28,15 @@
  * -   A `Both<A, B>` contains a left-hand value of type `A` and a right-hand
  *     value of type `B`.
  *
- * The companion {@linkcode Ior:namespace} namespace provides utilities for
- * working with the `Ior<A, B>` type.
+ * The {@link Ior:namespace | `Ior`} companion namespace provides utilities for
+ * for working with the `Ior<A, B>` type.
  *
  * `Ior` is often used to represent states of failure or success similar to
- * {@linkcode either!Either:type} and {@linkcode validation!Validation:type}.
- * However, `Ior` is capable of also representing a unique state using the
- * `Both` variant. `Both` can represent a success that contains additional
- * information, or a state of "partial failure".
+ * {@link either!Either:type | `Either`} and
+ * {@link validation!Validation:type | `Validation`}. However, `Ior` is capable
+ * of also representing a unique state using the `Both` variant. `Both` can
+ * represent a success that contains additional information, or a state of
+ * "partial failure".
  *
  * When composed, the behavior of `Ior` is a combination of the short-circuiting
  * behavior of `Either` and the failure-accumulating behavior of `Validation`:
@@ -52,8 +53,8 @@
  * ## Using `Ior` with promises
  *
  * {@link AsyncIor:type | `AsyncIor<A, B>`} is an alias for `Promise<Ior<A,
- * B>>`. The companion {@linkcode AsyncIor:namespace} namespace provides
- * utilities for working with the `AsyncIor<A, B>` type.
+ * B>>`. The {@link AsyncIor:namespace | `AsyncIor`} companion namespace
+ * provides utilities for working with the `AsyncIor<A, B>` type.
  *
  * To accommodate promise-like values, this module also provides the
  * {@link AsyncIorLike | `AsyncIorLike<A, B>`} type as an alias for

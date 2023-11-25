@@ -27,8 +27,8 @@
  * -   An `Ok<T>` is a successful `Validation` and contains a success of type
  *     `T`.
  *
- * The companion {@linkcode Validation:namespace} namespace provides utilities
- * for working with the `Validation<E, T>` type.
+ * The {@link Validation:namespace | `Validation`} companion namespace provides
+ * utilities for working with the `Validation<E, T>` type.
  *
  * `Validation` is useful for collecting information about all failures in a
  * program rather than halting evaluation on the first failure. This behavior
@@ -42,9 +42,9 @@
  * ## Using `Validation` with promises
  *
  * {@link AsyncValidation:type | `AsyncValidation<E, T>`} is an alias for
- * `Promise<Validation<E, T>>`. The companion
- * {@linkcode AsyncValidation:namespace} namespace provides utilities for
- * working with the `AsyncValidation<E, T>` type.
+ * `Promise<Validation<E, T>>`. The
+ * {@link AsyncValidation:namespace | `AsyncValidation`} companion namespace
+ * provides utilities for working with the `AsyncValidation<E, T>` type.
  *
  * To accommodate promise-like values, this module also provides the
  * {@link AsyncValidationLike | `AsyncValidationLike<E, T>`} type as an alias

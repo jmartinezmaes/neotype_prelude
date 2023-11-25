@@ -26,8 +26,8 @@
  * -   A `Left<A>` is a left-sided `Either` and contains a value of type `A`.
  * -   A `Right<B>` is a right-sided `Either` and contains a value of type `B`.
  *
- * The companion {@linkcode Either:namespace} namespace provides utilities for
- * working with the `Either<A, B>` type.
+ * The {@link Either:namespace | `Either`} companion namespace provides
+ * utilities for working with the `Either<A, B>` type.
  *
  * ## Handling failure
  *
@@ -44,8 +44,9 @@
  * ## Using `Either` with promises
  *
  * {@link AsyncEither:type | `AsyncEither<A, B>`} is an alias for
- * `Promise<Either<A, B>>`. The companion {@linkcode AsyncEither:namespace}
- * namespace provides utilities for working with the `AsyncEither<A, B>` type.
+ * `Promise<Either<A, B>>`. The {@link AsyncEither:namespace `AsyncEither`}
+ * companion namespace provides utilities for working with the `AsyncEither<A,
+ * B>` type.
  *
  * To accommodate promise-like values, this module also provides the
  * {@link AsyncEitherLike | `AsyncEitherLike<A, B>`} type as an alias for
