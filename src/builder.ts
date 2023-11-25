@@ -14,8 +14,6 @@
  * limitations under the License.
  */
 
-import { cmb, type Semigroup } from "./cmb.js";
-
 /**
  * Construction with the builder pattern.
  *
@@ -36,6 +34,8 @@ import { cmb, type Semigroup } from "./cmb.js";
  *
  * @module
  */
+
+import { cmb, type Semigroup } from "./cmb.js";
 
 /** An interface that produces a result from added values. */
 export interface Builder<in T, out TFinish> {
