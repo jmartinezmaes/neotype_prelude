@@ -27,7 +27,7 @@ jobs:
       - run: npm run docs
 
   test_style:
-    name: Test code style
+    name: Check code style
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -36,23 +36,16 @@ jobs:
       - run: npm run style
 
   test_node:
-    name: Test Node.js @${{ matrix.node-version }}
+    name: Run unit tests
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        node-version:
-          - 16
-          - 18
     steps:
       - uses: actions/checkout@v3
       - uses: volta-cli/action@v4
-        with:
-          node-version: ${{ matrix.node-version }}
       - run: npm ci
       - run: npm test
 
   test_typescript:
-    name: Test TypeScript @${{ matrix.ts-version }}
+    name: Type-check TypeScript @${{ matrix.ts-version }}
     runs-on: ubuntu-latest
     strategy:
       matrix:
