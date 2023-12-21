@@ -119,7 +119,9 @@
  * [augmentation]:
  *     https://www.typescriptlang.org/docs/handbook/declaration-merging.html#module-augmentation
  *
- * @example Non-generic implementation
+ * ## Example implementations
+ *
+ * ### Non-generic implementation
  *
  * Consider a type that combines strings using concatenation:
  *
@@ -135,7 +137,7 @@
  * }
  * ```
  *
- * @example Generic implementation with no `Semigroup` requirements
+ * ### Generic implementation with no `Semigroup` requirements
  *
  * Consider a type that combines arrays using concatenation:
  *
@@ -154,7 +156,7 @@
  * Notice how `Concat` is generic, but there are no special requirements for
  * implementing `[Semigroup.cmb]`.
  *
- * @example Generic implementation with a `Semigroup` requirement
+ * ### Generic implementation with one `Semigroup` requirement
  *
  * Consider a type that combines promises by combining their results, which
  * requires that the results also implement `Semigroup`:
@@ -184,7 +186,7 @@
  * Then, we require that `this` and `that` are `Async<T>` where `T extends
  * Semigroup<T>`. This allows us to use `cmb` to implement our desired behavior.
  *
- * @example Generic implementation with multiple `Semigroup` requirements
+ * ### Generic implementation with multiple `Semigroup` requirements
  *
  * Consider a type that combines two values pairwise, which requires that each
  * value implement `Semigroup`:
@@ -208,7 +210,7 @@
  * now two method-scoped generic parameters that are each required to implement
  * `Semigroup`.
  *
- * @example Non-generic augmentation
+ * ### Non-generic augmentation
  *
  * Consider a global augmentation for the `String` prototype:
  *
@@ -226,7 +228,7 @@
  * };
  * ```
  *
- * @example Generic augmentation
+ * ### Generic augmentation
  *
  * Consider a module augmentation for an externally defined `Pair` type:
  *
