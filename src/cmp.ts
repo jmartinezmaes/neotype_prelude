@@ -127,7 +127,9 @@ import { Semigroup } from "./cmb.js";
  * [augmentation]:
  *     https://www.typescriptlang.org/docs/handbook/declaration-merging.html#module-augmentation
  *
- * @example Non-generic implementation
+ * ## Example implementations
+ *
+ * ### Non-generic implementation
  *
  * Consider a `Book` type that determines equality by comparing ISBNs:
  *
@@ -162,7 +164,7 @@ import { Semigroup } from "./cmb.js";
  * }
  * ```
  *
- * @example Generic implementation with no `Eq` requirements
+ * ### Generic implementation with no `Eq` requirements
  *
  * Consider a type that determines equality by comparing the lengths of arrays:
  *
@@ -181,7 +183,7 @@ import { Semigroup } from "./cmb.js";
  * Notice how `Len` is generic, but there are no special requirements for
  * implementing `[Eq.eq]`.
  *
- * @example Generic implementation with an `Eq` requirement
+ * ### Generic implementation with one `Eq` requirement
  *
  * Consider a type that determines equality for arrays by comparing their
  * elements lexicographically, which requires that the elements implement `Eq`:
@@ -205,7 +207,7 @@ import { Semigroup } from "./cmb.js";
  * Then, we require that `this` and `that` are `Arr<T>` where `T extends Eq<T>`.
  * This allows us to use `ieq` to implement our desired behavior.
  *
- * @example Generic implementation with multiple `Eq` requirements
+ * ### Generic implementation with multiple `Eq` requirements
  *
  * Consider a `Pair` type that determines equality for two distinct values,
  * which requires that each value has a distinct implementation for `Eq`:
@@ -229,7 +231,7 @@ import { Semigroup } from "./cmb.js";
  * two method-scoped generic parameters that are each required to implement
  * `Eq`.
  *
- * @example Non-generic augmentation
+ * ### Non-generic augmentation
  *
  * Consider a module augmentation for an externally defined `Book` type:
  *
@@ -248,7 +250,7 @@ import { Semigroup } from "./cmb.js";
  * };
  * ```
  *
- * @example Generic augmentation
+ * ### Generic augmentation
  *
  * Consider a global augmentation for the `Array` prototype:
  *
@@ -446,7 +448,9 @@ export function ieq<T extends Eq<T>>(
  * [augmentation]:
  *     https://www.typescriptlang.org/docs/handbook/declaration-merging.html#module-augmentation
  *
- * @example Non-generic implementation
+ * ## Example implementations
+ *
+ * ### Non-generic implementation
  *
  * Consider a `Book` type that determines ordering by comparing ISBNs:
  *
@@ -495,7 +499,7 @@ export function ieq<T extends Eq<T>>(
  * format. Notice how the semigroup behavior of `Ordering` along with the `cmb`
  * function is used here to combine two `Ordering`.
  *
- * @example Generic implementation with no `Ord` requirements
+ * ### Generic implementation with no `Ord` requirements
  *
  * Consider a type that orders arrays by comparing their lengths:
  *
@@ -518,7 +522,7 @@ export function ieq<T extends Eq<T>>(
  * Notice how `Len` is generic, but there are no special requirements for
  * implementing `[Ord.cmp]`.
  *
- * @example Generic implementation with an `Ord` requirement
+ * ### Generic implementation with one `Ord` requirement
  *
  * Consider a type that orders arrays by comparing their elements
  * lexicographically, which requires that the elements implement `Ord`:
@@ -546,7 +550,7 @@ export function ieq<T extends Eq<T>>(
  * Then, we require that `this` and `that` are `Arr<T>` where `T extends
  * Ord<T>`. This allows us to use `icmp` to implement our desired behavior.
  *
- * @example Generic implementation with multiple `Ord` requirements
+ * ### Generic implementation with multiple `Ord` requirements
  *
  * Consider a `Pair` type that orders two distinct values lexicographically,
  * which requires that each value is an implementor of `Ord`:
@@ -578,7 +582,7 @@ export function ieq<T extends Eq<T>>(
  * two method-scoped generic parameters that are each required to implement
  * `Ord`.
  *
- * @example Non-generic augmentation
+ * ### Non-generic augmentation
  *
  * Consider a module augmentation for an externally defined `Book` type:
  *
@@ -602,7 +606,7 @@ export function ieq<T extends Eq<T>>(
  * };
  * ```
  *
- * @example Generic augmentation
+ * ### Generic augmentation
  *
  * Consider a global augmentation for the `Array` prototype:
  *
