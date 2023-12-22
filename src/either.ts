@@ -456,6 +456,13 @@ export namespace Either {
 		}
 
 		/**
+		 * Remove one level of nesting from this `Either`.
+		 */
+		flatten<E, E1, T>(this: Either<E, Either<E1, T>>): Either<E | E1, T> {
+			return this.andThen(id);
+		}
+
+		/**
 		 * If this `Either` is `Right`, ignore its value and return that
 		 * `Either`.
 		 */

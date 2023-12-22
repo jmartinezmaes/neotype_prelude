@@ -830,6 +830,16 @@ describe("Ior", () => {
 		});
 	});
 
+	describe("#flatten", () => {
+		it("removes one level of nesting and combines the left-hand values if the variants are Both", () => {
+			const ior = Ior.both<Str, Ior<Str, 2>>(
+				new Str("a"),
+				Ior.both(new Str("b"), 2),
+			).flatten();
+			expect(ior).to.deep.equal(Ior.both(new Str("ab"), 2));
+		});
+	});
+
 	describe("#and", () => {
 		it("keeps only the second right-hand value if both variants have right-hand values", () => {
 			const ior = Ior.both<Str, 2>(new Str("a"), 2).and(
