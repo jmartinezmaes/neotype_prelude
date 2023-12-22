@@ -467,6 +467,30 @@ describe("Maybe", () => {
 		});
 	});
 
+	describe("#xor", () => {
+		it("returns Nothing if both variants are Nothing", () => {
+			const maybe = (Maybe.nothing as Maybe<1>).xor(
+				Maybe.nothing as Maybe<2>,
+			);
+			expect(maybe).to.equal(Maybe.nothing);
+		});
+
+		it("returns the second Maybe if the first is Nothing and the second is Just", () => {
+			const maybe = (Maybe.nothing as Maybe<1>).xor(Maybe.just<2>(2));
+			expect(maybe).to.deep.equal(Maybe.just(2));
+		});
+
+		it("returns the first Maybe if the first is Just and the second is Nothing", () => {
+			const maybe = Maybe.just<1>(1).xor(Maybe.nothing as Maybe<2>);
+			expect(maybe).to.deep.equal(Maybe.just(1));
+		});
+
+		it("returns Nothing if both variants are Just", () => {
+			const maybe = Maybe.just<1>(1).xor(Maybe.just<2>(2));
+			expect(maybe).to.equal(Maybe.nothing);
+		});
+	});
+
 	describe("#andThen", () => {
 		it("does not apply the continuation if the variant is Nothing", () => {
 			const maybe = (Maybe.nothing as Maybe<1>).andThen(
