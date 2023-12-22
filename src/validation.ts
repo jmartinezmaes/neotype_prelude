@@ -404,7 +404,7 @@ export namespace Validation {
 		}
 
 		/** If this `Validation` fails, apply a function to map its failure. */
-		lmap<E, T, E1>(
+		mapErr<E, T, E1>(
 			this: Validation<E, T>,
 			f: (val: E) => E1,
 		): Validation<E1, T> {

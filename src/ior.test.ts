@@ -849,19 +849,19 @@ describe("Ior", () => {
 		});
 	});
 
-	describe("#lmap", () => {
+	describe("#mapLeft", () => {
 		it("applies the function to the value if the variant is Left", () => {
-			const ior = Ior.left<1, 2>(1).lmap((one): [1, 3] => [one, 3]);
+			const ior = Ior.left<1, 2>(1).mapLeft((one): [1, 3] => [one, 3]);
 			expect(ior).to.deep.equal(Ior.left([1, 3]));
 		});
 
 		it("does not apply the function if the variant is Right", () => {
-			const ior = Ior.right<2, 1>(2).lmap((one): [1, 3] => [one, 3]);
+			const ior = Ior.right<2, 1>(2).mapLeft((one): [1, 3] => [one, 3]);
 			expect(ior).to.deep.equal(Ior.right(2));
 		});
 
 		it("applies the function to the left-hand value if the variant is Both", () => {
-			const ior = Ior.both<1, 2>(1, 2).lmap((one): [1, 3] => [one, 3]);
+			const ior = Ior.both<1, 2>(1, 2).mapLeft((one): [1, 3] => [one, 3]);
 			expect(ior).to.deep.equal(Ior.both([1, 3], 2));
 		});
 	});

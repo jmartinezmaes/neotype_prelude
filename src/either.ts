@@ -479,7 +479,10 @@ export namespace Either {
 		}
 
 		/** If this `Either` is `Left`, apply a function to map its value. */
-		lmap<A, B, A1>(this: Either<A, B>, f: (val: A) => A1): Either<A1, B> {
+		mapLeft<A, B, A1>(
+			this: Either<A, B>,
+			f: (val: A) => A1,
+		): Either<A1, B> {
 			return this.orElse((val) => left(f(val)));
 		}
 
