@@ -428,6 +428,14 @@ export namespace Maybe {
 			return this.orElse(() => that);
 		}
 
+		/** If this or that `Maybe` is exclusively `Just`, return the `Just`. */
+		xor<T, T1>(this: Maybe<T>, that: Maybe<T1>): Maybe<T | T1> {
+			if (this.isNothing()) {
+				return that;
+			}
+			return that.isJust() ? nothing : this;
+		}
+
 		/**
 		 * If this `Maybe` is `Just`, apply a function to its value to return
 		 * another `Maybe`.
@@ -438,7 +446,7 @@ export namespace Maybe {
 
 		/**
 		 * If this `Maybe` is `Just`, apply a generator function to its value
-		 * to its value to return another `Maybe`.
+		 * to return another `Maybe`.
 		 */
 		andThenGo<T, T1>(this: Maybe<T>, f: (val: T) => Go<T1>): Maybe<T1> {
 			return this.andThen((val) => go(f(val)));
