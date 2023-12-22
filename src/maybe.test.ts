@@ -505,6 +505,13 @@ describe("Maybe", () => {
 		});
 	});
 
+	describe("#flatten", () => {
+		it("removes one level of nesting if the variant is Just", () => {
+			const maybe = Maybe.just<Maybe<1>>(Maybe.just(1)).flatten();
+			expect(maybe).to.deep.equal(Maybe.just(1));
+		});
+	});
+
 	describe("#and", () => {
 		it("returns the original Maybe if the variant is Nothing", () => {
 			const maybe = (Maybe.nothing as Maybe<1>).and(Maybe.just<2>(2));

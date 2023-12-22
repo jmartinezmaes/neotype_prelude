@@ -445,6 +445,13 @@ export namespace Maybe {
 		}
 
 		/**
+		 * Remove one level of nesting from this `Maybe`.
+		 */
+		flatten<T>(this: Maybe<Maybe<T>>): Maybe<T> {
+			return this.andThen(id);
+		}
+
+		/**
 		 * If this `Maybe` is `Just`, ignore its value and return that `Maybe`.
 		 */
 		and<T1>(this: Maybe<any>, that: Maybe<T1>): Maybe<T1> {

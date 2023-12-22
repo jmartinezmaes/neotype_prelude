@@ -461,6 +461,15 @@ describe("Either", () => {
 		});
 	});
 
+	describe("#flatten", () => {
+		it("removes one level of nesting if the variant is Right", () => {
+			const either = Either.right<Either<3, 2>, 1>(
+				Either.right(2),
+			).flatten();
+			expect(either).to.deep.equal(Either.right(2));
+		});
+	});
+
 	describe("#and", () => {
 		it("returns the original Either if the variant is Left", () => {
 			const either = Either.left<1, 2>(1).and(Either.right<4, 3>(4));

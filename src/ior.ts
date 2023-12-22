@@ -536,6 +536,13 @@ export namespace Ior {
 		}
 
 		/**
+		 * Remove one level of nesting from this `Ior`.
+		 */
+		flatten<E extends Semigroup<E>, T>(this: Ior<E, Ior<E, T>>): Ior<E, T> {
+			return this.andThen(id);
+		}
+
+		/**
 		 * If this `Ior` has a right-hand value, ignore the value and return
 		 * that `Ior`.
 		 */
