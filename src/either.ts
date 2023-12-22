@@ -118,7 +118,7 @@ export namespace Either {
 
 	/** Construct an `Either` from a `Validation`. */
 	export function fromValidation<E, T>(vdn: Validation<E, T>): Either<E, T> {
-		return vdn.unwrap(left, right);
+		return vdn.match(left, right);
 	}
 
 	/** Evaluate an `Either.Go` generator to return an `Either`. */
@@ -381,12 +381,34 @@ export namespace Either {
 		 * Apply one of two functions to extract the value out of this `Either`
 		 * depending on the variant.
 		 */
-		unwrap<A, B, T1, T2>(
+		match<A, B, T1, T2>(
 			this: Either<A, B>,
-			unwrapLeft: (val: A) => T1,
-			unwrapRight: (val: B) => T2,
+			ifLeft: (val: A) => T1,
+			ifRight: (val: B) => T2,
 		): T1 | T2 {
-			return this.isLeft() ? unwrapLeft(this.val) : unwrapRight(this.val);
+			return this.isLeft() ? ifLeft(this.val) : ifRight(this.val);
+		}
+
+		/**
+		 * If this `Either` is `Left`, extract its value; otherwise, apply a
+		 * function to its value.
+		 */
+		unwrapLeftOrElse<A, B, T1>(
+			this: Either<A, B>,
+			ifRight: (val: B) => T1,
+		): A | T1 {
+			return this.match(id, ifRight);
+		}
+
+		/**
+		 * If this `Either` is `Right`, extract its value; otherwise, apply a
+		 * function to its value.
+		 */
+		unwrapRightOrElse<A, B, T1>(
+			this: Either<A, B>,
+			ifLeft: (val: A) => T1,
+		): B | T1 {
+			return this.match(ifLeft, id);
 		}
 
 		/**

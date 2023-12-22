@@ -117,7 +117,7 @@ export namespace Validation {
 
 	/** Construct a `Validation` from an `Either`. */
 	export function fromEither<A, B>(either: Either<A, B>): Validation<A, B> {
-		return either.unwrap(err, ok);
+		return either.match(err, ok);
 	}
 
 	/**
@@ -347,12 +347,34 @@ export namespace Validation {
 		 * Apply one of two functions to extract the failure or success out of
 		 * this `Validation`, depending on the variant.
 		 */
-		unwrap<E, T, T1, T2>(
+		match<E, T, T1, T2>(
 			this: Validation<E, T>,
-			unwrapErr: (val: E) => T1,
-			unwrapOk: (val: T) => T2,
+			ifErr: (val: E) => T1,
+			ifOk: (val: T) => T2,
 		): T1 | T2 {
-			return this.isErr() ? unwrapErr(this.val) : unwrapOk(this.val);
+			return this.isErr() ? ifErr(this.val) : ifOk(this.val);
+		}
+
+		/**
+		 * If this `Validation` is `Err`, extract its value; otherwise, apply a
+		 * function to its value.
+		 */
+		unwrapErrOrElse<E, T, T1>(
+			this: Validation<E, T>,
+			ifOk: (val: T) => T1,
+		): E | T1 {
+			return this.match(id, ifOk);
+		}
+
+		/**
+		 * If this `Validation` is `Ok`, extract its value; otherwise, apply a
+		 * function to its value.
+		 */
+		unwrapOkOrElse<E, T, T1>(
+			this: Validation<E, T>,
+			ifErr: (val: E) => T1,
+		): T | T1 {
+			return this.match(ifErr, id);
 		}
 
 		/**

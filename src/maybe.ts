@@ -383,28 +383,28 @@ export namespace Maybe {
 		 * If this `Maybe` is `Just`, apply a function to extract its value;
 		 * otherwise, invoke a function to return a fallback value.
 		 */
-		unwrap<T, T1, T2>(
+		match<T, T1, T2>(
 			this: Maybe<T>,
 			ifNothing: () => T1,
-			unwrapJust: (val: T) => T2,
+			ifJust: (val: T) => T2,
 		): T1 | T2 {
-			return this.isNothing() ? ifNothing() : unwrapJust(this.val);
+			return this.isNothing() ? ifNothing() : ifJust(this.val);
 		}
 
 		/**
 		 * If this `Maybe` is `Just`, extract its value; otherwise, invoke a
 		 * function to return a fallback value.
 		 */
-		getOrElse<T, T1>(this: Maybe<T>, f: () => T1): T | T1 {
-			return this.unwrap(f, id);
+		unwrapOrElse<T, T1>(this: Maybe<T>, ifNothing: () => T1): T | T1 {
+			return this.match(ifNothing, id);
 		}
 
 		/**
 		 * If this `Maybe` is `Just`, extract its value; otherwise, return a
 		 * fallback value.
 		 */
-		getOr<T, T1>(this: Maybe<T>, fallback: T1): T | T1 {
-			return this.unwrap(() => fallback, id);
+		unwrapOr<T, T1>(this: Maybe<T>, fallback: T1): T | T1 {
+			return this.unwrapOrElse(() => fallback);
 		}
 
 		/**
@@ -412,7 +412,7 @@ export namespace Maybe {
 		 * `undefined`.
 		 */
 		toNullish<T>(this: Maybe<T>): T | undefined {
-			return this.unwrap(() => undefined, id);
+			return this.unwrapOr(undefined);
 		}
 
 		/**

@@ -387,9 +387,9 @@ describe("Maybe", () => {
 		});
 	});
 
-	describe("#unwrap", () => {
+	describe("#match", () => {
 		it("evaluates the first function if the variant is Nothing", () => {
-			const result = (Maybe.nothing as Maybe<1>).unwrap(
+			const result = (Maybe.nothing as Maybe<1>).match(
 				(): 3 => 3,
 				(one): [1, 2] => [one, 2],
 			);
@@ -397,7 +397,7 @@ describe("Maybe", () => {
 		});
 
 		it("applies the second function to the value if the variant is Just", () => {
-			const result = Maybe.just<1>(1).unwrap(
+			const result = Maybe.just<1>(1).match(
 				(): 3 => 3,
 				(one): [1, 2] => [one, 2],
 			);
@@ -405,26 +405,26 @@ describe("Maybe", () => {
 		});
 	});
 
-	describe("getOrElse", () => {
+	describe("#unwrapOrElse", () => {
 		it("evaluates the function if the variant is Nothing", () => {
-			const result = (Maybe.nothing as Maybe<1>).getOrElse((): 2 => 2);
+			const result = (Maybe.nothing as Maybe<1>).unwrapOrElse((): 2 => 2);
 			expect(result).to.equal(2);
 		});
 
 		it("extracts the value if the variant is Just", () => {
-			const result = Maybe.just<1>(1).getOrElse((): 2 => 2);
+			const result = Maybe.just<1>(1).unwrapOrElse((): 2 => 2);
 			expect(result).to.equal(1);
 		});
 	});
 
-	describe("#getOr", () => {
+	describe("#unwrapOr", () => {
 		it("returns the fallback value if the variant is Nothing", () => {
-			const result = (Maybe.nothing as Maybe<1>).getOr(2 as const);
+			const result = (Maybe.nothing as Maybe<1>).unwrapOr(2 as const);
 			expect(result).to.equal(2);
 		});
 
 		it("extracts the value if the variant is Just", () => {
-			const result = Maybe.just<1>(1).getOr(2 as const);
+			const result = Maybe.just<1>(1).unwrapOr(2 as const);
 			expect(result).to.equal(1);
 		});
 	});
