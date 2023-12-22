@@ -116,12 +116,12 @@ export class Pair<out A, out B> {
 	}
 
 	/** Apply a function to map the first value of this `Pair`. */
-	lmap<A1>(f: (val: A) => A1): Pair<A1, B> {
+	mapFst<A1>(f: (val: A) => A1): Pair<A1, B> {
 		return new Pair(f(this.fst), this.snd);
 	}
 
 	/** Apply a function to map the second value of this `Pair`. */
-	map<B1>(f: (val: B) => B1): Pair<A, B1> {
+	mapSnd<B1>(f: (val: B) => B1): Pair<A, B1> {
 		return new Pair(this.fst, f(this.snd));
 	}
 }

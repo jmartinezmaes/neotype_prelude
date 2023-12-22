@@ -483,9 +483,12 @@ describe("Either", () => {
 		});
 	});
 
-	describe("#lmap", () => {
+	describe("#mapLeft", () => {
 		it("applies the function to the value if the variant is Left", () => {
-			const either = Either.left<1, 2>(1).lmap((one): [1, 3] => [one, 3]);
+			const either = Either.left<1, 2>(1).mapLeft((one): [1, 3] => [
+				one,
+				3,
+			]);
 			expect(either).to.deep.equal(Either.left([1, 3]));
 		});
 	});

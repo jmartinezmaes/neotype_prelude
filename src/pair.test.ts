@@ -125,16 +125,16 @@ describe("Pair", () => {
 		});
 	});
 
-	describe("#lmap", () => {
+	describe("#mapFst", () => {
 		it("applies the function to the first value", () => {
-			const pair = new Pair<1, 2>(1, 2).lmap((one): [1, 3] => [one, 3]);
+			const pair = new Pair<1, 2>(1, 2).mapFst((one): [1, 3] => [one, 3]);
 			expect(pair).to.deep.equal(new Pair([1, 3], 2));
 		});
 	});
 
-	describe("#map", () => {
+	describe("#mapSnd", () => {
 		it("applies the function to the second value", () => {
-			const pair = new Pair<1, 2>(1, 2).map((two): [2, 4] => [two, 4]);
+			const pair = new Pair<1, 2>(1, 2).mapSnd((two): [2, 4] => [two, 4]);
 			expect(pair).to.deep.equal(new Pair(1, [2, 4]));
 		});
 	});

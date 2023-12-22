@@ -368,14 +368,20 @@ describe("Validation", () => {
 		});
 	});
 
-	describe("#lmap", () => {
+	describe("#mapErr", () => {
 		it("applies the function to the failure if the variant is Err", () => {
-			const vdn = Validation.err<1, 2>(1).lmap((one): [1, 3] => [one, 3]);
+			const vdn = Validation.err<1, 2>(1).mapErr((one): [1, 3] => [
+				one,
+				3,
+			]);
 			expect(vdn).to.deep.equal(Validation.err([1, 3]));
 		});
 
 		it("does not apply the function if the variant is Ok", () => {
-			const vdn = Validation.ok<2, 1>(2).lmap((one): [1, 3] => [one, 3]);
+			const vdn = Validation.ok<2, 1>(2).mapErr((one): [1, 3] => [
+				one,
+				3,
+			]);
 			expect(vdn).to.deep.equal(Validation.ok(2));
 		});
 	});

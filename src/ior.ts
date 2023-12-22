@@ -562,7 +562,7 @@ export namespace Ior {
 		 * If this `Ior` has a left-hand value, apply a function to map the
 		 * value.
 		 */
-		lmap<A, B, A1>(this: Ior<A, B>, f: (val: A) => A1): Ior<A1, B> {
+		mapLeft<A, B, A1>(this: Ior<A, B>, f: (val: A) => A1): Ior<A1, B> {
 			if (this.isLeft()) {
 				return left(f(this.val));
 			}
