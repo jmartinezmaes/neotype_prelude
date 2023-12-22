@@ -345,9 +345,9 @@ describe("Either", () => {
 		});
 	});
 
-	describe("#unwrap", () => {
+	describe("#match", () => {
 		it("applies the first function to the value if the variant is Left", () => {
-			const result = Either.left<1, 2>(1).unwrap(
+			const result = Either.left<1, 2>(1).match(
 				(one): [1, 3] => [one, 3],
 				(two): [2, 4] => [two, 4],
 			);
@@ -355,11 +355,43 @@ describe("Either", () => {
 		});
 
 		it("applies the second function to the value if the variant is Right", () => {
-			const result = Either.right<2, 1>(2).unwrap(
+			const result = Either.right<2, 1>(2).match(
 				(one): [1, 3] => [one, 3],
 				(two): [2, 4] => [two, 4],
 			);
 			expect(result).to.deep.equal([2, 4]);
+		});
+	});
+
+	describe("#unwrapLeftOrElse", () => {
+		it("extracts the value if the variant is Left", () => {
+			const result = Either.left<1, 2>(1).unwrapLeftOrElse(
+				(two): [2, 4] => [two, 4],
+			);
+			expect(result).to.deep.equal(1);
+		});
+
+		it("applies the second function to the value if the variant is Right", () => {
+			const result = Either.right<2, 1>(2).unwrapLeftOrElse(
+				(two): [2, 4] => [two, 4],
+			);
+			expect(result).to.deep.equal([2, 4]);
+		});
+	});
+
+	describe("#unwrapRightOrElse", () => {
+		it("applies the first function to the value if the variant is Left", () => {
+			const result = Either.left<1, 2>(1).unwrapRightOrElse(
+				(one): [1, 3] => [one, 3],
+			);
+			expect(result).to.deep.equal([1, 3]);
+		});
+
+		it("extracts the value if the variant is Right", () => {
+			const result = Either.right<2, 1>(2).unwrapRightOrElse(
+				(one): [1, 3] => [one, 3],
+			);
+			expect(result).to.deep.equal(2);
 		});
 	});
 

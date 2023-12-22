@@ -277,9 +277,9 @@ describe("Validation", () => {
 		});
 	});
 
-	describe("#unwrap", () => {
+	describe("#match", () => {
 		it("applies the first function to the failure if the variant is Err", () => {
-			const result = Validation.err<1, 2>(1).unwrap(
+			const result = Validation.err<1, 2>(1).match(
 				(one): [1, 3] => [one, 3],
 				(two): [2, 4] => [two, 4],
 			);
@@ -287,11 +287,43 @@ describe("Validation", () => {
 		});
 
 		it("applies the second function to the success if the variant is Ok", () => {
-			const result = Validation.ok<2, 1>(2).unwrap(
+			const result = Validation.ok<2, 1>(2).match(
 				(one): [1, 3] => [one, 3],
 				(two): [2, 4] => [two, 4],
 			);
 			expect(result).to.deep.equal([2, 4]);
+		});
+	});
+
+	describe("#unwrapErrOrElse", () => {
+		it("applies the first function to the failure if the variant is Err", () => {
+			const result = Validation.err<1, 2>(1).unwrapErrOrElse(
+				(two): [2, 4] => [two, 4],
+			);
+			expect(result).to.deep.equal(1);
+		});
+
+		it("applies the second function to the success if the variant is Ok", () => {
+			const result = Validation.ok<2, 1>(2).unwrapErrOrElse(
+				(two): [2, 4] => [two, 4],
+			);
+			expect(result).to.deep.equal([2, 4]);
+		});
+	});
+
+	describe("#unwrapOkOrElse", () => {
+		it("applies the first function to the failure if the variant is Err", () => {
+			const result = Validation.err<1, 2>(1).unwrapOkOrElse(
+				(one): [1, 3] => [one, 3],
+			);
+			expect(result).to.deep.equal([1, 3]);
+		});
+
+		it("applies the second function to the success if the variant is Ok", () => {
+			const result = Validation.ok<2, 1>(2).unwrapOkOrElse(
+				(one): [1, 3] => [one, 3],
+			);
+			expect(result).to.deep.equal(2);
 		});
 	});
 

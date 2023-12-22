@@ -132,12 +132,12 @@ export namespace Ior {
 
 	/** Construct an `Ior` from an `Either`. */
 	export function fromEither<A, B>(either: Either<A, B>): Ior<A, B> {
-		return either.unwrap(left, right);
+		return either.match(left, right);
 	}
 
 	/** Construct an `Ior` from a `Validation`. */
 	export function fromValidation<E, T>(vdn: Validation<E, T>): Ior<E, T> {
-		return vdn.unwrap(left, right);
+		return vdn.match(left, right);
 	}
 
 	/** Construct an `Ior` from a 2-tuple of values. */
@@ -485,19 +485,19 @@ export namespace Ior {
 		 * Apply one of three functions to extract the value(s) out of this
 		 * `Ior` depending on the variant.
 		 */
-		unwrap<A, B, T1, T2, T3>(
+		match<A, B, T1, T2, T3>(
 			this: Ior<A, B>,
-			unwrapLeft: (val: A) => T1,
-			unwrapRight: (val: B) => T2,
-			unwrapBoth: (fst: A, snd: B) => T3,
+			ifLeft: (val: A) => T1,
+			ifRight: (val: B) => T2,
+			ifBoth: (fst: A, snd: B) => T3,
 		): T1 | T2 | T3 {
 			if (this.isLeft()) {
-				return unwrapLeft(this.val);
+				return ifLeft(this.val);
 			}
 			if (this.isRight()) {
-				return unwrapRight(this.val);
+				return ifRight(this.val);
 			}
-			return unwrapBoth(this.fst, this.snd);
+			return ifBoth(this.fst, this.snd);
 		}
 
 		/**

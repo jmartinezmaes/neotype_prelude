@@ -651,9 +651,9 @@ describe("Ior", () => {
 		});
 	});
 
-	describe("#unwrap", () => {
+	describe("#match", () => {
 		it("applies the first function to the value if the variant is Left", () => {
-			const result = Ior.left<1, 2>(1).unwrap(
+			const result = Ior.left<1, 2>(1).match(
 				(one): [1, 3] => [one, 3],
 				(two): [2, 4] => [two, 4],
 				(one, two): [1, 2] => [one, two],
@@ -662,7 +662,7 @@ describe("Ior", () => {
 		});
 
 		it("applies the second function to the value if the variant is Right", () => {
-			const result = Ior.right<2, 1>(2).unwrap(
+			const result = Ior.right<2, 1>(2).match(
 				(one): [1, 3] => [one, 3],
 				(two): [2, 4] => [two, 4],
 				(one, two): [1, 2] => [one, two],
@@ -671,7 +671,7 @@ describe("Ior", () => {
 		});
 
 		it("applies the third function to the left-hand value and the right-hand value if the variant is Both", () => {
-			const result = Ior.both<1, 2>(1, 2).unwrap(
+			const result = Ior.both<1, 2>(1, 2).match(
 				(one): [1, 3] => [one, 3],
 				(two): [2, 4] => [two, 4],
 				(one, two): [1, 2] => [one, two],
