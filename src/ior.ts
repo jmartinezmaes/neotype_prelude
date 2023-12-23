@@ -201,7 +201,7 @@ export namespace Ior {
 	 */
 	export function reduce<T, TAcc, A extends Semigroup<A>>(
 		elems: Iterable<T>,
-		accum: (acc: TAcc, val: T, idx: number) => Ior<A, TAcc>,
+		f: (acc: TAcc, val: T, idx: number) => Ior<A, TAcc>,
 		initial: TAcc,
 	): Ior<A, TAcc> {
 		return go(
@@ -209,7 +209,7 @@ export namespace Ior {
 				let acc = initial;
 				let idx = 0;
 				for (const elem of elems) {
-					acc = yield* accum(acc, elem, idx);
+					acc = yield* f(acc, elem, idx);
 					idx++;
 				}
 				return acc;
@@ -535,9 +535,7 @@ export namespace Ior {
 			return this.andThen((val) => go(f(val)));
 		}
 
-		/**
-		 * Remove one level of nesting from this `Ior`.
-		 */
+		/** Remove one level of nesting from this `Ior`. */
 		flatten<E extends Semigroup<E>, T>(this: Ior<E, Ior<E, T>>): Ior<E, T> {
 			return this.andThen(id);
 		}
@@ -749,7 +747,7 @@ export namespace AsyncIor {
 	 */
 	export function reduce<T, TAcc, A extends Semigroup<A>>(
 		elems: AsyncIterable<T>,
-		accum: (
+		f: (
 			acc: TAcc,
 			val: T,
 			idx: number,
@@ -761,7 +759,7 @@ export namespace AsyncIor {
 				let acc = initial;
 				let idx = 0;
 				for await (const elem of elems) {
-					acc = yield* await accum(acc, elem, idx);
+					acc = yield* await f(acc, elem, idx);
 					idx++;
 				}
 				return acc;
