@@ -168,7 +168,7 @@ export namespace Maybe {
 	 */
 	export function reduce<T, TAcc>(
 		elems: Iterable<T>,
-		accum: (acc: TAcc, val: T, idx: number) => Maybe<TAcc>,
+		f: (acc: TAcc, val: T, idx: number) => Maybe<TAcc>,
 		initial: TAcc,
 	): Maybe<TAcc> {
 		return go(
@@ -176,7 +176,7 @@ export namespace Maybe {
 				let acc = initial;
 				let idx = 0;
 				for (const val of elems) {
-					acc = yield* accum(acc, val, idx);
+					acc = yield* f(acc, val, idx);
 					idx++;
 				}
 				return acc;
@@ -452,9 +452,7 @@ export namespace Maybe {
 			return this.andThen((val) => go(f(val)));
 		}
 
-		/**
-		 * Remove one level of nesting from this `Maybe`.
-		 */
+		/** Remove one level of nesting from this `Maybe`. */
 		flatten<T>(this: Maybe<Maybe<T>>): Maybe<T> {
 			return this.andThen(id);
 		}
@@ -620,7 +618,7 @@ export namespace AsyncMaybe {
 	 */
 	export function reduce<T, TAcc>(
 		elems: AsyncIterable<T>,
-		accum: (
+		f: (
 			acc: TAcc,
 			val: T,
 			idx: number,
@@ -632,7 +630,7 @@ export namespace AsyncMaybe {
 				let acc = initial;
 				let idx = 0;
 				for await (const val of elems) {
-					acc = yield* await accum(acc, val, idx);
+					acc = yield* await f(acc, val, idx);
 					idx++;
 				}
 				return acc;

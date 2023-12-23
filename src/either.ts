@@ -155,7 +155,7 @@ export namespace Either {
 	 */
 	export function reduce<T, TAcc, E>(
 		elems: Iterable<T>,
-		accum: (acc: TAcc, val: T, idx: number) => Either<E, TAcc>,
+		f: (acc: TAcc, val: T, idx: number) => Either<E, TAcc>,
 		initial: TAcc,
 	): Either<E, TAcc> {
 		return go(
@@ -163,7 +163,7 @@ export namespace Either {
 				let acc = initial;
 				let idx = 0;
 				for (const elem of elems) {
-					acc = yield* accum(acc, elem, idx);
+					acc = yield* f(acc, elem, idx);
 					idx++;
 				}
 				return acc;
@@ -455,9 +455,7 @@ export namespace Either {
 			return this.andThen((val) => go(f(val)));
 		}
 
-		/**
-		 * Remove one level of nesting from this `Either`.
-		 */
+		/** Remove one level of nesting from this `Either`. */
 		flatten<E, E1, T>(this: Either<E, Either<E1, T>>): Either<E | E1, T> {
 			return this.andThen(id);
 		}
@@ -605,7 +603,7 @@ export namespace AsyncEither {
 	 */
 	export function reduce<T, TAcc, E>(
 		elems: AsyncIterable<T>,
-		accum: (
+		f: (
 			acc: TAcc,
 			val: T,
 			idx: number,
@@ -617,7 +615,7 @@ export namespace AsyncEither {
 				let acc = initial;
 				let idx = 0;
 				for await (const elem of elems) {
-					acc = yield* await accum(acc, elem, idx);
+					acc = yield* await f(acc, elem, idx);
 					idx++;
 				}
 				return acc;
