@@ -119,20 +119,24 @@ export namespace Maybe {
 	 * Adapt a function that may return `null` or `undefined` into a function
 	 * that returns `Maybe`.
 	 */
-	export function wrapFn<TArgs extends unknown[], T>(
+	export function wrapNullishFn<TArgs extends unknown[], T>(
 		f: (...args: TArgs) => T | null | undefined,
 	): (...args: TArgs) => Maybe<T> {
 		return (...args) => fromNullish(f(...args));
 	}
 
 	/** Adapt a predicate into a function that returns `Maybe`. */
-	export function wrapPred<T, T1 extends T>(
+	export function wrapPredicateFn<T, T1 extends T>(
 		f: (val: T) => val is T1,
 	): (val: T) => Maybe<T1>;
 
-	export function wrapPred<T>(f: (val: T) => boolean): (val: T) => Maybe<T>;
+	export function wrapPredicateFn<T>(
+		f: (val: T) => boolean,
+	): (val: T) => Maybe<T>;
 
-	export function wrapPred<T>(f: (val: T) => boolean): (val: T) => Maybe<T> {
+	export function wrapPredicateFn<T>(
+		f: (val: T) => boolean,
+	): (val: T) => Maybe<T> {
 		return (val) => (f(val) ? just(val) : nothing);
 	}
 
@@ -156,7 +160,7 @@ export namespace Maybe {
 	 * Adapt a generator function that returns `Maybe.Go` into a function that
 	 * returns `Maybe`.
 	 */
-	export function wrapGo<T, TReturn>(
+	export function wrapGoFn<T, TReturn>(
 		f: (val: T) => Go<TReturn>,
 	): (val: T) => Maybe<TReturn> {
 		return (val) => go(f(val));
@@ -606,7 +610,7 @@ export namespace AsyncMaybe {
 	 * Adapt an async generator function that returns `AsyncMaybe.Go` into an
 	 * async function that returns `AsyncMaybe`.
 	 */
-	export function wrapGo<T, TReturn>(
+	export function wrapGoFn<T, TReturn>(
 		f: (val: T) => Go<TReturn>,
 	): (val: T) => AsyncMaybe<TReturn> {
 		return (val) => go(f(val));

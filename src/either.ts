@@ -143,7 +143,7 @@ export namespace Either {
 	 * Adapt a generator function that returns `Either.Go` into a function that
 	 * returns `Either`.
 	 */
-	export function wrapGo<T, E, TReturn>(
+	export function wrapGoFn<T, E, TReturn>(
 		f: (val: T) => Go<E, TReturn>,
 	): (val: T) => Either<E, TReturn> {
 		return (val) => go(f(val));
@@ -591,7 +591,7 @@ export namespace AsyncEither {
 	 * Adapt an async generator function that returns `AsyncEither.Go` into an
 	 * async function that returns `AsyncEither`.
 	 */
-	export function wrapGo<T, E, TReturn>(
+	export function wrapGoFn<T, E, TReturn>(
 		f: (val: T) => Go<E, TReturn>,
 	): (val: T) => AsyncEither<E, TReturn> {
 		return (val) => go(f(val));

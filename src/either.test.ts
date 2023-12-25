@@ -116,13 +116,13 @@ describe("Either", () => {
 		});
 	});
 
-	describe("wrapGo", () => {
+	describe("wrapGoFn", () => {
 		it("adapts the generator function to return an Either", () => {
 			function* f(two: 2): Either.Go<never, [2, 4]> {
 				const four = yield* Either.right<4>(4);
 				return [two, four];
 			}
-			const wrapped = Either.wrapGo(f);
+			const wrapped = Either.wrapGoFn(f);
 			const either = wrapped(2);
 			expect(either).to.deep.equal(Either.right([2, 4]));
 		});
@@ -575,13 +575,13 @@ describe("AsyncEither", () => {
 		});
 	});
 
-	describe("wrapGo", () => {
+	describe("wrapGoFn", () => {
 		it("adapts the async generator function to return an AsyncEither", async () => {
 			async function* f(two: 2): AsyncEither.Go<never, [2, 4]> {
 				const four = yield* await Promise.resolve(Either.right<4>(4));
 				return [two, four];
 			}
-			const wrapped = AsyncEither.wrapGo(f);
+			const wrapped = AsyncEither.wrapGoFn(f);
 			const either = await wrapped(2);
 			expect(either).to.deep.equal(Either.right([2, 4]));
 		});
