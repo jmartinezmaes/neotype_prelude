@@ -67,35 +67,35 @@ describe("Maybe", () => {
 		});
 	});
 
-	describe("wrapFn", () => {
+	describe("wrapNullishFn", () => {
 		it("adapts the function to return Nothing if it returns undefined", () => {
-			const f = Maybe.wrapFn((): 1 | undefined => undefined);
+			const f = Maybe.wrapNullishFn((): 1 | undefined => undefined);
 			const maybe = f();
 			expect(maybe).to.equal(Maybe.nothing);
 		});
 
 		it("adapts the function to return Nothing if it returns null", () => {
-			const f = Maybe.wrapFn((): 1 | null => null);
+			const f = Maybe.wrapNullishFn((): 1 | null => null);
 			const maybe = f();
 			expect(maybe).to.equal(Maybe.nothing);
 		});
 
 		it("adapts the function to wrap a non-undefined, non-null result in a Just", () => {
-			const f = Maybe.wrapFn((): 1 => 1);
+			const f = Maybe.wrapNullishFn((): 1 => 1);
 			const maybe = f();
 			expect(maybe).to.deep.equal(Maybe.just(1));
 		});
 	});
 
-	describe("wrapPred", () => {
+	describe("wrapPredicateFn", () => {
 		it("adapts the predicate to return Nothing if not satisfied", () => {
-			const f = Maybe.wrapPred((num: number) => num === 1);
+			const f = Maybe.wrapPredicateFn((num: number) => num === 1);
 			const maybe = f(2);
 			expect(maybe).to.equal(Maybe.nothing);
 		});
 
 		it("adapts the predicate to return its argument in a Just if satisfied", () => {
-			const f = Maybe.wrapPred((num: number) => num === 1);
+			const f = Maybe.wrapPredicateFn((num: number) => num === 1);
 			const maybe = f(1);
 			expect(maybe).to.deep.equal(Maybe.just(1));
 		});
@@ -149,13 +149,13 @@ describe("Maybe", () => {
 		});
 	});
 
-	describe("wrapGo", () => {
+	describe("wrapGoFn", () => {
 		it("adapts the generator function to return a Maybe", () => {
 			function* f(two: 2): Maybe.Go<[2, 4]> {
 				const four = yield* Maybe.just<4>(4);
 				return [two, four];
 			}
-			const wrapped = Maybe.wrapGo(f);
+			const wrapped = Maybe.wrapGoFn(f);
 			const maybe = wrapped(2);
 			expect(maybe).to.deep.equal(Maybe.just([2, 4]));
 		});
@@ -678,13 +678,13 @@ describe("AsyncMaybe", () => {
 		});
 	});
 
-	describe("wrapGo", () => {
+	describe("wrapGoFn", () => {
 		it("adapts the async generator function to return an AsyncMaybe", async () => {
 			async function* f(two: 2): AsyncMaybe.Go<[2, 4]> {
 				const four = yield* await Promise.resolve(Maybe.just<4>(4));
 				return [two, four];
 			}
-			const wrapped = AsyncMaybe.wrapGo(f);
+			const wrapped = AsyncMaybe.wrapGoFn(f);
 			const maybe = await wrapped(2);
 			expect(maybe).to.deep.equal(Maybe.just([2, 4]));
 		});

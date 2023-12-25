@@ -38,15 +38,15 @@ export function constant<T>(val: T): (...args: any[]) => T {
 }
 
 /** Adapt a predicate into an identical predicate that negates its result. */
-export function negatePred<T, T1 extends T>(
+export function negatePredicateFn<T, T1 extends T>(
 	f: (val: T) => val is T1,
 ): (val: T) => val is Exclude<T, T1>;
 
-export function negatePred<TArgs extends unknown[]>(
+export function negatePredicateFn<TArgs extends unknown[]>(
 	f: (...args: TArgs) => boolean,
 ): (...args: TArgs) => boolean;
 
-export function negatePred<TArgs extends unknown[]>(
+export function negatePredicateFn<TArgs extends unknown[]>(
 	f: (...args: TArgs) => boolean,
 ): (...args: TArgs) => boolean {
 	return (...args) => !f(...args);

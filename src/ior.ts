@@ -189,7 +189,7 @@ export namespace Ior {
 	 * Adapt a generator function that returns `Ior.Go` into a function that
 	 * returns `Ior`.
 	 */
-	export function wrapGo<T, A extends Semigroup<A>, TReturn>(
+	export function wrapGoFn<T, A extends Semigroup<A>, TReturn>(
 		f: (val: T) => Go<A, TReturn>,
 	): (val: T) => Ior<A, TReturn> {
 		return (val) => go(f(val));
@@ -735,7 +735,7 @@ export namespace AsyncIor {
 	 * Adapt an async generator function that returns `AsyncIor.Go` into an
 	 * async function that returns `AsyncIor`.
 	 */
-	export function wrapGo<T, A extends Semigroup<A>, TReturn>(
+	export function wrapGoFn<T, A extends Semigroup<A>, TReturn>(
 		f: (val: T) => Go<A, TReturn>,
 	): (val: T) => AsyncIor<A, TReturn> {
 		return (val) => go(f(val));

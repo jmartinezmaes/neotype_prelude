@@ -16,7 +16,7 @@
 
 import * as fc from "fast-check";
 import { describe, expect, it } from "vitest";
-import { constant, id, negatePred, wrapCtor } from "./fn.js";
+import { constant, id, negatePredicateFn, wrapCtor } from "./fn.js";
 
 describe("id", () => {
 	it("returns its argument", () => {
@@ -41,12 +41,12 @@ describe("constant", () => {
 	});
 });
 
-describe("negatePred", () => {
+describe("negatePredicateFn", () => {
 	it("adapts the predicate into an identical predicate that negates its result", () => {
 		function isOne(num: number): boolean {
 			return num === 1;
 		}
-		const isNotOne = negatePred(isOne);
+		const isNotOne = negatePredicateFn(isOne);
 
 		expect(isOne(1)).to.be.true;
 		expect(isOne(2)).to.be.false;
