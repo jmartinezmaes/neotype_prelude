@@ -356,7 +356,7 @@ export namespace Validation {
 		}
 
 		/**
-		 * If this `Validation` is `Err`, extract its value; otherwise, apply a
+		 * If this `Validation` fails, extract its value; otherwise, apply a
 		 * function to its value.
 		 */
 		unwrapErrOrElse<E, T, T1>(
@@ -367,7 +367,7 @@ export namespace Validation {
 		}
 
 		/**
-		 * If this `Validation` is `Ok`, extract its value; otherwise, apply a
+		 * If this `Validation` succeeds, extract its value; otherwise, apply a
 		 * function to its value.
 		 */
 		unwrapOkOrElse<E, T, T1>(
@@ -378,29 +378,40 @@ export namespace Validation {
 		}
 
 		/**
-		 * If this `Validation` is `Err`, apply a function to its failure to
-		 * return another `Validation`.
+		 * If this `Validation` fails, apply a function to its failure to return
+		 * another `Validation`.
+		 *
+		 * @remarks
+		 *
+		 * If both `Validation` fail, combine their failures.
 		 */
-		orElse<E, T, E1, T1>(
+		orElse<E extends Semigroup<E>, T, T1>(
 			this: Validation<E, T>,
-			f: (val: E) => Validation<E1, T1>,
-		): Validation<E1, T | T1> {
-			return this.isErr() ? f(this.val) : this;
+			f: (val: E) => Validation<E, T1>,
+		): Validation<E, T | T1> {
+			if (this.isErr()) {
+				const that = f(this.val);
+				return that.isErr() ? new Err(cmb(this.val, that.val)) : that;
+			}
+			return this;
 		}
 
 		/**
-		 * If this `Validation` is `Err`, ignore its failure and return that
-		 * `Validation`.
+		 * If this `Validation` fails, evaluate a fallback `Validation`.
+		 *
+		 * @remarks
+		 *
+		 * If both `Validation` fail, combine their failures.
 		 */
-		or<T, E1, T1>(
-			this: Validation<any, T>,
-			that: Validation<E1, T1>,
-		): Validation<E1, T | T1> {
+		or<E extends Semigroup<E>, T, T1>(
+			this: Validation<E, T>,
+			that: Validation<E, T1>,
+		): Validation<E, T | T1> {
 			return this.orElse(() => that);
 		}
 
 		/**
-		 * If this `Validation` is `Ok`, apply a function to its success to
+		 * If this `Validation` succeeds, apply a function to its success to
 		 * return another `Validation`.
 		 */
 		andThen<E, T, E1, T1>(
