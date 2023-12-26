@@ -327,6 +327,59 @@ describe("Validation", () => {
 		});
 	});
 
+	describe("#orElse", () => {
+		it("applies the continuation to the failure if the variant is Err", () => {
+			const vdn = Validation.err<1, 2>(1).orElse(
+				(one): Validation<[1, 3], 4> => Validation.err([one, 3]),
+			);
+			expect(vdn).to.deep.equal(Validation.err([1, 3]));
+		});
+
+		it("does not apply the continuation if the variant is Ok", () => {
+			const vdn = Validation.ok<2, 1>(2).orElse(
+				(one): Validation<[1, 3], 4> => Validation.err([one, 3]),
+			);
+			expect(vdn).to.deep.equal(Validation.ok(2));
+		});
+	});
+
+	describe("#or", () => {
+		it("returns the fallback Validation if the variant is Err", () => {
+			const vdn = Validation.err<1, 2>(1).or(Validation.ok<4, 3>(4));
+			expect(vdn).to.deep.equal(Validation.ok(4));
+		});
+
+		it("returns the original Validation if the variant is Ok", () => {
+			const vdn = Validation.ok<2, 1>(2).or(Validation.ok<4, 3>(4));
+			expect(vdn).to.deep.equal(Validation.ok(2));
+		});
+	});
+
+	describe("#andThen", () => {
+		it("does not apply the continuation of the variant is Err", () => {
+			const vdn = Validation.err<1, 2>(1).andThen(
+				(two): Validation<3, [2, 4]> => Validation.ok([two, 4]),
+			);
+			expect(vdn).to.deep.equal(Validation.err(1));
+		});
+
+		it("applies the continuation fo the success if the variant is Ok", () => {
+			const vdn = Validation.ok<2, 1>(2).andThen(
+				(two): Validation<3, [2, 4]> => Validation.ok([two, 4]),
+			);
+			expect(vdn).to.deep.equal(Validation.ok([2, 4]));
+		});
+	});
+
+	describe("#flatten", () => {
+		it("removes one level of nesting if the variant is Ok", () => {
+			const vdn = Validation.ok<Validation<3, 2>, 1>(
+				Validation.ok(2),
+			).flatten();
+			expect(vdn).to.deep.equal(Validation.ok(2));
+		});
+	});
+
 	describe("#and", () => {
 		it("returns the other Validation if the variant is Ok", () => {
 			const vdn = Validation.ok<2, Str>(2).and(Validation.ok<4, Str>(4));
