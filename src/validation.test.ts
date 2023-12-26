@@ -328,29 +328,45 @@ describe("Validation", () => {
 	});
 
 	describe("#orElse", () => {
-		it("applies the continuation to the failure if the variant is Err", () => {
-			const vdn = Validation.err<1, 2>(1).orElse(
-				(one): Validation<[1, 3], 4> => Validation.err([one, 3]),
+		it("applies the continuation to the failure and combines the failures if both variants are Err", () => {
+			const vdn = Validation.err<Str, 2>(new Str("a")).orElse(
+				(a): Validation<Str, 4> => Validation.err(cmb(new Str("b"), a)),
 			);
-			expect(vdn).to.deep.equal(Validation.err([1, 3]));
+			expect(vdn).to.deep.equal(Validation.err(new Str("aba")));
+		});
+
+		it("applies the continuation to the failure if the variant is Err", () => {
+			const vdn = Validation.err<Str, 2>(new Str("a")).orElse(
+				(a): Validation<Str, [4, Str]> => Validation.ok([4, a]),
+			);
+			expect(vdn).to.deep.equal(Validation.ok([4, new Str("a")]));
 		});
 
 		it("does not apply the continuation if the variant is Ok", () => {
-			const vdn = Validation.ok<2, 1>(2).orElse(
-				(one): Validation<[1, 3], 4> => Validation.err([one, 3]),
+			const vdn = Validation.ok<2, Str>(2).orElse(
+				(a): Validation<Str, 4> => Validation.err(cmb(new Str("b"), a)),
 			);
 			expect(vdn).to.deep.equal(Validation.ok(2));
 		});
 	});
 
 	describe("#or", () => {
+		it("combines the failures if both variants are Err", () => {
+			const vdn = Validation.err<Str, 2>(new Str("a")).or(
+				Validation.err<Str, 4>(new Str("b")),
+			);
+			expect(vdn).to.deep.equal(Validation.err(new Str("ab")));
+		});
+
 		it("returns the fallback Validation if the variant is Err", () => {
-			const vdn = Validation.err<1, 2>(1).or(Validation.ok<4, 3>(4));
+			const vdn = Validation.err<Str, 2>(new Str("a")).or(
+				Validation.ok<4, Str>(4),
+			);
 			expect(vdn).to.deep.equal(Validation.ok(4));
 		});
 
 		it("returns the original Validation if the variant is Ok", () => {
-			const vdn = Validation.ok<2, 1>(2).or(Validation.ok<4, 3>(4));
+			const vdn = Validation.ok<2, Str>(2).or(Validation.ok<4, Str>(4));
 			expect(vdn).to.deep.equal(Validation.ok(2));
 		});
 	});
