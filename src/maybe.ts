@@ -125,11 +125,14 @@ export namespace Maybe {
 		return (...args) => fromNullish(f(...args));
 	}
 
-	/** Adapt a predicate into a function that returns `Maybe`. */
+	/**
+	 * Adapt a refining predicate function into a function that returns `Maybe`.
+	 */
 	export function wrapPredicateFn<T, T1 extends T>(
 		f: (val: T) => val is T1,
 	): (val: T) => Maybe<T1>;
 
+	/** Adapt a predicate function into a function that returns `Maybe`. */
 	export function wrapPredicateFn<T>(
 		f: (val: T) => boolean,
 	): (val: T) => Maybe<T>;

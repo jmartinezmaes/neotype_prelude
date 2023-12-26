@@ -56,6 +56,26 @@ describe("Either", () => {
 		});
 	});
 
+	describe("fromNullish", () => {
+		it("returns a fallback value in a Left if the argument is null", () => {
+			expect(Either.fromNullish<2, 1>(null, () => 1)).to.deep.equal(
+				Either.left(1),
+			);
+		});
+
+		it("returns a fallback value in a Left if the argument is undefined", () => {
+			expect(Either.fromNullish<2, 1>(undefined, () => 1)).to.deep.equal(
+				Either.left(1),
+			);
+		});
+
+		it("returns the argument in a Right if it is non-nullish", () => {
+			expect(Either.fromNullish<2, 1>(2, () => 1)).to.deep.equal(
+				Either.right(2),
+			);
+		});
+	});
+
 	describe("fromValidation", () => {
 		it("constructs a Left if the Validation is an Err", () => {
 			const either = Either.fromValidation(Validation.err<1, 2>(1));
@@ -64,6 +84,53 @@ describe("Either", () => {
 
 		it("constructs a Right if the Validation is an Ok", () => {
 			const either = Either.fromValidation(Validation.ok<2, 1>(2));
+			expect(either).to.deep.equal(Either.right(2));
+		});
+	});
+
+	describe("wrapNullishFn", () => {
+		it("adapts the function to return a Left if it returns null", () => {
+			const f = Either.wrapNullishFn(
+				(() => null) as (two: 2) => [2, 4] | null,
+				(two): [1, typeof two] => [1, two],
+			);
+			const either = f(2);
+			expect(either).to.deep.equal(Either.left([1, 2]));
+		});
+
+		it("adapts the function to return a Left if it returns undefined", () => {
+			const f = Either.wrapNullishFn(
+				(() => undefined) as (two: 2) => [2, 4] | undefined,
+				(two): [1, typeof two] => [1, two],
+			);
+			const either = f(2);
+			expect(either).to.deep.equal(Either.left([1, 2]));
+		});
+
+		it("adapts the function to return a Right if it returns a non-nullish value", () => {
+			const f = Either.wrapNullishFn(
+				(two: 2): [2, 4] | null | undefined => [two, 4],
+				(two): [1, typeof two] => [1, two],
+			);
+			const either = f(2);
+			expect(either).to.deep.equal(Either.right([2, 4]));
+		});
+	});
+
+	describe("wrapPredicateFn", () => {
+		it("adapts the predicate to return its argument in a Left if not satisfied", () => {
+			const f = Either.wrapPredicateFn(
+				(num: 1 | 2): num is 2 => num === 2,
+			);
+			const either = f(1);
+			expect(either).to.deep.equal(Either.left(1));
+		});
+
+		it("adapts the predicate to return its argument in a Right if satisfied", () => {
+			const f = Either.wrapPredicateFn(
+				(num: 1 | 2): num is 2 => num === 2,
+			);
+			const either = f(2);
 			expect(either).to.deep.equal(Either.right(2));
 		});
 	});

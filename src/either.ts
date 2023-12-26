@@ -116,9 +116,64 @@ export namespace Either {
 		return new Right(val);
 	}
 
+	/**
+	 * Construct an `Either` from a value that is potentially `null` or
+	 * `undefined`.
+	 */
+	export function fromNullish<B, A>(
+		val: B | null | undefined,
+		ifNullish: () => A,
+	): Either<A, B> {
+		return val === null || val === undefined
+			? left(ifNullish())
+			: right(val);
+	}
+
 	/** Construct an `Either` from a `Validation`. */
 	export function fromValidation<E, T>(vdn: Validation<E, T>): Either<E, T> {
 		return vdn.match(left, right);
+	}
+
+	/**
+	 * Adapt a function that may return `null` or `undefined` into a function
+	 * that returns `Either`.
+	 */
+	export function wrapNullishFn<TArgs extends unknown[], B, A>(
+		f: (...args: TArgs) => B | null | undefined,
+		ifNullish: (...args: TArgs) => A,
+	): (...args: TArgs) => Either<A, B> {
+		return (...args) => fromNullish(f(...args), () => ifNullish(...args));
+	}
+
+	/**
+	 * Adapt a refining predicate function into a function that returns
+	 * `Either`.
+	 *
+	 * @remarks
+	 *
+	 * If the argument does not satisfy the predicate, it is wrapped in `Left`.
+	 * If the argument satisfies the predicate, it is wrapped in `Right`.
+	 */
+	export function wrapPredicateFn<T, T1 extends T>(
+		f: (val: T) => val is T1,
+	): (val: T) => Either<Exclude<T, T1>, T1>;
+
+	/**
+	 * Adapt a predicate function into a function that returns `Either`.
+	 *
+	 * @remarks
+	 *
+	 * If the argument does not satisfy the predicate, it is wrapped in `Left`.
+	 * If the argument satisfies the predicate, it is wrapped in `Right`.
+	 */
+	export function wrapPredicateFn<T>(
+		f: (val: T) => boolean,
+	): (val: T) => Either<T, T>;
+
+	export function wrapPredicateFn<T>(
+		f: (val: T) => boolean,
+	): (val: T) => Either<T, T> {
+		return (val) => (f(val) ? right(val) : left(val));
 	}
 
 	/** Evaluate an `Either.Go` generator to return an `Either`. */

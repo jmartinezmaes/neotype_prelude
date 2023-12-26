@@ -57,6 +57,26 @@ describe("Validation", () => {
 		});
 	});
 
+	describe("fromNullish", () => {
+		it("returns a fallback value in an Err if the argument is null", () => {
+			expect(Validation.fromNullish<2, 1>(null, () => 1)).to.deep.equal(
+				Validation.err(1),
+			);
+		});
+
+		it("returns a fallback value in an Err if the argument is undefined", () => {
+			expect(
+				Validation.fromNullish<2, 1>(undefined, () => 1),
+			).to.deep.equal(Validation.err(1));
+		});
+
+		it("returns the argument in an Ok if it is non-nullish", () => {
+			expect(Validation.fromNullish<2, 1>(2, () => 1)).to.deep.equal(
+				Validation.ok(2),
+			);
+		});
+	});
+
 	describe("fromEither", () => {
 		it("constructs an Err if the Either is a Left", () => {
 			expect(Validation.fromEither(Either.left<1, 2>(1))).to.deep.equal(
@@ -68,6 +88,53 @@ describe("Validation", () => {
 			expect(Validation.fromEither(Either.right<2, 1>(2))).to.deep.equal(
 				Validation.ok(2),
 			);
+		});
+	});
+
+	describe("wrapNullishFn", () => {
+		it("adapts the function to return an Err if it returns null", () => {
+			const f = Validation.wrapNullishFn(
+				(() => null) as (two: 2) => [2, 4] | null,
+				(two): [1, typeof two] => [1, two],
+			);
+			const vdn = f(2);
+			expect(vdn).to.deep.equal(Validation.err([1, 2]));
+		});
+
+		it("adapts the function to return an Err if it returns undefined", () => {
+			const f = Validation.wrapNullishFn(
+				(() => undefined) as (two: 2) => [2, 4] | undefined,
+				(two): [1, typeof two] => [1, two],
+			);
+			const vdn = f(2);
+			expect(vdn).to.deep.equal(Validation.err([1, 2]));
+		});
+
+		it("adapts the function to return an Ok if it returns a non-nullish value", () => {
+			const f = Validation.wrapNullishFn(
+				(two: 2): [2, 4] | null | undefined => [two, 4],
+				(two): [1, typeof two] => [1, two],
+			);
+			const vdn = f(2);
+			expect(vdn).to.deep.equal(Validation.ok([2, 4]));
+		});
+	});
+
+	describe("wrapPredicateFn", () => {
+		it("adapts the predicate to return its argument in an Err if not satisfied", () => {
+			const f = Validation.wrapPredicateFn(
+				(num: 1 | 2): num is 2 => num === 2,
+			);
+			const vdn = f(1);
+			expect(vdn).to.deep.equal(Validation.err(1));
+		});
+
+		it("adapts the predicate to return its argument in an Ok if satisfied", () => {
+			const f = Validation.wrapPredicateFn(
+				(num: 1 | 2): num is 2 => num === 2,
+			);
+			const vdn = f(2);
+			expect(vdn).to.deep.equal(Validation.ok(2));
 		});
 	});
 

@@ -62,25 +62,25 @@ describe("Maybe", () => {
 			expect(Maybe.fromNullish<1>(null)).to.equal(Maybe.nothing);
 		});
 
-		it("returns any non-undefined, non-null argument in a Just", () => {
+		it("returns the argument in a Just if it is non-nullish", () => {
 			expect(Maybe.fromNullish<1>(1)).to.deep.equal(Maybe.just(1));
 		});
 	});
 
 	describe("wrapNullishFn", () => {
-		it("adapts the function to return Nothing if it returns undefined", () => {
-			const f = Maybe.wrapNullishFn((): 1 | undefined => undefined);
-			const maybe = f();
-			expect(maybe).to.equal(Maybe.nothing);
-		});
-
 		it("adapts the function to return Nothing if it returns null", () => {
 			const f = Maybe.wrapNullishFn((): 1 | null => null);
 			const maybe = f();
 			expect(maybe).to.equal(Maybe.nothing);
 		});
 
-		it("adapts the function to wrap a non-undefined, non-null result in a Just", () => {
+		it("adapts the function to return Nothing if it returns undefined", () => {
+			const f = Maybe.wrapNullishFn((): 1 | undefined => undefined);
+			const maybe = f();
+			expect(maybe).to.equal(Maybe.nothing);
+		});
+
+		it("adapts the function to return a Just if it returns a non-nullish value", () => {
 			const f = Maybe.wrapNullishFn((): 1 => 1);
 			const maybe = f();
 			expect(maybe).to.deep.equal(Maybe.just(1));

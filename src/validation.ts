@@ -115,9 +115,62 @@ export namespace Validation {
 		return new Ok(val);
 	}
 
+	/**
+	 * Construct a `Validation` from a value that is potentially `null` or
+	 * `undefined`.
+	 */
+	export function fromNullish<T, E>(
+		val: T | null | undefined,
+		ifNullish: () => E,
+	): Validation<E, T> {
+		return val === null || val === undefined ? err(ifNullish()) : ok(val);
+	}
+
 	/** Construct a `Validation` from an `Either`. */
 	export function fromEither<A, B>(either: Either<A, B>): Validation<A, B> {
 		return either.match(err, ok);
+	}
+
+	/**
+	 * Adapt a function that may return `null` or `undefined` into a function
+	 * that returns `Validation`.
+	 */
+	export function wrapNullishFn<TArgs extends unknown[], T, E>(
+		f: (...args: TArgs) => T | null | undefined,
+		ifNullish: (...args: TArgs) => E,
+	): (...args: TArgs) => Validation<E, T> {
+		return (...args) => fromNullish(f(...args), () => ifNullish(...args));
+	}
+
+	/**
+	 * Adapt a refining predicate function into a function that returns
+	 * `Validation`.
+	 *
+	 * @remarks
+	 *
+	 * If the argument does not satisfy the predicate, it is wrapped in `Err`.
+	 * If the argument satisfies the predicate, it is wrapped in `Ok`.
+	 */
+	export function wrapPredicateFn<T, T1 extends T>(
+		f: (val: T) => val is T1,
+	): (val: T) => Validation<Exclude<T, T1>, T1>;
+
+	/**
+	 * Adapt a predicate function into a function that returns `Validation`.
+	 *
+	 * @remarks
+	 *
+	 * If the argument does not satisfy the predicate, it is wrapped in `Err`.
+	 * If the argument satisfies the predicate, it is wrapped in `Ok`.
+	 */
+	export function wrapPredicateFn<T>(
+		f: (val: T) => boolean,
+	): (val: T) => Validation<T, T>;
+
+	export function wrapPredicateFn<T>(
+		f: (val: T) => boolean,
+	): (val: T) => Validation<T, T> {
+		return (val) => (f(val) ? ok(val) : err(val));
 	}
 
 	/**
