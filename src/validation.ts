@@ -378,6 +378,46 @@ export namespace Validation {
 		}
 
 		/**
+		 * If this `Validation` is `Err`, apply a function to its failure to
+		 * return another `Validation`.
+		 */
+		orElse<E, T, E1, T1>(
+			this: Validation<E, T>,
+			f: (val: E) => Validation<E1, T1>,
+		): Validation<E1, T | T1> {
+			return this.isErr() ? f(this.val) : this;
+		}
+
+		/**
+		 * If this `Validation` is `Err`, ignore its failure and return that
+		 * `Validation`.
+		 */
+		or<T, E1, T1>(
+			this: Validation<any, T>,
+			that: Validation<E1, T1>,
+		): Validation<E1, T | T1> {
+			return this.orElse(() => that);
+		}
+
+		/**
+		 * If this `Validation` is `Ok`, apply a function to its success to
+		 * return another `Validation`.
+		 */
+		andThen<E, T, E1, T1>(
+			this: Validation<E, T>,
+			f: (val: T) => Validation<E1, T1>,
+		): Validation<E | E1, T1> {
+			return this.isErr() ? this : f(this.val);
+		}
+
+		/** Remove one level of nesting from this `Validation`. */
+		flatten<E, E1, T>(
+			this: Validation<E, Validation<E1, T>>,
+		): Validation<E | E1, T> {
+			return this.andThen(id);
+		}
+
+		/**
 		 * If this `Validation` succeeds, ignore the success and return that
 		 * `Validation`.
 		 */
