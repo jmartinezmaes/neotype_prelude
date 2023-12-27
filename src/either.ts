@@ -155,7 +155,7 @@ export namespace Either {
 	 */
 	export function reduce<T, TAcc, E>(
 		elems: Iterable<T>,
-		f: (acc: TAcc, val: T, idx: number) => Either<E, TAcc>,
+		f: (acc: TAcc, elem: T, idx: number) => Either<E, TAcc>,
 		initial: TAcc,
 	): Either<E, TAcc> {
 		return go(
@@ -605,7 +605,7 @@ export namespace AsyncEither {
 		elems: AsyncIterable<T>,
 		f: (
 			acc: TAcc,
-			val: T,
+			elem: T,
 			idx: number,
 		) => Either<E, TAcc> | AsyncEitherLike<E, TAcc>,
 		initial: TAcc,

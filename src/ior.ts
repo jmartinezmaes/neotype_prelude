@@ -205,7 +205,7 @@ export namespace Ior {
 	 */
 	export function reduce<T, TAcc, A extends Semigroup<A>>(
 		elems: Iterable<T>,
-		f: (acc: TAcc, val: T, idx: number) => Ior<A, TAcc>,
+		f: (acc: TAcc, elem: T, idx: number) => Ior<A, TAcc>,
 		initial: TAcc,
 	): Ior<A, TAcc> {
 		return go(
@@ -757,7 +757,7 @@ export namespace AsyncIor {
 		elems: AsyncIterable<T>,
 		f: (
 			acc: TAcc,
-			val: T,
+			elem: T,
 			idx: number,
 		) => Ior<A, TAcc> | AsyncIorLike<A, TAcc>,
 		initial: TAcc,

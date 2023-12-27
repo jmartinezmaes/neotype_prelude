@@ -172,7 +172,7 @@ export namespace Maybe {
 	 */
 	export function reduce<T, TAcc>(
 		elems: Iterable<T>,
-		f: (acc: TAcc, val: T, idx: number) => Maybe<TAcc>,
+		f: (acc: TAcc, elem: T, idx: number) => Maybe<TAcc>,
 		initial: TAcc,
 	): Maybe<TAcc> {
 		return go(
@@ -624,7 +624,7 @@ export namespace AsyncMaybe {
 		elems: AsyncIterable<T>,
 		f: (
 			acc: TAcc,
-			val: T,
+			elem: T,
 			idx: number,
 		) => Maybe<TAcc> | AsyncMaybeLike<TAcc>,
 		initial: TAcc,
