@@ -19,6 +19,7 @@ import {
 	ObjectAssignBuilder,
 	type Builder,
 	NoOpBuilder,
+	ArrayAssignBuilder,
 } from "./builder.js";
 import { Semigroup, cmb } from "./cmb.js";
 import { Eq, Ord, Ordering, cmp, eq } from "./cmp.js";
@@ -412,6 +413,225 @@ export namespace AsyncAnnotation {
 		f: (...args: TArgs) => Go<N, TReturn>,
 	): (...args: TArgs) => AsyncAnnotation<TReturn, N> {
 		return (...args) => go(f(...args));
+	}
+
+	export function reduce<T, TAcc, N extends Semigroup<N>>(
+		elems: AsyncIterable<T>,
+		f: (
+			acc: TAcc,
+			elem: T,
+			idx: number,
+		) => Annotation<TAcc, N> | AsyncAnnotationLike<TAcc, N>,
+		initial: TAcc,
+	): AsyncAnnotation<TAcc, N> {
+		return go(
+			(async function* () {
+				let acc = initial;
+				let idx = 0;
+				for await (const elem of elems) {
+					acc = yield* await f(acc, elem, idx);
+					idx++;
+				}
+				return acc;
+			})(),
+		);
+	}
+
+	export function traverseInto<T, T1, N extends Semigroup<N>, TFinish>(
+		elems: AsyncIterable<T>,
+		f: (
+			elem: T,
+			idx: number,
+		) => Annotation<T1, N> | AsyncAnnotationLike<T1, N>,
+		builder: Builder<T1, TFinish>,
+	): AsyncAnnotation<TFinish, N> {
+		return go(
+			(async function* () {
+				let idx = 0;
+				for await (const elem of elems) {
+					builder.add(yield* await f(elem, idx));
+					idx++;
+				}
+				return builder.finish();
+			})(),
+		);
+	}
+
+	export function traverse<T, T1, N extends Semigroup<N>>(
+		elems: AsyncIterable<T>,
+		f: (
+			elem: T,
+			idx: number,
+		) => Annotation<T1, N> | AsyncAnnotationLike<T1, N>,
+	): AsyncAnnotation<T1[], N> {
+		return traverseInto(elems, f, new ArrayPushBuilder());
+	}
+
+	export function allInto<T, N extends Semigroup<N>, TFinish>(
+		elems: AsyncIterable<Annotation<T, N>>,
+		builder: Builder<T, TFinish>,
+	): AsyncAnnotation<TFinish, N> {
+		return traverseInto(elems, id, builder);
+	}
+
+	export function all<T, N extends Semigroup<N>>(
+		elems: AsyncIterable<Annotation<T, N>>,
+	): AsyncAnnotation<T[], N> {
+		return traverse(elems, id);
+	}
+
+	export function forEach<T, N extends Semigroup<N>>(
+		elems: AsyncIterable<T>,
+		f: (
+			elem: T,
+			idx: number,
+		) => Annotation<any, N> | AsyncAnnotationLike<any, N>,
+	): AsyncAnnotation<void, N> {
+		return traverseInto(elems, f, new NoOpBuilder());
+	}
+
+	export function traverseIntoPar<T, T1, N extends Semigroup<N>, TFinish>(
+		elems: Iterable<T>,
+		f: (
+			elem: T,
+			idx: number,
+		) => Annotation<T1, N> | AsyncAnnotationLike<T1, N>,
+		builder: Builder<T1, TFinish>,
+	): AsyncAnnotation<TFinish, N> {
+		return new Promise((resolve, reject) => {
+			let remaining = 0;
+			let acc: N | undefined;
+
+			for (const elem of elems) {
+				const idx = remaining;
+				remaining++;
+				Promise.resolve(f(elem, idx)).then((anno) => {
+					if (anno.isData()) {
+						builder.add(anno.val);
+					} else {
+						if (acc === undefined) {
+							acc = anno.note;
+						} else {
+							acc = cmb(acc, anno.note);
+						}
+						builder.add(anno.data);
+					}
+
+					remaining--;
+					if (remaining === 0) {
+						if (acc === undefined) {
+							resolve(Annotation.data(builder.finish()));
+						} else {
+							resolve(Annotation.note(builder.finish(), acc));
+						}
+						return;
+					}
+				}, reject);
+			}
+		});
+	}
+
+	export function traversePar<T, T1, N extends Semigroup<N>>(
+		elems: Iterable<T>,
+		f: (
+			elem: T,
+			idx: number,
+		) => Annotation<T1, N> | AsyncAnnotationLike<T1, N>,
+	): AsyncAnnotation<T1[], N> {
+		return traverseIntoPar(
+			elems,
+			async (elem, idx) =>
+				(await f(elem, idx)).map((val) => [idx, val] as const),
+			new ArrayAssignBuilder(),
+		);
+	}
+
+	export function allIntoPar<T, N extends Semigroup<N>, TFinish>(
+		elems: Iterable<Annotation<T, N> | AsyncAnnotationLike<T, N>>,
+		builder: Builder<T, TFinish>,
+	): AsyncAnnotation<TFinish, N> {
+		return traverseIntoPar(elems, id, builder);
+	}
+
+	export function allPar<
+		TElems extends
+			| readonly (
+					| Annotation<any, Semigroup<any>>
+					| AsyncAnnotationLike<any, Semigroup<any>>
+			  )[]
+			| [],
+	>(
+		elems: TElems,
+	): AsyncAnnotation<
+		{ [K in keyof TElems]: Annotation.DataT<Awaited<TElems[K]>> },
+		Annotation.NoteT<{ [K in keyof TElems]: Awaited<TElems[K]> }[number]>
+	>;
+
+	export function allPar<T, N extends Semigroup<N>>(
+		elems: Iterable<Annotation<T, N> | AsyncAnnotationLike<T, N>>,
+	): AsyncAnnotation<T[], N>;
+
+	export function allPar<T, N extends Semigroup<N>>(
+		elems: Iterable<Annotation<T, N> | AsyncAnnotationLike<T, N>>,
+	): AsyncAnnotation<T[], N> {
+		return traversePar(elems, id);
+	}
+
+	export function allPropsPar<
+		TProps extends Record<
+			string,
+			| Annotation<any, Semigroup<any>>
+			| AsyncAnnotationLike<any, Semigroup<any>>
+		>,
+	>(
+		props: TProps,
+	): AsyncAnnotation<
+		{ [K in keyof TProps]: Annotation.DataT<Awaited<TProps[K]>> },
+		Annotation.NoteT<
+			{ [K in keyof TProps]: Awaited<TProps[K]> }[keyof TProps]
+		>
+	>;
+
+	export function allPropsPar<T, N extends Semigroup<N>>(
+		props: Record<string, Annotation<T, N> | AsyncAnnotationLike<T, N>>,
+	): AsyncAnnotation<Record<string, T>, N>;
+
+	export function allPropsPar<T, N extends Semigroup<N>>(
+		props: Record<string, Annotation<T, N> | AsyncAnnotationLike<T, N>>,
+	): AsyncAnnotation<Record<string, T>, N> {
+		return traverseIntoPar(
+			Object.entries(props),
+			async ([key, elem]) =>
+				(await elem).map((val) => [key, val] as const),
+			new ObjectAssignBuilder(),
+		);
+	}
+
+	export function forEachPar<T, N extends Semigroup<N>>(
+		elems: Iterable<T>,
+		f: (
+			elem: T,
+			idx: number,
+		) => Annotation<any, N> | AsyncAnnotationLike<any, N>,
+	): AsyncAnnotation<void, N> {
+		return traverseIntoPar(elems, f, new NoOpBuilder());
+	}
+
+	export function liftPar<TArgs extends unknown[], T>(
+		f: (...args: TArgs) => T | PromiseLike<T>,
+	): <N extends Semigroup<N>>(
+		...elems: {
+			[K in keyof TArgs]:
+				| Annotation<TArgs[K], N>
+				| AsyncAnnotationLike<TArgs[K], N>;
+		}
+	) => AsyncAnnotation<T, N> {
+		return (...elems) =>
+			go(
+				(async function* (): Go<any, T> {
+					return f(...((yield* await allPar(elems)) as TArgs));
+				})(),
+			);
 	}
 
 	export type Go<N extends Semigroup<N>, TReturn> = AsyncGenerator<
