@@ -160,10 +160,10 @@ export namespace Maybe {
 	 * Adapt a generator function that returns `Maybe.Go` into a function that
 	 * returns `Maybe`.
 	 */
-	export function wrapGoFn<T, TReturn>(
-		f: (val: T) => Go<TReturn>,
-	): (val: T) => Maybe<TReturn> {
-		return (val) => go(f(val));
+	export function wrapGoFn<TArgs extends unknown[], TReturn>(
+		f: (...args: TArgs) => Go<TReturn>,
+	): (...args: TArgs) => Maybe<TReturn> {
+		return (...args) => go(f(...args));
 	}
 
 	/**
@@ -610,10 +610,10 @@ export namespace AsyncMaybe {
 	 * Adapt an async generator function that returns `AsyncMaybe.Go` into an
 	 * async function that returns `AsyncMaybe`.
 	 */
-	export function wrapGoFn<T, TReturn>(
-		f: (val: T) => Go<TReturn>,
-	): (val: T) => AsyncMaybe<TReturn> {
-		return (val) => go(f(val));
+	export function wrapGoFn<TArgs extends unknown[], TReturn>(
+		f: (...args: TArgs) => Go<TReturn>,
+	): (...args: TArgs) => AsyncMaybe<TReturn> {
+		return (...args) => go(f(...args));
 	}
 
 	/**
