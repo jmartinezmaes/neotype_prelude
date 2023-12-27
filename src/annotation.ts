@@ -1,4 +1,27 @@
-import { type Semigroup, cmb } from "./cmb.js";
+/*
+ * Copyright 2022-2023 Joshua Martinez-Maes
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+import {
+	ArrayPushBuilder,
+	ObjectAssignBuilder,
+	type Builder,
+	NoOpBuilder,
+} from "./builder.js";
+import { Semigroup, cmb } from "./cmb.js";
+import { Eq, Ord, Ordering, cmp, eq } from "./cmp.js";
 import { id } from "./fn.js";
 import { Maybe } from "./maybe.js";
 
@@ -13,6 +36,148 @@ export namespace Annotation {
 		return new Note(data, note);
 	}
 
+	export function go<N extends Semigroup<N>, TReturn>(
+		gen: Go<N, TReturn>,
+	): Annotation<TReturn, N> {
+		let nxt = gen.next();
+		let acc: N | undefined;
+
+		while (!nxt.done) {
+			const anno = nxt.value;
+			if (anno.isData()) {
+				nxt = gen.next(anno.val);
+			} else {
+				if (acc === undefined) {
+					acc = anno.note;
+				} else {
+					acc = cmb(acc, anno.note);
+				}
+				nxt = gen.next(anno.data);
+			}
+		}
+
+		if (acc === undefined) {
+			return new Data(nxt.value);
+		}
+		return new Note(nxt.value, acc);
+	}
+
+	export function wrapGoFn<T, N extends Semigroup<N>, TReturn>(
+		f: (val: T) => Go<N, TReturn>,
+	): (val: T) => Annotation<TReturn, N> {
+		return (val) => go(f(val));
+	}
+
+	export function reduce<T, TAcc, N extends Semigroup<N>>(
+		elems: Iterable<T>,
+		f: (acc: TAcc, elem: T, idx: number) => Annotation<TAcc, N>,
+		initial: TAcc,
+	): Annotation<TAcc, N> {
+		return go(
+			(function* () {
+				let acc = initial;
+				let idx = 0;
+				for (const elem of elems) {
+					acc = yield* f(acc, elem, idx);
+					idx++;
+				}
+				return acc;
+			})(),
+		);
+	}
+
+	export function traverseInto<T, T1, N extends Semigroup<N>, TFinish>(
+		elems: Iterable<T>,
+		f: (elem: T, idx: number) => Annotation<T1, N>,
+		builder: Builder<T1, TFinish>,
+	): Annotation<TFinish, N> {
+		return go(
+			(function* () {
+				let idx = 0;
+				for (const elem of elems) {
+					builder.add(yield* f(elem, idx));
+					idx++;
+				}
+				return builder.finish();
+			})(),
+		);
+	}
+
+	export function traverse<T, T1, N extends Semigroup<N>>(
+		elems: Iterable<T>,
+		f: (elem: T, idx: number) => Annotation<T1, N>,
+	): Annotation<T1[], N> {
+		return traverseInto(elems, f, new ArrayPushBuilder());
+	}
+
+	export function allInto<T, N extends Semigroup<N>, TFinish>(
+		annos: Iterable<Annotation<T, N>>,
+		builder: Builder<T, TFinish>,
+	): Annotation<TFinish, N> {
+		return traverseInto(annos, id, builder);
+	}
+
+	export function all<
+		TAnnos extends readonly Annotation<any, Semigroup<any>>[] | [],
+	>(
+		annos: TAnnos,
+	): Annotation<
+		{ -readonly [K in keyof TAnnos]: DataT<TAnnos[K]> },
+		NoteT<TAnnos[number]>
+	>;
+
+	export function all<T, N extends Semigroup<N>>(
+		annos: Iterable<Annotation<T, N>>,
+	): Annotation<T[], N>;
+
+	export function all<T, N extends Semigroup<N>>(
+		annos: Iterable<Annotation<T, N>>,
+	): Annotation<T[], N> {
+		return traverse(annos, id);
+	}
+
+	export function allProps<
+		TProps extends Record<string, Annotation<any, Semigroup<any>>>,
+	>(
+		props: TProps,
+	): Annotation<
+		{ -readonly [K in keyof TProps]: DataT<TProps[K]> },
+		NoteT<TProps[keyof TProps]>
+	>;
+
+	export function allProps<T, N extends Semigroup<N>>(
+		props: Record<string, Annotation<T, N>>,
+	): Annotation<Record<string, T>, N>;
+
+	export function allProps<T, N extends Semigroup<N>>(
+		props: Record<string, Annotation<T, N>>,
+	): Annotation<Record<string, T>, N> {
+		return traverseInto(
+			Object.entries(props),
+			([key, elem]) => elem.map((val) => [key, val] as const),
+			new ObjectAssignBuilder(),
+		);
+	}
+
+	export function forEach<T, N extends Semigroup<N>>(
+		elems: Iterable<T>,
+		f: (elem: T, idx: number) => Annotation<any, N>,
+	): Annotation<void, N> {
+		return traverseInto(elems, f, new NoOpBuilder());
+	}
+
+	export function lift<TArgs extends unknown[], T>(
+		f: (...args: TArgs) => T,
+	): <N extends Semigroup<N>>(
+		...annos: { [K in keyof TArgs]: Annotation<TArgs[K], N> }
+	) => Annotation<T, N> {
+		return (...annos) =>
+			all(annos).map((args) => f(...(args as TArgs))) as Annotation<
+				T,
+				any
+			>;
+	}
+
 	export enum Kind {
 		DATA,
 		NOTE,
@@ -20,6 +185,39 @@ export namespace Annotation {
 
 	export abstract class Syntax {
 		abstract readonly kind: Kind;
+
+		[Eq.eq]<T extends Eq<T>, N extends Eq<N>>(
+			this: Annotation<T, N>,
+			that: Annotation<T, N>,
+		): boolean {
+			if (this.isData()) {
+				return that.isData() && eq(this.val, that.val);
+			}
+			return (
+				that.isNote() &&
+				eq(this.data, that.data) &&
+				eq(this.note, that.note)
+			);
+		}
+
+		[Ord.cmp]<T extends Ord<T>, N extends Ord<N>>(
+			this: Annotation<T, N>,
+			that: Annotation<T, N>,
+		): Ordering {
+			if (this.isData()) {
+				return that.isData() ? cmp(this.val, that.val) : Ordering.less;
+			}
+			return that.isNote()
+				? cmb(cmp(this.data, that.data), cmp(this.note, that.note))
+				: Ordering.greater;
+		}
+
+		[Semigroup.cmb]<T extends Semigroup<T>, N extends Semigroup<N>>(
+			this: Annotation<T, N>,
+			that: Annotation<T, N>,
+		): Annotation<T, N> {
+			return this.zipWith(that, cmb);
+		}
 
 		isData<T>(this: Annotation<T, any>): this is Data<T> {
 			return this.kind === Kind.DATA;
@@ -29,13 +227,28 @@ export namespace Annotation {
 			return this.kind === Kind.NOTE;
 		}
 
+		match<T, N, T1, T2>(
+			this: Annotation<T, N>,
+			ifData: (val: T) => T1,
+			ifNote: (data: T, note: N) => T2,
+		): T1 | T2 {
+			return this.isData()
+				? ifData(this.val)
+				: ifNote(this.data, this.note);
+		}
+
 		unwrap<T, N, T1>(
 			this: Annotation<T, N>,
 			f: (data: T, note: Maybe<N>) => T1,
 		): T1 {
-			return this.isData()
-				? f(this.val, Maybe.nothing)
-				: f(this.data, Maybe.just(this.note));
+			return this.match(
+				(val) => f(val, Maybe.nothing),
+				(data, note) => f(data, Maybe.just(note)),
+			);
+		}
+
+		getNote<N>(this: Annotation<any, N>): Maybe<N> {
+			return this.isData() ? Maybe.nothing : Maybe.just(this.note);
 		}
 
 		andThen<T, N extends Semigroup<N>, T1>(
@@ -65,6 +278,14 @@ export namespace Annotation {
 			return this.andThen(() => that);
 		}
 
+		zipWith<T, N extends Semigroup<N>, T1, T2>(
+			this: Annotation<T, N>,
+			that: Annotation<T1, N>,
+			f: (lhs: T, rhs: T1) => T2,
+		): Annotation<T2, N> {
+			return this.andThen((lhs) => that.map((rhs) => f(lhs, rhs)));
+		}
+
 		map<T, N, T1>(
 			this: Annotation<T, N>,
 			f: (val: T) => T1,
@@ -87,6 +308,10 @@ export namespace Annotation {
 		): Annotation<T, N> {
 			return this.andThen((val) => note(val, f(val)));
 		}
+
+		discard<T>(this: Annotation<T, any>): Annotation<T, never> {
+			return this.isData() ? this : new Data(this.data);
+		}
 	}
 
 	export class Data<out T> extends Syntax {
@@ -97,6 +322,10 @@ export namespace Annotation {
 		constructor(val: T) {
 			super();
 			this.val = val;
+		}
+
+		*[Symbol.iterator](): Generator<Annotation<T, never>, T> {
+			return (yield this) as T;
 		}
 	}
 
@@ -116,5 +345,26 @@ export namespace Annotation {
 			this.data = data;
 			this.note = note;
 		}
+
+		*[Symbol.iterator](): Generator<Annotation<T, N>, T> {
+			return (yield this) as T;
+		}
 	}
+
+	export type Go<N extends Semigroup<N>, TReturn> = Generator<
+		Annotation<unknown, N>,
+		TReturn
+	>;
+
+	export type DataT<TAnno extends Annotation<any, any>> = [TAnno] extends [
+		Annotation<infer T, any>,
+	]
+		? T
+		: never;
+
+	export type NoteT<TAnno extends Annotation<any, any>> = [TAnno] extends [
+		Annotation<any, infer N>,
+	]
+		? N
+		: never;
 }
