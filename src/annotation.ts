@@ -57,15 +57,19 @@ export namespace Annotation {
 		}
 
 		if (acc === undefined) {
-			return new Data(nxt.value);
+			return data(nxt.value);
 		}
-		return new Note(nxt.value, acc);
+		return note(nxt.value, acc);
 	}
 
-	export function wrapGoFn<T, N extends Semigroup<N>, TReturn>(
-		f: (val: T) => Go<N, TReturn>,
-	): (val: T) => Annotation<TReturn, N> {
-		return (val) => go(f(val));
+	export function wrapGoFn<
+		TArgs extends unknown[],
+		N extends Semigroup<N>,
+		TReturn,
+	>(
+		f: (...args: TArgs) => Go<N, TReturn>,
+	): (...args: TArgs) => Annotation<TReturn, N> {
+		return (...args) => go(f(...args));
 	}
 
 	export function reduce<T, TAcc, N extends Semigroup<N>>(
@@ -310,7 +314,7 @@ export namespace Annotation {
 		}
 
 		discard<T>(this: Annotation<T, any>): Annotation<T, never> {
-			return this.isData() ? this : new Data(this.data);
+			return this.isData() ? this : data(this.data);
 		}
 	}
 
@@ -367,4 +371,51 @@ export namespace Annotation {
 	]
 		? N
 		: never;
+}
+
+export type AsyncAnnotationLike<T, N> = PromiseLike<Annotation<T, N>>;
+
+export type AsyncAnnotation<T, N> = Promise<Annotation<T, N>>;
+
+export namespace AsyncAnnotation {
+	export async function go<N extends Semigroup<N>, TReturn>(
+		gen: Go<N, TReturn>,
+	): AsyncAnnotation<TReturn, N> {
+		let nxt = await gen.next();
+		let acc: N | undefined;
+
+		while (!nxt.done) {
+			const anno = nxt.value;
+			if (anno.isData()) {
+				nxt = await gen.next(anno.val);
+			} else {
+				if (acc === undefined) {
+					acc = anno.note;
+				} else {
+					acc = cmb(acc, anno.note);
+				}
+				nxt = await gen.next(anno.data);
+			}
+		}
+
+		if (acc === undefined) {
+			return Annotation.data(nxt.value);
+		}
+		return Annotation.note(nxt.value, acc);
+	}
+
+	export function wrapGoFn<
+		TArgs extends unknown[],
+		N extends Semigroup<N>,
+		TReturn,
+	>(
+		f: (...args: TArgs) => Go<N, TReturn>,
+	): (...args: TArgs) => AsyncAnnotation<TReturn, N> {
+		return (...args) => go(f(...args));
+	}
+
+	export type Go<N extends Semigroup<N>, TReturn> = AsyncGenerator<
+		Annotation<unknown, N>,
+		TReturn
+	>;
 }
