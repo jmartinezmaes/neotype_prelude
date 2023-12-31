@@ -45,22 +45,17 @@ export namespace Annotation {
 
 		while (!nxt.done) {
 			const anno = nxt.value;
-			if (anno.isData()) {
-				nxt = gen.next(anno.data);
-			} else {
+			if (anno.isNote()) {
 				if (acc === undefined) {
 					acc = anno.note;
 				} else {
 					acc = cmb(acc, anno.note);
 				}
-				nxt = gen.next(anno.data);
 			}
+			nxt = gen.next(anno.data);
 		}
 
-		if (acc === undefined) {
-			return data(nxt.value);
-		}
-		return note(nxt.value, acc);
+		return acc === undefined ? data(nxt.value) : note(nxt.value, acc);
 	}
 
 	export function wrapGoFn<
@@ -396,22 +391,19 @@ export namespace AsyncAnnotation {
 
 		while (!nxt.done) {
 			const anno = nxt.value;
-			if (anno.isData()) {
-				nxt = await gen.next(anno.data);
-			} else {
+			if (anno.isNote()) {
 				if (acc === undefined) {
 					acc = anno.note;
 				} else {
 					acc = cmb(acc, anno.note);
 				}
-				nxt = await gen.next(anno.data);
 			}
+			nxt = await gen.next(anno.data);
 		}
 
-		if (acc === undefined) {
-			return Annotation.data(nxt.value);
-		}
-		return Annotation.note(nxt.value, acc);
+		return acc === undefined
+			? Annotation.data(nxt.value)
+			: Annotation.note(nxt.value, acc);
 	}
 
 	export function wrapGoFn<
