@@ -15,11 +15,11 @@
  */
 
 import {
+	ArrayAssignBuilder,
 	ArrayPushBuilder,
+	NoOpBuilder,
 	ObjectAssignBuilder,
 	type Builder,
-	NoOpBuilder,
-	ArrayAssignBuilder,
 } from "./builder.js";
 import { Semigroup, cmb } from "./cmb.js";
 import { Eq, Ord, Ordering, cmp, eq } from "./cmp.js";
