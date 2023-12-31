@@ -38,7 +38,7 @@ export namespace Annotation {
 	}
 
 	export function go<N extends Semigroup<N>, TReturn>(
-		gen: Go<N, TReturn>,
+		gen: Go<TReturn, N>,
 	): Annotation<TReturn, N> {
 		let nxt = gen.next();
 		let acc: N | undefined;
@@ -68,7 +68,7 @@ export namespace Annotation {
 		N extends Semigroup<N>,
 		TReturn,
 	>(
-		f: (...args: TArgs) => Go<N, TReturn>,
+		f: (...args: TArgs) => Go<TReturn, N>,
 	): (...args: TArgs) => Annotation<TReturn, N> {
 		return (...args) => go(f(...args));
 	}
@@ -270,6 +270,13 @@ export namespace Annotation {
 			return note(that.data, cmb(this.note, that.note));
 		}
 
+		andThenGo<T, N extends Semigroup<N>, T1>(
+			this: Annotation<T, N>,
+			f: (val: T) => Go<T1, N>,
+		): Annotation<T1, N> {
+			return this.andThen((val) => go(f(val)));
+		}
+
 		flatten<T, N extends Semigroup<N>>(
 			this: Annotation<Annotation<T, N>, N>,
 		): Annotation<T, N> {
@@ -314,8 +321,12 @@ export namespace Annotation {
 			return this.andThen((val) => note(val, f(val)));
 		}
 
-		discard<T>(this: Annotation<T, any>): Annotation<T, never> {
+		erase<T>(this: Annotation<T, any>): Annotation<T, never> {
 			return this.isData() ? this : data(this.data);
+		}
+
+		review<T, N>(this: Annotation<T, N>): Annotation<[T, Maybe<N>], N> {
+			return this.map((val) => [val, this.getNote()]);
 		}
 	}
 
@@ -356,7 +367,7 @@ export namespace Annotation {
 		}
 	}
 
-	export type Go<N extends Semigroup<N>, TReturn> = Generator<
+	export type Go<TReturn, N extends Semigroup<N>> = Generator<
 		Annotation<unknown, N>,
 		TReturn
 	>;
@@ -380,7 +391,7 @@ export type AsyncAnnotation<T, N> = Promise<Annotation<T, N>>;
 
 export namespace AsyncAnnotation {
 	export async function go<N extends Semigroup<N>, TReturn>(
-		gen: Go<N, TReturn>,
+		gen: Go<TReturn, N>,
 	): AsyncAnnotation<TReturn, N> {
 		let nxt = await gen.next();
 		let acc: N | undefined;
@@ -410,7 +421,7 @@ export namespace AsyncAnnotation {
 		N extends Semigroup<N>,
 		TReturn,
 	>(
-		f: (...args: TArgs) => Go<N, TReturn>,
+		f: (...args: TArgs) => Go<TReturn, N>,
 	): (...args: TArgs) => AsyncAnnotation<TReturn, N> {
 		return (...args) => go(f(...args));
 	}
@@ -628,7 +639,7 @@ export namespace AsyncAnnotation {
 	) => AsyncAnnotation<T, N> {
 		return (...elems) =>
 			go(
-				(async function* (): Go<any, T> {
+				(async function* (): Go<T, any> {
 					return f(
 						...((yield* await allPar(elems)) as TArgs),
 					) as Awaited<T>;
@@ -636,7 +647,7 @@ export namespace AsyncAnnotation {
 			);
 	}
 
-	export type Go<N extends Semigroup<N>, TReturn> = AsyncGenerator<
+	export type Go<TReturn, N extends Semigroup<N>> = AsyncGenerator<
 		Annotation<unknown, N>,
 		TReturn
 	>;
