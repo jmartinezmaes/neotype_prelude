@@ -38,7 +38,7 @@ export namespace Annotation {
 	}
 
 	export function write<W, T = void>(log: W): Annotation<T, W> {
-		return note(undefined as T, log);
+		return note(undefined as any, log);
 	}
 
 	export function go<W extends Semigroup<W>, TReturn>(
