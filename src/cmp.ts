@@ -329,18 +329,15 @@ export function ieqBy<T>(
 	let result = false;
 
 	for (
-		let lhsNxt = lhsIter.next(), rhsNxt = rhsIter.next();
+		let nextLhs = lhsIter.next(), nextRhs = rhsIter.next();
 		;
-		lhsNxt = lhsIter.next(), rhsNxt = rhsIter.next()
+		nextLhs = lhsIter.next(), nextRhs = rhsIter.next()
 	) {
-		if (lhsNxt.done) {
-			result = !!rhsNxt.done;
+		if (nextLhs.done) {
+			result = !!nextRhs.done;
 			break;
 		}
-		if (rhsNxt.done) {
-			break;
-		}
-		if (!eqBy(lhsNxt.value, rhsNxt.value)) {
+		if (!!nextRhs.done || !eqBy(nextLhs.value, nextRhs.value)) {
 			break;
 		}
 	}
@@ -693,19 +690,19 @@ export function icmpBy<T>(
 	let result: Ordering;
 
 	for (
-		let lhsNxt = lhsIter.next(), rhsNxt = rhsIter.next();
+		let nextLhs = lhsIter.next(), nextRhs = rhsIter.next();
 		;
-		lhsNxt = lhsIter.next(), rhsNxt = rhsIter.next()
+		nextLhs = lhsIter.next(), nextRhs = rhsIter.next()
 	) {
-		if (lhsNxt.done) {
-			result = rhsNxt.done ? Ordering.equal : Ordering.less;
+		if (nextLhs.done) {
+			result = nextRhs.done ? Ordering.equal : Ordering.less;
 			break;
 		}
-		if (rhsNxt.done) {
+		if (nextRhs.done) {
 			result = Ordering.greater;
 			break;
 		}
-		const ordering = cmpBy(lhsNxt.value, rhsNxt.value);
+		const ordering = cmpBy(nextLhs.value, nextRhs.value);
 		if (ordering.isNe()) {
 			result = ordering;
 			break;
@@ -845,13 +842,7 @@ export namespace Ordering {
 	 * enforce!
 	 */
 	export function fromNumber(num: number | bigint): Ordering {
-		if (num < 0) {
-			return less;
-		}
-		if (num > 0) {
-			return greater;
-		}
-		return equal;
+		return num < 0 ? less : num > 0 ? greater : equal;
 	}
 
 	/** An enumeration that discriminates `Ordering`. */
@@ -937,13 +928,14 @@ export namespace Ordering {
 		 * -   `Equal` remains `Equal`.
 		 */
 		reverse(this: Ordering): Ordering {
-			if (this.isLt()) {
-				return greater;
+			switch (this.kind) {
+				case Kind.LESS:
+					return greater;
+				case Kind.EQUAL:
+					return this;
+				case Kind.GREATER:
+					return less;
 			}
-			if (this.isGt()) {
-				return less;
-			}
-			return this;
 		}
 
 		/**
@@ -956,13 +948,14 @@ export namespace Ordering {
 		 * -   If this is `Equal`, return 0.
 		 */
 		toNumber(this: Ordering): -1 | 0 | 1 {
-			if (this.isLt()) {
-				return -1;
+			switch (this.kind) {
+				case Kind.LESS:
+					return -1;
+				case Kind.EQUAL:
+					return 0;
+				case Kind.GREATER:
+					return 1;
 			}
-			if (this.isGt()) {
-				return 1;
-			}
-			return 0;
 		}
 	}
 

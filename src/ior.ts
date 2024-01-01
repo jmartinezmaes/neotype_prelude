@@ -149,40 +149,33 @@ export namespace Ior {
 	export function go<A extends Semigroup<A>, TReturn>(
 		gen: Go<A, TReturn>,
 	): Ior<A, TReturn> {
-		let nxt = gen.next();
-		let acc: A | undefined;
+		let next = gen.next();
+		let fst: A | undefined;
 		let halted = false;
 
-		while (!nxt.done) {
-			const ior = nxt.value;
-			if (ior.isRight()) {
-				nxt = gen.next(ior.val);
-			} else if (ior.isBoth()) {
-				if (acc === undefined) {
-					acc = ior.fst;
-				} else {
-					acc = cmb(acc, ior.fst);
-				}
-				nxt = gen.next(ior.snd);
-			} else {
-				halted = true;
-				if (acc === undefined) {
-					acc = ior.val;
-				} else {
-					acc = cmb(acc, ior.val);
-				}
-				nxt = gen.return(undefined as never);
+		while (!next.done) {
+			const ior = next.value;
+			switch (ior.kind) {
+				case Kind.LEFT:
+					halted = true;
+					fst = fst === undefined ? ior.val : cmb(fst, ior.val);
+					next = gen.return(undefined as never);
+					break;
+				case Kind.RIGHT:
+					next = gen.next(ior.val);
+					break;
+				case Kind.BOTH:
+					fst =
+						fst === undefined ? ior.fst : (fst = cmb(fst, ior.fst));
+					next = gen.next(ior.snd);
 			}
 		}
 
 		if (halted) {
 			// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-			return left(acc!);
+			return left(fst!);
 		}
-		if (acc === undefined) {
-			return right(nxt.value);
-		}
-		return both(acc, nxt.value);
+		return fst === undefined ? right(next.value) : both(fst, next.value);
 	}
 
 	/**
@@ -386,17 +379,18 @@ export namespace Ior {
 			this: Ior<A, B>,
 			that: Ior<A, B>,
 		): boolean {
-			if (this.isLeft()) {
-				return that.isLeft() && eq(this.val, that.val);
+			switch (this.kind) {
+				case Kind.LEFT:
+					return that.isLeft() && eq(this.val, that.val);
+				case Kind.RIGHT:
+					return that.isRight() && eq(this.val, that.val);
+				case Kind.BOTH:
+					return (
+						that.isBoth() &&
+						eq(this.fst, that.fst) &&
+						eq(this.snd, that.snd)
+					);
 			}
-			if (this.isRight()) {
-				return that.isRight() && eq(this.val, that.val);
-			}
-			return (
-				that.isBoth() &&
-				eq(this.fst, that.fst) &&
-				eq(this.snd, that.snd)
-			);
 		}
 
 		/**
@@ -413,19 +407,26 @@ export namespace Ior {
 			this: Ior<A, B>,
 			that: Ior<A, B>,
 		): Ordering {
-			if (this.isLeft()) {
-				return that.isLeft() ? cmp(this.val, that.val) : Ordering.less;
+			switch (this.kind) {
+				case Kind.LEFT:
+					return that.isLeft()
+						? cmp(this.val, that.val)
+						: Ordering.less;
+				case Kind.RIGHT:
+					switch (that.kind) {
+						case Kind.LEFT:
+							return Ordering.greater;
+						case Kind.RIGHT:
+							return cmp(this.val, that.val);
+						case Kind.BOTH:
+							return Ordering.less;
+					}
+				// eslint-disable-next-line no-fallthrough
+				case Kind.BOTH:
+					return that.isBoth()
+						? cmb(cmp(this.fst, that.fst), cmp(this.snd, that.snd))
+						: Ordering.greater;
 			}
-			if (this.isRight()) {
-				if (that.isRight()) {
-					return cmp(this.val, that.val);
-				}
-				return that.isLeft() ? Ordering.greater : Ordering.less;
-			}
-			if (that.isBoth()) {
-				return cmb(cmp(this.fst, that.fst), cmp(this.snd, that.snd));
-			}
-			return Ordering.greater;
 		}
 
 		/**
@@ -441,33 +442,40 @@ export namespace Ior {
 			this: Ior<A, B>,
 			that: Ior<A, B>,
 		): Ior<A, B> {
-			if (this.isLeft()) {
-				if (that.isLeft()) {
-					return left(cmb(this.val, that.val));
-				}
-				if (that.isRight()) {
-					return both(this.val, that.val);
-				}
-				return both(cmb(this.val, that.fst), that.snd);
+			switch (this.kind) {
+				case Kind.LEFT:
+					switch (that.kind) {
+						case Kind.LEFT:
+							return left(cmb(this.val, that.val));
+						case Kind.RIGHT:
+							return both(this.val, that.val);
+						case Kind.BOTH:
+							return both(cmb(this.val, that.fst), that.snd);
+					}
+				// eslint-disable-next-line no-fallthrough
+				case Kind.RIGHT:
+					switch (that.kind) {
+						case Kind.LEFT:
+							return both(that.val, this.val);
+						case Kind.RIGHT:
+							return right(cmb(this.val, that.val));
+						case Kind.BOTH:
+							return both(that.fst, cmb(this.val, that.snd));
+					}
+				// eslint-disable-next-line no-fallthrough
+				case Kind.BOTH:
+					switch (that.kind) {
+						case Kind.LEFT:
+							return both(cmb(this.fst, that.val), this.snd);
+						case Kind.RIGHT:
+							return both(this.fst, cmb(this.snd, that.val));
+						case Kind.BOTH:
+							return both(
+								cmb(this.fst, that.fst),
+								cmb(this.snd, that.snd),
+							);
+					}
 			}
-
-			if (this.isRight()) {
-				if (that.isLeft()) {
-					return both(that.val, this.val);
-				}
-				if (that.isRight()) {
-					return right(cmb(this.val, that.val));
-				}
-				return both(that.fst, cmb(this.val, that.snd));
-			}
-
-			if (that.isLeft()) {
-				return both(cmb(this.fst, that.val), this.snd);
-			}
-			if (that.isRight()) {
-				return both(this.fst, cmb(this.snd, that.val));
-			}
-			return both(cmb(this.fst, that.fst), cmb(this.snd, that.snd));
 		}
 
 		/** Test whether this `Ior` is `Left`. */
@@ -495,13 +503,14 @@ export namespace Ior {
 			ifRight: (val: B) => T2,
 			ifBoth: (fst: A, snd: B) => T3,
 		): T1 | T2 | T3 {
-			if (this.isLeft()) {
-				return ifLeft(this.val);
+			switch (this.kind) {
+				case Kind.LEFT:
+					return ifLeft(this.val);
+				case Kind.RIGHT:
+					return ifRight(this.val);
+				case Kind.BOTH:
+					return ifBoth(this.fst, this.snd);
 			}
-			if (this.isRight()) {
-				return ifRight(this.val);
-			}
-			return ifBoth(this.fst, this.snd);
 		}
 
 		/**
@@ -512,20 +521,23 @@ export namespace Ior {
 			this: Ior<A, B>,
 			f: (val: B) => Ior<A, B1>,
 		): Ior<A, B1> {
-			if (this.isLeft()) {
-				return this;
+			switch (this.kind) {
+				case Kind.LEFT:
+					return this;
+				case Kind.RIGHT:
+					return f(this.val);
+				case Kind.BOTH: {
+					const that = f(this.snd);
+					switch (that.kind) {
+						case Kind.LEFT:
+							return left(cmb(this.fst, that.val));
+						case Kind.RIGHT:
+							return both(this.fst, that.val);
+						case Kind.BOTH:
+							return both(cmb(this.fst, that.fst), that.snd);
+					}
+				}
 			}
-			if (this.isRight()) {
-				return f(this.val);
-			}
-			const that = f(this.snd);
-			if (that.isLeft()) {
-				return left(cmb(this.fst, that.val));
-			}
-			if (that.isRight()) {
-				return both(this.fst, that.val);
-			}
-			return both(cmb(this.fst, that.fst), that.snd);
 		}
 
 		/**
@@ -572,13 +584,14 @@ export namespace Ior {
 		 * value.
 		 */
 		mapLeft<A, B, A1>(this: Ior<A, B>, f: (val: A) => A1): Ior<A1, B> {
-			if (this.isLeft()) {
-				return left(f(this.val));
+			switch (this.kind) {
+				case Kind.LEFT:
+					return left(f(this.val));
+				case Kind.RIGHT:
+					return this;
+				case Kind.BOTH:
+					return both(f(this.fst), this.snd);
 			}
-			if (this.isRight()) {
-				return this;
-			}
-			return both(f(this.fst), this.snd);
 		}
 
 		/**
@@ -586,13 +599,14 @@ export namespace Ior {
 		 * value.
 		 */
 		map<A, B, B1>(this: Ior<A, B>, f: (val: B) => B1): Ior<A, B1> {
-			if (this.isLeft()) {
-				return this;
+			switch (this.kind) {
+				case Kind.LEFT:
+					return this;
+				case Kind.RIGHT:
+					return right(f(this.val));
+				case Kind.BOTH:
+					return both(this.fst, f(this.snd));
 			}
-			if (this.isRight()) {
-				return right(f(this.val));
-			}
-			return both(this.fst, f(this.snd));
 		}
 	}
 
@@ -699,40 +713,35 @@ export namespace AsyncIor {
 	export async function go<A extends Semigroup<A>, TReturn>(
 		gen: Go<A, TReturn>,
 	): AsyncIor<A, TReturn> {
-		let nxt = await gen.next();
-		let acc: A | undefined;
+		let next = await gen.next();
+		let fst: A | undefined;
 		let halted = false;
 
-		while (!nxt.done) {
-			const ior = nxt.value;
-			if (ior.isRight()) {
-				nxt = await gen.next(ior.val);
-			} else if (ior.isBoth()) {
-				if (acc === undefined) {
-					acc = ior.fst;
-				} else {
-					acc = cmb(acc, ior.fst);
-				}
-				nxt = await gen.next(ior.snd);
-			} else {
-				halted = true;
-				if (acc === undefined) {
-					acc = ior.val;
-				} else {
-					acc = cmb(acc, ior.val);
-				}
-				nxt = await gen.return(undefined as never);
+		while (!next.done) {
+			const ior = next.value;
+			switch (ior.kind) {
+				case Ior.Kind.LEFT:
+					halted = true;
+					fst = fst === undefined ? ior.val : cmb(fst, ior.val);
+					next = await gen.return(undefined as never);
+					break;
+				case Ior.Kind.RIGHT:
+					next = await gen.next(ior.val);
+					break;
+				case Ior.Kind.BOTH:
+					fst =
+						fst === undefined ? ior.fst : (fst = cmb(fst, ior.fst));
+					next = await gen.next(ior.snd);
 			}
 		}
 
 		if (halted) {
 			// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-			return Ior.left(acc!);
+			return Ior.left(fst!);
 		}
-		if (acc === undefined) {
-			return Ior.right(nxt.value);
-		}
-		return Ior.both(acc, nxt.value);
+		return fst === undefined
+			? Ior.right(next.value)
+			: Ior.both(fst, next.value);
 	}
 
 	/**
@@ -867,39 +876,36 @@ export namespace AsyncIor {
 	): AsyncIor<A, TFinish> {
 		return new Promise((resolve, reject) => {
 			let remaining = 0;
-			let acc: A | undefined;
+			let fst: A | undefined;
 
 			for (const elem of elems) {
 				const idx = remaining;
 				remaining++;
 				Promise.resolve(f(elem, idx)).then((ior) => {
-					if (ior.isLeft()) {
-						if (acc === undefined) {
-							resolve(ior);
-						} else {
-							resolve(Ior.left(cmb(acc, ior.val)));
-						}
-						return;
-					}
-
-					if (ior.isRight()) {
-						builder.add(ior.val);
-					} else {
-						if (acc === undefined) {
-							acc = ior.fst;
-						} else {
-							acc = cmb(acc, ior.fst);
-						}
-						builder.add(ior.snd);
+					switch (ior.kind) {
+						case Ior.Kind.LEFT:
+							resolve(
+								fst === undefined
+									? ior
+									: Ior.left(cmb(fst, ior.val)),
+							);
+							return;
+						case Ior.Kind.RIGHT:
+							builder.add(ior.val);
+							break;
+						case Ior.Kind.BOTH:
+							fst =
+								fst === undefined ? ior.fst : cmb(fst, ior.fst);
+							builder.add(ior.snd);
 					}
 
 					remaining--;
 					if (remaining === 0) {
-						if (acc === undefined) {
-							resolve(Ior.right(builder.finish()));
-						} else {
-							resolve(Ior.both(acc, builder.finish()));
-						}
+						resolve(
+							fst === undefined
+								? Ior.right(builder.finish())
+								: Ior.both(fst, builder.finish()),
+						);
 						return;
 					}
 				}, reject);
