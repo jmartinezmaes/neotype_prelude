@@ -20,8 +20,10 @@ import {
 	Str,
 	TestBuilder,
 	arbNum,
+	arbStr,
 	expectLawfulEq,
 	expectLawfulOrd,
+	expectLawfulSemigroup,
 } from "./_test/utils.js";
 import { Annotation } from "./annotation.js";
 import { cmb } from "./cmb.js";
@@ -29,23 +31,23 @@ import { Ordering, cmp, eq } from "./cmp.js";
 
 describe("Annotation", () => {
 	function arbAnnotation<T, N>(
-		arbData: fc.Arbitrary<T>,
+		arbVal: fc.Arbitrary<T>,
 		arbNote: fc.Arbitrary<N>,
 	): fc.Arbitrary<Annotation<T, N>> {
 		return fc.oneof(
-			arbData.map(Annotation.data),
-			arbData.chain((data) =>
-				arbNote.map((note) => Annotation.note(data, note)),
+			arbVal.map(Annotation.value),
+			arbVal.chain((val) =>
+				arbNote.map((note) => Annotation.note(val, note)),
 			),
 		);
 	}
 
-	describe("data", () => {
-		it("constructs a Data variant", () => {
-			const anno = Annotation.data<2>(2);
-			expect(anno).to.be.an.instanceOf(Annotation.Data);
-			expect(anno.kind).to.equal(Annotation.Kind.DATA);
-			expect(anno.data).to.equal(2);
+	describe("value", () => {
+		it("constructs a Value variant", () => {
+			const anno = Annotation.value<2>(2);
+			expect(anno).to.be.an.instanceOf(Annotation.Value);
+			expect(anno.kind).to.equal(Annotation.Kind.VALUE);
+			expect(anno.val).to.equal(2);
 		});
 	});
 
@@ -54,25 +56,25 @@ describe("Annotation", () => {
 			const anno = Annotation.note<2, 1>(2, 1);
 			expect(anno).to.be.an.instanceOf(Annotation.Note);
 			expect(anno.kind).to.equal(Annotation.Kind.NOTE);
-			expect(anno.data).to.equal(2);
+			expect(anno.val).to.equal(2);
 			expect((anno as Annotation.Note<2, 1>).note).to.equal(1);
 		});
 	});
 
 	describe("go", () => {
-		it("completes if all yielded values are Data", () => {
+		it("completes if all yielded values are Value", () => {
 			function* f(): Annotation.Go<[2, 4], never> {
-				const two = yield* Annotation.data<2>(2);
-				const four = yield* Annotation.data<4>(4);
+				const two = yield* Annotation.value<2>(2);
+				const four = yield* Annotation.value<4>(4);
 				return [two, four];
 			}
 			const anno = Annotation.go(f());
-			expect(anno).to.deep.equal(Annotation.data([2, 4]));
+			expect(anno).to.deep.equal(Annotation.value([2, 4]));
 		});
 
-		it("completes and retains the note if a Note is yielded after a Data", () => {
+		it("completes and retains the note if a Note is yielded after a Value", () => {
 			function* f(): Annotation.Go<[2, 4], Str> {
-				const two = yield* Annotation.data<2>(2);
+				const two = yield* Annotation.value<2>(2);
 				const four = yield* Annotation.note<4, Str>(4, new Str("a"));
 				return [two, four];
 			}
@@ -80,10 +82,10 @@ describe("Annotation", () => {
 			expect(anno).to.deep.equal(Annotation.note([2, 4], new Str("a")));
 		});
 
-		it("completes and retains the note if a Data is yielded after a Note", () => {
+		it("completes and retains the note if a Value is yielded after a Note", () => {
 			function* f(): Annotation.Go<[2, 4], Str> {
 				const two = yield* Annotation.note<2, Str>(2, new Str("a"));
-				const four = yield* Annotation.data<4>(4);
+				const four = yield* Annotation.value<4>(4);
 				return [two, four];
 			}
 			const anno = Annotation.go(f());
@@ -143,7 +145,7 @@ describe("Annotation", () => {
 	});
 
 	describe("traverseInto", () => {
-		it("applies the function to the elements and collects the data into the builder", () => {
+		it("applies the function to the elements and collects the values into the builder", () => {
 			const builder = new TestBuilder<[number, string]>();
 			const anno = Annotation.traverseInto(
 				["a", "b"],
@@ -163,7 +165,7 @@ describe("Annotation", () => {
 	});
 
 	describe("traverse", () => {
-		it("applies the function to the elements and collects the data in an array", () => {
+		it("applies the function to the elements and collects the values in an array", () => {
 			const anno = Annotation.traverse(["a", "b"], (char, idx) =>
 				Annotation.note<[number, string], Str>(
 					[idx, char],
@@ -183,7 +185,7 @@ describe("Annotation", () => {
 	});
 
 	describe("allInto", () => {
-		it("collects the data into the Builder", () => {
+		it("collects the values into the Builder", () => {
 			const builder = new TestBuilder<number>();
 			const anno = Annotation.allInto(
 				[
@@ -197,7 +199,7 @@ describe("Annotation", () => {
 	});
 
 	describe("all", () => {
-		it("collects the data into an array", () => {
+		it("collects the values into an array", () => {
 			const anno = Annotation.all([
 				Annotation.note<2, Str>(2, new Str("a")),
 				Annotation.note<4, Str>(4, new Str("b")),
@@ -207,7 +209,7 @@ describe("Annotation", () => {
 	});
 
 	describe("allProps", () => {
-		it("collects the data in an object", () => {
+		it("collects the values in an object", () => {
 			const anno = Annotation.allProps({
 				two: Annotation.note<2, Str>(2, new Str("a")),
 				four: Annotation.note<4, Str>(4, new Str("b")),
@@ -232,7 +234,7 @@ describe("Annotation", () => {
 	});
 
 	describe("lift", () => {
-		it("applies the function to the data", () => {
+		it("applies the function to the values", () => {
 			function f<A, B>(lhs: A, rhs: B): [A, B] {
 				return [lhs, rhs];
 			}
@@ -245,25 +247,25 @@ describe("Annotation", () => {
 	});
 
 	describe("#[Eq.eq]", () => {
-		it("compares the values if both variants are Data", () => {
-			const property = fc.property(arbNum(), arbNum(), (data0, data1) => {
+		it("compares the values if both variants are Value", () => {
+			const property = fc.property(arbNum(), arbNum(), (val0, val1) => {
 				expect(
-					eq(Annotation.data(data0), Annotation.data(data1)),
-				).to.equal(eq(data0, data1));
+					eq(Annotation.value(val0), Annotation.value(val1)),
+				).to.equal(eq(val0, val1));
 			});
 			fc.assert(property);
 		});
 
-		it("compares any Data and any Note as unequal", () => {
+		it("compares any Value and any Note as unequal", () => {
 			const property = fc.property(
 				arbNum(),
 				arbNum(),
 				arbNum(),
-				(data0, data1, note1) => {
+				(val0, val1, note1) => {
 					expect(
 						eq(
-							Annotation.data(data0),
-							Annotation.note(data1, note1),
+							Annotation.value(val0),
+							Annotation.note(val1, note1),
 						),
 					).to.be.false;
 				},
@@ -271,16 +273,16 @@ describe("Annotation", () => {
 			fc.assert(property);
 		});
 
-		it("compares any Note and any Data as unequal", () => {
+		it("compares any Note and any Value as unequal", () => {
 			const property = fc.property(
 				arbNum(),
 				arbNum(),
 				arbNum(),
-				(data0, note0, data1) => {
+				(val0, note0, val1) => {
 					expect(
 						eq(
-							Annotation.note(data0, note0),
-							Annotation.data(data1),
+							Annotation.note(val0, note0),
+							Annotation.value(val1),
 						),
 					).to.be.false;
 				},
@@ -288,19 +290,19 @@ describe("Annotation", () => {
 			fc.assert(property);
 		});
 
-		it("compares the data and notes lexicographically if both variants are Note", () => {
+		it("compares the values and notes lexicographically if both variants are Note", () => {
 			const property = fc.property(
 				arbNum(),
 				arbNum(),
 				arbNum(),
 				arbNum(),
-				(data0, note0, data1, note1) => {
+				(val0, note0, val1, note1) => {
 					expect(
 						eq(
-							Annotation.note(data0, note0),
-							Annotation.note(data1, note1),
+							Annotation.note(val0, note0),
+							Annotation.note(val1, note1),
 						),
-					).to.equal(eq(data0, data1) && eq(note0, note1));
+					).to.equal(eq(val0, val1) && eq(note0, note1));
 				},
 			);
 			fc.assert(property);
@@ -312,25 +314,25 @@ describe("Annotation", () => {
 	});
 
 	describe("#[Ord.cmp]", () => {
-		it("compares the values if both variants are Data", () => {
-			const property = fc.property(arbNum(), arbNum(), (data0, data1) => {
+		it("compares the values if both variants are Value", () => {
+			const property = fc.property(arbNum(), arbNum(), (val0, val1) => {
 				expect(
-					cmp(Annotation.data(data0), Annotation.data(data1)),
-				).to.equal(cmp(data0, data1));
+					cmp(Annotation.value(val0), Annotation.value(val1)),
+				).to.equal(cmp(val0, val1));
 			});
 			fc.assert(property);
 		});
 
-		it("compares any Data as less than any Note", () => {
+		it("compares any Value as less than any Note", () => {
 			const property = fc.property(
 				arbNum(),
 				arbNum(),
 				arbNum(),
-				(data0, data1, note1) => {
+				(val0, val1, note1) => {
 					expect(
 						cmp(
-							Annotation.data(data0),
-							Annotation.note(data1, note1),
+							Annotation.value(val0),
+							Annotation.note(val1, note1),
 						),
 					).to.equal(Ordering.less);
 				},
@@ -338,16 +340,16 @@ describe("Annotation", () => {
 			fc.assert(property);
 		});
 
-		it("compares any Note as greater than any Data", () => {
+		it("compares any Note as greater than any Value", () => {
 			const property = fc.property(
 				arbNum(),
 				arbNum(),
 				arbNum(),
-				(data0, note0, data1) => {
+				(val0, note0, val1) => {
 					expect(
 						cmp(
-							Annotation.note(data0, note0),
-							Annotation.data(data1),
+							Annotation.note(val0, note0),
+							Annotation.value(val1),
 						),
 					).to.equal(Ordering.greater);
 				},
@@ -355,19 +357,19 @@ describe("Annotation", () => {
 			fc.assert(property);
 		});
 
-		it("compares the data and notes lexicographically if both variants are Note", () => {
+		it("compares the values and notes lexicographically if both variants are Note", () => {
 			const property = fc.property(
 				arbNum(),
 				arbNum(),
 				arbNum(),
 				arbNum(),
-				(data0, note0, data1, note1) => {
+				(val0, note0, val1, note1) => {
 					expect(
 						cmp(
-							Annotation.note(data0, note0),
-							Annotation.note(data1, note1),
+							Annotation.note(val0, note0),
+							Annotation.note(val1, note1),
 						),
-					).to.equal(cmb(cmp(data0, data1), cmp(note0, note1)));
+					).to.equal(cmb(cmp(val0, val1), cmp(note0, note1)));
 				},
 			);
 			fc.assert(property);
@@ -378,11 +380,51 @@ describe("Annotation", () => {
 		});
 	});
 
-	// describe("#[Semigroup.cmb]");
+	describe("#[Semigroup.cmb]", () => {
+		it("combines the values and the notes", () => {
+			const property = fc.property(
+				arbStr(),
+				arbStr(),
+				arbStr(),
+				arbStr(),
+				(val0, note0, val1, note1) => {
+					expect(
+						cmb(
+							Annotation.note(val0, note0),
+							Annotation.note(val1, note1),
+						),
+					).to.deep.equal(
+						Annotation.note(cmb(val0, val1), cmb(note0, note1)),
+					);
+				},
+			);
+			fc.assert(property);
+		});
 
-	// describe("#isData");
+		it("implements a lawful semigroup", () => {
+			expectLawfulSemigroup(arbAnnotation(arbStr(), arbStr()));
+		});
+	});
 
-	// describe("#isNote");
+	describe("#isValue", () => {
+		it("returns true if the variant is Value", () => {
+			expect(Annotation.value<2, 1>(2).isValue()).to.be.true;
+		});
+
+		it("returns false if the variant is Note", () => {
+			expect(Annotation.note<2, 1>(2, 1).isValue()).to.be.false;
+		});
+	});
+
+	describe("#isNote", () => {
+		it("returns false if the variant is Value", () => {
+			expect(Annotation.value<2, 1>(2).isNote()).to.be.false;
+		});
+
+		it("returns true if the variant is Note", () => {
+			expect(Annotation.note<2, 1>(2, 1).isNote()).to.be.true;
+		});
+	});
 
 	// describe("#match");
 

@@ -26,15 +26,15 @@ import { Eq, Ord, Ordering, cmp, eq } from "./cmp.js";
 import { id } from "./fn.js";
 import { Maybe } from "./maybe.js";
 
-export type Annotation<T, N> = Annotation.Data<T> | Annotation.Note<T, N>;
+export type Annotation<T, N> = Annotation.Value<T> | Annotation.Note<T, N>;
 
 export namespace Annotation {
-	export function data<T>(data: T): Annotation<T, never> {
-		return new Data(data);
+	export function value<T, N = never>(val: T): Annotation<T, N> {
+		return new Value(val);
 	}
 
-	export function note<T, N>(data: T, note: N): Annotation<T, N> {
-		return new Note(data, note);
+	export function note<T, N>(val: T, note: N): Annotation<T, N> {
+		return new Note(val, note);
 	}
 
 	export function go<N extends Semigroup<N>, TReturn>(
@@ -47,9 +47,11 @@ export namespace Annotation {
 			if (anno.isNote()) {
 				notes = notes === undefined ? anno.note : cmb(notes, anno.note);
 			}
-			next = gen.next(anno.data);
+			next = gen.next(anno.val);
 		}
-		return notes === undefined ? data(next.value) : note(next.value, notes);
+		return notes === undefined
+			? value(next.value)
+			: note(next.value, notes);
 	}
 
 	export function wrapGoFn<
@@ -116,7 +118,7 @@ export namespace Annotation {
 	>(
 		annos: TAnnos,
 	): Annotation<
-		{ -readonly [K in keyof TAnnos]: DataT<TAnnos[K]> },
+		{ -readonly [K in keyof TAnnos]: ValueT<TAnnos[K]> },
 		NoteT<TAnnos[number]>
 	>;
 
@@ -135,7 +137,7 @@ export namespace Annotation {
 	>(
 		props: TProps,
 	): Annotation<
-		{ -readonly [K in keyof TProps]: DataT<TProps[K]> },
+		{ -readonly [K in keyof TProps]: ValueT<TProps[K]> },
 		NoteT<TProps[keyof TProps]>
 	>;
 
@@ -148,7 +150,7 @@ export namespace Annotation {
 	): Annotation<Record<string, T>, N> {
 		return traverseInto(
 			Object.entries(props),
-			([key, elem]) => elem.map((data) => [key, data] as const),
+			([key, elem]) => elem.map((val) => [key, val] as const),
 			new ObjectAssignBuilder(),
 		);
 	}
@@ -173,7 +175,7 @@ export namespace Annotation {
 	}
 
 	export enum Kind {
-		DATA,
+		VALUE,
 		NOTE,
 	}
 
@@ -184,10 +186,10 @@ export namespace Annotation {
 			this: Annotation<T, N>,
 			that: Annotation<T, N>,
 		): boolean {
-			return this.isData()
-				? that.isData() && eq(this.data, that.data)
+			return this.isValue()
+				? that.isValue() && eq(this.val, that.val)
 				: that.isNote() &&
-						eq(this.data, that.data) &&
+						eq(this.val, that.val) &&
 						eq(this.note, that.note);
 		}
 
@@ -195,13 +197,11 @@ export namespace Annotation {
 			this: Annotation<T, N>,
 			that: Annotation<T, N>,
 		): Ordering {
-			if (this.isData()) {
-				return that.isData()
-					? cmp(this.data, that.data)
-					: Ordering.less;
+			if (this.isValue()) {
+				return that.isValue() ? cmp(this.val, that.val) : Ordering.less;
 			}
 			return that.isNote()
-				? cmb(cmp(this.data, that.data), cmp(this.note, that.note))
+				? cmb(cmp(this.val, that.val), cmp(this.note, that.note))
 				: Ordering.greater;
 		}
 
@@ -212,8 +212,8 @@ export namespace Annotation {
 			return this.zipWith(that, cmb);
 		}
 
-		isData<T>(this: Annotation<T, any>): this is Data<T> {
-			return this.kind === Kind.DATA;
+		isValue<T>(this: Annotation<T, any>): this is Value<T> {
+			return this.kind === Kind.VALUE;
 		}
 
 		isNote<T, N>(this: Annotation<T, N>): this is Note<T, N> {
@@ -222,46 +222,46 @@ export namespace Annotation {
 
 		match<T, N, T1, T2>(
 			this: Annotation<T, N>,
-			ifData: (data: T) => T1,
-			ifNote: (data: T, note: N) => T2,
+			ifValue: (val: T) => T1,
+			ifNote: (val: T, note: N) => T2,
 		): T1 | T2 {
-			return this.isData()
-				? ifData(this.data)
-				: ifNote(this.data, this.note);
+			return this.isValue()
+				? ifValue(this.val)
+				: ifNote(this.val, this.note);
 		}
 
 		unwrap<T, N, T1>(
 			this: Annotation<T, N>,
-			f: (data: T, note: Maybe<N>) => T1,
+			f: (val: T, note: Maybe<N>) => T1,
 		): T1 {
 			return this.match(
-				(data) => f(data, Maybe.nothing),
-				(data, note) => f(data, Maybe.just(note)),
+				(val) => f(val, Maybe.nothing),
+				(val, note) => f(val, Maybe.just(note)),
 			);
 		}
 
 		getNote<N>(this: Annotation<any, N>): Maybe<N> {
-			return this.isData() ? Maybe.nothing : Maybe.just(this.note);
+			return this.isValue() ? Maybe.nothing : Maybe.just(this.note);
 		}
 
 		andThen<T, N extends Semigroup<N>, T1>(
 			this: Annotation<T, N>,
-			f: (data: T) => Annotation<T1, N>,
+			f: (val: T) => Annotation<T1, N>,
 		): Annotation<T1, N> {
-			if (this.isData()) {
-				return f(this.data);
+			if (this.isValue()) {
+				return f(this.val);
 			}
-			const that = f(this.data);
-			return that.isData()
-				? note(that.data, this.note)
-				: note(that.data, cmb(this.note, that.note));
+			const that = f(this.val);
+			return that.isValue()
+				? note(that.val, this.note)
+				: note(that.val, cmb(this.note, that.note));
 		}
 
 		andThenGo<T, N extends Semigroup<N>, T1>(
 			this: Annotation<T, N>,
-			f: (data: T) => Go<T1, N>,
+			f: (val: T) => Go<T1, N>,
 		): Annotation<T1, N> {
-			return this.andThen((data) => go(f(data)));
+			return this.andThen((val) => go(f(val)));
 		}
 
 		flatten<T, N extends Semigroup<N>>(
@@ -287,44 +287,44 @@ export namespace Annotation {
 
 		map<T, N, T1>(
 			this: Annotation<T, N>,
-			f: (data: T) => T1,
+			f: (val: T) => T1,
 		): Annotation<T1, N> {
-			return this.isData()
-				? data(f(this.data))
-				: note(f(this.data), this.note);
+			return this.isValue()
+				? value(f(this.val))
+				: note(f(this.val), this.note);
 		}
 
 		mapNote<T, N, N1>(
 			this: Annotation<T, N>,
 			f: (note: N) => N1,
 		): Annotation<T, N1> {
-			return this.isData() ? this : note(this.data, f(this.note));
+			return this.isValue() ? this : note(this.val, f(this.note));
 		}
 
 		notate<T, N extends Semigroup<N>>(
 			this: Annotation<T, N>,
-			f: (data: T) => N,
+			f: (val: T) => N,
 		): Annotation<T, N> {
-			return this.andThen((data) => note(data, f(data)));
+			return this.andThen((val) => note(val, f(val)));
 		}
 
 		erase<T>(this: Annotation<T, any>): Annotation<T, never> {
-			return this.isData() ? this : data(this.data);
+			return this.isValue() ? this : value(this.val);
 		}
 
 		review<T, N>(this: Annotation<T, N>): Annotation<[T, Maybe<N>], N> {
-			return this.map((data) => [data, this.getNote()]);
+			return this.map((val) => [val, this.getNote()]);
 		}
 	}
 
-	export class Data<out T> extends Syntax {
-		readonly kind = Kind.DATA;
+	export class Value<out T> extends Syntax {
+		readonly kind = Kind.VALUE;
 
-		readonly data: T;
+		readonly val: T;
 
-		constructor(data: T) {
+		constructor(val: T) {
 			super();
-			this.data = data;
+			this.val = val;
 		}
 
 		*[Symbol.iterator](): Generator<Annotation<T, never>, T> {
@@ -335,13 +335,13 @@ export namespace Annotation {
 	export class Note<out T, out N> extends Syntax {
 		readonly kind = Kind.NOTE;
 
-		readonly data: T;
+		readonly val: T;
 
 		readonly note: N;
 
-		constructor(data: T, note: N) {
+		constructor(val: T, note: N) {
 			super();
-			this.data = data;
+			this.val = val;
 			this.note = note;
 		}
 
@@ -355,7 +355,7 @@ export namespace Annotation {
 		TReturn
 	>;
 
-	export type DataT<TAnno extends Annotation<any, any>> = [TAnno] extends [
+	export type ValueT<TAnno extends Annotation<any, any>> = [TAnno] extends [
 		Annotation<infer T, any>,
 	]
 		? T
@@ -383,10 +383,10 @@ export namespace AsyncAnnotation {
 			if (anno.isNote()) {
 				notes = notes === undefined ? anno.note : cmb(notes, anno.note);
 			}
-			next = await gen.next(anno.data);
+			next = await gen.next(anno.val);
 		}
 		return notes === undefined
-			? Annotation.data(next.value)
+			? Annotation.value(next.value)
 			: Annotation.note(next.value, notes);
 	}
 
@@ -497,13 +497,13 @@ export namespace AsyncAnnotation {
 								? anno.note
 								: cmb(notes, anno.note);
 					}
-					builder.add(anno.data);
+					builder.add(anno.val);
 
 					remaining--;
 					if (remaining === 0) {
 						resolve(
 							notes === undefined
-								? Annotation.data(builder.finish())
+								? Annotation.value(builder.finish())
 								: Annotation.note(builder.finish(), notes),
 						);
 						return;
@@ -523,7 +523,7 @@ export namespace AsyncAnnotation {
 		return traverseIntoPar(
 			elems,
 			async (elem, idx) =>
-				(await f(elem, idx)).map((data) => [idx, data] as const),
+				(await f(elem, idx)).map((val) => [idx, val] as const),
 			new ArrayAssignBuilder(),
 		);
 	}
@@ -545,7 +545,7 @@ export namespace AsyncAnnotation {
 	>(
 		elems: TElems,
 	): AsyncAnnotation<
-		{ [K in keyof TElems]: Annotation.DataT<Awaited<TElems[K]>> },
+		{ [K in keyof TElems]: Annotation.ValueT<Awaited<TElems[K]>> },
 		Annotation.NoteT<{ [K in keyof TElems]: Awaited<TElems[K]> }[number]>
 	>;
 
@@ -568,7 +568,7 @@ export namespace AsyncAnnotation {
 	>(
 		props: TProps,
 	): AsyncAnnotation<
-		{ [K in keyof TProps]: Annotation.DataT<Awaited<TProps[K]>> },
+		{ [K in keyof TProps]: Annotation.ValueT<Awaited<TProps[K]>> },
 		Annotation.NoteT<
 			{ [K in keyof TProps]: Awaited<TProps[K]> }[keyof TProps]
 		>
@@ -584,7 +584,7 @@ export namespace AsyncAnnotation {
 		return traverseIntoPar(
 			Object.entries(props),
 			async ([key, elem]) =>
-				(await elem).map((data) => [key, data] as const),
+				(await elem).map((val) => [key, val] as const),
 			new ObjectAssignBuilder(),
 		);
 	}
