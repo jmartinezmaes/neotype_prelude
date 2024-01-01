@@ -150,7 +150,7 @@ export namespace Ior {
 		gen: Go<A, TReturn>,
 	): Ior<A, TReturn> {
 		let next = gen.next();
-		let fst: A | undefined;
+		let fsts: A | undefined;
 		let halted = false;
 
 		while (!next.done) {
@@ -158,24 +158,26 @@ export namespace Ior {
 			switch (ior.kind) {
 				case Kind.LEFT:
 					halted = true;
-					fst = fst === undefined ? ior.val : cmb(fst, ior.val);
+					fsts = fsts === undefined ? ior.val : cmb(fsts, ior.val);
 					next = gen.return(undefined as never);
 					break;
 				case Kind.RIGHT:
 					next = gen.next(ior.val);
 					break;
 				case Kind.BOTH:
-					fst =
-						fst === undefined ? ior.fst : (fst = cmb(fst, ior.fst));
+					fsts =
+						fsts === undefined
+							? ior.fst
+							: (fsts = cmb(fsts, ior.fst));
 					next = gen.next(ior.snd);
 			}
 		}
 
 		if (halted) {
 			// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-			return left(fst!);
+			return left(fsts!);
 		}
-		return fst === undefined ? right(next.value) : both(fst, next.value);
+		return fsts === undefined ? right(next.value) : both(fsts, next.value);
 	}
 
 	/**
@@ -714,7 +716,7 @@ export namespace AsyncIor {
 		gen: Go<A, TReturn>,
 	): AsyncIor<A, TReturn> {
 		let next = await gen.next();
-		let fst: A | undefined;
+		let fsts: A | undefined;
 		let halted = false;
 
 		while (!next.done) {
@@ -722,26 +724,28 @@ export namespace AsyncIor {
 			switch (ior.kind) {
 				case Ior.Kind.LEFT:
 					halted = true;
-					fst = fst === undefined ? ior.val : cmb(fst, ior.val);
+					fsts = fsts === undefined ? ior.val : cmb(fsts, ior.val);
 					next = await gen.return(undefined as never);
 					break;
 				case Ior.Kind.RIGHT:
 					next = await gen.next(ior.val);
 					break;
 				case Ior.Kind.BOTH:
-					fst =
-						fst === undefined ? ior.fst : (fst = cmb(fst, ior.fst));
+					fsts =
+						fsts === undefined
+							? ior.fst
+							: (fsts = cmb(fsts, ior.fst));
 					next = await gen.next(ior.snd);
 			}
 		}
 
 		if (halted) {
 			// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-			return Ior.left(fst!);
+			return Ior.left(fsts!);
 		}
-		return fst === undefined
+		return fsts === undefined
 			? Ior.right(next.value)
-			: Ior.both(fst, next.value);
+			: Ior.both(fsts, next.value);
 	}
 
 	/**
@@ -876,7 +880,7 @@ export namespace AsyncIor {
 	): AsyncIor<A, TFinish> {
 		return new Promise((resolve, reject) => {
 			let remaining = 0;
-			let fst: A | undefined;
+			let fsts: A | undefined;
 
 			for (const elem of elems) {
 				const idx = remaining;
@@ -885,26 +889,28 @@ export namespace AsyncIor {
 					switch (ior.kind) {
 						case Ior.Kind.LEFT:
 							resolve(
-								fst === undefined
+								fsts === undefined
 									? ior
-									: Ior.left(cmb(fst, ior.val)),
+									: Ior.left(cmb(fsts, ior.val)),
 							);
 							return;
 						case Ior.Kind.RIGHT:
 							builder.add(ior.val);
 							break;
 						case Ior.Kind.BOTH:
-							fst =
-								fst === undefined ? ior.fst : cmb(fst, ior.fst);
+							fsts =
+								fsts === undefined
+									? ior.fst
+									: cmb(fsts, ior.fst);
 							builder.add(ior.snd);
 					}
 
 					remaining--;
 					if (remaining === 0) {
 						resolve(
-							fst === undefined
+							fsts === undefined
 								? Ior.right(builder.finish())
-								: Ior.both(fst, builder.finish()),
+								: Ior.both(fsts, builder.finish()),
 						);
 						return;
 					}
