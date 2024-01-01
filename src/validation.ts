@@ -637,24 +637,25 @@ export namespace AsyncValidation {
 	): AsyncValidation<E, TFinish> {
 		return new Promise((resolve, reject) => {
 			let remaining = 0;
-			let err: E | undefined;
+			let errs: E | undefined;
 
 			for (const elem of elems) {
 				const idx = remaining;
 				remaining++;
 				Promise.resolve(f(elem, idx)).then((vdn) => {
 					if (vdn.isErr()) {
-						err = err === undefined ? vdn.val : cmb(err, vdn.val);
-					} else if (err === undefined) {
+						errs =
+							errs === undefined ? vdn.val : cmb(errs, vdn.val);
+					} else if (errs === undefined) {
 						builder.add(vdn.val);
 					}
 
 					remaining--;
 					if (remaining === 0) {
 						resolve(
-							err === undefined
+							errs === undefined
 								? Validation.ok(builder.finish())
-								: Validation.err(err),
+								: Validation.err(errs),
 						);
 						return;
 					}
