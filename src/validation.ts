@@ -298,10 +298,9 @@ export namespace Validation {
 			this: Validation<E, T>,
 			that: Validation<E, T>,
 		): boolean {
-			if (this.isErr()) {
-				return that.isErr() && eq(this.val, that.val);
-			}
-			return that.isOk() && eq(this.val, that.val);
+			return this.isErr()
+				? that.isErr() && eq(this.val, that.val)
+				: that.isOk() && eq(this.val, that.val);
 		}
 
 		/**
@@ -391,7 +390,7 @@ export namespace Validation {
 		): Validation<E, T | T1> {
 			if (this.isErr()) {
 				const that = f(this.val);
-				return that.isErr() ? new Err(cmb(this.val, that.val)) : that;
+				return that.isErr() ? err(cmb(this.val, that.val)) : that;
 			}
 			return this;
 		}
@@ -638,29 +637,25 @@ export namespace AsyncValidation {
 	): AsyncValidation<E, TFinish> {
 		return new Promise((resolve, reject) => {
 			let remaining = 0;
-			let acc: E | undefined;
+			let err: E | undefined;
 
 			for (const elem of elems) {
 				const idx = remaining;
 				remaining++;
 				Promise.resolve(f(elem, idx)).then((vdn) => {
 					if (vdn.isErr()) {
-						if (acc === undefined) {
-							acc = vdn.val;
-						} else {
-							acc = cmb(acc, vdn.val);
-						}
-					} else if (acc === undefined) {
+						err = err === undefined ? vdn.val : cmb(err, vdn.val);
+					} else if (err === undefined) {
 						builder.add(vdn.val);
 					}
 
 					remaining--;
 					if (remaining === 0) {
-						if (acc === undefined) {
-							resolve(Validation.ok(builder.finish()));
-						} else {
-							resolve(Validation.err(acc));
-						}
+						resolve(
+							err === undefined
+								? Validation.ok(builder.finish())
+								: Validation.err(err),
+						);
 						return;
 					}
 				}, reject);
@@ -824,10 +819,9 @@ export namespace AsyncValidation {
 			const result = (await allPar(elems)).map((args) =>
 				f(...(args as TArgs)),
 			);
-			if (result.isErr()) {
-				return result;
-			}
-			return Validation.ok(await result.val) as Validation<any, any>;
+			return result.isErr()
+				? result
+				: (Validation.ok(await result.val) as Validation<any, any>);
 		};
 	}
 }

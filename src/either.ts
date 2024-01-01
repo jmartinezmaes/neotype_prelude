@@ -123,20 +123,20 @@ export namespace Either {
 
 	/** Evaluate an `Either.Go` generator to return an `Either`. */
 	export function go<E, TReturn>(gen: Go<E, TReturn>): Either<E, TReturn> {
-		let nxt = gen.next();
+		let next = gen.next();
 		let err: any;
 		let halted = false;
-		while (!nxt.done) {
-			const either = nxt.value;
-			if (either.isRight()) {
-				nxt = gen.next(either.val);
-			} else {
+		while (!next.done) {
+			const either = next.value;
+			if (either.isLeft()) {
 				halted = true;
 				err = either.val;
-				nxt = gen.return(undefined as never);
+				next = gen.return(undefined as never);
+			} else {
+				next = gen.next(either.val);
 			}
 		}
-		return halted ? left(err) : right(nxt.value);
+		return halted ? left(err) : right(next.value);
 	}
 
 	/**
@@ -334,10 +334,9 @@ export namespace Either {
 			this: Either<A, B>,
 			that: Either<A, B>,
 		): boolean {
-			if (this.isLeft()) {
-				return that.isLeft() && eq(this.val, that.val);
-			}
-			return that.isRight() && eq(this.val, that.val);
+			return this.isLeft()
+				? that.isLeft() && eq(this.val, that.val)
+				: that.isRight() && eq(this.val, that.val);
 		}
 
 		/**
@@ -571,20 +570,20 @@ export namespace AsyncEither {
 	export async function go<E, TReturn>(
 		gen: Go<E, TReturn>,
 	): AsyncEither<E, TReturn> {
-		let nxt = await gen.next();
+		let next = await gen.next();
 		let err: any;
 		let halted = false;
-		while (!nxt.done) {
-			const either = nxt.value;
-			if (either.isRight()) {
-				nxt = await gen.next(either.val);
-			} else {
+		while (!next.done) {
+			const either = next.value;
+			if (either.isLeft()) {
 				halted = true;
 				err = either.val;
-				nxt = await gen.return(undefined as never);
+				next = await gen.return(undefined as never);
+			} else {
+				next = await gen.next(either.val);
 			}
 		}
-		return halted ? Either.left(err) : Either.right(nxt.value);
+		return halted ? Either.left(err) : Either.right(next.value);
 	}
 
 	/**

@@ -142,18 +142,18 @@ export namespace Maybe {
 
 	/** Evaluate a `Maybe.Go` generator to return a `Maybe`. */
 	export function go<TReturn>(gen: Go<TReturn>): Maybe<TReturn> {
-		let nxt = gen.next();
+		let next = gen.next();
 		let halted = false;
-		while (!nxt.done) {
-			const maybe = nxt.value;
-			if (maybe.isJust()) {
-				nxt = gen.next(maybe.val);
-			} else {
+		while (!next.done) {
+			const maybe = next.value;
+			if (maybe.isNothing()) {
 				halted = true;
-				nxt = gen.return(undefined as never);
+				next = gen.return(undefined as never);
+			} else {
+				next = gen.next(maybe.val);
 			}
 		}
-		return halted ? nothing : just(nxt.value);
+		return halted ? nothing : just(next.value);
 	}
 
 	/**
@@ -336,10 +336,9 @@ export namespace Maybe {
 		 * both `Just` and their values are equal.
 		 */
 		[Eq.eq]<T extends Eq<T>>(this: Maybe<T>, that: Maybe<T>): boolean {
-			if (this.isNothing()) {
-				return that.isNothing();
-			}
-			return that.isJust() && eq(this.val, that.val);
+			return this.isNothing()
+				? that.isNothing()
+				: that.isJust() && eq(this.val, that.val);
 		}
 
 		/**
@@ -367,10 +366,10 @@ export namespace Maybe {
 			this: Maybe<T>,
 			that: Maybe<T>,
 		): Maybe<T> {
-			if (this.isJust()) {
-				return that.isJust() ? just(cmb(this.val, that.val)) : this;
+			if (this.isNothing()) {
+				return that;
 			}
-			return that;
+			return that.isNothing() ? this : just(cmb(this.val, that.val));
 		}
 
 		/** Test whether this `Maybe` is `Nothing`. */
@@ -437,7 +436,7 @@ export namespace Maybe {
 			if (this.isNothing()) {
 				return that;
 			}
-			return that.isJust() ? nothing : this;
+			return that.isNothing() ? this : nothing;
 		}
 
 		/**
@@ -592,18 +591,18 @@ export namespace AsyncMaybe {
 	export async function go<TReturn>(
 		gen: Go<TReturn>,
 	): Promise<Maybe<TReturn>> {
-		let nxt = await gen.next();
+		let next = await gen.next();
 		let halted = false;
-		while (!nxt.done) {
-			const maybe = nxt.value;
-			if (maybe.isJust()) {
-				nxt = await gen.next(maybe.val);
-			} else {
+		while (!next.done) {
+			const maybe = next.value;
+			if (maybe.isNothing()) {
 				halted = true;
-				nxt = await gen.return(undefined as never);
+				next = await gen.return(undefined as never);
+			} else {
+				next = await gen.next(maybe.val);
 			}
 		}
-		return halted ? Maybe.nothing : Maybe.just(nxt.value);
+		return halted ? Maybe.nothing : Maybe.just(next.value);
 	}
 
 	/**
