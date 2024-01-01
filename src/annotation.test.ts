@@ -32,12 +32,12 @@ import { Ordering, cmp, eq } from "./cmp.js";
 describe("Annotation", () => {
 	function arbAnnotation<T, N>(
 		arbVal: fc.Arbitrary<T>,
-		arbNote: fc.Arbitrary<N>,
+		arbLog: fc.Arbitrary<N>,
 	): fc.Arbitrary<Annotation<T, N>> {
 		return fc.oneof(
 			arbVal.map(Annotation.value),
 			arbVal.chain((val) =>
-				arbNote.map((note) => Annotation.note(val, note)),
+				arbLog.map((log) => Annotation.note(val, log)),
 			),
 		);
 	}
@@ -57,7 +57,7 @@ describe("Annotation", () => {
 			expect(anno).to.be.an.instanceOf(Annotation.Note);
 			expect(anno.kind).to.equal(Annotation.Kind.NOTE);
 			expect(anno.val).to.equal(2);
-			expect((anno as Annotation.Note<2, 1>).note).to.equal(1);
+			expect((anno as Annotation.Note<2, 1>).log).to.equal(1);
 		});
 	});
 
@@ -72,7 +72,7 @@ describe("Annotation", () => {
 			expect(anno).to.deep.equal(Annotation.value([2, 4]));
 		});
 
-		it("completes and retains the note if a Note is yielded after a Value", () => {
+		it("completes and retains the log if a Note is yielded after a Value", () => {
 			function* f(): Annotation.Go<[2, 4], Str> {
 				const two = yield* Annotation.value<2>(2);
 				const four = yield* Annotation.note<4, Str>(4, new Str("a"));
@@ -82,7 +82,7 @@ describe("Annotation", () => {
 			expect(anno).to.deep.equal(Annotation.note([2, 4], new Str("a")));
 		});
 
-		it("completes and retains the note if a Value is yielded after a Note", () => {
+		it("completes and retains the log if a Value is yielded after a Note", () => {
 			function* f(): Annotation.Go<[2, 4], Str> {
 				const two = yield* Annotation.note<2, Str>(2, new Str("a"));
 				const four = yield* Annotation.value<4>(4);
@@ -92,7 +92,7 @@ describe("Annotation", () => {
 			expect(anno).to.deep.equal(Annotation.note([2, 4], new Str("a")));
 		});
 
-		it("complets and combines the notes if a Note is yielded after a Note", () => {
+		it("complets and combines the logs if a Note is yielded after a Note", () => {
 			function* f(): Annotation.Go<[2, 4], Str> {
 				const two = yield* Annotation.note<2, Str>(2, new Str("a"));
 				const four = yield* Annotation.note<4, Str>(4, new Str("b"));
@@ -102,7 +102,7 @@ describe("Annotation", () => {
 			expect(anno).to.deep.equal(Annotation.note([2, 4], new Str("ab")));
 		});
 
-		it("combines notes across the try...finally block", () => {
+		it("combines logs across the try...finally block", () => {
 			function* f(): Annotation.Go<[2, 4], Str> {
 				try {
 					const two = yield* Annotation.note<2, Str>(2, new Str("a"));
@@ -261,12 +261,9 @@ describe("Annotation", () => {
 				arbNum(),
 				arbNum(),
 				arbNum(),
-				(val0, val1, note1) => {
+				(val0, val1, log1) => {
 					expect(
-						eq(
-							Annotation.value(val0),
-							Annotation.note(val1, note1),
-						),
+						eq(Annotation.value(val0), Annotation.note(val1, log1)),
 					).to.be.false;
 				},
 			);
@@ -278,31 +275,28 @@ describe("Annotation", () => {
 				arbNum(),
 				arbNum(),
 				arbNum(),
-				(val0, note0, val1) => {
+				(val0, log0, val1) => {
 					expect(
-						eq(
-							Annotation.note(val0, note0),
-							Annotation.value(val1),
-						),
+						eq(Annotation.note(val0, log0), Annotation.value(val1)),
 					).to.be.false;
 				},
 			);
 			fc.assert(property);
 		});
 
-		it("compares the values and notes lexicographically if both variants are Note", () => {
+		it("compares the values and logs lexicographically if both variants are Note", () => {
 			const property = fc.property(
 				arbNum(),
 				arbNum(),
 				arbNum(),
 				arbNum(),
-				(val0, note0, val1, note1) => {
+				(val0, log0, val1, log1) => {
 					expect(
 						eq(
-							Annotation.note(val0, note0),
-							Annotation.note(val1, note1),
+							Annotation.note(val0, log0),
+							Annotation.note(val1, log1),
 						),
-					).to.equal(eq(val0, val1) && eq(note0, note1));
+					).to.equal(eq(val0, val1) && eq(log0, log1));
 				},
 			);
 			fc.assert(property);
@@ -328,11 +322,11 @@ describe("Annotation", () => {
 				arbNum(),
 				arbNum(),
 				arbNum(),
-				(val0, val1, note1) => {
+				(val0, val1, log1) => {
 					expect(
 						cmp(
 							Annotation.value(val0),
-							Annotation.note(val1, note1),
+							Annotation.note(val1, log1),
 						),
 					).to.equal(Ordering.less);
 				},
@@ -345,10 +339,10 @@ describe("Annotation", () => {
 				arbNum(),
 				arbNum(),
 				arbNum(),
-				(val0, note0, val1) => {
+				(val0, log0, val1) => {
 					expect(
 						cmp(
-							Annotation.note(val0, note0),
+							Annotation.note(val0, log0),
 							Annotation.value(val1),
 						),
 					).to.equal(Ordering.greater);
@@ -357,19 +351,19 @@ describe("Annotation", () => {
 			fc.assert(property);
 		});
 
-		it("compares the values and notes lexicographically if both variants are Note", () => {
+		it("compares the values and logs lexicographically if both variants are Note", () => {
 			const property = fc.property(
 				arbNum(),
 				arbNum(),
 				arbNum(),
 				arbNum(),
-				(val0, note0, val1, note1) => {
+				(val0, log0, val1, log1) => {
 					expect(
 						cmp(
-							Annotation.note(val0, note0),
-							Annotation.note(val1, note1),
+							Annotation.note(val0, log0),
+							Annotation.note(val1, log1),
 						),
-					).to.equal(cmb(cmp(val0, val1), cmp(note0, note1)));
+					).to.equal(cmb(cmp(val0, val1), cmp(log0, log1)));
 				},
 			);
 			fc.assert(property);
@@ -381,20 +375,20 @@ describe("Annotation", () => {
 	});
 
 	describe("#[Semigroup.cmb]", () => {
-		it("combines the values and the notes", () => {
+		it("combines the values and the logs", () => {
 			const property = fc.property(
 				arbStr(),
 				arbStr(),
 				arbStr(),
 				arbStr(),
-				(val0, note0, val1, note1) => {
+				(val0, log0, val1, log1) => {
 					expect(
 						cmb(
-							Annotation.note(val0, note0),
-							Annotation.note(val1, note1),
+							Annotation.note(val0, log0),
+							Annotation.note(val1, log1),
 						),
 					).to.deep.equal(
-						Annotation.note(cmb(val0, val1), cmb(note0, note1)),
+						Annotation.note(cmb(val0, val1), cmb(log0, log1)),
 					);
 				},
 			);
