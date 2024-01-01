@@ -40,22 +40,16 @@ export namespace Annotation {
 	export function go<N extends Semigroup<N>, TReturn>(
 		gen: Go<TReturn, N>,
 	): Annotation<TReturn, N> {
-		let nxt = gen.next();
-		let acc: N | undefined;
-
-		while (!nxt.done) {
-			const anno = nxt.value;
+		let next = gen.next();
+		let notes: N | undefined;
+		while (!next.done) {
+			const anno = next.value;
 			if (anno.isNote()) {
-				if (acc === undefined) {
-					acc = anno.note;
-				} else {
-					acc = cmb(acc, anno.note);
-				}
+				notes = notes === undefined ? anno.note : cmb(notes, anno.note);
 			}
-			nxt = gen.next(anno.data);
+			next = gen.next(anno.data);
 		}
-
-		return acc === undefined ? data(nxt.value) : note(nxt.value, acc);
+		return notes === undefined ? data(next.value) : note(next.value, notes);
 	}
 
 	export function wrapGoFn<
@@ -190,14 +184,11 @@ export namespace Annotation {
 			this: Annotation<T, N>,
 			that: Annotation<T, N>,
 		): boolean {
-			if (this.isData()) {
-				return that.isData() && eq(this.data, that.data);
-			}
-			return (
-				that.isNote() &&
-				eq(this.data, that.data) &&
-				eq(this.note, that.note)
-			);
+			return this.isData()
+				? that.isData() && eq(this.data, that.data)
+				: that.isNote() &&
+						eq(this.data, that.data) &&
+						eq(this.note, that.note);
 		}
 
 		[Ord.cmp]<T extends Ord<T>, N extends Ord<N>>(
@@ -261,10 +252,9 @@ export namespace Annotation {
 				return f(this.data);
 			}
 			const that = f(this.data);
-			if (that.isData()) {
-				return note(that.data, this.note);
-			}
-			return note(that.data, cmb(this.note, that.note));
+			return that.isData()
+				? note(that.data, this.note)
+				: note(that.data, cmb(this.note, that.note));
 		}
 
 		andThenGo<T, N extends Semigroup<N>, T1>(
@@ -386,24 +376,18 @@ export namespace AsyncAnnotation {
 	export async function go<N extends Semigroup<N>, TReturn>(
 		gen: Go<TReturn, N>,
 	): AsyncAnnotation<TReturn, N> {
-		let nxt = await gen.next();
-		let acc: N | undefined;
-
-		while (!nxt.done) {
-			const anno = nxt.value;
+		let next = await gen.next();
+		let notes: N | undefined;
+		while (!next.done) {
+			const anno = next.value;
 			if (anno.isNote()) {
-				if (acc === undefined) {
-					acc = anno.note;
-				} else {
-					acc = cmb(acc, anno.note);
-				}
+				notes = notes === undefined ? anno.note : cmb(notes, anno.note);
 			}
-			nxt = await gen.next(anno.data);
+			next = await gen.next(anno.data);
 		}
-
-		return acc === undefined
-			? Annotation.data(nxt.value)
-			: Annotation.note(nxt.value, acc);
+		return notes === undefined
+			? Annotation.data(next.value)
+			: Annotation.note(next.value, notes);
 	}
 
 	export function wrapGoFn<
@@ -501,30 +485,27 @@ export namespace AsyncAnnotation {
 	): AsyncAnnotation<TFinish, N> {
 		return new Promise((resolve, reject) => {
 			let remaining = 0;
-			let acc: N | undefined;
+			let notes: N | undefined;
 
 			for (const elem of elems) {
 				const idx = remaining;
 				remaining++;
 				Promise.resolve(f(elem, idx)).then((anno) => {
-					if (anno.isData()) {
-						builder.add(anno.data);
-					} else {
-						if (acc === undefined) {
-							acc = anno.note;
-						} else {
-							acc = cmb(acc, anno.note);
-						}
-						builder.add(anno.data);
+					if (anno.isNote()) {
+						notes =
+							notes === undefined
+								? anno.note
+								: cmb(notes, anno.note);
 					}
+					builder.add(anno.data);
 
 					remaining--;
 					if (remaining === 0) {
-						if (acc === undefined) {
-							resolve(Annotation.data(builder.finish()));
-						} else {
-							resolve(Annotation.note(builder.finish(), acc));
-						}
+						resolve(
+							notes === undefined
+								? Annotation.data(builder.finish())
+								: Annotation.note(builder.finish(), notes),
+						);
 						return;
 					}
 				}, reject);
