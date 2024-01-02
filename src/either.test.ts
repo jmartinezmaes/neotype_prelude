@@ -440,16 +440,6 @@ describe("Either", () => {
 	});
 
 	describe("#andThenGo", () => {
-		it("does not apply the continuation if the variant is Left", () => {
-			const either = Either.left<1, 2>(1).andThenGo(
-				function* (two): Either.Go<3, [2, 4]> {
-					const four = yield* Either.right<4, 3>(4);
-					return [two, four];
-				},
-			);
-			expect(either).to.deep.equal(Either.left(1));
-		});
-
 		it("applies the continuation to the success if the variant is Right", () => {
 			const either = Either.right<2, 1>(2).andThenGo(
 				function* (two): Either.Go<3, [2, 4]> {

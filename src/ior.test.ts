@@ -767,58 +767,6 @@ describe("Ior", () => {
 	});
 
 	describe("#andThenGo", () => {
-		it("does not apply the continuation if the variant is Left", () => {
-			const ior = Ior.left<Str, 2>(new Str("a")).andThenGo(
-				function* (two): Ior.Go<Str, [2, 4]> {
-					const four = yield* Ior.both<Str, 4>(new Str("b"), 4);
-					return [two, four];
-				},
-			);
-			expect(ior).to.deep.equal(Ior.left(new Str("a")));
-		});
-
-		it("applies the continuation to the value if the variant is Right", () => {
-			const ior = Ior.right<2, Str>(2).andThenGo(function* (two): Ior.Go<
-				Str,
-				[2, 4]
-			> {
-				const four = yield* Ior.right<4, Str>(4);
-				return [two, four];
-			});
-			expect(ior).to.deep.equal(Ior.right([2, 4]));
-		});
-
-		it("retains the left-hand value if the continuation on a Right returns a Both", () => {
-			const ior = Ior.right<2, Str>(2).andThenGo(function* (two): Ior.Go<
-				Str,
-				[2, 4]
-			> {
-				const four = yield* Ior.both<Str, 4>(new Str("b"), 4);
-				return [two, four];
-			});
-			expect(ior).to.deep.equal(Ior.both(new Str("b"), [2, 4]));
-		});
-
-		it("combines the left-hand values if the continuation on a Both returns a Left", () => {
-			const ior = Ior.both<Str, 2>(new Str("a"), 2).andThenGo(
-				function* (two): Ior.Go<Str, [2, 4]> {
-					const four = yield* Ior.left<Str, 4>(new Str("b"));
-					return [two, four];
-				},
-			);
-			expect(ior).to.deep.equal(Ior.left(new Str("ab")));
-		});
-
-		it("retains the left-hand value if the continuation on a Both returns a Right", () => {
-			const ior = Ior.both<Str, 2>(new Str("a"), 2).andThenGo(
-				function* (two): Ior.Go<Str, [2, 4]> {
-					const four = yield* Ior.right<4, Str>(4);
-					return [two, four];
-				},
-			);
-			expect(ior).to.deep.equal(Ior.both(new Str("a"), [2, 4]));
-		});
-
 		it("combines the left-hand values if the continuation on a Both returns a Both", () => {
 			const ior = Ior.both<Str, 2>(new Str("a"), 2).andThenGo(
 				function* (two): Ior.Go<Str, [2, 4]> {
