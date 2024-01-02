@@ -658,7 +658,7 @@ describe("AsyncMaybe", () => {
 		it("returns Nothing if Nothing is yielded in the finally block", async () => {
 			async function* f(): AsyncMaybe.Go<1> {
 				try {
-					return 1;
+					return yield* await Promise.resolve(Maybe.just<1>(1));
 				} finally {
 					yield* await Promise.resolve(Maybe.nothing);
 				}

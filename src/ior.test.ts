@@ -955,7 +955,9 @@ describe("AsyncIor", () => {
 						Ior.left<Str, 2>(new Str("a")),
 					);
 				} finally {
-					yield* Ior.left<Str, 4>(new Str("b"));
+					yield* await Promise.resolve(
+						Ior.left<Str, 4>(new Str("b")),
+					);
 				}
 			}
 			const ior = await AsyncIor.go(f());
