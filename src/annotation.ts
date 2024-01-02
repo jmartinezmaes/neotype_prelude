@@ -37,8 +37,8 @@ export namespace Annotation {
 		return new Note(val, log);
 	}
 
-	export function write<W, T = void>(log: W): Annotation<T, W> {
-		return note(undefined as any, log);
+	export function write<W>(log: W): Annotation<void, W> {
+		return note(undefined, log);
 	}
 
 	export function go<W extends Semigroup<W>, TReturn>(
@@ -296,26 +296,29 @@ export namespace Annotation {
 				: note(f(this.val), this.log);
 		}
 
-		mapNote<T, W, W1>(
+		mapLog<T, W, W1>(
 			this: Annotation<T, W>,
 			f: (log: W) => W1,
 		): Annotation<T, W1> {
 			return this.isValue() ? this : note(this.val, f(this.log));
 		}
 
-		notate<T, W extends Semigroup<W>>(
+		notateWith<T, W extends Semigroup<W>>(
 			this: Annotation<T, W>,
 			f: (val: T) => W,
 		): Annotation<T, W> {
 			return this.andThen((val) => note(val, f(val)));
 		}
 
-		erase<T>(this: Annotation<T, any>): Annotation<T, never> {
-			return this.isValue() ? this : value(this.val);
+		notate<T, W extends Semigroup<W>>(
+			this: Annotation<T, W>,
+			log: W,
+		): Annotation<T, W> {
+			return this.notateWith(() => log);
 		}
 
-		review<T, W>(this: Annotation<T, W>): Annotation<[T, Maybe<W>], W> {
-			return this.map((val) => [val, this.getLog()]);
+		eraseLog<T>(this: Annotation<T, any>): Annotation<T, never> {
+			return this.isValue() ? this : value(this.val);
 		}
 	}
 

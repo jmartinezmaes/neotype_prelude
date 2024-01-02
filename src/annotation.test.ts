@@ -28,6 +28,7 @@ import {
 import { Annotation } from "./annotation.js";
 import { cmb } from "./cmb.js";
 import { Ordering, cmp, eq } from "./cmp.js";
+import { Maybe } from "./maybe.js";
 
 describe("Annotation", () => {
 	function arbAnnotation<T, N>(
@@ -61,6 +62,13 @@ describe("Annotation", () => {
 		});
 	});
 
+	describe("write", () => {
+		it("writes to the log and returns no value", () => {
+			const anno = Annotation.write<1>(1);
+			expect(anno).to.deep.equal(Annotation.note(undefined, 1));
+		});
+	});
+
 	describe("go", () => {
 		it("completes if all yielded values are Value", () => {
 			function* f(): Annotation.Go<[2, 4], never> {
@@ -75,11 +83,11 @@ describe("Annotation", () => {
 		it("completes and retains the log if a Note is yielded after a Value", () => {
 			function* f(): Annotation.Go<[2, 4], Str> {
 				const two = yield* Annotation.value<2>(2);
-				const four = yield* Annotation.note<4, Str>(4, new Str("a"));
+				const four = yield* Annotation.note<4, Str>(4, new Str("b"));
 				return [two, four];
 			}
 			const anno = Annotation.go(f());
-			expect(anno).to.deep.equal(Annotation.note([2, 4], new Str("a")));
+			expect(anno).to.deep.equal(Annotation.note([2, 4], new Str("b")));
 		});
 
 		it("completes and retains the log if a Value is yielded after a Note", () => {
@@ -420,31 +428,186 @@ describe("Annotation", () => {
 		});
 	});
 
-	// describe("#match");
+	describe("#match", () => {
+		it("applies the first function to the value if the variant is Value", () => {
+			const result = Annotation.value<2, 1>(2).match(
+				(two): [2, 4] => [two, 4],
+				(two, one): [2, 1] => [two, one],
+			);
+			expect(result).to.deep.equal([2, 4]);
+		});
 
-	// describe("#unwrap");
+		it("applies the second function to the value and the log if the variant is Note", () => {
+			const result = Annotation.note<2, 1>(2, 1).match(
+				(two): [2, 4] => [two, 4],
+				(two, one): [2, 1] => [two, one],
+			);
+			expect(result).to.deep.equal([2, 1]);
+		});
+	});
 
-	// describe("#getNote");
+	describe("#unwrap", () => {
+		it("applies the function to the value and maybe log", () => {
+			const result = Annotation.note<2, 1>(2, 1).unwrap(
+				(two, maybeOne): [2, Maybe<1>] => [two, maybeOne],
+			);
+			expect(result).to.deep.equal([2, Maybe.just(1)]);
+		});
+	});
 
-	// describe("#andThen");
+	describe("#getLog", () => {
+		it("returns Nothing if the variant is Value", () => {
+			const result = Annotation.value<2, 1>(2).getLog();
+			expect(result).to.deep.equal(Maybe.nothing);
+		});
 
-	// describe("#andThenGo");
+		it("returns the log in a Just if the variant is Note", () => {
+			const result = Annotation.note<2, 1>(2, 1).getLog();
+			expect(result).to.deep.equal(Maybe.just(1));
+		});
+	});
 
-	// describe("#flatten");
+	describe("#andThen", () => {
+		it("applies the continuation to the value if the variant is Value", () => {
+			const anno = Annotation.value<2, Str>(2).andThen(
+				(two): Annotation<[2, 4], Str> => Annotation.value([two, 4]),
+			);
+			expect(anno).to.deep.equal(Annotation.value([2, 4]));
+		});
 
-	// describe("#and");
+		it("retains the log if the continuation on a Value returns a Note", () => {
+			const anno = Annotation.value<2, Str>(2).andThen(
+				(two): Annotation<[2, 4], Str> =>
+					Annotation.note([two, 4], new Str("b")),
+			);
+			expect(anno).to.deep.equal(Annotation.note([2, 4], new Str("b")));
+		});
 
-	// describe("#zipWith");
+		it("retains the log if the continuation on a Note returns a value", () => {
+			const anno = Annotation.note<2, Str>(2, new Str("a")).andThen(
+				(two): Annotation<[2, 4], Str> => Annotation.value([two, 4]),
+			);
+			expect(anno).to.deep.equal(Annotation.note([2, 4], new Str("a")));
+		});
 
-	// describe("#map");
+		it("combines the logs if the continuation on a Note returns a Note", () => {
+			const anno = Annotation.note<2, Str>(2, new Str("a")).andThen(
+				(two): Annotation<[2, 4], Str> =>
+					Annotation.note([two, 4], new Str("b")),
+			);
+			expect(anno).to.deep.equal(Annotation.note([2, 4], new Str("ab")));
+		});
+	});
 
-	// describe("#mapNote");
+	describe("#andThenGo", () => {
+		it("combines the logs if the continuation on a Note returns a Note", () => {
+			const anno = Annotation.note<2, Str>(2, new Str("a")).andThenGo(
+				function* (two): Annotation.Go<[2, 4], Str> {
+					const four = yield* Annotation.note<4, Str>(
+						4,
+						new Str("b"),
+					);
+					return [two, four];
+				},
+			);
+			expect(anno).to.deep.equal(Annotation.note([2, 4], new Str("ab")));
+		});
+	});
 
-	// describe("#notate");
+	describe("#flatten", () => {
+		it("removes one level of nesting", () => {
+			const anno = Annotation.note<Annotation<2, Str>, Str>(
+				Annotation.note(2, new Str("b")),
+				new Str("a"),
+			).flatten();
+			expect(anno).to.deep.equal(Annotation.note(2, new Str("ab")));
+		});
+	});
 
-	// describe("#erase");
+	describe("#and", () => {
+		it("keeps only the second value", () => {
+			const anno = Annotation.note<2, Str>(2, new Str("a")).and(
+				Annotation.note<4, Str>(4, new Str("b")),
+			);
+			expect(anno).to.deep.equal(Annotation.note(4, new Str("ab")));
+		});
+	});
 
-	// describe("#review");
+	describe("#zipWith", () => {
+		it("applies the function to the values", () => {
+			const anno = Annotation.note<2, Str>(2, new Str("a")).zipWith(
+				Annotation.note<4, Str>(4, new Str("b")),
+				(two, four): [2, 4] => [two, four],
+			);
+			expect(anno).to.deep.equal(Annotation.note([2, 4], new Str("ab")));
+		});
+	});
+
+	describe("#map", () => {
+		it("applies the function to the value if the variant is Value", () => {
+			const anno = Annotation.value<2, 1>(2).map((two): [2, 4] => [
+				two,
+				4,
+			]);
+			expect(anno).to.deep.equal(Annotation.value([2, 4]));
+		});
+
+		it("applies the function to the value and retains the log if the variant is Note", () => {
+			const anno = Annotation.note<2, 1>(2, 1).map((two): [2, 4] => [
+				two,
+				4,
+			]);
+			expect(anno).to.deep.equal(Annotation.note([2, 4], 1));
+		});
+	});
+
+	describe("#mapLog", () => {
+		it("does not apply the function if the variant is Value", () => {
+			const anno = Annotation.value<2, 1>(2).mapLog((one): [1, 3] => [
+				one,
+				3,
+			]);
+			expect(anno).to.deep.equal(Annotation.value(2));
+		});
+
+		it("applies the function to the log if the variant is Note", () => {
+			const anno = Annotation.note<2, 1>(2, 1).mapLog((one): [1, 3] => [
+				one,
+				3,
+			]);
+			expect(anno).to.deep.equal(Annotation.note(2, [1, 3]));
+		});
+	});
+
+	describe("#notateWith", () => {
+		it("applies the function to the value and writes the result to the log", () => {
+			const anno = Annotation.note<2, Str>(2, new Str("a")).notateWith(
+				(two) => new Str(two.toString()),
+			);
+			expect(anno).to.deep.equal(Annotation.note(2, new Str("a2")));
+		});
+	});
+
+	describe("#notate", () => {
+		it("writes to the log", () => {
+			const anno = Annotation.note<2, Str>(2, new Str("a")).notate(
+				new Str("b"),
+			);
+			expect(anno).to.deep.equal(Annotation.note(2, new Str("ab")));
+		});
+	});
+
+	describe("#eraseLog", () => {
+		it("does nothing if the variant is Value", () => {
+			const anno = Annotation.value<2, 1>(2).eraseLog();
+			expect(anno).to.deep.equal(Annotation.value(2));
+		});
+
+		it("deletes the log and changes the Note to a Value if the variant is Note", () => {
+			const anno = Annotation.note<2, 1>(2, 1).eraseLog();
+			expect(anno).to.deep.equal(Annotation.value(2));
+		});
+	});
 });
 
 // describe("AsyncAnnotation", () => {
