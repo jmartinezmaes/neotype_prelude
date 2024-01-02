@@ -219,12 +219,12 @@ describe("Ior", () => {
 	describe("reduce", () => {
 		it("reduces the finite iterable from left to right in the context of Ior", () => {
 			const ior = Ior.reduce(
-				["x", "y"],
+				["a", "b"],
 				(chars, char, idx) =>
-					Ior.both(new Str("a"), chars + char + idx),
+					Ior.both(new Str(char), chars + char + idx),
 				"",
 			);
-			expect(ior).to.deep.equal(Ior.both(new Str("aa"), "x0y1"));
+			expect(ior).to.deep.equal(Ior.both(new Str("ab"), "a0b1"));
 		});
 	});
 
@@ -998,18 +998,18 @@ describe("AsyncIor", () => {
 	describe("reduce", () => {
 		it("reduces the finite async iterable from left to right in the context of Ior", async () => {
 			async function* gen(): AsyncGenerator<string> {
-				yield delay(50).then(() => "x");
-				yield delay(10).then(() => "y");
+				yield delay(50).then(() => "a");
+				yield delay(10).then(() => "b");
 			}
 			const ior = await AsyncIor.reduce(
 				gen(),
 				(chars, char, idx) =>
 					delay(1).then(() =>
-						Ior.both(new Str("a"), chars + char + idx),
+						Ior.both(new Str(char), chars + char + idx),
 					),
 				"",
 			);
-			expect(ior).to.deep.equal(Ior.both(new Str("aa"), "x0y1"));
+			expect(ior).to.deep.equal(Ior.both(new Str("ab"), "a0b1"));
 		});
 	});
 

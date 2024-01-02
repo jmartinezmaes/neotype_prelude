@@ -164,11 +164,11 @@ describe("Maybe", () => {
 	describe("reduce", () => {
 		it("reduces the finite iterable from left to right in the context of Maybe", () => {
 			const maybe = Maybe.reduce(
-				["x", "y"],
+				["a", "b"],
 				(chars, char, idx) => Maybe.just(chars + char + idx),
 				"",
 			);
-			expect(maybe).to.deep.equal(Maybe.just("x0y1"));
+			expect(maybe).to.deep.equal(Maybe.just("a0b1"));
 		});
 	});
 
@@ -683,8 +683,8 @@ describe("AsyncMaybe", () => {
 	describe("reduce", () => {
 		it("reduces the finite async iterable from left to right in the context of Maybe", async () => {
 			async function* gen(): AsyncGenerator<string> {
-				yield delay(50).then(() => "x");
-				yield delay(10).then(() => "y");
+				yield delay(50).then(() => "a");
+				yield delay(10).then(() => "b");
 			}
 			const maybe = await AsyncMaybe.reduce(
 				gen(),
@@ -692,7 +692,7 @@ describe("AsyncMaybe", () => {
 					delay(1).then(() => Maybe.just(chars + char + idx)),
 				"",
 			);
-			expect(maybe).to.deep.equal(Maybe.just("x0y1"));
+			expect(maybe).to.deep.equal(Maybe.just("a0b1"));
 		});
 	});
 
