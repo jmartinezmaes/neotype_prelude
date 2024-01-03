@@ -719,8 +719,8 @@ export namespace AsyncMaybe {
 	}
 
 	/**
-	 * Map the elements in an iterable to `Maybe` or `AsyncMaybeLike` and
-	 * collect the `Just` values into a `Builder`.
+	 * Concurrently map the elements in an iterable to `Maybe` or
+	 * `AsyncMaybeLike` and collect the `Just` values into a `Builder`.
 	 *
 	 * @remarks
 	 *
@@ -754,8 +754,8 @@ export namespace AsyncMaybe {
 	}
 
 	/**
-	 * Map the elements in an iterable to `Maybe` or `AsyncMaybeLike` and
-	 * collect the `Just` values in an array.
+	 * Concurrently map the elements in an iterable to `Maybe` or
+	 * `AsyncMaybeLike` and collect the `Just` values in an array.
 	 */
 	export function traversePar<T, T1>(
 		elems: Iterable<T>,

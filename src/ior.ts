@@ -750,7 +750,7 @@ export namespace AsyncIor {
 
 	/**
 	 * Adapt an async generator function that returns `AsyncIor.Go` into an
-	 * async function that returns `AsyncIor`.
+	 * async function that returns `Ior` or `AsyncIorLike`.
 	 */
 	export function wrapGoFn<
 		TArgs extends unknown[],
@@ -764,7 +764,7 @@ export namespace AsyncIor {
 
 	/**
 	 * Accumulate the elements in an async iterable using a reducer function
-	 * that returns `Ior` `AsyncIorLike`.
+	 * that returns `Ior` or `AsyncIorLike`.
 	 */
 	export function reduce<T, TAcc, A extends Semigroup<A>>(
 		elems: AsyncIterable<T>,
@@ -789,8 +789,8 @@ export namespace AsyncIor {
 	}
 
 	/**
-	 * Map the elements in an async iterable to `Ior` and collect the right-hand
-	 * values into a `Builder`.
+	 * Map the elements in an async iterable to `Ior` or `AsyncIorLike` and
+	 * collect the right-hand values into a `Builder`.
 	 *
 	 * @remarks
 	 *
@@ -814,8 +814,8 @@ export namespace AsyncIor {
 	}
 
 	/**
-	 * Map the elements in an async iterable to `Ior` and collect the right-hand
-	 * values in an array.
+	 * Map the elements in an async iterable to `Ior` or `AsyncIorLike` and
+	 * collect the right-hand values in an array.
 	 */
 	export function traverse<T, A extends Semigroup<A>, B>(
 		elems: AsyncIterable<T>,
