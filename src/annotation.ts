@@ -26,21 +26,42 @@ import { Eq, Ord, Ordering, cmp, eq } from "./cmp.js";
 import { id } from "./fn.js";
 import { Maybe } from "./maybe.js";
 
+/**
+ * A type that represents a simple value ({@linkcode Annotation.Value}) or a
+ * value and some additional information ({@linkcode Annotation.Note}).
+ */
 export type Annotation<T, W> = Annotation.Value<T> | Annotation.Note<T, W>;
 
+/**
+ * The companion namespace for the {@link Annotation:type | `Annotation<T, W>`}
+ * type.
+ *
+ * @remarks
+ *
+ * This namespace provides:
+ *
+ * -   Functions for constructing, chaining, and collecting into `Annotation`
+ * -   A base class with the fluent API for `Annotation`
+ * -   Variant classes
+ * -   Utility types
+ */
 export namespace Annotation {
+	/** Construct a `Value`. */
 	export function value<T, W = never>(val: T): Annotation<T, W> {
 		return new Value(val);
 	}
 
+	/** Construct a `Note`. */
 	export function note<T, W>(val: T, log: W): Annotation<T, W> {
 		return new Note(val, log);
 	}
 
+	/** Write an entry to the log. */
 	export function write<W>(log: W): Annotation<void, W> {
 		return note(undefined, log);
 	}
 
+	/** Evaluate an `Annotation.Go` generator to return an `Annotation`. */
 	export function go<W extends Semigroup<W>, TReturn>(
 		gen: Go<TReturn, W>,
 	): Annotation<TReturn, W> {
@@ -56,6 +77,10 @@ export namespace Annotation {
 		return logs === undefined ? value(next.value) : note(next.value, logs);
 	}
 
+	/**
+	 * Adapt a generator function that returns `Annotation.Go` into a function
+	 * that returns `Annotation`.
+	 */
 	export function wrapGoFn<
 		TArgs extends unknown[],
 		W extends Semigroup<W>,
@@ -66,6 +91,10 @@ export namespace Annotation {
 		return (...args) => go(f(...args));
 	}
 
+	/**
+	 * Accumulate the elements in an iterable using a reducer function that
+	 * returns `Annotation`.
+	 */
 	export function reduce<T, TAcc, W extends Semigroup<W>>(
 		elems: Iterable<T>,
 		f: (acc: TAcc, elem: T, idx: number) => Annotation<TAcc, W>,
@@ -84,6 +113,10 @@ export namespace Annotation {
 		);
 	}
 
+	/**
+	 * Map the elements in an iterable to `Annotation` and collect the values
+	 * into a `Builder`.
+	 */
 	export function traverseInto<T, T1, W extends Semigroup<W>, TFinish>(
 		elems: Iterable<T>,
 		f: (elem: T, idx: number) => Annotation<T1, W>,
@@ -101,6 +134,10 @@ export namespace Annotation {
 		);
 	}
 
+	/**
+	 * Map the elements in an iterable to `Annotation` and collect the values in
+	 * an array.
+	 */
 	export function traverse<T, T1, W extends Semigroup<W>>(
 		elems: Iterable<T>,
 		f: (elem: T, idx: number) => Annotation<T1, W>,
@@ -108,6 +145,10 @@ export namespace Annotation {
 		return traverseInto(elems, f, new ArrayPushBuilder());
 	}
 
+	/**
+	 * Evaluate the `Annotation` in an iterable and collect the values into a
+	 * `Builder`.
+	 */
 	export function allInto<T, W extends Semigroup<W>, TFinish>(
 		annos: Iterable<Annotation<T, W>>,
 		builder: Builder<T, TFinish>,
@@ -115,6 +156,19 @@ export namespace Annotation {
 		return traverseInto(annos, id, builder);
 	}
 
+	/**
+	 * Evaluate the `Annotation` in an array or a tuple literal and collect the
+	 * values in an equivalent structure.
+	 *
+	 * @remarks
+	 *
+	 * This function turns an array or a tuple literal of `Annotation` "inside
+	 * out". For example:
+	 *
+	 * -   `Annotation<T, W>[]` becomes `Annotation<T[], W>`
+	 * -   `[Annotation<T1, W>, Annotation<T2, W>]` becomes `Annotation<[T1,
+	 *     T2], W>`
+	 */
 	export function all<
 		TAnnos extends readonly Annotation<any, Semigroup<any>>[] | [],
 	>(
@@ -124,6 +178,15 @@ export namespace Annotation {
 		NoteT<TAnnos[number]>
 	>;
 
+	/**
+	 * Evaluate the `Annotation` in an iterable and collect the values in an
+	 * array.
+	 *
+	 * @remarks
+	 *
+	 * This function turns an iterable of `Annotation` "inside out". For
+	 * example, `Iterable<Annotation<T, W>>` becomes `Annotation<T[], W>`.
+	 */
 	export function all<T, W extends Semigroup<W>>(
 		annos: Iterable<Annotation<T, W>>,
 	): Annotation<T[], W>;
@@ -134,6 +197,20 @@ export namespace Annotation {
 		return traverse(annos, id);
 	}
 
+	/**
+	 * Evaluate the `Annotation` in a string-keyed record or object literal and
+	 * collect the values in an equivalent structure.
+	 *
+	 * @remarks
+	 *
+	 * This function turns a string-keyed record or object literal of
+	 * `Annotation` "inside out". For example:
+	 *
+	 * -   `Record<string, Annotation<T, W>>` becomes `Annotation<Record<string,
+	 *     T>, W>`
+	 * -   `{ x: Annotation<T1, W>, y: Annotation<T2, W> }` becomes
+	 *     `Annotation<{ x: T1, y: T2 }, W>`
+	 */
 	export function allProps<
 		TProps extends Record<string, Annotation<any, Semigroup<any>>>,
 	>(
@@ -145,10 +222,6 @@ export namespace Annotation {
 
 	export function allProps<T, W extends Semigroup<W>>(
 		props: Record<string, Annotation<T, W>>,
-	): Annotation<Record<string, T>, W>;
-
-	export function allProps<T, W extends Semigroup<W>>(
-		props: Record<string, Annotation<T, W>>,
 	): Annotation<Record<string, T>, W> {
 		return traverseInto(
 			Object.entries(props),
@@ -157,6 +230,10 @@ export namespace Annotation {
 		);
 	}
 
+	/**
+	 * Apply an action that returns `Annotation` to the elements in an iterable
+	 * and ignore the values.
+	 */
 	export function forEach<T, W extends Semigroup<W>>(
 		elems: Iterable<T>,
 		f: (elem: T, idx: number) => Annotation<any, W>,
@@ -164,6 +241,10 @@ export namespace Annotation {
 		return traverseInto(elems, f, new NoOpBuilder());
 	}
 
+	/**
+	 * Adapt a synchronous function to be applied in the context of
+	 * `Annotation`.
+	 */
 	export function lift<TArgs extends unknown[], T>(
 		f: (...args: TArgs) => T,
 	): <W extends Semigroup<W>>(
@@ -176,14 +257,26 @@ export namespace Annotation {
 			>;
 	}
 
+	/** An enumeration that discrimiates `Annotation`. */
 	export enum Kind {
 		VALUE,
 		NOTE,
 	}
 
+	/** The fluent syntax for `Annotation`. */
 	export abstract class Syntax {
+		/** The property that discriminates `Annotation`. */
 		abstract readonly kind: Kind;
 
+		/**
+		 * Compare this and that `Annotation` to determine their equality.
+		 *
+		 * @remarks
+		 *
+		 * Two `Annotation` are equal if they are both `Value` and their values
+		 * are equal, or they are both `Note` and their values and logs are
+		 * respectively equal.
+		 */
 		[Eq.eq]<T extends Eq<T>, W extends Eq<W>>(
 			this: Annotation<T, W>,
 			that: Annotation<T, W>,
@@ -195,6 +288,16 @@ export namespace Annotation {
 						eq(this.log, that.log);
 		}
 
+		/**
+		 * Compare this and that Annotation to determine their ordering.
+		 *
+		 * @remarks
+		 *
+		 * When ordered, `Value` always compares as less than `Note`. If both
+		 * variants are `Value`, their values are compared to determine the
+		 * ordering. If both variants are `Note`, their values and logs are
+		 * compared lexicographically to determine the ordering.
+		 */
 		[Ord.cmp]<T extends Ord<T>, W extends Ord<W>>(
 			this: Annotation<T, W>,
 			that: Annotation<T, W>,
@@ -207,6 +310,7 @@ export namespace Annotation {
 				: Ordering.greater;
 		}
 
+		/** Combine the values of this and that `Annotation`. */
 		[Semigroup.cmb]<T extends Semigroup<T>, W extends Semigroup<W>>(
 			this: Annotation<T, W>,
 			that: Annotation<T, W>,
@@ -214,14 +318,20 @@ export namespace Annotation {
 			return this.zipWith(that, cmb);
 		}
 
+		/** Test whether this `Annotation` is `Value`. */
 		isValue<T>(this: Annotation<T, any>): this is Value<T> {
 			return this.kind === Kind.VALUE;
 		}
 
+		/** Test whether this `Annotation` is `Note`. */
 		isNote<T, W>(this: Annotation<T, W>): this is Note<T, W> {
 			return this.kind === Kind.NOTE;
 		}
 
+		/**
+		 * Apply one of two functions to extract the value and log from this
+		 * `Annotation`, depending on the variant.
+		 */
 		match<T, W, T1, T2>(
 			this: Annotation<T, W>,
 			ifValue: (val: T) => T1,
@@ -232,6 +342,10 @@ export namespace Annotation {
 				: ifNote(this.val, this.log);
 		}
 
+		/**
+		 * Apply a function to extract the value and maybe the log from this
+		 * `Annotation`.
+		 */
 		unwrap<T, W, T1>(
 			this: Annotation<T, W>,
 			f: (val: T, log: Maybe<W>) => T1,
@@ -242,10 +356,15 @@ export namespace Annotation {
 			);
 		}
 
+		/** Extract the log from this `Annotation` if one exists. */
 		getLog<W>(this: Annotation<any, W>): Maybe<W> {
 			return this.isValue() ? Maybe.nothing : Maybe.just(this.log);
 		}
 
+		/**
+		 * Apply a function to the value of this `Annotation` to return another
+		 * `Annotation`.
+		 */
 		andThen<T, W extends Semigroup<W>, T1>(
 			this: Annotation<T, W>,
 			f: (val: T) => Annotation<T1, W>,
@@ -259,6 +378,10 @@ export namespace Annotation {
 				: note(that.val, cmb(this.log, that.log));
 		}
 
+		/**
+		 * Apply a generator function to the value of this `Annotation` to
+		 * return another `Annotation`.
+		 */
 		andThenGo<T, W extends Semigroup<W>, T1>(
 			this: Annotation<T, W>,
 			f: (val: T) => Go<T1, W>,
@@ -266,12 +389,17 @@ export namespace Annotation {
 			return this.andThen((val) => go(f(val)));
 		}
 
+		/** Remove one level of nesting from this `Annotation`. */
 		flatten<T, W extends Semigroup<W>>(
 			this: Annotation<Annotation<T, W>, W>,
 		): Annotation<T, W> {
 			return this.andThen(id);
 		}
 
+		/**
+		 * Ignore the value of this `Annotation` and keep the value of that
+		 * `Annotation`.
+		 */
 		and<T1, W extends Semigroup<W>>(
 			this: Annotation<any, W>,
 			that: Annotation<T1, W>,
@@ -279,6 +407,9 @@ export namespace Annotation {
 			return this.andThen(() => that);
 		}
 
+		/**
+		 * Apply a function to combine the values of this and that `Annotation`.
+		 */
 		zipWith<T, W extends Semigroup<W>, T1, T2>(
 			this: Annotation<T, W>,
 			that: Annotation<T1, W>,
@@ -287,6 +418,7 @@ export namespace Annotation {
 			return this.andThen((lhs) => that.map((rhs) => f(lhs, rhs)));
 		}
 
+		/** Apply a function to map the value of this `Annotation`. */
 		map<T, W, T1>(
 			this: Annotation<T, W>,
 			f: (val: T) => T1,
@@ -296,6 +428,7 @@ export namespace Annotation {
 				: note(f(this.val), this.log);
 		}
 
+		/** Apply a function to map the log of this `Annotation`. */
 		mapLog<T, W, W1>(
 			this: Annotation<T, W>,
 			f: (log: W) => W1,
@@ -303,6 +436,10 @@ export namespace Annotation {
 			return this.isValue() ? this : note(this.val, f(this.log));
 		}
 
+		/**
+		 * Apply a function to the value of this `Annotation` and append the
+		 * result to the log.
+		 */
 		notateWith<T, W extends Semigroup<W>>(
 			this: Annotation<T, W>,
 			f: (val: T) => W,
@@ -310,6 +447,7 @@ export namespace Annotation {
 			return this.andThen((val) => note(val, f(val)));
 		}
 
+		/** Write an entry to the log of this `Annotation`. */
 		notate<T, W extends Semigroup<W>>(
 			this: Annotation<T, W>,
 			log: W,
@@ -317,14 +455,17 @@ export namespace Annotation {
 			return this.notateWith(() => log);
 		}
 
+		/** Erase the log of this `Annotation`. */
 		eraseLog<T>(this: Annotation<T, any>): Annotation<T, never> {
 			return this.isValue() ? this : value(this.val);
 		}
 	}
 
+	/** An `Annotation` with a value. */
 	export class Value<out T> extends Syntax {
 		readonly kind = Kind.VALUE;
 
+		/** The value of this `Annotation`. */
 		readonly val: T;
 
 		constructor(val: T) {
@@ -337,11 +478,14 @@ export namespace Annotation {
 		}
 	}
 
+	/** An `Annotation` with a value and a log. */
 	export class Note<out T, out W> extends Syntax {
 		readonly kind = Kind.NOTE;
 
+		/** The value of this `Annotation`. */
 		readonly val: T;
 
+		/** The log of this `Annotation`. */
 		readonly log: W;
 
 		constructor(val: T, log: W) {
@@ -355,17 +499,20 @@ export namespace Annotation {
 		}
 	}
 
+	/** A generator that yields `Annotation` and returns a value. */
 	export type Go<TReturn, W extends Semigroup<W>> = Generator<
 		Annotation<unknown, W>,
 		TReturn
 	>;
 
+	/** Extract the value type `T` from the type `Annotation<T, W>`. */
 	export type ValueT<TAnno extends Annotation<any, any>> = [TAnno] extends [
 		Annotation<infer T, any>,
 	]
 		? T
 		: never;
 
+	/** Extract the log type `W` from the type `Annotation<T, W>`. */
 	export type NoteT<TAnno extends Annotation<any, any>> = [TAnno] extends [
 		Annotation<any, infer W>,
 	]
@@ -373,11 +520,26 @@ export namespace Annotation {
 		: never;
 }
 
+/** A promise-like object that fulfills with `Annotation`. */
 export type AsyncAnnotationLike<T, W> = PromiseLike<Annotation<T, W>>;
 
+/** A promise that fulfills with `Annotation`. */
 export type AsyncAnnotation<T, W> = Promise<Annotation<T, W>>;
 
+/**
+ * The companion namespace for the
+ * {@link AsyncAnnotation:type | `AsyncAnnotation<T, W>`} type.
+ *
+ * @remarks
+ *
+ * This namespace provides functions for chaining and collecting into
+ * `AsyncAnnotation`.
+ */
 export namespace AsyncAnnotation {
+	/**
+	 * Evaluate an `AsyncAnnotation.Go` async generator to return an
+	 * `AsyncAnnotation`.
+	 */
 	export async function go<W extends Semigroup<W>, TReturn>(
 		gen: Go<TReturn, W>,
 	): AsyncAnnotation<TReturn, W> {
@@ -395,6 +557,10 @@ export namespace AsyncAnnotation {
 			: Annotation.note(next.value, logs);
 	}
 
+	/**
+	 * Adapt an async generator function that returns `AsyncAnnotation.Go` into
+	 * an async function that returns `AsyncAnnotation`.
+	 */
 	export function wrapGoFn<
 		TArgs extends unknown[],
 		W extends Semigroup<W>,
@@ -405,6 +571,10 @@ export namespace AsyncAnnotation {
 		return (...args) => go(f(...args));
 	}
 
+	/**
+	 * Accumulate the elements in an async iterable using a reducer function
+	 * that returns `Annotation` or `AsyncAnnotationLike`.
+	 */
 	export function reduce<T, TAcc, W extends Semigroup<W>>(
 		elems: AsyncIterable<T>,
 		f: (
@@ -427,6 +597,10 @@ export namespace AsyncAnnotation {
 		);
 	}
 
+	/**
+	 * Map the elements in an async iterable to `Annotation` or
+	 * `AsyncAnnotationLike` and collect the values into a `Builder`.
+	 */
 	export function traverseInto<T, T1, W extends Semigroup<W>, TFinish>(
 		elems: AsyncIterable<T>,
 		f: (
@@ -447,6 +621,10 @@ export namespace AsyncAnnotation {
 		);
 	}
 
+	/**
+	 * Map the elements in an async iterable to `Annotation` or
+	 * `AsyncAnnotationLike` and collect the values in an array.
+	 */
 	export function traverse<T, T1, W extends Semigroup<W>>(
 		elems: AsyncIterable<T>,
 		f: (
@@ -457,6 +635,10 @@ export namespace AsyncAnnotation {
 		return traverseInto(elems, f, new ArrayPushBuilder());
 	}
 
+	/**
+	 * Evaluate the `Annotation` in an async iterable and collect the values
+	 * into a `Builder`.
+	 */
 	export function allInto<T, W extends Semigroup<W>, TFinish>(
 		elems: AsyncIterable<Annotation<T, W>>,
 		builder: Builder<T, TFinish>,
@@ -464,12 +646,20 @@ export namespace AsyncAnnotation {
 		return traverseInto(elems, id, builder);
 	}
 
+	/**
+	 * Evaluate the `Annotation` in an async iterable and collect the values in
+	 * an array.
+	 */
 	export function all<T, W extends Semigroup<W>>(
 		elems: AsyncIterable<Annotation<T, W>>,
 	): AsyncAnnotation<T[], W> {
 		return traverse(elems, id);
 	}
 
+	/**
+	 * Apply an action that returns `Annotation` or `AsyncAnnotationLike` to the
+	 * elements in an async iterable and ignore the values.
+	 */
 	export function forEach<T, W extends Semigroup<W>>(
 		elems: AsyncIterable<T>,
 		f: (
@@ -480,6 +670,10 @@ export namespace AsyncAnnotation {
 		return traverseInto(elems, f, new NoOpBuilder());
 	}
 
+	/**
+	 * Concurrently map the elements in an iterable to `Annotation` or
+	 * `AsyncAnnotationLike` anc collect the values into a `Builder`.
+	 */
 	export function traverseIntoPar<T, T1, W extends Semigroup<W>, TFinish>(
 		elems: Iterable<T>,
 		f: (
@@ -516,6 +710,10 @@ export namespace AsyncAnnotation {
 		});
 	}
 
+	/**
+	 * Concurrently map the elements in an iterable to `Annotation` or
+	 * `AsyncAnnotationLike` and collect the values in an array.
+	 */
 	export function traversePar<T, T1, W extends Semigroup<W>>(
 		elems: Iterable<T>,
 		f: (
@@ -531,6 +729,10 @@ export namespace AsyncAnnotation {
 		);
 	}
 
+	/**
+	 * Concurrently evaluate the `Annotation` or `AsyncAnnotation` in an
+	 * iterable and collect the values into a `Builder`.
+	 */
 	export function allIntoPar<T, W extends Semigroup<W>, TFinish>(
 		elems: Iterable<Annotation<T, W> | AsyncAnnotationLike<T, W>>,
 		builder: Builder<T, TFinish>,
@@ -538,6 +740,20 @@ export namespace AsyncAnnotation {
 		return traverseIntoPar(elems, id, builder);
 	}
 
+	/**
+	 * Concurrently evaluate the `Annotation` or `AsyncAnnotationLike` in an
+	 * array or a tuple literal and collect the values in an equivalent
+	 * structure.
+	 *
+	 * @remarks
+	 *
+	 * This function turns an array or a tuple literal of `Annotation` or
+	 * `AsyncAnnotationLike` "inside out". For example:
+	 *
+	 * -   `AsyncAnnotation<T, W>[]` becomes `AsyncAnnotation<T[], W>`
+	 * -   `[AsyncAnnotation<T1, W>, AsyncAnnotation<T2, W>]` becomes
+	 *     `AsyncAnnotation<[T1, T2], W>`
+	 */
 	export function allPar<
 		TElems extends
 			| readonly (
@@ -552,6 +768,16 @@ export namespace AsyncAnnotation {
 		Annotation.NoteT<{ [K in keyof TElems]: Awaited<TElems[K]> }[number]>
 	>;
 
+	/**
+	 * Concurrently evaluate the `Annotation` or `AsyncAnnotationLike` in an
+	 * iterable and collect the values in an array.
+	 *
+	 * @remarks
+	 *
+	 * This function turns an iterable of `Annotation` or `AsyncAnnotationLike`
+	 * "inside out". For example, `Iterable<AsyncAnnotation<T, W>>` becomes
+	 * `AsyncAnnotation<T[], W>`.
+	 */
 	export function allPar<T, W extends Semigroup<W>>(
 		elems: Iterable<Annotation<T, W> | AsyncAnnotationLike<T, W>>,
 	): AsyncAnnotation<T[], W>;
@@ -562,6 +788,21 @@ export namespace AsyncAnnotation {
 		return traversePar(elems, id);
 	}
 
+	/**
+	 * Concurrently evaluate the `Annotation` or `AsyncAnnotationLike` in a
+	 * string-keyed record or object literal and collect the values in an
+	 * equivalent structure.
+	 *
+	 * @remarks
+	 *
+	 * This function turns a string-keyed record or object literal of
+	 * `Annotation` or `AsyncAnnotationLike` "inside out". For example:
+	 *
+	 * -   `Record<string, AsyncAnnotation<T, W>>` becomes
+	 *     `AsyncAnnotation<Record<string, T>, W>`
+	 * -   `{ x: AsyncAnnotation<T1, W>, y: AsyncAnnotation<T2, W> }` becomes
+	 *     `AsyncAnnotation<{ x: T1, y: T2 }, W>`
+	 */
 	export function allPropsPar<
 		TProps extends Record<
 			string,
@@ -579,10 +820,6 @@ export namespace AsyncAnnotation {
 
 	export function allPropsPar<T, W extends Semigroup<W>>(
 		props: Record<string, Annotation<T, W> | AsyncAnnotationLike<T, W>>,
-	): AsyncAnnotation<Record<string, T>, W>;
-
-	export function allPropsPar<T, W extends Semigroup<W>>(
-		props: Record<string, Annotation<T, W> | AsyncAnnotationLike<T, W>>,
 	): AsyncAnnotation<Record<string, T>, W> {
 		return traverseIntoPar(
 			Object.entries(props),
@@ -592,6 +829,11 @@ export namespace AsyncAnnotation {
 		);
 	}
 
+	/**
+	 * Concurrently apply an action that returns `Annotation` or
+	 * `AsyncAnnotationLike` to the elements in an iterable and ignore the
+	 * values.
+	 */
 	export function forEachPar<T, W extends Semigroup<W>>(
 		elems: Iterable<T>,
 		f: (
@@ -602,6 +844,10 @@ export namespace AsyncAnnotation {
 		return traverseIntoPar(elems, f, new NoOpBuilder());
 	}
 
+	/**
+	 * Adapt a synchronous or an asynchronous function to be applied in the
+	 * context of `Annotation` or `AsyncAnnotationLike`.
+	 */
 	export function liftPar<TArgs extends unknown[], T>(
 		f: (...args: TArgs) => T | PromiseLike<T>,
 	): <W extends Semigroup<W>>(
@@ -621,6 +867,7 @@ export namespace AsyncAnnotation {
 			);
 	}
 
+	/** An async generator that yields `Annotation` and returns a value. */
 	export type Go<TReturn, W extends Semigroup<W>> = AsyncGenerator<
 		Annotation<unknown, W>,
 		TReturn
