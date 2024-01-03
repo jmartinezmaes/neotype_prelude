@@ -24,7 +24,6 @@ import {
 import { Semigroup, cmb } from "./cmb.js";
 import { Eq, Ord, Ordering, cmp, eq } from "./cmp.js";
 import { id } from "./fn.js";
-import { Maybe } from "./maybe.js";
 
 /**
  * A type that represents a simple value ({@linkcode Annotation.Value}) or a
@@ -340,25 +339,6 @@ export namespace Annotation {
 			return this.isValue()
 				? ifValue(this.val)
 				: ifNote(this.val, this.log);
-		}
-
-		/**
-		 * Apply a function to extract the value and maybe the log from this
-		 * `Annotation`.
-		 */
-		unwrap<T, W, T1>(
-			this: Annotation<T, W>,
-			f: (val: T, log: Maybe<W>) => T1,
-		): T1 {
-			return this.match(
-				(val) => f(val, Maybe.nothing),
-				(val, log) => f(val, Maybe.just(log)),
-			);
-		}
-
-		/** Extract the log from this `Annotation` if one exists. */
-		getLog<W>(this: Annotation<any, W>): Maybe<W> {
-			return this.isValue() ? Maybe.nothing : Maybe.just(this.log);
 		}
 
 		/**

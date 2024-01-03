@@ -29,7 +29,6 @@ import {
 import { Annotation, AsyncAnnotation } from "./annotation.js";
 import { cmb } from "./cmb.js";
 import { Ordering, cmp, eq } from "./cmp.js";
-import { Maybe } from "./maybe.js";
 
 describe("Annotation", () => {
 	function arbAnnotation<T, N>(
@@ -444,27 +443,6 @@ describe("Annotation", () => {
 				(two, one): [2, 1] => [two, one],
 			);
 			expect(result).to.deep.equal([2, 1]);
-		});
-	});
-
-	describe("#unwrap", () => {
-		it("applies the function to the value and maybe log", () => {
-			const result = Annotation.note<2, 1>(2, 1).unwrap(
-				(two, maybeOne): [2, Maybe<1>] => [two, maybeOne],
-			);
-			expect(result).to.deep.equal([2, Maybe.just(1)]);
-		});
-	});
-
-	describe("#getLog", () => {
-		it("returns Nothing if the variant is Value", () => {
-			const result = Annotation.value<2, 1>(2).getLog();
-			expect(result).to.deep.equal(Maybe.nothing);
-		});
-
-		it("returns the log in a Just if the variant is Note", () => {
-			const result = Annotation.note<2, 1>(2, 1).getLog();
-			expect(result).to.deep.equal(Maybe.just(1));
 		});
 	});
 
