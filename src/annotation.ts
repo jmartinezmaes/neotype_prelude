@@ -173,8 +173,8 @@ export namespace Annotation {
 	>(
 		annos: TAnnos,
 	): Annotation<
-		{ -readonly [K in keyof TAnnos]: ValueT<TAnnos[K]> },
-		NoteT<TAnnos[number]>
+		{ -readonly [K in keyof TAnnos]: ValT<TAnnos[K]> },
+		LogT<TAnnos[number]>
 	>;
 
 	/**
@@ -215,8 +215,8 @@ export namespace Annotation {
 	>(
 		props: TProps,
 	): Annotation<
-		{ -readonly [K in keyof TProps]: ValueT<TProps[K]> },
-		NoteT<TProps[keyof TProps]>
+		{ -readonly [K in keyof TProps]: ValT<TProps[K]> },
+		LogT<TProps[keyof TProps]>
 	>;
 
 	export function allProps<T, W extends Semigroup<W>>(
@@ -486,14 +486,14 @@ export namespace Annotation {
 	>;
 
 	/** Extract the value type `T` from the type `Annotation<T, W>`. */
-	export type ValueT<TAnno extends Annotation<any, any>> = [TAnno] extends [
+	export type ValT<TAnno extends Annotation<any, any>> = [TAnno] extends [
 		Annotation<infer T, any>,
 	]
 		? T
 		: never;
 
 	/** Extract the log type `W` from the type `Annotation<T, W>`. */
-	export type NoteT<TAnno extends Annotation<any, any>> = [TAnno] extends [
+	export type LogT<TAnno extends Annotation<any, any>> = [TAnno] extends [
 		Annotation<any, infer W>,
 	]
 		? W
@@ -744,8 +744,8 @@ export namespace AsyncAnnotation {
 	>(
 		elems: TElems,
 	): AsyncAnnotation<
-		{ [K in keyof TElems]: Annotation.ValueT<Awaited<TElems[K]>> },
-		Annotation.NoteT<{ [K in keyof TElems]: Awaited<TElems[K]> }[number]>
+		{ [K in keyof TElems]: Annotation.ValT<Awaited<TElems[K]>> },
+		Annotation.LogT<{ [K in keyof TElems]: Awaited<TElems[K]> }[number]>
 	>;
 
 	/**
@@ -792,8 +792,8 @@ export namespace AsyncAnnotation {
 	>(
 		props: TProps,
 	): AsyncAnnotation<
-		{ [K in keyof TProps]: Annotation.ValueT<Awaited<TProps[K]>> },
-		Annotation.NoteT<
+		{ [K in keyof TProps]: Annotation.ValT<Awaited<TProps[K]>> },
+		Annotation.LogT<
 			{ [K in keyof TProps]: Awaited<TProps[K]> }[keyof TProps]
 		>
 	>;
