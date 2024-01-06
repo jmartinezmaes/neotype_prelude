@@ -61,7 +61,7 @@ export namespace Annotation {
 	}
 
 	/** Evaluate an `Annotation.Go` generator to return an `Annotation`. */
-	export function go<W extends Semigroup<W>, TReturn>(
+	export function go<TReturn, W extends Semigroup<W>>(
 		gen: Go<TReturn, W>,
 	): Annotation<TReturn, W> {
 		let next = gen.next();
@@ -82,8 +82,8 @@ export namespace Annotation {
 	 */
 	export function wrapGoFn<
 		TArgs extends unknown[],
-		W extends Semigroup<W>,
 		TReturn,
+		W extends Semigroup<W>,
 	>(
 		f: (...args: TArgs) => Go<TReturn, W>,
 	): (...args: TArgs) => Annotation<TReturn, W> {
@@ -520,7 +520,7 @@ export namespace AsyncAnnotation {
 	 * Evaluate an `AsyncAnnotation.Go` async generator to return an
 	 * `AsyncAnnotation`.
 	 */
-	export async function go<W extends Semigroup<W>, TReturn>(
+	export async function go<TReturn, W extends Semigroup<W>>(
 		gen: Go<TReturn, W>,
 	): AsyncAnnotation<TReturn, W> {
 		let next = await gen.next();
@@ -543,8 +543,8 @@ export namespace AsyncAnnotation {
 	 */
 	export function wrapGoFn<
 		TArgs extends unknown[],
-		W extends Semigroup<W>,
 		TReturn,
+		W extends Semigroup<W>,
 	>(
 		f: (...args: TArgs) => Go<TReturn, W>,
 	): (...args: TArgs) => AsyncAnnotation<TReturn, W> {
