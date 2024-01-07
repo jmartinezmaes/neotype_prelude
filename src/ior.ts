@@ -32,14 +32,13 @@
  * for working with the `Ior<A, B>` type.
  *
  * `Ior` is often used to represent states of failure or success similar to
- * {@link either!Either:type | `Either`} and
- * {@link validation!Validation:type | `Validation`}. However, `Ior` is capable
- * of also representing a unique state using the `Both` variant. `Both` can
- * represent a success that contains additional information, or a state of
- * "partial failure".
+ * {@link either!Either:type | `Either`}. However, `Ior` is capable of also
+ * representing a unique state using the `Both` variant. `Both` can represent a
+ * success that contains additional information or a state of "partial failure",
+ * similar to {@link annotation!Annotation:type | `Annotation`}.
  *
  * When composed, the behavior of `Ior` is a combination of the short-circuiting
- * behavior of `Either` and the failure-accumulating behavior of `Validation`:
+ * behavior of `Either` and the accumulating behavior of `Annotation`:
  *
  * -   `Left` short-circuits a computation completely and combines its left-hand
  *     value with any existing left-hand value.
@@ -93,6 +92,7 @@ import {
 import { Semigroup, cmb } from "./cmb.js";
 import { Eq, Ord, Ordering, cmp, eq } from "./cmp.js";
 import { id } from "./fn.js";
+import type { Annotation } from "./annotation.js";
 import type { Either } from "./either.js";
 import type { Validation } from "./validation.js";
 
@@ -128,6 +128,11 @@ export namespace Ior {
 	/** Construct a `Both`. */
 	export function both<A, B>(fst: A, snd: B): Ior<A, B> {
 		return new Both(fst, snd);
+	}
+
+	/** Construct an `Ior` from an `Annotation`. */
+	export function fromAnnotation<T, W>(anno: Annotation<T, W>): Ior<W, T> {
+		return anno.match(right, (val, log) => both(log, val));
 	}
 
 	/** Construct an `Ior` from an `Either`. */
