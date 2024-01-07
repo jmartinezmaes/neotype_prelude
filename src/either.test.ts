@@ -116,6 +116,18 @@ describe("Either", () => {
 		});
 	});
 
+	describe("fromGoFn", () => {
+		it("evaluates the generator function to return an Either", () => {
+			function* f(): Either.Go<1 | 3, [2, 4]> {
+				const two = yield* Either.right<2, 1>(2);
+				const four = yield* Either.right<4, 3>(4);
+				return [two, four];
+			}
+			const either = Either.fromGoFn(f);
+			expect(either).to.deep.equal(Either.right([2, 4]));
+		});
+	});
+
 	describe("wrapGoFn", () => {
 		it("adapts the generator function to return an Either", () => {
 			function* f(two: 2): Either.Go<never, [2, 4]> {
@@ -572,6 +584,20 @@ describe("AsyncEither", () => {
 			}
 			const either = await AsyncEither.go(f());
 			expect(either).to.deep.equal(Either.left(3));
+		});
+	});
+
+	describe("fromGoFn", () => {
+		it("evaluates the async generator function to return an AsyncEither", async () => {
+			async function* f(): AsyncEither.Go<1 | 3, [2, 4]> {
+				const two = yield* await Promise.resolve(Either.right<2, 1>(2));
+				const four = yield* await Promise.resolve(
+					Either.right<4, 3>(4),
+				);
+				return [two, four];
+			}
+			const either = await AsyncEither.fromGoFn(f);
+			expect(either).to.deep.equal(Either.right([2, 4]));
 		});
 	});
 
