@@ -149,6 +149,18 @@ describe("Maybe", () => {
 		});
 	});
 
+	describe("fromGoFn", () => {
+		it("evaluates the generator function to return a Maybe", () => {
+			function* f(): Maybe.Go<[1, 2]> {
+				const one = yield* Maybe.just<1>(1);
+				const two = yield* Maybe.just<2>(2);
+				return [one, two];
+			}
+			const maybe = Maybe.fromGoFn(f);
+			expect(maybe).to.deep.equal(Maybe.just([1, 2]));
+		});
+	});
+
 	describe("wrapGoFn", () => {
 		it("adapts the generator function to return a Maybe", () => {
 			function* f(two: 2): Maybe.Go<[2, 4]> {
@@ -665,6 +677,18 @@ describe("AsyncMaybe", () => {
 			}
 			const maybe = await AsyncMaybe.go(f());
 			expect(maybe).to.equal(Maybe.nothing);
+		});
+	});
+
+	describe("fromGoFn", () => {
+		it("evaluates the async generator function to return an AsyncMaybe", async () => {
+			async function* f(): AsyncMaybe.Go<[1, 2]> {
+				const one = yield* await Promise.resolve(Maybe.just<1>(1));
+				const two = yield* await Promise.resolve(Maybe.just<2>(2));
+				return [one, two];
+			}
+			const maybe = await AsyncMaybe.fromGoFn(f);
+			expect(maybe).to.deep.equal(Maybe.just([1, 2]));
 		});
 	});
 

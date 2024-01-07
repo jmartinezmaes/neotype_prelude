@@ -204,6 +204,18 @@ describe("Ior", () => {
 		});
 	});
 
+	describe("fromGoFn", () => {
+		it("evaluates the generator function to return an Ior", () => {
+			function* f(): Ior.Go<Str, [2, 4]> {
+				const two = yield* Ior.both<Str, 2>(new Str("a"), 2);
+				const four = yield* Ior.both<Str, 4>(new Str("b"), 4);
+				return [two, four];
+			}
+			const ior = Ior.fromGoFn(f);
+			expect(ior).to.deep.equal(Ior.both(new Str("ab"), [2, 4]));
+		});
+	});
+
 	describe("wrapGoFn", () => {
 		it("adapts the generator function to return an Ior", () => {
 			function* f(two: 2): Ior.Go<Str, [2, 4]> {
@@ -978,6 +990,22 @@ describe("AsyncIor", () => {
 			}
 			const ior = await AsyncIor.go(f());
 			expect(ior).to.deep.equal(Ior.left(new Str("ab")));
+		});
+	});
+
+	describe("fromGoFn", () => {
+		it("evaluates the async generator function to return an AsyncIor", async () => {
+			async function* f(): AsyncIor.Go<Str, [2, 4]> {
+				const two = yield* await Promise.resolve(
+					Ior.both<Str, 2>(new Str("a"), 2),
+				);
+				const four = yield* await Promise.resolve(
+					Ior.both<Str, 4>(new Str("b"), 4),
+				);
+				return [two, four];
+			}
+			const ior = await AsyncIor.fromGoFn(f);
+			expect(ior).to.deep.equal(Ior.both(new Str("ab"), [2, 4]));
 		});
 	});
 

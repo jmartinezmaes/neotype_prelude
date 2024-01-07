@@ -181,6 +181,15 @@ export namespace Ior {
 	}
 
 	/**
+	 * Evaluate a generator function that returns `Ior.Go` to return an `Ior`.
+	 */
+	export function fromGoFn<A extends Semigroup<A>, TReturn>(
+		f: () => Go<A, TReturn>,
+	): Ior<A, TReturn> {
+		return go(f());
+	}
+
+	/**
 	 * Adapt a generator function that returns `Ior.Go` into a function that
 	 * returns `Ior`.
 	 */
@@ -203,17 +212,15 @@ export namespace Ior {
 		f: (acc: TAcc, elem: T, idx: number) => Ior<A, TAcc>,
 		initial: TAcc,
 	): Ior<A, TAcc> {
-		return go(
-			(function* () {
-				let acc = initial;
-				let idx = 0;
-				for (const elem of elems) {
-					acc = yield* f(acc, elem, idx);
-					idx++;
-				}
-				return acc;
-			})(),
-		);
+		return fromGoFn(function* () {
+			let acc = initial;
+			let idx = 0;
+			for (const elem of elems) {
+				acc = yield* f(acc, elem, idx);
+				idx++;
+			}
+			return acc;
+		});
 	}
 
 	/**
@@ -229,16 +236,14 @@ export namespace Ior {
 		f: (elem: T, idx: number) => Ior<A, B>,
 		builder: Builder<B, TFinish>,
 	): Ior<A, TFinish> {
-		return go(
-			(function* () {
-				let idx = 0;
-				for (const elem of elems) {
-					builder.add(yield* f(elem, idx));
-					idx++;
-				}
-				return builder.finish();
-			})(),
-		);
+		return fromGoFn(function* () {
+			let idx = 0;
+			for (const elem of elems) {
+				builder.add(yield* f(elem, idx));
+				idx++;
+			}
+			return builder.finish();
+		});
 	}
 
 	/**
@@ -749,6 +754,16 @@ export namespace AsyncIor {
 	}
 
 	/**
+	 * Evaluate an async generator function that returns `AsyncIor.Go` to return
+	 * an `AsyncIor`.
+	 */
+	export function fromGoFn<A extends Semigroup<A>, TReturn>(
+		f: () => Go<A, TReturn>,
+	): AsyncIor<A, TReturn> {
+		return go(f());
+	}
+
+	/**
 	 * Adapt an async generator function that returns `AsyncIor.Go` into an
 	 * async function that returns `Ior` or `AsyncIorLike`.
 	 */
@@ -775,17 +790,15 @@ export namespace AsyncIor {
 		) => Ior<A, TAcc> | AsyncIorLike<A, TAcc>,
 		initial: TAcc,
 	): AsyncIor<A, TAcc> {
-		return go(
-			(async function* () {
-				let acc = initial;
-				let idx = 0;
-				for await (const elem of elems) {
-					acc = yield* await f(acc, elem, idx);
-					idx++;
-				}
-				return acc;
-			})(),
-		);
+		return fromGoFn(async function* () {
+			let acc = initial;
+			let idx = 0;
+			for await (const elem of elems) {
+				acc = yield* await f(acc, elem, idx);
+				idx++;
+			}
+			return acc;
+		});
 	}
 
 	/**
@@ -801,16 +814,14 @@ export namespace AsyncIor {
 		f: (elem: T, idx: number) => Ior<A, B> | AsyncIorLike<A, B>,
 		builder: Builder<B, TFinish>,
 	): AsyncIor<A, TFinish> {
-		return go(
-			(async function* () {
-				let idx = 0;
-				for await (const elem of elems) {
-					builder.add(yield* await f(elem, idx));
-					idx++;
-				}
-				return builder.finish();
-			})(),
-		);
+		return fromGoFn(async function* () {
+			let idx = 0;
+			for await (const elem of elems) {
+				builder.add(yield* await f(elem, idx));
+				idx++;
+			}
+			return builder.finish();
+		});
 	}
 
 	/**
@@ -1055,14 +1066,9 @@ export namespace AsyncIor {
 			[K in keyof TArgs]: Ior<A, TArgs[K]> | AsyncIorLike<A, TArgs[K]>;
 		}
 	) => AsyncIor<A, T> {
-		return (...elems) =>
-			go(
-				(async function* (): Go<any, T> {
-					return f(
-						...((yield* await allPar(elems)) as TArgs),
-					) as Awaited<T>;
-				})(),
-			);
+		return wrapGoFn(async function* (...elems): Go<any, T> {
+			return f(...((yield* await allPar(elems)) as TArgs)) as Awaited<T>;
+		});
 	}
 
 	/** An async generator that yields `Ior` and returns a value. */
