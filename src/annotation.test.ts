@@ -128,6 +128,18 @@ describe("Annotation", () => {
 		});
 	});
 
+	describe("fromGoFn", () => {
+		it("evaluates the generator function to return an Annotation", () => {
+			function* f(): Annotation.Go<[2, 4], Str> {
+				const two = yield* Annotation.note<2, Str>(2, new Str("a"));
+				const four = yield* Annotation.note<4, Str>(4, new Str("b"));
+				return [two, four];
+			}
+			const anno = Annotation.fromGoFn(f);
+			expect(anno).to.deep.equal(Annotation.note([2, 4], new Str("ab")));
+		});
+	});
+
 	describe("wrapGoFn", () => {
 		it("adapts the generator function to return an Annotation", () => {
 			function* f(two: 2): Annotation.Go<[2, 4], Str> {
@@ -679,6 +691,22 @@ describe("AsyncAnnotation", () => {
 			}
 			const anno = await AsyncAnnotation.go(f());
 			expect(anno).to.deep.equal(Annotation.note([2, 4], new Str("abc")));
+		});
+	});
+
+	describe("fromGoFn", () => {
+		it("evaluates the async generator function to return an AsyncAnnotation", async () => {
+			async function* f(): AsyncAnnotation.Go<[2, 4], Str> {
+				const two = yield* await Promise.resolve(
+					Annotation.note<2, Str>(2, new Str("a")),
+				);
+				const four = yield* await Promise.resolve(
+					Annotation.note<4, Str>(4, new Str("b")),
+				);
+				return [two, four];
+			}
+			const anno = await AsyncAnnotation.fromGoFn(f);
+			expect(anno).to.deep.equal(Annotation.note([2, 4], new Str("ab")));
 		});
 	});
 

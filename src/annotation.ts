@@ -77,6 +77,16 @@ export namespace Annotation {
 	}
 
 	/**
+	 * Evaluate a generator function that returns `Annotation.Go` to return an
+	 * `Annotation`.
+	 */
+	export function fromGoFn<TReturn, W extends Semigroup<W>>(
+		f: () => Go<TReturn, W>,
+	): Annotation<TReturn, W> {
+		return go(f());
+	}
+
+	/**
 	 * Adapt a generator function that returns `Annotation.Go` into a function
 	 * that returns `Annotation`.
 	 */
@@ -99,17 +109,15 @@ export namespace Annotation {
 		f: (acc: TAcc, elem: T, idx: number) => Annotation<TAcc, W>,
 		initial: TAcc,
 	): Annotation<TAcc, W> {
-		return go(
-			(function* () {
-				let acc = initial;
-				let idx = 0;
-				for (const elem of elems) {
-					acc = yield* f(acc, elem, idx);
-					idx++;
-				}
-				return acc;
-			})(),
-		);
+		return fromGoFn(function* () {
+			let acc = initial;
+			let idx = 0;
+			for (const elem of elems) {
+				acc = yield* f(acc, elem, idx);
+				idx++;
+			}
+			return acc;
+		});
 	}
 
 	/**
@@ -121,16 +129,14 @@ export namespace Annotation {
 		f: (elem: T, idx: number) => Annotation<T1, W>,
 		builder: Builder<T1, TFinish>,
 	): Annotation<TFinish, W> {
-		return go(
-			(function* () {
-				let idx = 0;
-				for (const elem of elems) {
-					builder.add(yield* f(elem, idx));
-					idx++;
-				}
-				return builder.finish();
-			})(),
-		);
+		return fromGoFn(function* () {
+			let idx = 0;
+			for (const elem of elems) {
+				builder.add(yield* f(elem, idx));
+				idx++;
+			}
+			return builder.finish();
+		});
 	}
 
 	/**
@@ -538,6 +544,16 @@ export namespace AsyncAnnotation {
 	}
 
 	/**
+	 * Evaluate an async generator function that returns `AsyncAnnotation.Go`
+	 * to return an `AsyncAnnotation`.
+	 */
+	export function fromGoFn<TReturn, W extends Semigroup<W>>(
+		f: () => Go<TReturn, W>,
+	): AsyncAnnotation<TReturn, W> {
+		return go(f());
+	}
+
+	/**
 	 * Adapt an async generator function that returns `AsyncAnnotation.Go` into
 	 * an async function that returns `AsyncAnnotation`.
 	 */
@@ -564,17 +580,15 @@ export namespace AsyncAnnotation {
 		) => Annotation<TAcc, W> | AsyncAnnotationLike<TAcc, W>,
 		initial: TAcc,
 	): AsyncAnnotation<TAcc, W> {
-		return go(
-			(async function* () {
-				let acc = initial;
-				let idx = 0;
-				for await (const elem of elems) {
-					acc = yield* await f(acc, elem, idx);
-					idx++;
-				}
-				return acc;
-			})(),
-		);
+		return fromGoFn(async function* () {
+			let acc = initial;
+			let idx = 0;
+			for await (const elem of elems) {
+				acc = yield* await f(acc, elem, idx);
+				idx++;
+			}
+			return acc;
+		});
 	}
 
 	/**
@@ -589,16 +603,14 @@ export namespace AsyncAnnotation {
 		) => Annotation<T1, W> | AsyncAnnotationLike<T1, W>,
 		builder: Builder<T1, TFinish>,
 	): AsyncAnnotation<TFinish, W> {
-		return go(
-			(async function* () {
-				let idx = 0;
-				for await (const elem of elems) {
-					builder.add(yield* await f(elem, idx));
-					idx++;
-				}
-				return builder.finish();
-			})(),
-		);
+		return fromGoFn(async function* () {
+			let idx = 0;
+			for await (const elem of elems) {
+				builder.add(yield* await f(elem, idx));
+				idx++;
+			}
+			return builder.finish();
+		});
 	}
 
 	/**
@@ -837,14 +849,9 @@ export namespace AsyncAnnotation {
 				| AsyncAnnotationLike<TArgs[K], W>;
 		}
 	) => AsyncAnnotation<T, W> {
-		return (...elems) =>
-			go(
-				(async function* (): Go<T, any> {
-					return f(
-						...((yield* await allPar(elems)) as TArgs),
-					) as Awaited<T>;
-				})(),
-			);
+		return wrapGoFn(async function* (...elems): Go<T, any> {
+			return f(...((yield* await allPar(elems)) as TArgs)) as Awaited<T>;
+		});
 	}
 
 	/** An async generator that yields `Annotation` and returns a value. */
