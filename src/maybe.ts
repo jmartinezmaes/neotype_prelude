@@ -157,6 +157,14 @@ export namespace Maybe {
 	}
 
 	/**
+	 * Evaluate a generator function that returns `Maybe.Go` to return a
+	 * `Maybe`.
+	 */
+	export function fromGoFn<TReturn>(f: () => Go<TReturn>): Maybe<TReturn> {
+		return go(f());
+	}
+
+	/**
 	 * Adapt a generator function that returns `Maybe.Go` into a function that
 	 * returns `Maybe`.
 	 */
@@ -175,17 +183,15 @@ export namespace Maybe {
 		f: (acc: TAcc, val: T, idx: number) => Maybe<TAcc>,
 		initial: TAcc,
 	): Maybe<TAcc> {
-		return go(
-			(function* () {
-				let acc = initial;
-				let idx = 0;
-				for (const val of elems) {
-					acc = yield* f(acc, val, idx);
-					idx++;
-				}
-				return acc;
-			})(),
-		);
+		return fromGoFn(function* () {
+			let acc = initial;
+			let idx = 0;
+			for (const val of elems) {
+				acc = yield* f(acc, val, idx);
+				idx++;
+			}
+			return acc;
+		});
 	}
 
 	/**
@@ -202,16 +208,14 @@ export namespace Maybe {
 		f: (elem: T, idx: number) => Maybe<T1>,
 		builder: Builder<T1, TFinish>,
 	): Maybe<TFinish> {
-		return go(
-			(function* () {
-				let idx = 0;
-				for (const elem of elems) {
-					builder.add(yield* f(elem, idx));
-					idx++;
-				}
-				return builder.finish();
-			})(),
-		);
+		return fromGoFn(function* () {
+			let idx = 0;
+			for (const elem of elems) {
+				builder.add(yield* f(elem, idx));
+				idx++;
+			}
+			return builder.finish();
+		});
 	}
 
 	/**
@@ -606,6 +610,16 @@ export namespace AsyncMaybe {
 	}
 
 	/**
+	 * Evaluate an async generator function that returns `AsyncMaybe.Go` to
+	 * return an `AsyncMaybe`.
+	 */
+	export function fromGoFn<TReturn>(
+		f: () => Go<TReturn>,
+	): AsyncMaybe<TReturn> {
+		return go(f());
+	}
+
+	/**
 	 * Adapt an async generator function that returns `AsyncMaybe.Go` into an
 	 * async function that returns `AsyncMaybe`.
 	 */
@@ -628,17 +642,15 @@ export namespace AsyncMaybe {
 		) => Maybe<TAcc> | AsyncMaybeLike<TAcc>,
 		initial: TAcc,
 	): AsyncMaybe<TAcc> {
-		return go(
-			(async function* () {
-				let acc = initial;
-				let idx = 0;
-				for await (const val of elems) {
-					acc = yield* await f(acc, val, idx);
-					idx++;
-				}
-				return acc;
-			})(),
-		);
+		return fromGoFn(async function* () {
+			let acc = initial;
+			let idx = 0;
+			for await (const val of elems) {
+				acc = yield* await f(acc, val, idx);
+				idx++;
+			}
+			return acc;
+		});
 	}
 
 	/**
@@ -655,16 +667,14 @@ export namespace AsyncMaybe {
 		f: (elem: T, idx: number) => Maybe<T1> | AsyncMaybeLike<T1>,
 		builder: Builder<T1, TFinish>,
 	): AsyncMaybe<TFinish> {
-		return go(
-			(async function* () {
-				let idx = 0;
-				for await (const elem of elems) {
-					builder.add(yield* await f(elem, idx));
-					idx++;
-				}
-				return builder.finish();
-			})(),
-		);
+		return fromGoFn(async function* () {
+			let idx = 0;
+			for await (const elem of elems) {
+				builder.add(yield* await f(elem, idx));
+				idx++;
+			}
+			return builder.finish();
+		});
 	}
 
 	/**
@@ -876,12 +886,9 @@ export namespace AsyncMaybe {
 			[K in keyof TArgs]: Maybe<TArgs[K]> | AsyncMaybeLike<TArgs[K]>;
 		}
 	) => Promise<Maybe<T>> {
-		return (...elems) =>
-			go(
-				(async function* () {
-					return f(...(yield* await allPar(elems)));
-				})(),
-			);
+		return wrapGoFn(async function* (...elems) {
+			return f(...(yield* await allPar(elems)));
+		});
 	}
 
 	/** An async generator that yields `Maybe` and returns a value. */
