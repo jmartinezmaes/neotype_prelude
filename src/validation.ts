@@ -115,6 +115,11 @@ export namespace Validation {
 		return new Ok(val);
 	}
 
+	/** Construct a successful `Validation` with a `void` value. */
+	export function unit<E = never>(): Validation<E, void> {
+		return ok(undefined);
+	}
+
 	/** Construct a `Validation` from an `Either`. */
 	export function fromEither<A, B>(either: Either<A, B>): Validation<A, B> {
 		return either.match(err, ok);
