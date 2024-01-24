@@ -125,9 +125,19 @@ export namespace Ior {
 		return new Right(val);
 	}
 
+	/** Construct a `Right` with a `void` value. */
+	export function unit<A = never>(): Ior<A, void> {
+		return right(undefined);
+	}
+
 	/** Construct a `Both`. */
 	export function both<A, B>(fst: A, snd: B): Ior<A, B> {
 		return new Both(fst, snd);
+	}
+
+	/** Construct a `Both` with a `void` right-hand value. */
+	export function write<A>(fst: A): Ior<A, void> {
+		return both(fst, undefined);
 	}
 
 	/** Construct an `Ior` from an `Annotation`. */

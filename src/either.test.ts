@@ -56,6 +56,14 @@ describe("Either", () => {
 		});
 	});
 
+	describe("unit", () => {
+		it("constructs a Right variant with an undefined value", () => {
+			const either = Either.unit<1>();
+			expect(either).to.be.an.instanceOf(Either.Right);
+			expect(either.val).to.be.undefined;
+		});
+	});
+
 	describe("fromValidation", () => {
 		it("constructs a Left if the Validation is an Err", () => {
 			const either = Either.fromValidation(Validation.err<1, 2>(1));

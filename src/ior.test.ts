@@ -62,6 +62,14 @@ describe("Ior", () => {
 		});
 	});
 
+	describe("unit", () => {
+		it("constructs a Right variant with an undefined value", () => {
+			const ior = Ior.unit<1>();
+			expect(ior).to.be.an.instanceOf(Ior.Right);
+			expect(ior.val).to.be.undefined;
+		});
+	});
+
 	describe("both", () => {
 		it("constructs a Both variant", () => {
 			const ior = Ior.both<1, 2>(1, 2);
@@ -70,6 +78,15 @@ describe("Ior", () => {
 			expect((ior as Ior.Both<1, 2>).fst).to.equal(1);
 			expect((ior as Ior.Both<1, 2>).snd).to.equal(2);
 			expect(ior.val).to.deep.equal([1, 2]);
+		});
+	});
+
+	describe("write", () => {
+		it("constructs a Both variant with an undefined right-hand value", () => {
+			const ior = Ior.write<1>(1);
+			expect(ior).to.be.an.instanceOf(Ior.Both);
+			expect((ior as Ior.Both<1, void>).fst).to.equal(1);
+			expect((ior as Ior.Both<1, void>).snd).to.be.undefined;
 		});
 	});
 

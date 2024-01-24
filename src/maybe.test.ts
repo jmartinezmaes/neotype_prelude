@@ -53,6 +53,14 @@ describe("Maybe", () => {
 		});
 	});
 
+	describe("unit", () => {
+		it("constructs a Just with an undefined value", () => {
+			const maybe = Maybe.unit();
+			expect(maybe).to.be.an.instanceOf(Maybe.Just);
+			expect((maybe as Maybe.Just<void>).val).to.be.undefined;
+		});
+	});
+
 	describe("fromNullish", () => {
 		it("returns Nothing if the argument is undefined", () => {
 			expect(Maybe.fromNullish<1>(undefined)).to.equal(Maybe.nothing);
