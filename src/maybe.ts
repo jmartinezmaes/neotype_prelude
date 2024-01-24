@@ -107,6 +107,11 @@ export namespace Maybe {
 		return new Just(val);
 	}
 
+	/** Construct a `Just` with a `void` value. */
+	export function unit(): Maybe<void> {
+		return just(undefined);
+	}
+
 	/**
 	 * Consruct a `Maybe` from a value that is potentially `null` or
 	 * `undefined`.

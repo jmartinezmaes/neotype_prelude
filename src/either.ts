@@ -116,6 +116,11 @@ export namespace Either {
 		return new Right(val);
 	}
 
+	/** Construct a `Right` with a `void` value. */
+	export function unit<E = never>(): Either<E, void> {
+		return right(undefined);
+	}
+
 	/** Construct an `Either` from a `Validation`. */
 	export function fromValidation<E, T>(vdn: Validation<E, T>): Either<E, T> {
 		return vdn.match(left, right);

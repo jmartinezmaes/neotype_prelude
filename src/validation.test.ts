@@ -57,6 +57,14 @@ describe("Validation", () => {
 		});
 	});
 
+	describe("unit", () => {
+		it("constructs an Ok variant with an undefined value", () => {
+			const vdn = Validation.unit();
+			expect(vdn).to.be.an.instanceOf(Validation.Ok);
+			expect(vdn.val).to.be.undefined;
+		});
+	});
+
 	describe("fromEither", () => {
 		it("constructs an Err if the Either is a Left", () => {
 			expect(Validation.fromEither(Either.left<1, 2>(1))).to.deep.equal(
