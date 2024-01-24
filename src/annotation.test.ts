@@ -45,10 +45,18 @@ describe("Annotation", () => {
 
 	describe("value", () => {
 		it("constructs a Value variant", () => {
-			const anno = Annotation.value<2>(2);
+			const anno = Annotation.value<2, 1>(2);
 			expect(anno).to.be.an.instanceOf(Annotation.Value);
 			expect(anno.kind).to.equal(Annotation.Kind.VALUE);
 			expect(anno.val).to.equal(2);
+		});
+	});
+
+	describe("unit", () => {
+		it("contructs a Value variant with an undefined value", () => {
+			const anno = Annotation.unit<1>();
+			expect(anno).to.be.an.instanceOf(Annotation.Value);
+			expect(anno.val).to.be.undefined;
 		});
 	});
 

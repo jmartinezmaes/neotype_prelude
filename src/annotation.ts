@@ -50,6 +50,11 @@ export namespace Annotation {
 		return new Value(val);
 	}
 
+	/** Construct a `Value` with a `void` value. */
+	export function unit<W = never>(): Annotation<void, W> {
+		return value(undefined);
+	}
+
 	/** Construct a `Note`. */
 	export function note<T, W>(val: T, log: W): Annotation<T, W> {
 		return new Note(val, log);

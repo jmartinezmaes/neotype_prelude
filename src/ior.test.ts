@@ -26,6 +26,7 @@ import {
 	expectLawfulOrd,
 	expectLawfulSemigroup,
 } from "./_test/utils.js";
+import { Annotation } from "./annotation.js";
 import { cmb } from "./cmb.js";
 import { Ordering, cmp, eq } from "./cmp.js";
 import { Either } from "./either.js";
@@ -87,6 +88,18 @@ describe("Ior", () => {
 			expect(ior).to.be.an.instanceOf(Ior.Both);
 			expect((ior as Ior.Both<1, void>).fst).to.equal(1);
 			expect((ior as Ior.Both<1, void>).snd).to.be.undefined;
+		});
+	});
+
+	describe("fromAnnotation", () => {
+		it("constructs a Right if the Annotation is a Value", () => {
+			const ior = Ior.fromAnnotation(Annotation.value<2, 1>(2));
+			expect(ior).to.deep.equal(Ior.right(2));
+		});
+
+		it("constructs a Both if the Annotation is a Note", () => {
+			const ior = Ior.fromAnnotation(Annotation.note<2, 1>(2, 1));
+			expect(ior).to.deep.equal(Ior.both(1, 2));
 		});
 	});
 
