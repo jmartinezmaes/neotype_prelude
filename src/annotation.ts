@@ -14,6 +14,65 @@
  * limitations under the License.
  */
 
+/**
+ * Logging and accumulating information.
+ *
+ * @remarks
+ *
+ * {@link Annotation:type | `Annotation<T, W>`} is a type that represents a
+ * value and additional accumulating information. It is represented by two
+ * variants: {@link Annotation.Value | `Value<T>`} and
+ * {@link Annotation.Note | `Note<T, W>`}.
+ *
+ * -   A `Value<T>` contains a value of type `T` and no additional information.
+ * -   A `Note<T, W>` contains a value of type `T` and additional information of
+ *     type `W`.
+ *
+ * The {@link Annotation:namespace | `Annotation`} companion namespace provides
+ * utilities for working with the `Annotation<T, W>` type.
+ *
+ * `Annotation` is useful for collecting and accumulating information in a
+ * program that does not constitute an error state. Examples include logs,
+ * warnings, and metadata. When composed, `Annotation` will accumulate this
+ * information.
+ *
+ * Most combinators for `Annotation` require a `Semigroup` implementation from
+ * the accumulating information.
+ *
+ * ## Using `Annotation` with promises
+ *
+ * {@link AsyncAnnotation:type | `AsyncAnnotation<T, W>`} is an alias for
+ * `Promise<Annotation<T, W>>`. The
+ * {@link AsyncAnnotation:namespace | `AsyncAnnotation`} companion namespace
+ * provides utilities for working with the `AsyncAnnotation<T, W>` type.
+ *
+ * To accommodate promise-like values, this module also provides the
+ * {@link AsyncAnnotationLike | `AsyncAnnotationLike<T, W>`} type as an alias
+ * for `PromiseLike<Annotation<T, W>>`.
+ *
+ * ## Importing from this module
+ *
+ * The type aliases and namespaces from this module can be imported under the
+ * same aliases:
+ *
+ * ```ts
+ * import { Annotation, AsyncAnnotation } from "@neotype/prelude/annotation.js";
+ * ```
+ *
+ * Or, the types and namespaces can be imported and aliased separately:
+ *
+ * ```ts
+ * import {
+ *     type Annotation,
+ *     type AsyncAnnotation,
+ *     Annotation as A,
+ *     AsyncAnnotation as AA
+ * } from "@neotype/prelude/annotation.js";
+ * ```
+ *
+ * @module
+ */
+
 import {
 	ArrayAssignBuilder,
 	ArrayPushBuilder,
@@ -27,7 +86,7 @@ import { id } from "./fn.js";
 
 /**
  * A type that represents a simple value ({@linkcode Annotation.Value}) or a
- * value and some additional information ({@linkcode Annotation.Note}).
+ * value and accumulating information ({@linkcode Annotation.Note}).
  */
 export type Annotation<T, W> = Annotation.Value<T> | Annotation.Note<T, W>;
 
