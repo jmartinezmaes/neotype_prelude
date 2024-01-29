@@ -645,9 +645,7 @@ export namespace AsyncValidation {
 			let errs: E | undefined;
 
 			for (const elem of elems) {
-				const idx = remaining;
-				remaining++;
-				Promise.resolve(f(elem, idx)).then((vdn) => {
+				Promise.resolve(f(elem, remaining)).then((vdn) => {
 					if (vdn.isErr()) {
 						errs =
 							errs === undefined ? vdn.val : cmb(errs, vdn.val);
@@ -665,6 +663,7 @@ export namespace AsyncValidation {
 						return;
 					}
 				}, reject);
+				remaining++;
 			}
 		});
 	}

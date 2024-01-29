@@ -743,9 +743,7 @@ export namespace AsyncAnnotation {
 			let logs: W | undefined;
 
 			for (const elem of elems) {
-				const idx = remaining;
-				remaining++;
-				Promise.resolve(f(elem, idx)).then((anno) => {
+				Promise.resolve(f(elem, remaining)).then((anno) => {
 					if (anno.isNote()) {
 						logs =
 							logs === undefined ? anno.log : cmb(logs, anno.log);
@@ -762,6 +760,7 @@ export namespace AsyncAnnotation {
 						return;
 					}
 				}, reject);
+				remaining++;
 			}
 		});
 	}

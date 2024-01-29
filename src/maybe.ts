@@ -750,9 +750,7 @@ export namespace AsyncMaybe {
 		return new Promise((resolve, reject) => {
 			let remaining = 0;
 			for (const elem of elems) {
-				const idx = remaining;
-				remaining++;
-				Promise.resolve(f(elem, idx)).then((maybe) => {
+				Promise.resolve(f(elem, remaining)).then((maybe) => {
 					if (maybe.isNothing()) {
 						resolve(maybe);
 						return;
@@ -764,6 +762,7 @@ export namespace AsyncMaybe {
 						return;
 					}
 				}, reject);
+				remaining++;
 			}
 		});
 	}
