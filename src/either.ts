@@ -735,9 +735,7 @@ export namespace AsyncEither {
 		return new Promise((resolve, reject) => {
 			let remaining = 0;
 			for (const elem of elems) {
-				const idx = remaining;
-				remaining++;
-				Promise.resolve(f(elem, idx)).then((either) => {
+				Promise.resolve(f(elem, remaining)).then((either) => {
 					if (either.isLeft()) {
 						resolve(either);
 						return;
@@ -749,6 +747,7 @@ export namespace AsyncEither {
 						return;
 					}
 				}, reject);
+				remaining++;
 			}
 		});
 	}

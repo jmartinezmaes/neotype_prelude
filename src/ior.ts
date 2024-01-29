@@ -909,9 +909,7 @@ export namespace AsyncIor {
 			let fsts: A | undefined;
 
 			for (const elem of elems) {
-				const idx = remaining;
-				remaining++;
-				Promise.resolve(f(elem, idx)).then((ior) => {
+				Promise.resolve(f(elem, remaining)).then((ior) => {
 					switch (ior.kind) {
 						case Ior.Kind.LEFT:
 							resolve(
@@ -941,6 +939,7 @@ export namespace AsyncIor {
 						return;
 					}
 				}, reject);
+				remaining++;
 			}
 		});
 	}
