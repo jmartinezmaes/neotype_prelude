@@ -35,6 +35,7 @@
 	},
 	"exports": {
 		"./_*": null,
+		"./annotation.js": "./dist/annotation.js",
 		"./builder.js": "./dist/builder.js",
 		"./cmb.js": "./dist/cmb.js",
 		"./cmp.js": "./dist/cmp.js",

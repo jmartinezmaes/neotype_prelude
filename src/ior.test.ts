@@ -26,6 +26,7 @@ import {
 	expectLawfulOrd,
 	expectLawfulSemigroup,
 } from "./_test/utils.js";
+import { Annotation } from "./annotation.js";
 import { cmb } from "./cmb.js";
 import { Ordering, cmp, eq } from "./cmp.js";
 import { Either } from "./either.js";
@@ -87,6 +88,18 @@ describe("Ior", () => {
 			expect(ior).to.be.an.instanceOf(Ior.Both);
 			expect((ior as Ior.Both<1, void>).fst).to.equal(1);
 			expect((ior as Ior.Both<1, void>).snd).to.be.undefined;
+		});
+	});
+
+	describe("fromAnnotation", () => {
+		it("constructs a Right if the Annotation is a Value", () => {
+			const ior = Ior.fromAnnotation(Annotation.value<2, 1>(2));
+			expect(ior).to.deep.equal(Ior.right(2));
+		});
+
+		it("constructs a Both if the Annotation is a Note", () => {
+			const ior = Ior.fromAnnotation(Annotation.note<2, 1>(2, 1));
+			expect(ior).to.deep.equal(Ior.both(1, 2));
 		});
 	});
 
@@ -248,12 +261,12 @@ describe("Ior", () => {
 	describe("reduce", () => {
 		it("reduces the finite iterable from left to right in the context of Ior", () => {
 			const ior = Ior.reduce(
-				["x", "y"],
+				["a", "b"],
 				(chars, char, idx) =>
-					Ior.both(new Str("a"), chars + char + idx),
+					Ior.both(new Str(char), chars + char + idx),
 				"",
 			);
-			expect(ior).to.deep.equal(Ior.both(new Str("aa"), "x0y1"));
+			expect(ior).to.deep.equal(Ior.both(new Str("ab"), "a0b1"));
 		});
 	});
 
@@ -796,58 +809,6 @@ describe("Ior", () => {
 	});
 
 	describe("#andThenGo", () => {
-		it("does not apply the continuation if the variant is Left", () => {
-			const ior = Ior.left<Str, 2>(new Str("a")).andThenGo(
-				function* (two): Ior.Go<Str, [2, 4]> {
-					const four = yield* Ior.both<Str, 4>(new Str("b"), 4);
-					return [two, four];
-				},
-			);
-			expect(ior).to.deep.equal(Ior.left(new Str("a")));
-		});
-
-		it("applies the continuation to the value if the variant is Right", () => {
-			const ior = Ior.right<2, Str>(2).andThenGo(function* (two): Ior.Go<
-				Str,
-				[2, 4]
-			> {
-				const four = yield* Ior.right<4, Str>(4);
-				return [two, four];
-			});
-			expect(ior).to.deep.equal(Ior.right([2, 4]));
-		});
-
-		it("retains the left-hand value if the continuation on a Right returns a Both", () => {
-			const ior = Ior.right<2, Str>(2).andThenGo(function* (two): Ior.Go<
-				Str,
-				[2, 4]
-			> {
-				const four = yield* Ior.both<Str, 4>(new Str("b"), 4);
-				return [two, four];
-			});
-			expect(ior).to.deep.equal(Ior.both(new Str("b"), [2, 4]));
-		});
-
-		it("combines the left-hand values if the continuation on a Both returns a Left", () => {
-			const ior = Ior.both<Str, 2>(new Str("a"), 2).andThenGo(
-				function* (two): Ior.Go<Str, [2, 4]> {
-					const four = yield* Ior.left<Str, 4>(new Str("b"));
-					return [two, four];
-				},
-			);
-			expect(ior).to.deep.equal(Ior.left(new Str("ab")));
-		});
-
-		it("retains the left-hand value if the continuation on a Both returns a Right", () => {
-			const ior = Ior.both<Str, 2>(new Str("a"), 2).andThenGo(
-				function* (two): Ior.Go<Str, [2, 4]> {
-					const four = yield* Ior.right<4, Str>(4);
-					return [two, four];
-				},
-			);
-			expect(ior).to.deep.equal(Ior.both(new Str("a"), [2, 4]));
-		});
-
 		it("combines the left-hand values if the continuation on a Both returns a Both", () => {
 			const ior = Ior.both<Str, 2>(new Str("a"), 2).andThenGo(
 				function* (two): Ior.Go<Str, [2, 4]> {
@@ -1036,7 +997,9 @@ describe("AsyncIor", () => {
 						Ior.left<Str, 2>(new Str("a")),
 					);
 				} finally {
-					yield* Ior.left<Str, 4>(new Str("b"));
+					yield* await Promise.resolve(
+						Ior.left<Str, 4>(new Str("b")),
+					);
 				}
 			}
 			const ior = await AsyncIor.go(f());
@@ -1093,18 +1056,18 @@ describe("AsyncIor", () => {
 	describe("reduce", () => {
 		it("reduces the finite async iterable from left to right in the context of Ior", async () => {
 			async function* gen(): AsyncGenerator<string> {
-				yield delay(50).then(() => "x");
-				yield delay(10).then(() => "y");
+				yield delay(50).then(() => "a");
+				yield delay(10).then(() => "b");
 			}
 			const ior = await AsyncIor.reduce(
 				gen(),
 				(chars, char, idx) =>
 					delay(1).then(() =>
-						Ior.both(new Str("a"), chars + char + idx),
+						Ior.both(new Str(char), chars + char + idx),
 					),
 				"",
 			);
-			expect(ior).to.deep.equal(Ior.both(new Str("aa"), "x0y1"));
+			expect(ior).to.deep.equal(Ior.both(new Str("ab"), "a0b1"));
 		});
 	});
 

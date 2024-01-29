@@ -32,14 +32,13 @@
  * for working with the `Ior<A, B>` type.
  *
  * `Ior` is often used to represent states of failure or success similar to
- * {@link either!Either:type | `Either`} and
- * {@link validation!Validation:type | `Validation`}. However, `Ior` is capable
- * of also representing a unique state using the `Both` variant. `Both` can
- * represent a success that contains additional information, or a state of
- * "partial failure".
+ * {@link either!Either:type | `Either`}. However, `Ior` is capable of also
+ * representing a unique state using the `Both` variant. `Both` can represent a
+ * success that contains additional information or a state of "partial failure",
+ * similar to {@link annotation!Annotation:type | `Annotation`}.
  *
  * When composed, the behavior of `Ior` is a combination of the short-circuiting
- * behavior of `Either` and the failure-accumulating behavior of `Validation`:
+ * behavior of `Either` and the accumulating behavior of `Annotation`:
  *
  * -   `Left` short-circuits a computation completely and combines its left-hand
  *     value with any existing left-hand value.
@@ -93,6 +92,7 @@ import {
 import { Semigroup, cmb } from "./cmb.js";
 import { Eq, Ord, Ordering, cmp, eq } from "./cmp.js";
 import { id } from "./fn.js";
+import type { Annotation } from "./annotation.js";
 import type { Either } from "./either.js";
 import type { Validation } from "./validation.js";
 
@@ -138,6 +138,11 @@ export namespace Ior {
 	/** Construct a `Both` with a `void` right-hand value. */
 	export function write<A>(fst: A): Ior<A, void> {
 		return both(fst, undefined);
+	}
+
+	/** Construct an `Ior` from an `Annotation`. */
+	export function fromAnnotation<T, W>(anno: Annotation<T, W>): Ior<W, T> {
+		return anno.match(right, (val, log) => both(log, val));
 	}
 
 	/** Construct an `Ior` from an `Either`. */
@@ -219,7 +224,7 @@ export namespace Ior {
 	 */
 	export function reduce<T, TAcc, A extends Semigroup<A>>(
 		elems: Iterable<T>,
-		f: (acc: TAcc, val: T, idx: number) => Ior<A, TAcc>,
+		f: (acc: TAcc, elem: T, idx: number) => Ior<A, TAcc>,
 		initial: TAcc,
 	): Ior<A, TAcc> {
 		return fromGoFn(function* () {
@@ -775,7 +780,7 @@ export namespace AsyncIor {
 
 	/**
 	 * Adapt an async generator function that returns `AsyncIor.Go` into an
-	 * async function that returns `AsyncIor`.
+	 * async function that returns `Ior` or `AsyncIorLike`.
 	 */
 	export function wrapGoFn<
 		TArgs extends unknown[],
@@ -789,13 +794,13 @@ export namespace AsyncIor {
 
 	/**
 	 * Accumulate the elements in an async iterable using a reducer function
-	 * that returns `Ior` `AsyncIorLike`.
+	 * that returns `Ior` or `AsyncIorLike`.
 	 */
 	export function reduce<T, TAcc, A extends Semigroup<A>>(
 		elems: AsyncIterable<T>,
 		f: (
 			acc: TAcc,
-			val: T,
+			elem: T,
 			idx: number,
 		) => Ior<A, TAcc> | AsyncIorLike<A, TAcc>,
 		initial: TAcc,
@@ -812,8 +817,8 @@ export namespace AsyncIor {
 	}
 
 	/**
-	 * Map the elements in an async iterable to `Ior` and collect the right-hand
-	 * values into a `Builder`.
+	 * Map the elements in an async iterable to `Ior` or `AsyncIorLike` and
+	 * collect the right-hand values into a `Builder`.
 	 *
 	 * @remarks
 	 *
@@ -835,8 +840,8 @@ export namespace AsyncIor {
 	}
 
 	/**
-	 * Map the elements in an async iterable to `Ior` and collect the right-hand
-	 * values in an array.
+	 * Map the elements in an async iterable to `Ior` or `AsyncIorLike` and
+	 * collect the right-hand values in an array.
 	 */
 	export function traverse<T, A extends Semigroup<A>, B>(
 		elems: AsyncIterable<T>,

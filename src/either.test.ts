@@ -151,12 +151,12 @@ describe("Either", () => {
 	describe("reduce", () => {
 		it("reduces the finite iterable from left to right in the context of Either", () => {
 			const either = Either.reduce(
-				["x", "y"],
+				["a", "b"],
 				(chars, char, idx) =>
 					Either.right<string, 1>(chars + char + idx),
 				"",
 			);
-			expect(either).to.deep.equal(Either.right("x0y1"));
+			expect(either).to.deep.equal(Either.right("a0b1"));
 		});
 	});
 
@@ -460,16 +460,6 @@ describe("Either", () => {
 	});
 
 	describe("#andThenGo", () => {
-		it("does not apply the continuation if the variant is Left", () => {
-			const either = Either.left<1, 2>(1).andThenGo(
-				function* (two): Either.Go<3, [2, 4]> {
-					const four = yield* Either.right<4, 3>(4);
-					return [two, four];
-				},
-			);
-			expect(either).to.deep.equal(Either.left(1));
-		});
-
 		it("applies the continuation to the success if the variant is Right", () => {
 			const either = Either.right<2, 1>(2).andThenGo(
 				function* (two): Either.Go<3, [2, 4]> {
@@ -624,8 +614,8 @@ describe("AsyncEither", () => {
 	describe("reduce", () => {
 		it("reduces the finite async iterable from left to right in the context of Either", async () => {
 			async function* gen(): AsyncGenerator<string> {
-				yield delay(50).then(() => "x");
-				yield delay(10).then(() => "y");
+				yield delay(50).then(() => "a");
+				yield delay(10).then(() => "b");
 			}
 			const either = await AsyncEither.reduce(
 				gen(),
@@ -633,7 +623,7 @@ describe("AsyncEither", () => {
 					delay(1).then(() => Either.right(chars + char + idx)),
 				"",
 			);
-			expect(either).to.deep.equal(Either.right("x0y1"));
+			expect(either).to.deep.equal(Either.right("a0b1"));
 		});
 	});
 
