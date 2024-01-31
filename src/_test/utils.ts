@@ -20,10 +20,6 @@ import { Semigroup, cmb } from "../cmb.js";
 import { Eq, Ord, Ordering, eq, le } from "../cmp.js";
 import type { Builder } from "../builder.js";
 
-export function delay(ms: number): Promise<void> {
-	return new Promise((resolve) => setTimeout(resolve, ms));
-}
-
 export class Num implements Ord<Num> {
 	constructor(readonly val: number) {}
 
