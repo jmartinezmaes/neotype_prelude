@@ -15,8 +15,9 @@
  */
 
 import { describe, expect, it } from "vitest";
-import { Str, TestBuilder, delay } from "../_test/utils.js";
+import { Str, TestBuilder } from "../_test/utils.js";
 import { Annotation } from "../annotation.js";
+import { delay } from "./_test/utils.js";
 import { AsyncAnnotation } from "./annotation.js";
 
 describe("AsyncAnnotation", () => {

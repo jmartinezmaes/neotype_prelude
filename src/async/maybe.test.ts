@@ -15,8 +15,9 @@
  */
 
 import { describe, expect, it } from "vitest";
-import { TestBuilder, delay } from "../_test/utils.js";
+import { TestBuilder } from "../_test/utils.js";
 import { Maybe } from "../maybe.js";
+import { delay } from "./_test/utils.js";
 import { AsyncMaybe } from "./maybe.js";
 
 describe("AsyncMaybe", () => {

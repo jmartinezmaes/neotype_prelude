@@ -15,8 +15,9 @@
  */
 
 import { describe, expect, it } from "vitest";
-import { Str, TestBuilder, delay } from "../_test/utils.js";
+import { Str, TestBuilder } from "../_test/utils.js";
 import { Ior } from "../ior.js";
+import { delay } from "./_test/utils.js";
 import { AsyncIor } from "./ior.js";
 
 describe("AsyncIor", () => {

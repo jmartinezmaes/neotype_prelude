@@ -15,8 +15,9 @@
  */
 
 import { describe, expect, it } from "vitest";
-import { TestBuilder, delay } from "../_test/utils.js";
+import { TestBuilder } from "../_test/utils.js";
 import { Either } from "../either.js";
+import { delay } from "./_test/utils.js";
 import { AsyncEither } from "./either.js";
 
 describe("AsyncEither", () => {
