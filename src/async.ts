@@ -15,7 +15,53 @@
  */
 
 /**
+ * Async functional data types.
  *
+ * @remarks
+ *
+ * This module exports the following async data types:
+ *
+ * -   `AsyncAnnotation<T, W>` for working with `Promise<Annotation<T, W>>`
+ * -   `AsyncEither<A, B>` for working with `Promise<Either<A, B>>`
+ * -   `AsyncIor<A, B>` for working with `Promise<Ior<A, B>>`
+ * -   `AsyncMaybe<T>` for working with `Promise<Maybe<T>>`
+ * -   `AsyncValidation<E, T>` for working with `Promise<Validation<E, T>>`
+ *
+ * All async data type alises have a companion namespace exported under the same
+ * idetifier. Each namespace provides utilities for working with its associated
+ * data type.
+ *
+ * ## Importing from this module
+ *
+ * The types and namespaces from this module can be imported under the same
+ * aliases:
+ *
+ * ```ts
+ * import {
+ *     AsyncAnnotation,
+ *     AsyncEither,
+ *     AsyncIor,
+ *     AsyncMaybe,
+ *     AsyncValidation
+ * } from "@neotype/prelude/async.js";
+ * ```
+ *
+ * Or, they can be imported and aliased separately:
+ *
+ * ```ts
+ * import {
+ *     type AsyncAnnotation,
+ *     type AsyncEither,
+ *     type AsyncIor,
+ *     type AsyncMaybe,
+ *     type AsyncValidation,
+ *     AsyncAnnotation as AA,
+ *     AsyncEither as AE,
+ *     AsyncIor as AI,
+ *     AsyncMaybe as AM,
+ *     AsyncValidation as AV
+ * } from "@neotype/prelude/async.js";
+ * ```
  *
  * @module
  */

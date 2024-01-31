@@ -39,33 +39,20 @@
  * failed `Validation`. Combinators with this behavior require a `Semigroup`
  * implementation from the accumulating failures.
  *
- * ## Using `Validation` with promises
- *
- * {@link AsyncValidation:type | `AsyncValidation<E, T>`} is an alias for
- * `Promise<Validation<E, T>>`. The
- * {@link AsyncValidation:namespace | `AsyncValidation`} companion namespace
- * provides utilities for working with the `AsyncValidation<E, T>` type.
- *
- * To accommodate promise-like values, this module also provides the
- * {@link AsyncValidationLike | `AsyncValidationLike<E, T>`} type as an alias
- * for `PromiseLike<Validation<E, T>>`.
- *
  * ## Importing from this module
  *
  * The types and namespaces from this module can be imported under the same
  * aliases:
  *
  * ```ts
- * import { AsyncValidation, Validation } from "@neotype/prelude/validation.js";
+ * import { Validation } from "@neotype/prelude/validation.js";
  * ```
  *
  * Or, the types and namespaces can be imported and aliased separately:
  *
  * ```ts
  * import {
- *     type AsyncValidation,
  *     type Validation,
- *     AsyncValidation as AV,
  *     Validation as V
  * } from "@neotype/prelude/validation.js";
  * ```

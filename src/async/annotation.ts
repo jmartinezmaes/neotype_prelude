@@ -15,7 +15,36 @@
  */
 
 /**
+ * Functionality for using `Annotation` with promises.
  *
+ * @remarks
+ *
+ * {@link AsyncAnnotation:type | `AsyncAnnotation<T, W>`} is an alias for
+ * `Promise<Annotation<T, W>>`. The
+ * {@link AsyncAnnotation:namespace | `AsyncAnnotation`} companion namespace
+ * provides utilities for working with the `AsyncAnnotation<T, W>` type.
+ *
+ * To accommodate promise-like values, this module also provides the
+ * {@link AsyncAnnotationLike | `AsyncAnnotationLike<T, W>`} type as an alias
+ * for `PromiseLike<Annotation<T, W>>`.
+ *
+ * ## Importing from this module
+ *
+ * The type aliases and namespaces from this module can be imported under the
+ * same aliases:
+ *
+ * ```ts
+ * import { AsyncAnnotation } from "@neotype/prelude/async/annotation.js";
+ * ```
+ *
+ * Or, the types and namespaces can be imported and aliased separately:
+ *
+ * ```ts
+ * import {
+ *     type AsyncAnnotation,
+ *     AsyncAnnotation as AA,
+ * } from "@neotype/prelude/async/annotation.js";
+ * ```
  *
  * @module
  */

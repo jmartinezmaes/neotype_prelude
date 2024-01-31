@@ -49,34 +49,19 @@
  * Combinators with this behavior require a `Semigroup` implementation from the
  * accumulating left-hand value.
  *
- * ## Using `Ior` with promises
- *
- * {@link AsyncIor:type | `AsyncIor<A, B>`} is an alias for `Promise<Ior<A,
- * B>>`. The {@link AsyncIor:namespace | `AsyncIor`} companion namespace
- * provides utilities for working with the `AsyncIor<A, B>` type.
- *
- * To accommodate promise-like values, this module also provides the
- * {@link AsyncIorLike | `AsyncIorLike<A, B>`} type as an alias for
- * `PromiseLike<Ior<A, B>>`.
- *
  * ## Importing from this module
  *
  * The types and namespaces from this module can be imported under the same
  * aliases:
  *
  * ```ts
- * import { AsyncIor, Ior } from "@neotype/prelude/ior.js";
+ * import { Ior } from "@neotype/prelude/ior.js";
  * ```
  *
  * Or, the types and namespaces can be imported and aliased separately:
  *
  * ```ts
- * import {
- *     type AsyncIor,
- *     type Ior,
- *     AsyncIor as AI,
- *     Ior as I
- * } from "@neotype/prelude/ior.js";
+ * import { type Ior, Ior as I } from "@neotype/prelude/ior.js";
  * ```
  *
  * @module

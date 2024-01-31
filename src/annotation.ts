@@ -39,24 +39,13 @@
  * Most combinators for `Annotation` require a `Semigroup` implementation from
  * the accumulating information.
  *
- * ## Using `Annotation` with promises
- *
- * {@link AsyncAnnotation:type | `AsyncAnnotation<T, W>`} is an alias for
- * `Promise<Annotation<T, W>>`. The
- * {@link AsyncAnnotation:namespace | `AsyncAnnotation`} companion namespace
- * provides utilities for working with the `AsyncAnnotation<T, W>` type.
- *
- * To accommodate promise-like values, this module also provides the
- * {@link AsyncAnnotationLike | `AsyncAnnotationLike<T, W>`} type as an alias
- * for `PromiseLike<Annotation<T, W>>`.
- *
  * ## Importing from this module
  *
  * The type aliases and namespaces from this module can be imported under the
  * same aliases:
  *
  * ```ts
- * import { Annotation, AsyncAnnotation } from "@neotype/prelude/annotation.js";
+ * import { Annotation } from "@neotype/prelude/annotation.js";
  * ```
  *
  * Or, the types and namespaces can be imported and aliased separately:
@@ -64,9 +53,7 @@
  * ```ts
  * import {
  *     type Annotation,
- *     type AsyncAnnotation,
  *     Annotation as A,
- *     AsyncAnnotation as AA
  * } from "@neotype/prelude/annotation.js";
  * ```
  *

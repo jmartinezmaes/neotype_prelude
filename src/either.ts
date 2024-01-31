@@ -41,35 +41,19 @@
  * `Either` to be composed in a way that propogates failures while applying
  * logic to successes -- a useful feature for railway-oriented programming.
  *
- * ## Using `Either` with promises
- *
- * {@link AsyncEither:type | `AsyncEither<A, B>`} is an alias for
- * `Promise<Either<A, B>>`. The {@link AsyncEither:namespace `AsyncEither`}
- * companion namespace provides utilities for working with the `AsyncEither<A,
- * B>` type.
- *
- * To accommodate promise-like values, this module also provides the
- * {@link AsyncEitherLike | `AsyncEitherLike<A, B>`} type as an alias for
- * `PromiseLike<Either<A, B>>`.
- *
  * ## Importing from this module
  *
  * The types and namespaces from this module can be imported under the same
  * aliases:
  *
  * ```ts
- * import { AsyncEither, Either } from "@neotype/prelude/either.js";
+ * import { Either } from "@neotype/prelude/either.js";
  * ```
  *
  * Or, they can be imported and aliased separately:
  *
  * ```ts
- * import {
- *     type AsyncEither,
- *     type Either,
- *     AsyncEither as AE,
- *     Either as E
- * } from "@neotype/prelude/either.js";
+ * import { type Either, Either as E } from "@neotype/prelude/either.js";
  * ```
  *
  * @module
