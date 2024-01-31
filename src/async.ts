@@ -15,7 +15,7 @@
  */
 
 /**
- * Async functional data types.
+ * Async compatibiltiy for functional data types.
  *
  * @remarks
  *
