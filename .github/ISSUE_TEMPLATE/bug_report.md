@@ -12,9 +12,8 @@ assignees: ""
 
 ## Version information
 
--   neotype_prelude version:
+-   Neotype Prelude version:
 -   TypeScript version:
--   Node.js version:
 
 ## Code sample
 

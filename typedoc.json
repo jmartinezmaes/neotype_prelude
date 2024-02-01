@@ -6,7 +6,7 @@
 	"exclude": ["**/_*", "**/*.test.ts", "**/_test/*"],
 	"excludePrivate": true,
 	"json": "./docsite/docs.json",
-	"name": "neotype_prelude",
+	"name": "Neotype Prelude",
 	"out": "./docsite",
 	"treatWarningsAsErrors": true,
 	"tsconfig": "./tsconfig.build.json",
