@@ -28,7 +28,7 @@
  * -   `AsyncValidation<E, T>` for working with `Promise<Validation<E, T>>`
  *
  * All async data type alises have a companion namespace exported under the same
- * idetifier. Each namespace provides utilities for working with its associated
+ * identifier. Each namespace provides utilities for working with its associated
  * data type.
  *
  * ## Importing from this module
