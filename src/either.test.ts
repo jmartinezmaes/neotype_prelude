@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import * as fc from "fast-check";
+import * as Fc from "fast-check";
 import { describe, expect, it } from "vitest";
 import {
 	TestBuilder,
@@ -31,10 +31,10 @@ import { Validation } from "./validation.js";
 
 describe("Either", () => {
 	function arbEither<A, B>(
-		arbLeft: fc.Arbitrary<A>,
-		arbRight: fc.Arbitrary<B>,
-	): fc.Arbitrary<Either<A, B>> {
-		return fc.oneof(arbLeft.map(Either.left), arbRight.map(Either.right));
+		arbLeft: Fc.Arbitrary<A>,
+		arbRight: Fc.Arbitrary<B>,
+	): Fc.Arbitrary<Either<A, B>> {
+		return Fc.oneof(arbLeft.map(Either.left), arbRight.map(Either.right));
 	}
 
 	describe("left", () => {
@@ -251,35 +251,35 @@ describe("Either", () => {
 
 	describe("#[Eq.eq]", () => {
 		it("compares the values if both variants are Left", () => {
-			const property = fc.property(arbNum(), arbNum(), (lhs, rhs) => {
+			const property = Fc.property(arbNum(), arbNum(), (lhs, rhs) => {
 				expect(eq(Either.left(lhs), Either.left(rhs))).to.equal(
 					eq(lhs, rhs),
 				);
 			});
-			fc.assert(property);
+			Fc.assert(property);
 		});
 
 		it("compares any Left and any Right as inequal", () => {
-			const property = fc.property(arbNum(), arbNum(), (lhs, rhs) => {
+			const property = Fc.property(arbNum(), arbNum(), (lhs, rhs) => {
 				expect(eq(Either.left(lhs), Either.right(rhs))).to.be.false;
 			});
-			fc.assert(property);
+			Fc.assert(property);
 		});
 
 		it("compares any Right and any Left as inequal", () => {
-			const property = fc.property(arbNum(), arbNum(), (lhs, rhs) => {
+			const property = Fc.property(arbNum(), arbNum(), (lhs, rhs) => {
 				expect(eq(Either.right(lhs), Either.left(rhs))).to.be.false;
 			});
-			fc.assert(property);
+			Fc.assert(property);
 		});
 
 		it("compares the values if both variants are Right", () => {
-			const property = fc.property(arbNum(), arbNum(), (lhs, rhs) => {
+			const property = Fc.property(arbNum(), arbNum(), (lhs, rhs) => {
 				expect(eq(Either.right(lhs), Either.right(rhs))).to.equal(
 					eq(lhs, rhs),
 				);
 			});
-			fc.assert(property);
+			Fc.assert(property);
 		});
 
 		it("implements a lawful equivalence relation", () => {
@@ -289,39 +289,39 @@ describe("Either", () => {
 
 	describe("#[Ord.cmp]", () => {
 		it("compares the values if both variants are Left", () => {
-			const property = fc.property(arbNum(), arbNum(), (lhs, rhs) => {
+			const property = Fc.property(arbNum(), arbNum(), (lhs, rhs) => {
 				expect(cmp(Either.left(lhs), Either.left(rhs))).to.equal(
 					cmp(lhs, rhs),
 				);
 			});
-			fc.assert(property);
+			Fc.assert(property);
 		});
 
 		it("compares any Left as less than any Right", () => {
-			const property = fc.property(arbNum(), arbNum(), (lhs, rhs) => {
+			const property = Fc.property(arbNum(), arbNum(), (lhs, rhs) => {
 				expect(cmp(Either.left(lhs), Either.right(rhs))).to.equal(
 					Ordering.less,
 				);
 			});
-			fc.assert(property);
+			Fc.assert(property);
 		});
 
 		it("compares any Right as greater than any Left", () => {
-			const property = fc.property(arbNum(), arbNum(), (lhs, rhs) => {
+			const property = Fc.property(arbNum(), arbNum(), (lhs, rhs) => {
 				expect(cmp(Either.right(lhs), Either.left(rhs))).to.equal(
 					Ordering.greater,
 				);
 			});
-			fc.assert(property);
+			Fc.assert(property);
 		});
 
 		it("compares the values if both variants are Right", () => {
-			const property = fc.property(arbNum(), arbNum(), (lhs, rhs) => {
+			const property = Fc.property(arbNum(), arbNum(), (lhs, rhs) => {
 				expect(cmp(Either.right(lhs), Either.right(rhs))).to.equal(
 					cmp(lhs, rhs),
 				);
 			});
-			fc.assert(property);
+			Fc.assert(property);
 		});
 
 		it("implements a lawful total order", () => {
@@ -331,12 +331,12 @@ describe("Either", () => {
 
 	describe("#[Semigroup.cmb]", () => {
 		it("combines the values if both variants are Right", () => {
-			const property = fc.property(arbStr(), arbStr(), (lhs, rhs) => {
+			const property = Fc.property(arbStr(), arbStr(), (lhs, rhs) => {
 				expect(cmb(Either.right(lhs), Either.right(rhs))).to.deep.equal(
 					Either.right(cmb(lhs, rhs)),
 				);
 			});
-			fc.assert(property);
+			Fc.assert(property);
 		});
 
 		it("implements a lawful semigroup", () => {

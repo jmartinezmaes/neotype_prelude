@@ -14,16 +14,16 @@
  * limitations under the License.
  */
 
-import * as fc from "fast-check";
+import * as Fc from "fast-check";
 import { describe, expect, it } from "vitest";
 import { arbStr } from "./_test/utils.js";
 import { Semigroup, cmb } from "./cmb.js";
 
 describe("cmb", () => {
 	it("combines the two Semigroup values", () => {
-		const property = fc.property(arbStr(), arbStr(), (lhs, rhs) => {
+		const property = Fc.property(arbStr(), arbStr(), (lhs, rhs) => {
 			expect(cmb(lhs, rhs)).to.deep.equal(lhs[Semigroup.cmb](rhs));
 		});
-		fc.assert(property);
+		Fc.assert(property);
 	});
 });

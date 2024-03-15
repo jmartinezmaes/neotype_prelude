@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import * as fc from "fast-check";
+import * as Fc from "fast-check";
 import { describe, expect, it } from "vitest";
 import {
 	arbNum,
@@ -29,9 +29,9 @@ import { Pair } from "./pair.js";
 
 describe("Pair", () => {
 	function arbPair<A, B>(
-		arbFst: fc.Arbitrary<A>,
-		arbSnd: fc.Arbitrary<B>,
-	): fc.Arbitrary<Pair<A, B>> {
+		arbFst: Fc.Arbitrary<A>,
+		arbSnd: Fc.Arbitrary<B>,
+	): Fc.Arbitrary<Pair<A, B>> {
 		return arbFst.chain((fst) => arbSnd.map((snd) => new Pair(fst, snd)));
 	}
 
@@ -54,7 +54,7 @@ describe("Pair", () => {
 
 	describe("#[Eq.eq]", () => {
 		it("compares the first values and the second values lexicographically", () => {
-			const property = fc.property(
+			const property = Fc.property(
 				arbNum(),
 				arbNum(),
 				arbNum(),
@@ -65,7 +65,7 @@ describe("Pair", () => {
 					).to.equal(eq(lhs0, rhs0) && eq(lhs1, rhs1));
 				},
 			);
-			fc.assert(property);
+			Fc.assert(property);
 		});
 
 		it("implements a lawful equivalence relation", () => {
@@ -75,7 +75,7 @@ describe("Pair", () => {
 
 	describe("#[Ord.cmp]", () => {
 		it("compares the first values and the second values lexicographically", () => {
-			const property = fc.property(
+			const property = Fc.property(
 				arbNum(),
 				arbNum(),
 				arbNum(),
@@ -86,7 +86,7 @@ describe("Pair", () => {
 					).to.equal(cmb(cmp(lhs0, rhs0), cmp(lhs1, rhs1)));
 				},
 			);
-			fc.assert(property);
+			Fc.assert(property);
 		});
 
 		it("implements a lawful total order", () => {
@@ -96,7 +96,7 @@ describe("Pair", () => {
 
 	describe("#[Semigroup.cmb]", () => {
 		it("combines the first values and the second values pairwise", () => {
-			const property = fc.property(
+			const property = Fc.property(
 				arbStr(),
 				arbStr(),
 				arbStr(),
@@ -107,7 +107,7 @@ describe("Pair", () => {
 					).to.deep.equal(new Pair(cmb(lhs0, rhs0), cmb(lhs1, rhs1)));
 				},
 			);
-			fc.assert(property);
+			Fc.assert(property);
 		});
 
 		it("implements a lawful semigroup", () => {
