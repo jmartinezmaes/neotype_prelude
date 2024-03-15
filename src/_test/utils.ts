@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import * as fc from "fast-check";
+import * as Fc from "fast-check";
 import { expect } from "vitest";
 import { Semigroup, cmb } from "../cmb.js";
 import { Eq, Ord, Ordering, eq, le } from "../cmp.js";
@@ -44,12 +44,12 @@ export class Str implements Semigroup<Str> {
 	}
 }
 
-export function arbNum(): fc.Arbitrary<Num> {
-	return fc.float({ noNaN: true }).map((val) => new Num(val));
+export function arbNum(): Fc.Arbitrary<Num> {
+	return Fc.float({ noNaN: true }).map((val) => new Num(val));
 }
 
-export function arbStr(): fc.Arbitrary<Str> {
-	return fc.string().map((val) => new Str(val));
+export function arbStr(): Fc.Arbitrary<Str> {
+	return Fc.string().map((val) => new Str(val));
 }
 
 export class TestBuilder<in out T> implements Builder<T, T[]> {
@@ -64,61 +64,61 @@ export class TestBuilder<in out T> implements Builder<T, T[]> {
 	}
 }
 
-export function expectLawfulEq<T extends Eq<T>>(arb: fc.Arbitrary<T>): void {
-	const reflexivity = fc.property(arb, (val) => {
+export function expectLawfulEq<T extends Eq<T>>(arb: Fc.Arbitrary<T>): void {
+	const reflexivity = Fc.property(arb, (val) => {
 		expect(eq(val, val), "reflexivity").to.be.true;
 	});
 
-	const symmetry = fc.property(arb, arb, (lhs, rhs) => {
+	const symmetry = Fc.property(arb, arb, (lhs, rhs) => {
 		expect(eq(lhs, rhs), "symmetry").to.equal(eq(rhs, lhs));
 	});
 
-	const transitivity = fc.property(arb, arb, arb, (first, second, third) => {
+	const transitivity = Fc.property(arb, arb, arb, (first, second, third) => {
 		if (eq(first, second) && eq(second, third)) {
 			expect(eq(first, third), "transitivity").to.be.true;
 		}
 	});
 
-	fc.assert(reflexivity);
-	fc.assert(symmetry);
-	fc.assert(transitivity);
+	Fc.assert(reflexivity);
+	Fc.assert(symmetry);
+	Fc.assert(transitivity);
 }
 
-export function expectLawfulOrd<T extends Ord<T>>(arb: fc.Arbitrary<T>): void {
-	const reflexivity = fc.property(arb, (val) => {
+export function expectLawfulOrd<T extends Ord<T>>(arb: Fc.Arbitrary<T>): void {
+	const reflexivity = Fc.property(arb, (val) => {
 		expect(le(val, val), "reflexivity").to.be.true;
 	});
 
-	const antisymmetry = fc.property(arb, arb, (lhs, rhs) => {
+	const antisymmetry = Fc.property(arb, arb, (lhs, rhs) => {
 		expect(le(lhs, rhs) && le(rhs, lhs), "antisymmetry").to.equal(
 			eq(lhs, rhs),
 		);
 	});
 
-	const transitivity = fc.property(arb, arb, arb, (first, second, third) => {
+	const transitivity = Fc.property(arb, arb, arb, (first, second, third) => {
 		if (le(first, second) && le(second, third)) {
 			expect(le(first, third), "transitivity").to.be.true;
 		}
 	});
 
-	const comparability = fc.property(arb, arb, (lhs, rhs) => {
+	const comparability = Fc.property(arb, arb, (lhs, rhs) => {
 		expect(le(lhs, rhs) || le(rhs, lhs), "comparability").to.be.true;
 	});
 
-	fc.assert(reflexivity);
-	fc.assert(antisymmetry);
-	fc.assert(transitivity);
-	fc.assert(comparability);
+	Fc.assert(reflexivity);
+	Fc.assert(antisymmetry);
+	Fc.assert(transitivity);
+	Fc.assert(comparability);
 }
 
 export function expectLawfulSemigroup<T extends Semigroup<T> & Eq<T>>(
-	arb: fc.Arbitrary<T>,
+	arb: Fc.Arbitrary<T>,
 ): void {
-	const associativity = fc.property(arb, arb, arb, (first, second, third) => {
+	const associativity = Fc.property(arb, arb, arb, (first, second, third) => {
 		expect(
 			eq(cmb(first, cmb(second, third)), cmb(cmb(first, second), third)),
 			"associativity",
 		).to.be.true;
 	});
-	fc.assert(associativity);
+	Fc.assert(associativity);
 }

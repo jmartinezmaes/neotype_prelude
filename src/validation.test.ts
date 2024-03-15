@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import * as fc from "fast-check";
+import * as Fc from "fast-check";
 import { describe, expect, it } from "vitest";
 import {
 	Str,
@@ -32,10 +32,10 @@ import { Validation } from "./validation.js";
 
 describe("Validation", () => {
 	function arbValidation<E, T>(
-		arbErr: fc.Arbitrary<E>,
-		arbOk: fc.Arbitrary<T>,
-	): fc.Arbitrary<Validation<E, T>> {
-		return fc.oneof(arbErr.map(Validation.err), arbOk.map(Validation.ok));
+		arbErr: Fc.Arbitrary<E>,
+		arbOk: Fc.Arbitrary<T>,
+	): Fc.Arbitrary<Validation<E, T>> {
+		return Fc.oneof(arbErr.map(Validation.err), arbOk.map(Validation.ok));
 	}
 
 	describe("err", () => {
@@ -171,35 +171,35 @@ describe("Validation", () => {
 
 	describe("#[Eq.eq]", () => {
 		it("compares the failures if both variants are Err", () => {
-			const property = fc.property(arbNum(), arbNum(), (lhs, rhs) => {
+			const property = Fc.property(arbNum(), arbNum(), (lhs, rhs) => {
 				expect(eq(Validation.err(lhs), Validation.err(rhs))).to.equal(
 					eq(lhs, rhs),
 				);
 			});
-			fc.assert(property);
+			Fc.assert(property);
 		});
 
 		it("compares any Err and any Ok as inequal", () => {
-			const property = fc.property(arbNum(), arbNum(), (lhs, rhs) => {
+			const property = Fc.property(arbNum(), arbNum(), (lhs, rhs) => {
 				expect(eq(Validation.err(lhs), Validation.ok(rhs))).to.be.false;
 			});
-			fc.assert(property);
+			Fc.assert(property);
 		});
 
 		it("compares any Ok and any Err as inequal", () => {
-			const property = fc.property(arbNum(), arbNum(), (lhs, rhs) => {
+			const property = Fc.property(arbNum(), arbNum(), (lhs, rhs) => {
 				expect(eq(Validation.ok(lhs), Validation.err(rhs))).to.be.false;
 			});
-			fc.assert(property);
+			Fc.assert(property);
 		});
 
 		it("compares the successes if both variants are Ok", () => {
-			const property = fc.property(arbNum(), arbNum(), (lhs, rhs) => {
+			const property = Fc.property(arbNum(), arbNum(), (lhs, rhs) => {
 				expect(eq(Validation.ok(lhs), Validation.ok(rhs))).to.equal(
 					eq(lhs, rhs),
 				);
 			});
-			fc.assert(property);
+			Fc.assert(property);
 		});
 
 		it("implements a lawful equivalence relation", () => {
@@ -209,39 +209,39 @@ describe("Validation", () => {
 
 	describe("#[Ord.cmp]", () => {
 		it("compares the failures if both variants are Err", () => {
-			const property = fc.property(arbNum(), arbNum(), (lhs, rhs) => {
+			const property = Fc.property(arbNum(), arbNum(), (lhs, rhs) => {
 				expect(cmp(Validation.err(lhs), Validation.err(rhs))).to.equal(
 					cmp(lhs, rhs),
 				);
 			});
-			fc.assert(property);
+			Fc.assert(property);
 		});
 
 		it("compares any Err as less than any Ok", () => {
-			const property = fc.property(arbNum(), arbNum(), (lhs, rhs) => {
+			const property = Fc.property(arbNum(), arbNum(), (lhs, rhs) => {
 				expect(cmp(Validation.err(lhs), Validation.ok(rhs))).to.equal(
 					Ordering.less,
 				);
 			});
-			fc.assert(property);
+			Fc.assert(property);
 		});
 
 		it("compares any Ok as greater than any Err", () => {
-			const property = fc.property(arbNum(), arbNum(), (lhs, rhs) => {
+			const property = Fc.property(arbNum(), arbNum(), (lhs, rhs) => {
 				expect(cmp(Validation.ok(lhs), Validation.err(rhs))).to.equal(
 					Ordering.greater,
 				);
 			});
-			fc.assert(property);
+			Fc.assert(property);
 		});
 
 		it("compares the successes if both variants are Ok", () => {
-			const property = fc.property(arbNum(), arbNum(), (lhs, rhs) => {
+			const property = Fc.property(arbNum(), arbNum(), (lhs, rhs) => {
 				expect(cmp(Validation.ok(lhs), Validation.ok(rhs))).to.equal(
 					cmp(lhs, rhs),
 				);
 			});
-			fc.assert(property);
+			Fc.assert(property);
 		});
 
 		it("implements a lawful total order", () => {
@@ -251,12 +251,12 @@ describe("Validation", () => {
 
 	describe("#[Semigroup.cmb]", () => {
 		it("combines the successes if both variants are Ok", () => {
-			const property = fc.property(arbStr(), arbStr(), (lhs, rhs) => {
+			const property = Fc.property(arbStr(), arbStr(), (lhs, rhs) => {
 				expect(
 					cmb(Validation.ok(lhs), Validation.ok(rhs)),
 				).to.deep.equal(Validation.ok(cmb(lhs, rhs)));
 			});
-			fc.assert(property);
+			Fc.assert(property);
 		});
 
 		it("implements a lawful semigroup", () => {

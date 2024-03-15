@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import * as fc from "fast-check";
+import * as Fc from "fast-check";
 import { describe, expect, it } from "vitest";
 import {
 	Str,
@@ -31,10 +31,10 @@ import { Ordering, cmp, eq } from "./cmp.js";
 
 describe("Annotation", () => {
 	function arbAnnotation<T, N>(
-		arbVal: fc.Arbitrary<T>,
-		arbLog: fc.Arbitrary<N>,
-	): fc.Arbitrary<Annotation<T, N>> {
-		return fc.oneof(
+		arbVal: Fc.Arbitrary<T>,
+		arbLog: Fc.Arbitrary<N>,
+	): Fc.Arbitrary<Annotation<T, N>> {
+		return Fc.oneof(
 			arbVal.map(Annotation.value),
 			arbVal.chain((val) =>
 				arbLog.map((log) => Annotation.note(val, log)),
@@ -275,16 +275,16 @@ describe("Annotation", () => {
 
 	describe("#[Eq.eq]", () => {
 		it("compares the values if both variants are Value", () => {
-			const property = fc.property(arbNum(), arbNum(), (val0, val1) => {
+			const property = Fc.property(arbNum(), arbNum(), (val0, val1) => {
 				expect(
 					eq(Annotation.value(val0), Annotation.value(val1)),
 				).to.equal(eq(val0, val1));
 			});
-			fc.assert(property);
+			Fc.assert(property);
 		});
 
 		it("compares any Value and any Note as unequal", () => {
-			const property = fc.property(
+			const property = Fc.property(
 				arbNum(),
 				arbNum(),
 				arbNum(),
@@ -294,11 +294,11 @@ describe("Annotation", () => {
 					).to.be.false;
 				},
 			);
-			fc.assert(property);
+			Fc.assert(property);
 		});
 
 		it("compares any Note and any Value as unequal", () => {
-			const property = fc.property(
+			const property = Fc.property(
 				arbNum(),
 				arbNum(),
 				arbNum(),
@@ -308,11 +308,11 @@ describe("Annotation", () => {
 					).to.be.false;
 				},
 			);
-			fc.assert(property);
+			Fc.assert(property);
 		});
 
 		it("compares the values and logs lexicographically if both variants are Note", () => {
-			const property = fc.property(
+			const property = Fc.property(
 				arbNum(),
 				arbNum(),
 				arbNum(),
@@ -326,7 +326,7 @@ describe("Annotation", () => {
 					).to.equal(eq(val0, val1) && eq(log0, log1));
 				},
 			);
-			fc.assert(property);
+			Fc.assert(property);
 		});
 
 		it("implements a lawful equivalence relation", () => {
@@ -336,16 +336,16 @@ describe("Annotation", () => {
 
 	describe("#[Ord.cmp]", () => {
 		it("compares the values if both variants are Value", () => {
-			const property = fc.property(arbNum(), arbNum(), (val0, val1) => {
+			const property = Fc.property(arbNum(), arbNum(), (val0, val1) => {
 				expect(
 					cmp(Annotation.value(val0), Annotation.value(val1)),
 				).to.equal(cmp(val0, val1));
 			});
-			fc.assert(property);
+			Fc.assert(property);
 		});
 
 		it("compares any Value as less than any Note", () => {
-			const property = fc.property(
+			const property = Fc.property(
 				arbNum(),
 				arbNum(),
 				arbNum(),
@@ -358,11 +358,11 @@ describe("Annotation", () => {
 					).to.equal(Ordering.less);
 				},
 			);
-			fc.assert(property);
+			Fc.assert(property);
 		});
 
 		it("compares any Note as greater than any Value", () => {
-			const property = fc.property(
+			const property = Fc.property(
 				arbNum(),
 				arbNum(),
 				arbNum(),
@@ -375,11 +375,11 @@ describe("Annotation", () => {
 					).to.equal(Ordering.greater);
 				},
 			);
-			fc.assert(property);
+			Fc.assert(property);
 		});
 
 		it("compares the values and logs lexicographically if both variants are Note", () => {
-			const property = fc.property(
+			const property = Fc.property(
 				arbNum(),
 				arbNum(),
 				arbNum(),
@@ -393,7 +393,7 @@ describe("Annotation", () => {
 					).to.equal(cmb(cmp(val0, val1), cmp(log0, log1)));
 				},
 			);
-			fc.assert(property);
+			Fc.assert(property);
 		});
 
 		it("implements a lawful total order", () => {
@@ -403,7 +403,7 @@ describe("Annotation", () => {
 
 	describe("#[Semigroup.cmb]", () => {
 		it("combines the values and the logs", () => {
-			const property = fc.property(
+			const property = Fc.property(
 				arbStr(),
 				arbStr(),
 				arbStr(),
@@ -419,7 +419,7 @@ describe("Annotation", () => {
 					);
 				},
 			);
-			fc.assert(property);
+			Fc.assert(property);
 		});
 
 		it("implements a lawful semigroup", () => {

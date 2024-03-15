@@ -14,30 +14,30 @@
  * limitations under the License.
  */
 
-import * as fc from "fast-check";
+import * as Fc from "fast-check";
 import { describe, expect, it } from "vitest";
 import { constant, id, negatePredicateFn, wrapCtor } from "./fn.js";
 
 describe("id", () => {
 	it("returns its argument", () => {
-		const property = fc.property(fc.anything(), (val) => {
+		const property = Fc.property(Fc.anything(), (val) => {
 			expect(id(val)).to.deep.equal(val);
 		});
-		fc.assert(property);
+		Fc.assert(property);
 	});
 });
 
 describe("constant", () => {
 	it("returns a function that returns the original argument regardless of the provided arguments", () => {
-		const property = fc.property(
-			fc.anything(),
-			fc.array(fc.anything()),
+		const property = Fc.property(
+			Fc.anything(),
+			Fc.array(Fc.anything()),
 			(val, args) => {
 				const f = constant(val);
 				expect(f(...args)).to.deep.equal(val);
 			},
 		);
-		fc.assert(property);
+		Fc.assert(property);
 	});
 });
 

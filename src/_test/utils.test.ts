@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import * as fc from "fast-check";
+import * as Fc from "fast-check";
 import { describe, expect, it } from "vitest";
 import { cmb } from "../cmb.js";
 import { Ordering, cmp, eq } from "../cmp.js";
@@ -30,10 +30,10 @@ import {
 describe("Num", () => {
 	describe("#[Eq.eq]", () => {
 		it("compares the values strictly", () => {
-			const property = fc.property(arbNum(), arbNum(), (lhs, rhs) => {
+			const property = Fc.property(arbNum(), arbNum(), (lhs, rhs) => {
 				expect(eq(lhs, rhs)).to.equal(lhs.val === rhs.val);
 			});
-			fc.assert(property);
+			Fc.assert(property);
 		});
 
 		it("implements a lawful equivalence relation", () => {
@@ -43,12 +43,12 @@ describe("Num", () => {
 
 	describe("#[Ord.cmp]", () => {
 		it("compares the values as ordered from least to greatest", () => {
-			const property = fc.property(arbNum(), arbNum(), (lhs, rhs) => {
+			const property = Fc.property(arbNum(), arbNum(), (lhs, rhs) => {
 				expect(cmp(lhs, rhs)).to.equal(
 					Ordering.fromNumber(lhs.val - rhs.val),
 				);
 			});
-			fc.assert(property);
+			Fc.assert(property);
 		});
 
 		it("implements a lawful total order", () => {
@@ -60,10 +60,10 @@ describe("Num", () => {
 describe("Str", () => {
 	describe("#[Eq.eq]", () => {
 		it("compares the values strictly", () => {
-			const property = fc.property(arbStr(), arbStr(), (lhs, rhs) => {
+			const property = Fc.property(arbStr(), arbStr(), (lhs, rhs) => {
 				expect(eq(lhs, rhs)).to.equal(lhs.val === rhs.val);
 			});
-			fc.assert(property);
+			Fc.assert(property);
 		});
 
 		it("implements a lawful equivalence relation", () => {
@@ -73,10 +73,10 @@ describe("Str", () => {
 
 	describe("#[Semigroup.cmb]", () => {
 		it("concatenates the values", () => {
-			const property = fc.property(arbStr(), arbStr(), (lhs, rhs) => {
+			const property = Fc.property(arbStr(), arbStr(), (lhs, rhs) => {
 				expect(cmb(lhs, rhs)).to.deep.equal(new Str(lhs.val + rhs.val));
 			});
-			fc.assert(property);
+			Fc.assert(property);
 		});
 
 		it("implements a lawful semigroup", () => {
