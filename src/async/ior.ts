@@ -95,10 +95,7 @@ export namespace AsyncIor {
 					next = await gen.next(ior.val);
 					break;
 				case Ior.Kind.BOTH:
-					fsts =
-						fsts === undefined
-							? ior.fst
-							: (fsts = cmb(fsts, ior.fst));
+					fsts = fsts === undefined ? ior.fst : cmb(fsts, ior.fst);
 					next = await gen.next(ior.snd);
 			}
 		}
