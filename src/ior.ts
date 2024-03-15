@@ -164,10 +164,7 @@ export namespace Ior {
 					next = gen.next(ior.val);
 					break;
 				case Kind.BOTH:
-					fsts =
-						fsts === undefined
-							? ior.fst
-							: (fsts = cmb(fsts, ior.fst));
+					fsts = fsts === undefined ? ior.fst : cmb(fsts, ior.fst);
 					next = gen.next(ior.snd);
 			}
 		}
