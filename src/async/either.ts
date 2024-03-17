@@ -382,19 +382,14 @@ export namespace AsyncEither {
 	 */
 	export function liftPar<TArgs extends unknown[], T>(
 		f: (...args: TArgs) => T | PromiseLike<T>,
-	): <
-		TElems extends {
+	): <E>(
+		...elems: {
 			[K in keyof TArgs]:
-				| Either<any, TArgs[K]>
-				| AsyncEitherLike<any, TArgs[K]>;
-		},
-	>(
-		...elems: TElems
-	) => AsyncEither<
-		Either.LeftT<{ [K in keyof TElems]: Awaited<TElems[K]> }[number]>,
-		T
-	> {
-		return wrapGoFn(async function* (...elems) {
+				| Either<E, TArgs[K]>
+				| AsyncEitherLike<E, TArgs[K]>;
+		}
+	) => AsyncEither<E, T> {
+		return wrapGoFn(async function* (...elems): Go<any, T> {
 			return f(...((yield* await allPar(elems)) as TArgs));
 		});
 	}

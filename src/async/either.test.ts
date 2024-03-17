@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-import { describe, expect, it } from "vitest";
+import { describe, expect, expectTypeOf, it } from "vitest";
 import { TestBuilder } from "../_test/utils.js";
 import { Either } from "../either.js";
 import { delay } from "./_test/utils.js";
-import { AsyncEither } from "./either.js";
+import { AsyncEither, type AsyncEitherLike } from "./either.js";
 
 describe("AsyncEither", () => {
 	describe("go", () => {
@@ -29,6 +29,7 @@ describe("AsyncEither", () => {
 				return [two, four];
 			}
 			const either = await AsyncEither.go(f());
+			expectTypeOf(either).toEqualTypeOf<Either<1 | 3, [2, 4]>>();
 			expect(either).to.deep.equal(Either.left(3));
 		});
 
@@ -41,6 +42,7 @@ describe("AsyncEither", () => {
 				return [two, four];
 			}
 			const either = await AsyncEither.go(f());
+			expectTypeOf(either).toEqualTypeOf<Either<1 | 3, [2, 4]>>();
 			expect(either).to.deep.equal(Either.right([2, 4]));
 		});
 
@@ -55,6 +57,7 @@ describe("AsyncEither", () => {
 				return Promise.resolve([two, four]);
 			}
 			const either = await AsyncEither.go(f());
+			expectTypeOf(either).toEqualTypeOf<Either<1 | 3, [2, 4]>>();
 			expect(either).to.deep.equal(Either.right([2, 4]));
 		});
 
@@ -68,6 +71,7 @@ describe("AsyncEither", () => {
 				}
 			}
 			const either = await AsyncEither.go(f());
+			expectTypeOf(either).toEqualTypeOf<Either<1, 2>>();
 			expect(either).to.deep.equal(Either.left(1));
 			expect(logs).to.deep.equal(["finally"]);
 		});
@@ -81,6 +85,7 @@ describe("AsyncEither", () => {
 				}
 			}
 			const either = await AsyncEither.go(f());
+			expectTypeOf(either).toEqualTypeOf<Either<1 | 3, 2>>();
 			expect(either).to.deep.equal(Either.left(3));
 		});
 	});
@@ -95,18 +100,26 @@ describe("AsyncEither", () => {
 				return [two, four];
 			}
 			const either = await AsyncEither.fromGoFn(f);
+			expectTypeOf(either).toEqualTypeOf<Either<1 | 3, [2, 4]>>();
 			expect(either).to.deep.equal(Either.right([2, 4]));
 		});
 	});
 
 	describe("wrapGoFn", () => {
 		it("adapts the async generator function to return an AsyncEither", async () => {
-			async function* f(two: 2): AsyncEither.Go<never, [2, 4]> {
-				const four = yield* await Promise.resolve(Either.right<4>(4));
+			async function* f(two: 2): AsyncEither.Go<3, [2, 4]> {
+				const four = yield* await Promise.resolve(
+					Either.right<4, 3>(4),
+				);
 				return [two, four];
 			}
 			const wrapped = AsyncEither.wrapGoFn(f);
+			expectTypeOf(wrapped).toEqualTypeOf<
+				(two: 2) => AsyncEither<3, [2, 4]>
+			>();
+
 			const either = await wrapped(2);
+			expectTypeOf(either).toEqualTypeOf<Either<3, [2, 4]>>();
 			expect(either).to.deep.equal(Either.right([2, 4]));
 		});
 	});
@@ -120,9 +133,13 @@ describe("AsyncEither", () => {
 			const either = await AsyncEither.reduce(
 				gen(),
 				(chars, char, idx) =>
-					delay(1).then(() => Either.right(chars + char + idx)),
+					delay(1).then(
+						(): Either<1, string> =>
+							Either.right(chars + char + idx),
+					),
 				"",
 			);
+			expectTypeOf(either).toEqualTypeOf<Either<1, string>>();
 			expect(either).to.deep.equal(Either.right("a0b1"));
 		});
 	});
@@ -137,11 +154,13 @@ describe("AsyncEither", () => {
 			const either = await AsyncEither.traverseInto(
 				gen(),
 				(char, idx) =>
-					delay(1).then(() =>
-						Either.right<[number, string]>([idx, char]),
+					delay(1).then(
+						(): Either<1, [number, string]> =>
+							Either.right([idx, char]),
 					),
 				builder,
 			);
+			expectTypeOf(either).toEqualTypeOf<Either<1, [number, string][]>>();
 			expect(either).to.deep.equal(
 				Either.right([
 					[0, "a"],
@@ -158,10 +177,12 @@ describe("AsyncEither", () => {
 				yield delay(10).then(() => "b");
 			}
 			const either = await AsyncEither.traverse(gen(), (char, idx) =>
-				delay(1).then(() =>
-					Either.right<[number, string]>([idx, char]),
+				delay(1).then(
+					(): Either<1, [number, string]> =>
+						Either.right([idx, char]),
 				),
 			);
+			expectTypeOf(either).toEqualTypeOf<Either<1, [number, string][]>>();
 			expect(either).to.deep.equal(
 				Either.right([
 					[0, "a"],
@@ -173,23 +194,25 @@ describe("AsyncEither", () => {
 
 	describe("allInto", () => {
 		it("collects the successes into the Builder if all elements are Right", async () => {
-			async function* gen(): AsyncGenerator<Either<never, number>> {
+			async function* gen(): AsyncGenerator<Either<1, number>> {
 				yield delay(50).then(() => Either.right(2));
 				yield delay(10).then(() => Either.right(4));
 			}
 			const builder = new TestBuilder<number>();
 			const either = await AsyncEither.allInto(gen(), builder);
+			expectTypeOf(either).toEqualTypeOf<Either<1, number[]>>();
 			expect(either).to.deep.equal(Either.right([2, 4]));
 		});
 	});
 
 	describe("all", () => {
 		it("collects the successes in an array if all elements are Right", async () => {
-			async function* gen(): AsyncGenerator<Either<never, number>> {
+			async function* gen(): AsyncGenerator<Either<1, number>> {
 				yield delay(50).then(() => Either.right(2));
 				yield delay(10).then(() => Either.right(4));
 			}
 			const either = await AsyncEither.all(gen());
+			expectTypeOf(either).toEqualTypeOf<Either<1, number[]>>();
 			expect(either).to.deep.equal(Either.right([2, 4]));
 		});
 	});
@@ -202,11 +225,12 @@ describe("AsyncEither", () => {
 			}
 			const results: [number, string][] = [];
 			const either = await AsyncEither.forEach(gen(), (char, idx) =>
-				delay(1).then(() => {
+				delay(1).then((): Either<1, void> => {
 					results.push([idx, char]);
 					return Either.right(undefined);
 				}),
 			);
+			expectTypeOf(either).toEqualTypeOf<Either<1, void>>();
 			expect(either).to.deep.equal(Either.right(undefined));
 			expect(results).to.deep.equal([
 				[0, "a"],
@@ -220,13 +244,17 @@ describe("AsyncEither", () => {
 			const either = await AsyncEither.traverseIntoPar(
 				["a", "b"],
 				(char, idx) =>
-					delay(char === "a" ? 50 : 10).then(() =>
-						char === "b"
-							? Either.left<[number, string]>([idx, char])
-							: Either.right([idx, char]),
+					delay(char === "a" ? 50 : 10).then(
+						(): Either<[number, string], [number, string]> =>
+							char === "b"
+								? Either.left<[number, string]>([idx, char])
+								: Either.right([idx, char]),
 					),
 				new TestBuilder<[number, string]>(),
 			);
+			expectTypeOf(either).toEqualTypeOf<
+				Either<[number, string], [number, string][]>
+			>();
 			expect(either).to.deep.equal(Either.left([1, "b"]));
 		});
 
@@ -235,11 +263,13 @@ describe("AsyncEither", () => {
 			const either = await AsyncEither.traverseIntoPar(
 				["a", "b"],
 				(char, idx) =>
-					delay(char === "a" ? 50 : 10).then(() =>
-						Either.right([idx, char]),
+					delay(char === "a" ? 50 : 10).then(
+						(): Either<1, [number, string]> =>
+							Either.right([idx, char]),
 					),
 				builder,
 			);
+			expectTypeOf(either).toEqualTypeOf<Either<1, [number, string][]>>();
 			expect(either).to.deep.equal(
 				Either.right([
 					[1, "b"],
@@ -254,10 +284,12 @@ describe("AsyncEither", () => {
 			const either = await AsyncEither.traversePar(
 				["a", "b"],
 				(char, idx) =>
-					delay(char === "a" ? 50 : 10).then(() =>
-						Either.right<[number, string]>([idx, char]),
+					delay(char === "a" ? 50 : 10).then(
+						(): Either<1, [number, string]> =>
+							Either.right([idx, char]),
 					),
 			);
+			expectTypeOf(either).toEqualTypeOf<Either<1, [number, string][]>>();
 			expect(either).to.deep.equal(
 				Either.right([
 					[0, "a"],
@@ -277,6 +309,7 @@ describe("AsyncEither", () => {
 				],
 				builder,
 			);
+			expectTypeOf(either).toEqualTypeOf<Either<1 | 3, number[]>>();
 			expect(either).to.deep.equal(Either.right([4, 2]));
 		});
 	});
@@ -287,6 +320,7 @@ describe("AsyncEither", () => {
 				delay(50).then<Either<1, 2>>(() => Either.right(2)),
 				delay(10).then<Either<3, 4>>(() => Either.right(4)),
 			]);
+			expectTypeOf(either).toEqualTypeOf<Either<1 | 3, [2, 4]>>();
 			expect(either).to.deep.equal(Either.right([2, 4]));
 		});
 	});
@@ -297,6 +331,9 @@ describe("AsyncEither", () => {
 				two: delay(50).then<Either<1, 2>>(() => Either.right(2)),
 				four: delay(10).then<Either<3, 4>>(() => Either.right(4)),
 			});
+			expectTypeOf(either).toEqualTypeOf<
+				Either<1 | 3, { two: 2; four: 4 }>
+			>();
 			expect(either).to.deep.equal(Either.right({ two: 2, four: 4 }));
 		});
 	});
@@ -307,11 +344,12 @@ describe("AsyncEither", () => {
 			const either = await AsyncEither.forEachPar(
 				["a", "b"],
 				(char, idx) =>
-					delay(char === "a" ? 50 : 10).then(() => {
+					delay(char === "a" ? 50 : 10).then((): Either<1, void> => {
 						results.push([idx, char]);
 						return Either.right(undefined);
 					}),
 			);
+			expectTypeOf(either).toEqualTypeOf<Either<1, void>>();
 			expect(either).to.deep.equal(Either.right(undefined));
 			expect(results).to.deep.equal([
 				[1, "b"],
@@ -325,10 +363,19 @@ describe("AsyncEither", () => {
 			async function f<A, B>(lhs: A, rhs: B): Promise<[A, B]> {
 				return [lhs, rhs];
 			}
-			const either = await AsyncEither.liftPar(f<2, 4>)(
+			const lifted = AsyncEither.liftPar(f<2, 4>);
+			expectTypeOf(lifted).toEqualTypeOf<
+				<E>(
+					lhs: Either<E, 2> | AsyncEitherLike<E, 2>,
+					rhs: Either<E, 4> | AsyncEitherLike<E, 4>,
+				) => AsyncEither<E, [2, 4]>
+			>();
+
+			const either = await lifted(
 				delay(50).then(() => Either.right<2, 1>(2)),
 				delay(10).then(() => Either.right<4, 3>(4)),
 			);
+			expectTypeOf(either).toEqualTypeOf<Either<1 | 3, [2, 4]>>();
 			expect(either).to.deep.equal(Either.right([2, 4]));
 		});
 	});

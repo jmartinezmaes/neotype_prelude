@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-import { describe, expect, it } from "vitest";
+import { describe, expect, expectTypeOf, it } from "vitest";
 import { TestBuilder } from "../_test/utils.js";
 import { Maybe } from "../maybe.js";
 import { delay } from "./_test/utils.js";
-import { AsyncMaybe } from "./maybe.js";
+import { AsyncMaybe, type AsyncMaybeLike } from "./maybe.js";
 
 describe("AsyncMaybe", () => {
 	describe("go", async () => {
@@ -29,6 +29,7 @@ describe("AsyncMaybe", () => {
 				return [one, two];
 			}
 			const maybe = await AsyncMaybe.go(f());
+			expectTypeOf(maybe).toEqualTypeOf<Maybe<[1, 2]>>();
 			expect(maybe).to.equal(Maybe.nothing);
 		});
 
@@ -39,6 +40,7 @@ describe("AsyncMaybe", () => {
 				return [one, two];
 			}
 			const maybe = await AsyncMaybe.go(f());
+			expectTypeOf(maybe).toEqualTypeOf<Maybe<[1, 2]>>();
 			expect(maybe).to.deep.equal(Maybe.just([1, 2]));
 		});
 
@@ -53,6 +55,7 @@ describe("AsyncMaybe", () => {
 				return Promise.resolve([one, two]);
 			}
 			const maybe = await AsyncMaybe.go(f());
+			expectTypeOf(maybe).toEqualTypeOf<Maybe<[1, 2]>>();
 			expect(maybe).to.deep.equal(Maybe.just([1, 2]));
 		});
 
@@ -66,6 +69,7 @@ describe("AsyncMaybe", () => {
 				}
 			}
 			const maybe = await AsyncMaybe.go(f());
+			expectTypeOf(maybe).toEqualTypeOf<Maybe<1>>();
 			expect(maybe).to.equal(Maybe.nothing);
 			expect(logs).to.deep.equal(["finally"]);
 		});
@@ -79,6 +83,7 @@ describe("AsyncMaybe", () => {
 				}
 			}
 			const maybe = await AsyncMaybe.go(f());
+			expectTypeOf(maybe).toEqualTypeOf<Maybe<1>>();
 			expect(maybe).to.equal(Maybe.nothing);
 		});
 	});
@@ -91,19 +96,25 @@ describe("AsyncMaybe", () => {
 				return [one, two];
 			}
 			const maybe = await AsyncMaybe.fromGoFn(f);
+			expectTypeOf(maybe).toEqualTypeOf<Maybe<[1, 2]>>();
 			expect(maybe).to.deep.equal(Maybe.just([1, 2]));
 		});
 	});
 
 	describe("wrapGoFn", () => {
 		it("adapts the async generator function to return an AsyncMaybe", async () => {
-			async function* f(two: 2): AsyncMaybe.Go<[2, 4]> {
-				const four = yield* await Promise.resolve(Maybe.just<4>(4));
-				return [two, four];
+			async function* f(one: 1): AsyncMaybe.Go<[1, 2]> {
+				const two = yield* await Promise.resolve(Maybe.just<2>(2));
+				return [one, two];
 			}
 			const wrapped = AsyncMaybe.wrapGoFn(f);
-			const maybe = await wrapped(2);
-			expect(maybe).to.deep.equal(Maybe.just([2, 4]));
+			expectTypeOf(wrapped).toEqualTypeOf<
+				(one: 1) => AsyncMaybe<[1, 2]>
+			>();
+
+			const maybe = await wrapped(1);
+			expectTypeOf(maybe).toEqualTypeOf<Maybe<[1, 2]>>();
+			expect(maybe).to.deep.equal(Maybe.just([1, 2]));
 		});
 	});
 
@@ -119,6 +130,7 @@ describe("AsyncMaybe", () => {
 					delay(1).then(() => Maybe.just(chars + char + idx)),
 				"",
 			);
+			expectTypeOf(maybe).toEqualTypeOf<Maybe<string>>();
 			expect(maybe).to.deep.equal(Maybe.just("a0b1"));
 		});
 	});
@@ -138,6 +150,7 @@ describe("AsyncMaybe", () => {
 					),
 				builder,
 			);
+			expectTypeOf(maybe).toEqualTypeOf<Maybe<[number, string][]>>();
 			expect(maybe).to.deep.equal(
 				Maybe.just([
 					[0, "a"],
@@ -156,6 +169,7 @@ describe("AsyncMaybe", () => {
 			const maybe = await AsyncMaybe.traverse(gen(), (char, idx) =>
 				delay(1).then(() => Maybe.just<[number, string]>([idx, char])),
 			);
+			expectTypeOf(maybe).toEqualTypeOf<Maybe<[number, string][]>>();
 			expect(maybe).to.deep.equal(
 				Maybe.just([
 					[0, "a"],
@@ -173,6 +187,7 @@ describe("AsyncMaybe", () => {
 			}
 			const builder = new TestBuilder<number>();
 			const maybe = await AsyncMaybe.allInto(gen(), builder);
+			expectTypeOf(maybe).toEqualTypeOf<Maybe<number[]>>();
 			expect(maybe).to.deep.equal(Maybe.just([1, 2]));
 		});
 	});
@@ -184,6 +199,7 @@ describe("AsyncMaybe", () => {
 				yield delay(10).then(() => Maybe.just(2));
 			}
 			const maybe = await AsyncMaybe.all(gen());
+			expectTypeOf(maybe).toEqualTypeOf<Maybe<number[]>>();
 			expect(maybe).to.deep.equal(Maybe.just([1, 2]));
 		});
 	});
@@ -196,11 +212,12 @@ describe("AsyncMaybe", () => {
 			}
 			const results: [number, string][] = [];
 			const maybe = await AsyncMaybe.forEach(gen(), (char, idx) =>
-				delay(1).then(() => {
+				delay(1).then((): Maybe<void> => {
 					results.push([idx, char]);
 					return Maybe.just(undefined);
 				}),
 			);
+			expectTypeOf(maybe).toEqualTypeOf<Maybe<void>>();
 			expect(maybe).to.deep.equal(Maybe.just(undefined));
 			expect(results).to.deep.equal([
 				[0, "a"],
@@ -214,11 +231,15 @@ describe("AsyncMaybe", () => {
 			const maybe = await AsyncMaybe.traverseIntoPar(
 				["a", "b"],
 				(char, idx) =>
-					delay(char === "a" ? 50 : 10).then(() =>
-						char === "a" ? Maybe.nothing : Maybe.just([idx, char]),
+					delay(char === "a" ? 50 : 10).then(
+						(): Maybe<[number, string]> =>
+							char === "a"
+								? Maybe.nothing
+								: Maybe.just([idx, char]),
 					),
 				new TestBuilder<[number, string]>(),
 			);
+			expectTypeOf(maybe).toEqualTypeOf<Maybe<[number, string][]>>();
 			expect(maybe).to.equal(Maybe.nothing);
 		});
 
@@ -227,11 +248,12 @@ describe("AsyncMaybe", () => {
 			const maybe = await AsyncMaybe.traverseIntoPar(
 				["a", "b"],
 				(char, idx) =>
-					delay(char === "a" ? 50 : 10).then(() =>
-						Maybe.just([idx, char]),
+					delay(char === "a" ? 50 : 10).then(
+						(): Maybe<[number, string]> => Maybe.just([idx, char]),
 					),
 				builder,
 			);
+			expectTypeOf(maybe).toEqualTypeOf<Maybe<[number, string][]>>();
 			expect(maybe).to.deep.equal(
 				Maybe.just([
 					[1, "b"],
@@ -246,10 +268,11 @@ describe("AsyncMaybe", () => {
 			const maybe = await AsyncMaybe.traversePar(
 				["a", "b"],
 				(char, idx) =>
-					delay(char === "a" ? 50 : 10).then(() =>
-						Maybe.just<[number, string]>([idx, char]),
+					delay(char === "a" ? 50 : 10).then(
+						(): Maybe<[number, string]> => Maybe.just([idx, char]),
 					),
 			);
+			expectTypeOf(maybe).toEqualTypeOf<Maybe<[number, string][]>>();
 			expect(maybe).to.deep.equal(
 				Maybe.just([
 					[0, "a"],
@@ -269,6 +292,7 @@ describe("AsyncMaybe", () => {
 				],
 				builder,
 			);
+			expectTypeOf(maybe).toEqualTypeOf<Maybe<number[]>>();
 			expect(maybe).to.deep.equal(Maybe.just([2, 1]));
 		});
 	});
@@ -279,6 +303,7 @@ describe("AsyncMaybe", () => {
 				delay(50).then<Maybe<1>>(() => Maybe.just(1)),
 				delay(10).then<Maybe<2>>(() => Maybe.just(2)),
 			]);
+			expectTypeOf(maybe).toEqualTypeOf<Maybe<[1, 2]>>();
 			expect(maybe).to.deep.equal(Maybe.just([1, 2]));
 		});
 	});
@@ -289,6 +314,7 @@ describe("AsyncMaybe", () => {
 				one: delay(50).then<Maybe<1>>(() => Maybe.just(1)),
 				two: delay(10).then<Maybe<2>>(() => Maybe.just(2)),
 			});
+			expectTypeOf(maybe).toEqualTypeOf<Maybe<{ one: 1; two: 2 }>>();
 			expect(maybe).to.deep.equal(Maybe.just({ one: 1, two: 2 }));
 		});
 	});
@@ -297,11 +323,12 @@ describe("AsyncMaybe", () => {
 		it("applies the function to the elements and continues while the result is Just", async () => {
 			const results: [number, string][] = [];
 			const maybe = await AsyncMaybe.forEachPar(["a", "b"], (char, idx) =>
-				delay(char === "a" ? 50 : 10).then(() => {
+				delay(char === "a" ? 50 : 10).then((): Maybe<void> => {
 					results.push([idx, char]);
 					return Maybe.just(undefined);
 				}),
 			);
+			expectTypeOf(maybe).toEqualTypeOf<Maybe<void>>();
 			expect(maybe).to.deep.equal(Maybe.just(undefined));
 			expect(results).to.deep.equal([
 				[1, "b"],
@@ -315,10 +342,19 @@ describe("AsyncMaybe", () => {
 			async function f<A, B>(lhs: A, rhs: B): Promise<[A, B]> {
 				return [lhs, rhs];
 			}
-			const maybe = await AsyncMaybe.liftPar(f)(
+			const lifted = AsyncMaybe.liftPar(f);
+			expectTypeOf(lifted).toEqualTypeOf<
+				<A, B>(
+					lhs: Maybe<A> | AsyncMaybeLike<A>,
+					rhs: Maybe<B> | AsyncMaybeLike<B>,
+				) => AsyncMaybe<[A, B]>
+			>();
+
+			const maybe = await lifted(
 				delay(50).then(() => Maybe.just<1>(1)),
 				delay(10).then(() => Maybe.just<2>(2)),
 			);
+			expectTypeOf(maybe).toEqualTypeOf<Maybe<[1, 2]>>();
 			expect(maybe).to.deep.equal(Maybe.just([1, 2]));
 		});
 	});

@@ -14,11 +14,12 @@
  * limitations under the License.
  */
 
-import { describe, expect, it } from "vitest";
+import { describe, expect, expectTypeOf, it } from "vitest";
 import { Str, TestBuilder } from "../_test/utils.js";
 import { Validation } from "../validation.js";
 import { delay } from "./_test/utils.js";
-import { AsyncValidation } from "./validation.js";
+import { AsyncValidation, type AsyncValidationLike } from "./validation.js";
+import type { Semigroup } from "../cmb.js";
 
 describe("AsyncValidation", () => {
 	describe("traverseInto", () => {
@@ -31,11 +32,15 @@ describe("AsyncValidation", () => {
 			const vdn = await AsyncValidation.traverseInto(
 				gen(),
 				(char, idx) =>
-					delay(1).then(() =>
-						Validation.ok<[number, string], Str>([idx, char]),
+					delay(1).then(
+						(): Validation<Str, [number, string]> =>
+							Validation.ok([idx, char]),
 					),
 				builder,
 			);
+			expectTypeOf(vdn).toEqualTypeOf<
+				Validation<Str, [number, string][]>
+			>();
 			expect(vdn).to.deep.equal(
 				Validation.ok([
 					[0, "a"],
@@ -52,10 +57,14 @@ describe("AsyncValidation", () => {
 				yield delay(10).then(() => "b");
 			}
 			const vdn = await AsyncValidation.traverse(gen(), (char, idx) =>
-				delay(1).then(() =>
-					Validation.ok<[number, string], Str>([idx, char]),
+				delay(1).then(
+					(): Validation<Str, [number, string]> =>
+						Validation.ok([idx, char]),
 				),
 			);
+			expectTypeOf(vdn).toEqualTypeOf<
+				Validation<Str, [number, string][]>
+			>();
 			expect(vdn).to.deep.equal(
 				Validation.ok([
 					[0, "a"],
@@ -73,6 +82,7 @@ describe("AsyncValidation", () => {
 			}
 			const builder = new TestBuilder<number>();
 			const vdn = await AsyncValidation.allInto(gen(), builder);
+			expectTypeOf(vdn).toEqualTypeOf<Validation<Str, number[]>>();
 			expect(vdn).to.deep.equal(Validation.ok([2, 4]));
 		});
 	});
@@ -84,6 +94,7 @@ describe("AsyncValidation", () => {
 				yield delay(50).then(() => Validation.ok(4));
 			}
 			const vdn = await AsyncValidation.all(gen());
+			expectTypeOf(vdn).toEqualTypeOf<Validation<Str, number[]>>();
 			expect(vdn).to.deep.equal(Validation.ok([2, 4]));
 		});
 	});
@@ -96,11 +107,12 @@ describe("AsyncValidation", () => {
 			}
 			const results: [number, string][] = [];
 			const vdn = await AsyncValidation.forEach(gen(), (char, idx) =>
-				delay(1).then(() => {
+				delay(1).then((): Validation<Str, void> => {
 					results.push([idx, char]);
-					return Validation.ok<undefined, Str>(undefined);
+					return Validation.ok(undefined);
 				}),
 			);
+			expectTypeOf(vdn).toEqualTypeOf<Validation<Str, void>>();
 			expect(vdn).to.deep.equal(Validation.ok(undefined));
 			expect(results).to.deep.equal([
 				[0, "a"],
@@ -114,11 +126,15 @@ describe("AsyncValidation", () => {
 			const vdn = await AsyncValidation.traverseIntoPar(
 				["a", "b"],
 				(char, idx) =>
-					delay(char === "a" ? 50 : 10).then(() =>
-						Validation.err(new Str(idx.toString() + char)),
+					delay(char === "a" ? 50 : 10).then(
+						(): Validation<Str, [number, string]> =>
+							Validation.err(new Str(idx.toString() + char)),
 					),
 				new TestBuilder<[number, string]>(),
 			);
+			expectTypeOf(vdn).toEqualTypeOf<
+				Validation<Str, [number, string][]>
+			>();
 			expect(vdn).to.deep.equal(Validation.err(new Str("1b0a")));
 		});
 
@@ -127,11 +143,15 @@ describe("AsyncValidation", () => {
 			const vdn = await AsyncValidation.traverseIntoPar(
 				["a", "b"],
 				(char, idx) =>
-					delay(char === "a" ? 50 : 10).then(() =>
-						Validation.ok<[number, string], Str>([idx, char]),
+					delay(char === "a" ? 50 : 10).then(
+						(): Validation<Str, [number, string]> =>
+							Validation.ok([idx, char]),
 					),
 				builder,
 			);
+			expectTypeOf(vdn).toEqualTypeOf<
+				Validation<Str, [number, string][]>
+			>();
 			expect(vdn).to.deep.equal(
 				Validation.ok([
 					[1, "b"],
@@ -146,10 +166,14 @@ describe("AsyncValidation", () => {
 			const vdn = await AsyncValidation.traversePar(
 				["a", "b"],
 				(char, idx) =>
-					delay(char === "a" ? 50 : 10).then(() =>
-						Validation.ok<[number, string], Str>([idx, char]),
+					delay(char === "a" ? 50 : 10).then(
+						(): Validation<Str, [number, string]> =>
+							Validation.ok([idx, char]),
 					),
 			);
+			expectTypeOf(vdn).toEqualTypeOf<
+				Validation<Str, [number, string][]>
+			>();
 			expect(vdn).to.deep.equal(
 				Validation.ok([
 					[0, "a"],
@@ -169,6 +193,7 @@ describe("AsyncValidation", () => {
 				],
 				builder,
 			);
+			expectTypeOf(vdn).toEqualTypeOf<Validation<Str, number[]>>();
 			expect(vdn).to.deep.equal(Validation.ok([4, 2]));
 		});
 	});
@@ -179,6 +204,7 @@ describe("AsyncValidation", () => {
 				delay(50).then<Validation<Str, 2>>(() => Validation.ok(2)),
 				delay(10).then<Validation<Str, 4>>(() => Validation.ok(4)),
 			]);
+			expectTypeOf(vdn).toEqualTypeOf<Validation<Str, [2, 4]>>();
 			expect(vdn).to.deep.equal(Validation.ok([2, 4]));
 		});
 	});
@@ -191,6 +217,9 @@ describe("AsyncValidation", () => {
 					Validation.ok(4),
 				),
 			});
+			expectTypeOf(vdn).toEqualTypeOf<
+				Validation<Str, { two: 2; four: 4 }>
+			>();
 			expect(vdn).to.deep.equal(Validation.ok({ two: 2, four: 4 }));
 		});
 	});
@@ -201,11 +230,14 @@ describe("AsyncValidation", () => {
 			const vdn = await AsyncValidation.forEachPar(
 				["a", "b"],
 				(char, idx) =>
-					delay(char === "a" ? 50 : 10).then(() => {
-						results.push([idx, char]);
-						return Validation.ok<undefined, Str>(undefined);
-					}),
+					delay(char === "a" ? 50 : 10).then(
+						(): Validation<Str, void> => {
+							results.push([idx, char]);
+							return Validation.ok(undefined);
+						},
+					),
 			);
+			expectTypeOf(vdn).toEqualTypeOf<Validation<Str, void>>();
 			expect(vdn).to.deep.equal(Validation.ok(undefined));
 			expect(results).to.deep.equal([
 				[1, "b"],
@@ -219,12 +251,21 @@ describe("AsyncValidation", () => {
 			async function f<A, B>(lhs: A, rhs: B): Promise<[A, B]> {
 				return [lhs, rhs];
 			}
-			const vdn = await AsyncValidation.liftPar(f<2, 4>)(
-				delay(50).then<Validation<Str, 2>>(() =>
-					Validation.err(new Str("a")),
+			const lifted = AsyncValidation.liftPar(f<2, 4>);
+			expectTypeOf(lifted).toEqualTypeOf<
+				<E extends Semigroup<E>>(
+					lhs: Validation<E, 2> | AsyncValidationLike<E, 2>,
+					rhs: Validation<E, 4> | AsyncValidationLike<E, 4>,
+				) => AsyncValidation<E, [2, 4]>
+			>();
+
+			const vdn = await lifted(
+				delay(50).then(
+					(): Validation<Str, 2> => Validation.err(new Str("a")),
 				),
-				delay(10).then<Validation<Str, 4>>(() => Validation.ok(4)),
+				delay(10).then((): Validation<Str, 4> => Validation.ok(4)),
 			);
+			expectTypeOf(vdn).toEqualTypeOf<Validation<Str, [2, 4]>>();
 			expect(vdn).to.deep.equal(Validation.err(new Str("a")));
 		});
 
@@ -233,8 +274,8 @@ describe("AsyncValidation", () => {
 				return [lhs, rhs];
 			}
 			const vdn = await AsyncValidation.liftPar(f<2, 4>)(
-				delay(50).then<Validation<Str, 2>>(() => Validation.ok(2)),
-				delay(10).then<Validation<Str, 4>>(() => Validation.ok(4)),
+				delay(50).then((): Validation<Str, 2> => Validation.ok(2)),
+				delay(10).then((): Validation<Str, 4> => Validation.ok(4)),
 			);
 			expect(vdn).to.deep.equal(Validation.ok([2, 4]));
 		});
