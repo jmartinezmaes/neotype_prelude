@@ -246,7 +246,7 @@ describe("Maybe", () => {
 			const builder = new TestBuilder<[number, string]>();
 			const maybe = Maybe.traverseInto(
 				["a", "b"],
-				(char, idx) => Maybe.just<[number, string]>([idx, char]),
+				(char, idx): Maybe<[number, string]> => Maybe.just([idx, char]),
 				builder,
 			);
 			expectTypeOf(maybe).toEqualTypeOf<Maybe<[number, string][]>>();

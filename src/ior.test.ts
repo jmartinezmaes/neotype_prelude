@@ -310,7 +310,8 @@ describe("Ior", () => {
 			const builder = new TestBuilder<[number, string]>();
 			const ior = Ior.traverseInto(
 				["a", "b"],
-				(char, idx) => Ior.both(new Str(char), [idx, char]),
+				(char, idx): Ior<Str, [number, string]> =>
+					Ior.both(new Str(char), [idx, char]),
 				builder,
 			);
 			expectTypeOf(ior).toEqualTypeOf<Ior<Str, [number, string][]>>();

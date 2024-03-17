@@ -202,7 +202,8 @@ describe("Annotation", () => {
 			const builder = new TestBuilder<[number, string]>();
 			const anno = Annotation.traverseInto(
 				["a", "b"],
-				(char, idx) => Annotation.note([idx, char], new Str(char)),
+				(char, idx): Annotation<[number, string], Str> =>
+					Annotation.note([idx, char], new Str(char)),
 				builder,
 			);
 			expectTypeOf(anno).toEqualTypeOf<
