@@ -154,17 +154,17 @@ describe("Either", () => {
 
 	describe("wrapGoFn", () => {
 		it("adapts the generator function to return an Either", () => {
-			function* f(two: 2): Either.Go<never, [2, 4]> {
-				const four = yield* Either.right<4>(4);
+			function* f(two: 2): Either.Go<3, [2, 4]> {
+				const four = yield* Either.right<4, 3>(4);
 				return [two, four];
 			}
 			const wrapped = Either.wrapGoFn(f);
 			expectTypeOf(wrapped).toEqualTypeOf<
-				(two: 2) => Either<never, [2, 4]>
+				(two: 2) => Either<3, [2, 4]>
 			>();
 
 			const either = wrapped(2);
-			expectTypeOf(either).toEqualTypeOf<Either<never, [2, 4]>>();
+			expectTypeOf(either).toEqualTypeOf<Either<3, [2, 4]>>();
 			expect(either).to.deep.equal(Either.right([2, 4]));
 		});
 	});
@@ -173,8 +173,8 @@ describe("Either", () => {
 		it("reduces the finite iterable from left to right in the context of Either", () => {
 			const either = Either.reduce(
 				["a", "b"],
-				(chars, char, idx) =>
-					Either.right<string, 1>(chars + char + idx),
+				(chars, char, idx): Either<1, string> =>
+					Either.right(chars + char + idx),
 				"",
 			);
 			expectTypeOf(either).toEqualTypeOf<Either<1, string>>();
@@ -187,12 +187,11 @@ describe("Either", () => {
 			const builder = new TestBuilder<[number, string]>();
 			const either = Either.traverseInto(
 				["a", "b"],
-				(char, idx) => Either.right<[number, string]>([idx, char]),
+				(char, idx): Either<1, [number, string]> =>
+					Either.right([idx, char]),
 				builder,
 			);
-			expectTypeOf(either).toEqualTypeOf<
-				Either<never, [number, string][]>
-			>();
+			expectTypeOf(either).toEqualTypeOf<Either<1, [number, string][]>>();
 			expect(either).to.deep.equal(
 				Either.right([
 					[0, "a"],
@@ -204,12 +203,12 @@ describe("Either", () => {
 
 	describe("traverse", () => {
 		it("applies the function to the elements and collects the successes in an array if all results are Right", () => {
-			const either = Either.traverse(["a", "b"], (char, idx) =>
-				Either.right<[number, string]>([idx, char]),
+			const either = Either.traverse(
+				["a", "b"],
+				(char, idx): Either<1, [number, string]> =>
+					Either.right([idx, char]),
 			);
-			expectTypeOf(either).toEqualTypeOf<
-				Either<never, [number, string][]>
-			>();
+			expectTypeOf(either).toEqualTypeOf<Either<1, [number, string][]>>();
 			expect(either).to.deep.equal(
 				Either.right([
 					[0, "a"],
@@ -258,11 +257,14 @@ describe("Either", () => {
 	describe("forEach", () => {
 		it("applies the function to the elements while the result is Right", () => {
 			const results: [number, string][] = [];
-			const either = Either.forEach(["a", "b"], (char, idx) => {
-				results.push([idx, char]);
-				return Either.right(undefined);
-			});
-			expectTypeOf(either).toEqualTypeOf<Either<never, void>>();
+			const either = Either.forEach(
+				["a", "b"],
+				(char, idx): Either<1, void> => {
+					results.push([idx, char]);
+					return Either.right(undefined);
+				},
+			);
+			expectTypeOf(either).toEqualTypeOf<Either<1, void>>();
 			expect(either).to.deep.equal(Either.right(undefined));
 			expect(results).to.deep.equal([
 				[0, "a"],

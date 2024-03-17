@@ -325,8 +325,10 @@ describe("Ior", () => {
 
 	describe("traverse", () => {
 		it("applies the function to the elements and collects the right-hand values in an array if no results are Left", () => {
-			const ior = Ior.traverse(["a", "b"], (char, idx) =>
-				Ior.both<Str, [number, string]>(new Str(char), [idx, char]),
+			const ior = Ior.traverse(
+				["a", "b"],
+				(char, idx): Ior<Str, [number, string]> =>
+					Ior.both(new Str(char), [idx, char]),
 			);
 			expectTypeOf(ior).toEqualTypeOf<Ior<Str, [number, string][]>>();
 			expect(ior).to.deep.equal(

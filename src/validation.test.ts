@@ -93,8 +93,8 @@ describe("Validation", () => {
 			const builder = new TestBuilder<[number, string]>();
 			const vdn = Validation.traverseInto(
 				["a", "b"],
-				(char, idx) =>
-					Validation.ok<[number, string], Str>([idx, char]),
+				(char, idx): Validation<Str, [number, string]> =>
+					Validation.ok([idx, char]),
 				builder,
 			);
 			expectTypeOf(vdn).toEqualTypeOf<
@@ -111,8 +111,10 @@ describe("Validation", () => {
 
 	describe("traverse", () => {
 		it("applies the function to the elements and collects the successes in an array if all results are Ok", () => {
-			const vdn = Validation.traverse(["a", "b"], (char, idx) =>
-				Validation.ok<[number, string], Str>([idx, char]),
+			const vdn = Validation.traverse(
+				["a", "b"],
+				(char, idx): Validation<Str, [number, string]> =>
+					Validation.ok([idx, char]),
 			);
 			expectTypeOf(vdn).toEqualTypeOf<
 				Validation<Str, [number, string][]>
@@ -165,10 +167,13 @@ describe("Validation", () => {
 	describe("forEach", () => {
 		it("applies the function to the elements while the result is Ok", () => {
 			const results: [number, string][] = [];
-			const vdn = Validation.forEach(["a", "b"], (char, idx) => {
-				results.push([idx, char]);
-				return Validation.ok<undefined, Str>(undefined);
-			});
+			const vdn = Validation.forEach(
+				["a", "b"],
+				(char, idx): Validation<Str, void> => {
+					results.push([idx, char]);
+					return Validation.ok(undefined);
+				},
+			);
 			expectTypeOf(vdn).toEqualTypeOf<Validation<Str, void>>();
 			expect(vdn).to.deep.equal(Validation.ok(undefined));
 			expect(results).to.deep.equal([

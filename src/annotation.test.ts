@@ -222,11 +222,10 @@ describe("Annotation", () => {
 
 	describe("traverse", () => {
 		it("applies the function to the elements and collects the values in an array", () => {
-			const anno = Annotation.traverse(["a", "b"], (char, idx) =>
-				Annotation.note<[number, string], Str>(
-					[idx, char],
-					new Str(char),
-				),
+			const anno = Annotation.traverse(
+				["a", "b"],
+				(char, idx): Annotation<[number, string], Str> =>
+					Annotation.note([idx, char], new Str(char)),
 			);
 			expectTypeOf(anno).toEqualTypeOf<
 				Annotation<[number, string][], Str>
