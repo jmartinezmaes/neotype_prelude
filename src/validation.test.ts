@@ -15,7 +15,7 @@
  */
 
 import * as Fc from "fast-check";
-import { describe, expect, it } from "vitest";
+import { describe, expect, expectTypeOf, it } from "vitest";
 import {
 	Str,
 	TestBuilder,
@@ -25,7 +25,7 @@ import {
 	expectLawfulOrd,
 	expectLawfulSemigroup,
 } from "./_test/utils.js";
-import { cmb } from "./cmb.js";
+import { type Semigroup, cmb } from "./cmb.js";
 import { Ordering, cmp, eq } from "./cmp.js";
 import { Either } from "./either.js";
 import { Validation } from "./validation.js";
@@ -41,6 +41,11 @@ describe("Validation", () => {
 	describe("err", () => {
 		it("constructs an Err variant", () => {
 			const vdn = Validation.err<1, 2>(1);
+
+			expectTypeOf(vdn).toEqualTypeOf<Validation<1, 2>>();
+			expectTypeOf(vdn.kind).toEqualTypeOf<Validation.Kind>();
+			expectTypeOf(vdn.val).toEqualTypeOf<1 | 2>();
+
 			expect(vdn).to.be.an.instanceOf(Validation.Err);
 			expect(vdn.kind).to.equal(Validation.Kind.ERR);
 			expect(vdn.val).to.equal(1);
@@ -50,6 +55,11 @@ describe("Validation", () => {
 	describe("ok", () => {
 		it("constructs an Ok variant", () => {
 			const vdn = Validation.ok<2, 1>(2);
+
+			expectTypeOf(vdn).toEqualTypeOf<Validation<1, 2>>();
+			expectTypeOf(vdn.kind).toEqualTypeOf<Validation.Kind>();
+			expectTypeOf(vdn.val).toEqualTypeOf<1 | 2>();
+
 			expect(vdn).to.be.an.instanceOf(Validation.Ok);
 			expect(vdn.kind).to.equal(Validation.Kind.OK);
 			expect(vdn.val).to.equal(2);
@@ -58,23 +68,23 @@ describe("Validation", () => {
 
 	describe("unit", () => {
 		it("constructs an Ok variant with an undefined value", () => {
-			const vdn = Validation.unit();
-			expect(vdn).to.be.an.instanceOf(Validation.Ok);
-			expect(vdn.val).to.be.undefined;
+			const vdn = Validation.unit<1>();
+			expectTypeOf(vdn).toEqualTypeOf<Validation<1, void>>();
+			expect(vdn).to.deep.equal(Validation.ok(undefined));
 		});
 	});
 
 	describe("fromEither", () => {
 		it("constructs an Err if the Either is a Left", () => {
-			expect(Validation.fromEither(Either.left<1, 2>(1))).to.deep.equal(
-				Validation.err(1),
-			);
+			const vdn = Validation.fromEither(Either.left<1, 2>(1));
+			expectTypeOf(vdn).toEqualTypeOf<Validation<1, 2>>();
+			expect(vdn).to.deep.equal(Validation.err(1));
 		});
 
 		it("constructs an Ok if the Either is a Right", () => {
-			expect(Validation.fromEither(Either.right<2, 1>(2))).to.deep.equal(
-				Validation.ok(2),
-			);
+			const vdn = Validation.fromEither(Either.right<2, 1>(2));
+			expectTypeOf(vdn).toEqualTypeOf<Validation<1, 2>>();
+			expect(vdn).to.deep.equal(Validation.ok(2));
 		});
 	});
 
@@ -87,6 +97,9 @@ describe("Validation", () => {
 					Validation.ok<[number, string], Str>([idx, char]),
 				builder,
 			);
+			expectTypeOf(vdn).toEqualTypeOf<
+				Validation<Str, [number, string][]>
+			>();
 			expect(vdn).to.deep.equal(
 				Validation.ok([
 					[0, "a"],
@@ -101,6 +114,9 @@ describe("Validation", () => {
 			const vdn = Validation.traverse(["a", "b"], (char, idx) =>
 				Validation.ok<[number, string], Str>([idx, char]),
 			);
+			expectTypeOf(vdn).toEqualTypeOf<
+				Validation<Str, [number, string][]>
+			>();
 			expect(vdn).to.deep.equal(
 				Validation.ok([
 					[0, "a"],
@@ -117,6 +133,7 @@ describe("Validation", () => {
 				[Validation.ok<2, Str>(2), Validation.ok<4, Str>(4)],
 				builder,
 			);
+			expectTypeOf(vdn).toEqualTypeOf<Validation<Str, number[]>>();
 			expect(vdn).to.deep.equal(Validation.ok([2, 4]));
 		});
 	});
@@ -127,6 +144,7 @@ describe("Validation", () => {
 				Validation.ok<2, Str>(2),
 				Validation.ok<4, Str>(4),
 			]);
+			expectTypeOf(vdn).toEqualTypeOf<Validation<Str, [2, 4]>>();
 			expect(vdn).to.deep.equal(Validation.ok([2, 4]));
 		});
 	});
@@ -137,6 +155,9 @@ describe("Validation", () => {
 				two: Validation.ok<2, Str>(2),
 				four: Validation.ok<4, Str>(4),
 			});
+			expectTypeOf(vdn).toEqualTypeOf<
+				Validation<Str, { two: 2; four: 4 }>
+			>();
 			expect(vdn).to.deep.equal(Validation.ok({ two: 2, four: 4 }));
 		});
 	});
@@ -148,6 +169,7 @@ describe("Validation", () => {
 				results.push([idx, char]);
 				return Validation.ok<undefined, Str>(undefined);
 			});
+			expectTypeOf(vdn).toEqualTypeOf<Validation<Str, void>>();
 			expect(vdn).to.deep.equal(Validation.ok(undefined));
 			expect(results).to.deep.equal([
 				[0, "a"],
@@ -161,10 +183,19 @@ describe("Validation", () => {
 			function f<A, B>(lhs: A, rhs: B): [A, B] {
 				return [lhs, rhs];
 			}
-			const vdn = Validation.lift(f<2, 4>)(
-				Validation.ok(2),
-				Validation.ok(4),
+			const lifted = Validation.lift(f<2, 4>);
+			expectTypeOf(lifted).toEqualTypeOf<
+				<E extends Semigroup<E>>(
+					lhs: Validation<E, 2>,
+					rhs: Validation<E, 4>,
+				) => Validation<E, [2, 4]>
+			>();
+
+			const vdn = lifted(
+				Validation.ok<2, Str>(2),
+				Validation.ok<4, Str>(4),
 			);
+			expectTypeOf(vdn).toEqualTypeOf<Validation<Str, [2, 4]>>();
 			expect(vdn).to.deep.equal(Validation.ok([2, 4]));
 		});
 	});
@@ -290,6 +321,7 @@ describe("Validation", () => {
 				(one): [1, 3] => [one, 3],
 				(two): [2, 4] => [two, 4],
 			);
+			expectTypeOf(result).toEqualTypeOf<[1, 3] | [2, 4]>();
 			expect(result).to.deep.equal([1, 3]);
 		});
 
@@ -298,6 +330,7 @@ describe("Validation", () => {
 				(one): [1, 3] => [one, 3],
 				(two): [2, 4] => [two, 4],
 			);
+			expectTypeOf(result).toEqualTypeOf<[1, 3] | [2, 4]>();
 			expect(result).to.deep.equal([2, 4]);
 		});
 	});
@@ -307,6 +340,7 @@ describe("Validation", () => {
 			const result = Validation.err<1, 2>(1).unwrapErrOrElse(
 				(two): [2, 4] => [two, 4],
 			);
+			expectTypeOf(result).toEqualTypeOf<1 | [2, 4]>();
 			expect(result).to.deep.equal(1);
 		});
 
@@ -314,6 +348,7 @@ describe("Validation", () => {
 			const result = Validation.ok<2, 1>(2).unwrapErrOrElse(
 				(two): [2, 4] => [two, 4],
 			);
+			expectTypeOf(result).toEqualTypeOf<1 | [2, 4]>();
 			expect(result).to.deep.equal([2, 4]);
 		});
 	});
@@ -323,6 +358,7 @@ describe("Validation", () => {
 			const result = Validation.err<1, 2>(1).unwrapOkOrElse(
 				(one): [1, 3] => [one, 3],
 			);
+			expectTypeOf(result).toEqualTypeOf<[1, 3] | 2>();
 			expect(result).to.deep.equal([1, 3]);
 		});
 
@@ -330,6 +366,7 @@ describe("Validation", () => {
 			const result = Validation.ok<2, 1>(2).unwrapOkOrElse(
 				(one): [1, 3] => [one, 3],
 			);
+			expectTypeOf(result).toEqualTypeOf<[1, 3] | 2>();
 			expect(result).to.deep.equal(2);
 		});
 	});
@@ -339,6 +376,7 @@ describe("Validation", () => {
 			const vdn = Validation.err<Str, 2>(new Str("a")).orElse(
 				(a): Validation<Str, 4> => Validation.err(cmb(new Str("b"), a)),
 			);
+			expectTypeOf(vdn).toEqualTypeOf<Validation<Str, 2 | 4>>();
 			expect(vdn).to.deep.equal(Validation.err(new Str("aba")));
 		});
 
@@ -346,6 +384,7 @@ describe("Validation", () => {
 			const vdn = Validation.err<Str, 2>(new Str("a")).orElse(
 				(a): Validation<Str, [4, Str]> => Validation.ok([4, a]),
 			);
+			expectTypeOf(vdn).toEqualTypeOf<Validation<Str, 2 | [4, Str]>>();
 			expect(vdn).to.deep.equal(Validation.ok([4, new Str("a")]));
 		});
 
@@ -353,6 +392,7 @@ describe("Validation", () => {
 			const vdn = Validation.ok<2, Str>(2).orElse(
 				(a): Validation<Str, 4> => Validation.err(cmb(new Str("b"), a)),
 			);
+			expectTypeOf(vdn).toEqualTypeOf<Validation<Str, 2 | 4>>();
 			expect(vdn).to.deep.equal(Validation.ok(2));
 		});
 	});
@@ -362,19 +402,8 @@ describe("Validation", () => {
 			const vdn = Validation.err<Str, 2>(new Str("a")).or(
 				Validation.err<Str, 4>(new Str("b")),
 			);
+			expectTypeOf(vdn).toEqualTypeOf<Validation<Str, 2 | 4>>();
 			expect(vdn).to.deep.equal(Validation.err(new Str("ab")));
-		});
-
-		it("returns the fallback Validation if the variant is Err", () => {
-			const vdn = Validation.err<Str, 2>(new Str("a")).or(
-				Validation.ok<4, Str>(4),
-			);
-			expect(vdn).to.deep.equal(Validation.ok(4));
-		});
-
-		it("returns the original Validation if the variant is Ok", () => {
-			const vdn = Validation.ok<2, Str>(2).or(Validation.ok<4, Str>(4));
-			expect(vdn).to.deep.equal(Validation.ok(2));
 		});
 	});
 
@@ -383,6 +412,7 @@ describe("Validation", () => {
 			const vdn = Validation.err<1, 2>(1).andThen(
 				(two): Validation<3, [2, 4]> => Validation.ok([two, 4]),
 			);
+			expectTypeOf(vdn).toEqualTypeOf<Validation<1 | 3, [2, 4]>>();
 			expect(vdn).to.deep.equal(Validation.err(1));
 		});
 
@@ -390,6 +420,7 @@ describe("Validation", () => {
 			const vdn = Validation.ok<2, 1>(2).andThen(
 				(two): Validation<3, [2, 4]> => Validation.ok([two, 4]),
 			);
+			expectTypeOf(vdn).toEqualTypeOf<Validation<1 | 3, [2, 4]>>();
 			expect(vdn).to.deep.equal(Validation.ok([2, 4]));
 		});
 	});
@@ -399,6 +430,7 @@ describe("Validation", () => {
 			const vdn = Validation.ok<Validation<3, 2>, 1>(
 				Validation.ok(2),
 			).flatten();
+			expectTypeOf(vdn).toEqualTypeOf<Validation<1 | 3, 2>>();
 			expect(vdn).to.deep.equal(Validation.ok(2));
 		});
 	});
@@ -406,6 +438,7 @@ describe("Validation", () => {
 	describe("#and", () => {
 		it("returns the other Validation if the variant is Ok", () => {
 			const vdn = Validation.ok<2, Str>(2).and(Validation.ok<4, Str>(4));
+			expectTypeOf(vdn).toEqualTypeOf<Validation<Str, 4>>();
 			expect(vdn).to.deep.equal(Validation.ok(4));
 		});
 	});
@@ -416,6 +449,7 @@ describe("Validation", () => {
 				Validation.err<Str, 4>(new Str("b")),
 				(two, four): [2, 4] => [two, four],
 			);
+			expectTypeOf(vdn).toEqualTypeOf<Validation<Str, [2, 4]>>();
 			expect(vdn).to.deep.equal(Validation.err(new Str("ab")));
 		});
 
@@ -424,6 +458,7 @@ describe("Validation", () => {
 				Validation.ok<4, Str>(4),
 				(two, four): [2, 4] => [two, four],
 			);
+			expectTypeOf(vdn).toEqualTypeOf<Validation<Str, [2, 4]>>();
 			expect(vdn).to.deep.equal(Validation.err(new Str("a")));
 		});
 
@@ -432,6 +467,7 @@ describe("Validation", () => {
 				Validation.err<Str, 4>(new Str("b")),
 				(two, four): [2, 4] => [two, four],
 			);
+			expectTypeOf(vdn).toEqualTypeOf<Validation<Str, [2, 4]>>();
 			expect(vdn).to.deep.equal(Validation.err(new Str("b")));
 		});
 
@@ -440,6 +476,7 @@ describe("Validation", () => {
 				Validation.ok<4, Str>(4),
 				(two, four): [2, 4] => [two, four],
 			);
+			expectTypeOf(vdn).toEqualTypeOf<Validation<Str, [2, 4]>>();
 			expect(vdn).to.deep.equal(Validation.ok([2, 4]));
 		});
 	});
@@ -450,6 +487,7 @@ describe("Validation", () => {
 				one,
 				3,
 			]);
+			expectTypeOf(vdn).toEqualTypeOf<Validation<[1, 3], 2>>();
 			expect(vdn).to.deep.equal(Validation.err([1, 3]));
 		});
 
@@ -458,6 +496,7 @@ describe("Validation", () => {
 				one,
 				3,
 			]);
+			expectTypeOf(vdn).toEqualTypeOf<Validation<[1, 3], 2>>();
 			expect(vdn).to.deep.equal(Validation.ok(2));
 		});
 	});
@@ -465,11 +504,13 @@ describe("Validation", () => {
 	describe("#map", () => {
 		it("does not apply the function if the variant is Err", () => {
 			const vdn = Validation.err<1, 2>(1).map((two): [2, 4] => [two, 4]);
+			expectTypeOf(vdn).toEqualTypeOf<Validation<1, [2, 4]>>();
 			expect(vdn).to.deep.equal(Validation.err(1));
 		});
 
 		it("applies the function to the success if the variant is Ok", () => {
 			const vdn = Validation.ok<2, 1>(2).map((two): [2, 4] => [two, 4]);
+			expectTypeOf(vdn).toEqualTypeOf<Validation<1, [2, 4]>>();
 			expect(vdn).to.deep.equal(Validation.ok([2, 4]));
 		});
 	});

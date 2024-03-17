@@ -15,7 +15,7 @@
  */
 
 import * as Fc from "fast-check";
-import { describe, expect, it } from "vitest";
+import { describe, expect, expectTypeOf, it } from "vitest";
 import { constant, id, negatePredicateFn, wrapCtor } from "./fn.js";
 
 describe("id", () => {
@@ -34,6 +34,7 @@ describe("constant", () => {
 			Fc.array(Fc.anything()),
 			(val, args) => {
 				const f = constant(val);
+				expectTypeOf(f).toEqualTypeOf<(...args: any[]) => unknown>();
 				expect(f(...args)).to.deep.equal(val);
 			},
 		);
@@ -52,6 +53,14 @@ describe("negatePredicateFn", () => {
 		expect(isOne(2)).to.be.false;
 		expect(isNotOne(1)).to.be.false;
 		expect(isNotOne(2)).to.be.true;
+	});
+
+	it("negates refining predicates", () => {
+		function isOne(num: 1 | 2): num is 1 {
+			return num === 1;
+		}
+		const isNotOne = negatePredicateFn(isOne);
+		expectTypeOf(isNotOne).toEqualTypeOf<(num: 1 | 2) => num is 2>();
 	});
 });
 
