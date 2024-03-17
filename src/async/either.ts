@@ -390,7 +390,7 @@ export namespace AsyncEither {
 		}
 	) => AsyncEither<E, T> {
 		return wrapGoFn(async function* (...elems): Go<any, T> {
-			return f(...((yield* await allPar(elems)) as TArgs));
+			return f(...((yield* await allPar(elems)) as TArgs)) as Awaited<T>;
 		});
 	}
 
