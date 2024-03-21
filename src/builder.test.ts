@@ -86,7 +86,7 @@ describe("ArrayUnshiftBuilder", () => {
 
 describe("ArrayAssignBuilder", () => {
 	it("builds an array by assigning elements to indices", () => {
-		const builder: Builder<[number, string], string[]> =
+		const builder: Builder<readonly [number, string], string[]> =
 			new ArrayAssignBuilder();
 		builder.add([1, "b"]);
 		builder.add([0, "a"]);
@@ -98,7 +98,7 @@ describe("ArrayAssignBuilder", () => {
 describe("ObjectAssignBuilder", () => {
 	it("builds a record by assigning elements to keys", () => {
 		const builder: Builder<
-			[string, number],
+			readonly [string, number],
 			Record<string, number>
 		> = new ObjectAssignBuilder();
 		builder.add(["a", 1]);

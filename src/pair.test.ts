@@ -15,7 +15,7 @@
  */
 
 import * as Fc from "fast-check";
-import { describe, expect, it } from "vitest";
+import { describe, expect, expectTypeOf, it } from "vitest";
 import {
 	arbNum,
 	arbStr,
@@ -38,6 +38,12 @@ describe("Pair", () => {
 	describe("constructor", () => {
 		it("constructs a new Pair", () => {
 			const pair = new Pair<1, 2>(1, 2);
+
+			expectTypeOf(pair).toEqualTypeOf<Pair<1, 2>>();
+			expectTypeOf(pair.fst).toEqualTypeOf<1>();
+			expectTypeOf(pair.snd).toEqualTypeOf<2>();
+			expectTypeOf(pair.val).toEqualTypeOf<[1, 2]>();
+
 			expect(pair).to.be.an.instanceOf(Pair);
 			expect(pair.fst).to.equal(1);
 			expect(pair.snd).to.equal(2);
@@ -48,6 +54,7 @@ describe("Pair", () => {
 	describe("fromTuple", () => {
 		it("constructs a Pair from a 2-tuple of values", () => {
 			const pair = Pair.fromTuple<1, 2>([1, 2]);
+			expectTypeOf(pair).toEqualTypeOf<Pair<1, 2>>();
 			expect(pair).to.deep.equal(new Pair(1, 2));
 		});
 	});
@@ -121,6 +128,7 @@ describe("Pair", () => {
 				one,
 				two,
 			]);
+			expectTypeOf(result).toEqualTypeOf<[1, 2]>();
 			expect(result).to.deep.equal([1, 2]);
 		});
 	});
@@ -128,6 +136,7 @@ describe("Pair", () => {
 	describe("#mapFst", () => {
 		it("applies the function to the first value", () => {
 			const pair = new Pair<1, 2>(1, 2).mapFst((one): [1, 3] => [one, 3]);
+			expectTypeOf(pair).toEqualTypeOf<Pair<[1, 3], 2>>();
 			expect(pair).to.deep.equal(new Pair([1, 3], 2));
 		});
 	});
@@ -135,6 +144,7 @@ describe("Pair", () => {
 	describe("#mapSnd", () => {
 		it("applies the function to the second value", () => {
 			const pair = new Pair<1, 2>(1, 2).mapSnd((two): [2, 4] => [two, 4]);
+			expectTypeOf(pair).toEqualTypeOf<Pair<1, [2, 4]>>();
 			expect(pair).to.deep.equal(new Pair(1, [2, 4]));
 		});
 	});

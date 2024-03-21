@@ -5,7 +5,7 @@ export default defineConfig({
 		include: ["**/*.test.ts"],
 		coverage: {
 			reporter: "text",
-			exclude: ["**/*.test.ts", "**/_test/*"],
+			exclude: ["**/*.test.ts", "**/_test/*", "src/async.ts"],
 		},
 	},
 });

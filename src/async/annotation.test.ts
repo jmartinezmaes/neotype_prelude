@@ -14,16 +14,17 @@
  * limitations under the License.
  */
 
-import { describe, expect, it } from "vitest";
+import { describe, expect, expectTypeOf, it } from "vitest";
 import { Str, TestBuilder } from "../_test/utils.js";
 import { Annotation } from "../annotation.js";
 import { delay } from "./_test/utils.js";
-import { AsyncAnnotation } from "./annotation.js";
+import { AsyncAnnotation, type AsyncAnnotationLike } from "./annotation.js";
+import type { Semigroup } from "../cmb.js";
 
 describe("AsyncAnnotation", () => {
 	describe("go", () => {
 		it("completes if all yielded values are Value", async () => {
-			async function* f(): AsyncAnnotation.Go<[2, 4], never> {
+			async function* f(): AsyncAnnotation.Go<[2, 4], Str> {
 				const two = yield* await Promise.resolve(
 					Annotation.value<2>(2),
 				);
@@ -33,6 +34,7 @@ describe("AsyncAnnotation", () => {
 				return [two, four];
 			}
 			const anno = await AsyncAnnotation.go(f());
+			expectTypeOf(anno).toEqualTypeOf<Annotation<[2, 4], Str>>();
 			expect(anno).to.deep.equal(Annotation.value([2, 4]));
 		});
 
@@ -47,6 +49,7 @@ describe("AsyncAnnotation", () => {
 				return [two, four];
 			}
 			const anno = await AsyncAnnotation.go(f());
+			expectTypeOf(anno).toEqualTypeOf<Annotation<[2, 4], Str>>();
 			expect(anno).to.deep.equal(Annotation.note([2, 4], new Str("b")));
 		});
 
@@ -61,6 +64,7 @@ describe("AsyncAnnotation", () => {
 				return [two, four];
 			}
 			const anno = await AsyncAnnotation.go(f());
+			expectTypeOf(anno).toEqualTypeOf<Annotation<[2, 4], Str>>();
 			expect(anno).to.deep.equal(Annotation.note([2, 4], new Str("a")));
 		});
 
@@ -75,6 +79,7 @@ describe("AsyncAnnotation", () => {
 				return [two, four];
 			}
 			const anno = await AsyncAnnotation.go(f());
+			expectTypeOf(anno).toEqualTypeOf<Annotation<[2, 4], Str>>();
 			expect(anno).to.deep.equal(Annotation.note([2, 4], new Str("ab")));
 		});
 
@@ -89,6 +94,7 @@ describe("AsyncAnnotation", () => {
 				return Promise.resolve([two, four]);
 			}
 			const anno = await AsyncAnnotation.go(f());
+			expectTypeOf(anno).toEqualTypeOf<Annotation<[2, 4], Str>>();
 			expect(anno).to.deep.equal(Annotation.note([2, 4], new Str("ab")));
 		});
 
@@ -109,6 +115,7 @@ describe("AsyncAnnotation", () => {
 				}
 			}
 			const anno = await AsyncAnnotation.go(f());
+			expectTypeOf(anno).toEqualTypeOf<Annotation<[2, 4], Str>>();
 			expect(anno).to.deep.equal(Annotation.note([2, 4], new Str("abc")));
 		});
 	});
@@ -125,6 +132,7 @@ describe("AsyncAnnotation", () => {
 				return [two, four];
 			}
 			const anno = await AsyncAnnotation.fromGoFn(f);
+			expectTypeOf(anno).toEqualTypeOf<Annotation<[2, 4], Str>>();
 			expect(anno).to.deep.equal(Annotation.note([2, 4], new Str("ab")));
 		});
 	});
@@ -139,7 +147,12 @@ describe("AsyncAnnotation", () => {
 					return [two, four];
 				}
 				const wrapped = AsyncAnnotation.wrapGoFn(f);
+				expectTypeOf(wrapped).toEqualTypeOf<
+					(two: 2) => AsyncAnnotation<[2, 4], Str>
+				>();
+
 				const anno = await wrapped(2);
+				expectTypeOf(anno).toEqualTypeOf<Annotation<[2, 4], Str>>();
 				expect(anno).to.deep.equal(
 					Annotation.note([2, 4], new Str("a")),
 				);
@@ -161,6 +174,7 @@ describe("AsyncAnnotation", () => {
 					),
 				"",
 			);
+			expectTypeOf(anno).toEqualTypeOf<Annotation<string, Str>>();
 			expect(anno).to.deep.equal(Annotation.note("a0b1", new Str("ab")));
 		});
 	});
@@ -175,11 +189,15 @@ describe("AsyncAnnotation", () => {
 			const anno = await AsyncAnnotation.traverseInto(
 				gen(),
 				(char, idx) =>
-					delay(1).then(() =>
-						Annotation.note([idx, char], new Str(char)),
+					delay(1).then(
+						(): Annotation<[number, string], Str> =>
+							Annotation.note([idx, char], new Str(char)),
 					),
 				builder,
 			);
+			expectTypeOf(anno).toEqualTypeOf<
+				Annotation<[number, string][], Str>
+			>();
 			expect(anno).to.deep.equal(
 				Annotation.note(
 					[
@@ -199,13 +217,14 @@ describe("AsyncAnnotation", () => {
 				yield delay(10).then(() => "b");
 			}
 			const anno = await AsyncAnnotation.traverse(gen(), (char, idx) =>
-				delay(1).then(() =>
-					Annotation.note<[number, string], Str>(
-						[idx, char],
-						new Str(char),
-					),
+				delay(1).then(
+					(): Annotation<[number, string], Str> =>
+						Annotation.note([idx, char], new Str(char)),
 				),
 			);
+			expectTypeOf(anno).toEqualTypeOf<
+				Annotation<[number, string][], Str>
+			>();
 			expect(anno).to.deep.equal(
 				Annotation.note(
 					[
@@ -224,8 +243,9 @@ describe("AsyncAnnotation", () => {
 				yield delay(50).then(() => Annotation.note(2, new Str("a")));
 				yield delay(10).then(() => Annotation.note(4, new Str("b")));
 			}
-			const builder = new TestBuilder();
+			const builder = new TestBuilder<number>();
 			const anno = await AsyncAnnotation.allInto(gen(), builder);
+			expectTypeOf(anno).toEqualTypeOf<Annotation<number[], Str>>();
 			expect(anno).to.deep.equal(Annotation.note([2, 4], new Str("ab")));
 		});
 	});
@@ -237,6 +257,7 @@ describe("AsyncAnnotation", () => {
 				yield delay(10).then(() => Annotation.note(4, new Str("b")));
 			}
 			const anno = await AsyncAnnotation.all(gen());
+			expectTypeOf(anno).toEqualTypeOf<Annotation<number[], Str>>();
 			expect(anno).to.deep.equal(Annotation.note([2, 4], new Str("ab")));
 		});
 	});
@@ -254,6 +275,7 @@ describe("AsyncAnnotation", () => {
 					return Annotation.write(new Str(char));
 				}),
 			);
+			expectTypeOf(anno).toEqualTypeOf<Annotation<void, Str>>();
 			expect(anno).to.deep.equal(
 				Annotation.note(undefined, new Str("ab")),
 			);
@@ -270,11 +292,15 @@ describe("AsyncAnnotation", () => {
 			const anno = await AsyncAnnotation.traverseIntoPar(
 				["a", "b"],
 				(char, idx) =>
-					delay(char === "a" ? 50 : 10).then(() =>
-						Annotation.value([idx, char]),
+					delay(char === "a" ? 50 : 10).then(
+						(): Annotation<[number, string], Str> =>
+							Annotation.value([idx, char]),
 					),
 				builder,
 			);
+			expectTypeOf(anno).toEqualTypeOf<
+				Annotation<[number, string][], Str>
+			>();
 			expect(anno).to.deep.equal(
 				Annotation.value([
 					[1, "b"],
@@ -288,13 +314,17 @@ describe("AsyncAnnotation", () => {
 			const anno = await AsyncAnnotation.traverseIntoPar(
 				["a", "b"],
 				(char, idx) =>
-					delay(char === "a" ? 50 : 10).then(() =>
-						char === "a"
-							? Annotation.note([idx, char], new Str(char))
-							: Annotation.value([idx, char]),
+					delay(char === "a" ? 50 : 10).then(
+						(): Annotation<[number, string], Str> =>
+							char === "a"
+								? Annotation.note([idx, char], new Str(char))
+								: Annotation.value([idx, char]),
 					),
 				builder,
 			);
+			expectTypeOf(anno).toEqualTypeOf<
+				Annotation<[number, string][], Str>
+			>();
 			expect(anno).to.deep.equal(
 				Annotation.note(
 					[
@@ -311,13 +341,17 @@ describe("AsyncAnnotation", () => {
 			const anno = await AsyncAnnotation.traverseIntoPar(
 				["a", "b"],
 				(char, idx) =>
-					delay(char === "a" ? 50 : 10).then(() =>
-						char === "a"
-							? Annotation.value([idx, char])
-							: Annotation.note([idx, char], new Str(char)),
+					delay(char === "a" ? 50 : 10).then(
+						(): Annotation<[number, string], Str> =>
+							char === "a"
+								? Annotation.value([idx, char])
+								: Annotation.note([idx, char], new Str(char)),
 					),
 				builder,
 			);
+			expectTypeOf(anno).toEqualTypeOf<
+				Annotation<[number, string][], Str>
+			>();
 			expect(anno).to.deep.equal(
 				Annotation.note(
 					[
@@ -334,11 +368,15 @@ describe("AsyncAnnotation", () => {
 			const anno = await AsyncAnnotation.traverseIntoPar(
 				["a", "b"],
 				(char, idx) =>
-					delay(char === "a" ? 50 : 10).then(() =>
-						Annotation.note([idx, char], new Str(char)),
+					delay(char === "a" ? 50 : 10).then(
+						(): Annotation<[number, string], Str> =>
+							Annotation.note([idx, char], new Str(char)),
 					),
 				builder,
 			);
+			expectTypeOf(anno).toEqualTypeOf<
+				Annotation<[number, string][], Str>
+			>();
 			expect(anno).to.deep.equal(
 				Annotation.note(
 					[
@@ -356,10 +394,14 @@ describe("AsyncAnnotation", () => {
 			const anno = await AsyncAnnotation.traversePar(
 				["a", "b"],
 				(char, idx) =>
-					delay(char === "a" ? 50 : 10).then(() =>
-						Annotation.note([idx, char], new Str(char)),
+					delay(char === "a" ? 50 : 10).then(
+						(): Annotation<[number, string], Str> =>
+							Annotation.note([idx, char], new Str(char)),
 					),
 			);
+			expectTypeOf(anno).toEqualTypeOf<
+				Annotation<[number, string][], Str>
+			>();
 			expect(anno).to.deep.equal(
 				Annotation.note(
 					[
@@ -382,6 +424,7 @@ describe("AsyncAnnotation", () => {
 				],
 				builder,
 			);
+			expectTypeOf(anno).toEqualTypeOf<Annotation<number[], Str>>();
 			expect(anno).to.deep.equal(Annotation.note([4, 2], new Str("ba")));
 		});
 	});
@@ -396,6 +439,7 @@ describe("AsyncAnnotation", () => {
 					Annotation.note(4, new Str("b")),
 				),
 			]);
+			expectTypeOf(anno).toEqualTypeOf<Annotation<[2, 4], Str>>();
 			expect(anno).to.deep.equal(Annotation.note([2, 4], new Str("ba")));
 		});
 	});
@@ -410,6 +454,9 @@ describe("AsyncAnnotation", () => {
 					Annotation.note(4, new Str("b")),
 				),
 			});
+			expectTypeOf(anno).toEqualTypeOf<
+				Annotation<{ two: 2; four: 4 }, Str>
+			>();
 			expect(anno).to.deep.equal(
 				Annotation.note({ two: 2, four: 4 }, new Str("ba")),
 			);
@@ -427,6 +474,7 @@ describe("AsyncAnnotation", () => {
 						return Annotation.write(new Str(char));
 					}),
 			);
+			expectTypeOf(anno).toEqualTypeOf<Annotation<void, Str>>();
 			expect(anno).to.deep.equal(
 				Annotation.note(undefined, new Str("ba")),
 			);
@@ -442,10 +490,19 @@ describe("AsyncAnnotation", () => {
 			async function f<A, B>(lhs: A, rhs: B): Promise<[A, B]> {
 				return [lhs, rhs];
 			}
-			const anno = await AsyncAnnotation.liftPar(f<2, 4>)(
+			const lifted = AsyncAnnotation.liftPar(f<2, 4>);
+			expectTypeOf(lifted).toEqualTypeOf<
+				<W extends Semigroup<W>>(
+					lhs: Annotation<2, W> | AsyncAnnotationLike<2, W>,
+					rhs: Annotation<4, W> | AsyncAnnotationLike<4, W>,
+				) => AsyncAnnotation<[2, 4], W>
+			>();
+
+			const anno = await lifted(
 				delay(50).then(() => Annotation.note(2, new Str("a"))),
 				delay(10).then(() => Annotation.note(4, new Str("b"))),
 			);
+			expectTypeOf(anno).toEqualTypeOf<Annotation<[2, 4], Str>>();
 			expect(anno).to.deep.equal(Annotation.note([2, 4], new Str("ba")));
 		});
 	});

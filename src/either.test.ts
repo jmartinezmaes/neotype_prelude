@@ -15,7 +15,7 @@
  */
 
 import * as Fc from "fast-check";
-import { describe, expect, it } from "vitest";
+import { describe, expect, expectTypeOf, it } from "vitest";
 import {
 	TestBuilder,
 	arbNum,
@@ -40,6 +40,11 @@ describe("Either", () => {
 	describe("left", () => {
 		it("constructs a Left variant", () => {
 			const either = Either.left<1, 2>(1);
+
+			expectTypeOf(either).toEqualTypeOf<Either<1, 2>>();
+			expectTypeOf(either.kind).toEqualTypeOf<Either.Kind>();
+			expectTypeOf(either.val).toEqualTypeOf<1 | 2>();
+
 			expect(either).to.be.an.instanceOf(Either.Left);
 			expect(either.kind).to.equal(Either.Kind.LEFT);
 			expect(either.val).to.equal(1);
@@ -49,6 +54,11 @@ describe("Either", () => {
 	describe("right", () => {
 		it("constructs a Right variant", () => {
 			const either = Either.right<2, 1>(2);
+
+			expectTypeOf(either).toEqualTypeOf<Either<1, 2>>();
+			expectTypeOf(either.kind).toEqualTypeOf<Either.Kind>();
+			expectTypeOf(either.val).toEqualTypeOf<1 | 2>();
+
 			expect(either).to.be.an.instanceOf(Either.Right);
 			expect(either.kind).to.equal(Either.Kind.RIGHT);
 			expect(either.val).to.equal(2);
@@ -58,19 +68,21 @@ describe("Either", () => {
 	describe("unit", () => {
 		it("constructs a Right variant with an undefined value", () => {
 			const either = Either.unit<1>();
-			expect(either).to.be.an.instanceOf(Either.Right);
-			expect(either.val).to.be.undefined;
+			expectTypeOf(either).toEqualTypeOf<Either<1, void>>();
+			expect(either).to.deep.equal(Either.right(undefined));
 		});
 	});
 
 	describe("fromValidation", () => {
 		it("constructs a Left if the Validation is an Err", () => {
 			const either = Either.fromValidation(Validation.err<1, 2>(1));
+			expectTypeOf(either).toEqualTypeOf<Either<1, 2>>();
 			expect(either).to.deep.equal(Either.left(1));
 		});
 
 		it("constructs a Right if the Validation is an Ok", () => {
 			const either = Either.fromValidation(Validation.ok<2, 1>(2));
+			expectTypeOf(either).toEqualTypeOf<Either<1, 2>>();
 			expect(either).to.deep.equal(Either.right(2));
 		});
 	});
@@ -83,6 +95,7 @@ describe("Either", () => {
 				return [two, four];
 			}
 			const either = Either.go(f());
+			expectTypeOf(either).toEqualTypeOf<Either<1 | 3, [2, 4]>>();
 			expect(either).to.deep.equal(Either.left(3));
 		});
 
@@ -93,6 +106,7 @@ describe("Either", () => {
 				return [two, four];
 			}
 			const either = Either.go(f());
+			expectTypeOf(either).toEqualTypeOf<Either<1 | 3, [2, 4]>>();
 			expect(either).to.deep.equal(Either.right([2, 4]));
 		});
 
@@ -106,6 +120,7 @@ describe("Either", () => {
 				}
 			}
 			const either = Either.go(f());
+			expectTypeOf(either).toEqualTypeOf<Either<1, 2>>();
 			expect(either).to.deep.equal(Either.left(1));
 			expect(logs).to.deep.equal(["finally"]);
 		});
@@ -119,6 +134,7 @@ describe("Either", () => {
 				}
 			}
 			const either = Either.go(f());
+			expectTypeOf(either).toEqualTypeOf<Either<1 | 3, 2>>();
 			expect(either).to.deep.equal(Either.left(3));
 		});
 	});
@@ -131,18 +147,24 @@ describe("Either", () => {
 				return [two, four];
 			}
 			const either = Either.fromGoFn(f);
+			expectTypeOf(either).toEqualTypeOf<Either<1 | 3, [2, 4]>>();
 			expect(either).to.deep.equal(Either.right([2, 4]));
 		});
 	});
 
 	describe("wrapGoFn", () => {
 		it("adapts the generator function to return an Either", () => {
-			function* f(two: 2): Either.Go<never, [2, 4]> {
-				const four = yield* Either.right<4>(4);
+			function* f(two: 2): Either.Go<3, [2, 4]> {
+				const four = yield* Either.right<4, 3>(4);
 				return [two, four];
 			}
 			const wrapped = Either.wrapGoFn(f);
+			expectTypeOf(wrapped).toEqualTypeOf<
+				(two: 2) => Either<3, [2, 4]>
+			>();
+
 			const either = wrapped(2);
+			expectTypeOf(either).toEqualTypeOf<Either<3, [2, 4]>>();
 			expect(either).to.deep.equal(Either.right([2, 4]));
 		});
 	});
@@ -151,10 +173,11 @@ describe("Either", () => {
 		it("reduces the finite iterable from left to right in the context of Either", () => {
 			const either = Either.reduce(
 				["a", "b"],
-				(chars, char, idx) =>
-					Either.right<string, 1>(chars + char + idx),
+				(chars, char, idx): Either<1, string> =>
+					Either.right(chars + char + idx),
 				"",
 			);
+			expectTypeOf(either).toEqualTypeOf<Either<1, string>>();
 			expect(either).to.deep.equal(Either.right("a0b1"));
 		});
 	});
@@ -164,9 +187,11 @@ describe("Either", () => {
 			const builder = new TestBuilder<[number, string]>();
 			const either = Either.traverseInto(
 				["a", "b"],
-				(char, idx) => Either.right<[number, string]>([idx, char]),
+				(char, idx): Either<1, [number, string]> =>
+					Either.right([idx, char]),
 				builder,
 			);
+			expectTypeOf(either).toEqualTypeOf<Either<1, [number, string][]>>();
 			expect(either).to.deep.equal(
 				Either.right([
 					[0, "a"],
@@ -178,9 +203,12 @@ describe("Either", () => {
 
 	describe("traverse", () => {
 		it("applies the function to the elements and collects the successes in an array if all results are Right", () => {
-			const either = Either.traverse(["a", "b"], (char, idx) =>
-				Either.right<[number, string]>([idx, char]),
+			const either = Either.traverse(
+				["a", "b"],
+				(char, idx): Either<1, [number, string]> =>
+					Either.right([idx, char]),
 			);
+			expectTypeOf(either).toEqualTypeOf<Either<1, [number, string][]>>();
 			expect(either).to.deep.equal(
 				Either.right([
 					[0, "a"],
@@ -197,6 +225,7 @@ describe("Either", () => {
 				[Either.right<2, 1>(2), Either.right<4, 3>(4)],
 				builder,
 			);
+			expectTypeOf(either).toEqualTypeOf<Either<1 | 3, number[]>>();
 			expect(either).to.deep.equal(Either.right([2, 4]));
 		});
 	});
@@ -207,6 +236,7 @@ describe("Either", () => {
 				Either.right<2, 1>(2),
 				Either.right<4, 3>(4),
 			]);
+			expectTypeOf(either).toEqualTypeOf<Either<1 | 3, [2, 4]>>();
 			expect(either).to.deep.equal(Either.right([2, 4]));
 		});
 	});
@@ -217,6 +247,9 @@ describe("Either", () => {
 				two: Either.right<2, 1>(2),
 				four: Either.right<4, 3>(4),
 			});
+			expectTypeOf(either).toEqualTypeOf<
+				Either<1 | 3, { two: 2; four: 4 }>
+			>();
 			expect(either).to.deep.equal(Either.right({ two: 2, four: 4 }));
 		});
 	});
@@ -224,10 +257,14 @@ describe("Either", () => {
 	describe("forEach", () => {
 		it("applies the function to the elements while the result is Right", () => {
 			const results: [number, string][] = [];
-			const either = Either.forEach(["a", "b"], (char, idx) => {
-				results.push([idx, char]);
-				return Either.right(undefined);
-			});
+			const either = Either.forEach(
+				["a", "b"],
+				(char, idx): Either<1, void> => {
+					results.push([idx, char]);
+					return Either.right(undefined);
+				},
+			);
+			expectTypeOf(either).toEqualTypeOf<Either<1, void>>();
 			expect(either).to.deep.equal(Either.right(undefined));
 			expect(results).to.deep.equal([
 				[0, "a"],
@@ -241,10 +278,13 @@ describe("Either", () => {
 			function f<A, B>(lhs: A, rhs: B): [A, B] {
 				return [lhs, rhs];
 			}
-			const either = Either.lift(f<2, 4>)(
-				Either.right<2, 1>(2),
-				Either.right<4, 3>(4),
-			);
+			const lifted = Either.lift(f<2, 4>);
+			expectTypeOf(lifted).toEqualTypeOf<
+				<E>(lhs: Either<E, 2>, rhs: Either<E, 4>) => Either<E, [2, 4]>
+			>();
+
+			const either = lifted(Either.right<2, 1>(2), Either.right<4, 3>(4));
+			expectTypeOf(either).toEqualTypeOf<Either<1 | 3, [2, 4]>>();
 			expect(either).to.deep.equal(Either.right([2, 4]));
 		});
 	});
@@ -370,6 +410,7 @@ describe("Either", () => {
 				(one): [1, 3] => [one, 3],
 				(two): [2, 4] => [two, 4],
 			);
+			expectTypeOf(result).toEqualTypeOf<[1, 3] | [2, 4]>();
 			expect(result).to.deep.equal([1, 3]);
 		});
 
@@ -378,6 +419,7 @@ describe("Either", () => {
 				(one): [1, 3] => [one, 3],
 				(two): [2, 4] => [two, 4],
 			);
+			expectTypeOf(result).toEqualTypeOf<[1, 3] | [2, 4]>();
 			expect(result).to.deep.equal([2, 4]);
 		});
 	});
@@ -387,6 +429,7 @@ describe("Either", () => {
 			const result = Either.left<1, 2>(1).unwrapLeftOrElse(
 				(two): [2, 4] => [two, 4],
 			);
+			expectTypeOf(result).toEqualTypeOf<1 | [2, 4]>();
 			expect(result).to.deep.equal(1);
 		});
 
@@ -394,6 +437,7 @@ describe("Either", () => {
 			const result = Either.right<2, 1>(2).unwrapLeftOrElse(
 				(two): [2, 4] => [two, 4],
 			);
+			expectTypeOf(result).toEqualTypeOf<1 | [2, 4]>();
 			expect(result).to.deep.equal([2, 4]);
 		});
 	});
@@ -403,6 +447,7 @@ describe("Either", () => {
 			const result = Either.left<1, 2>(1).unwrapRightOrElse(
 				(one): [1, 3] => [one, 3],
 			);
+			expectTypeOf(result).toEqualTypeOf<[1, 3] | 2>();
 			expect(result).to.deep.equal([1, 3]);
 		});
 
@@ -410,6 +455,7 @@ describe("Either", () => {
 			const result = Either.right<2, 1>(2).unwrapRightOrElse(
 				(one): [1, 3] => [one, 3],
 			);
+			expectTypeOf(result).toEqualTypeOf<[1, 3] | 2>();
 			expect(result).to.deep.equal(2);
 		});
 	});
@@ -419,6 +465,7 @@ describe("Either", () => {
 			const either = Either.left<1, 2>(1).orElse(
 				(one): Either<[1, 3], 4> => Either.left([one, 3]),
 			);
+			expectTypeOf(either).toEqualTypeOf<Either<[1, 3], 2 | 4>>();
 			expect(either).to.deep.equal(Either.left([1, 3]));
 		});
 
@@ -426,6 +473,7 @@ describe("Either", () => {
 			const either = Either.right<2, 1>(2).orElse(
 				(one): Either<[1, 3], 4> => Either.left([one, 3]),
 			);
+			expectTypeOf(either).toEqualTypeOf<Either<[1, 3], 2 | 4>>();
 			expect(either).to.deep.equal(Either.right(2));
 		});
 	});
@@ -433,11 +481,13 @@ describe("Either", () => {
 	describe("#or", () => {
 		it("returns the fallback Either if the variant is Left", () => {
 			const either = Either.left<1, 2>(1).or(Either.right<4, 3>(4));
+			expectTypeOf(either).toEqualTypeOf<Either<3, 2 | 4>>();
 			expect(either).to.deep.equal(Either.right(4));
 		});
 
 		it("returns the original Either if the variant is Right", () => {
 			const either = Either.right<2, 1>(2).or(Either.right<4, 3>(4));
+			expectTypeOf(either).toEqualTypeOf<Either<3, 2 | 4>>();
 			expect(either).to.deep.equal(Either.right(2));
 		});
 	});
@@ -447,6 +497,7 @@ describe("Either", () => {
 			const either = Either.left<1, 2>(1).andThen(
 				(two): Either<3, [2, 4]> => Either.right([two, 4]),
 			);
+			expectTypeOf(either).toEqualTypeOf<Either<1 | 3, [2, 4]>>();
 			expect(either).to.deep.equal(Either.left(1));
 		});
 
@@ -454,6 +505,7 @@ describe("Either", () => {
 			const either = Either.right<2, 1>(2).andThen(
 				(two): Either<3, [2, 4]> => Either.right([two, 4]),
 			);
+			expectTypeOf(either).toEqualTypeOf<Either<1 | 3, [2, 4]>>();
 			expect(either).to.deep.equal(Either.right([2, 4]));
 		});
 	});
@@ -466,6 +518,7 @@ describe("Either", () => {
 					return [two, four];
 				},
 			);
+			expectTypeOf(either).toEqualTypeOf<Either<1 | 3, [2, 4]>>();
 			expect(either).to.deep.equal(Either.right([2, 4]));
 		});
 	});
@@ -475,18 +528,15 @@ describe("Either", () => {
 			const either = Either.right<Either<3, 2>, 1>(
 				Either.right(2),
 			).flatten();
+			expectTypeOf(either).toEqualTypeOf<Either<1 | 3, 2>>();
 			expect(either).to.deep.equal(Either.right(2));
 		});
 	});
 
 	describe("#and", () => {
-		it("returns the original Either if the variant is Left", () => {
-			const either = Either.left<1, 2>(1).and(Either.right<4, 3>(4));
-			expect(either).to.deep.equal(Either.left(1));
-		});
-
 		it("returns the other Either if the variant is Right", () => {
 			const either = Either.right<2, 1>(2).and(Either.right<4, 3>(4));
+			expectTypeOf(either).toEqualTypeOf<Either<1 | 3, 4>>();
 			expect(either).to.deep.equal(Either.right(4));
 		});
 	});
@@ -497,6 +547,7 @@ describe("Either", () => {
 				Either.right<4, 3>(4),
 				(two, four): [2, 4] => [two, four],
 			);
+			expectTypeOf(either).toEqualTypeOf<Either<1 | 3, [2, 4]>>();
 			expect(either).to.deep.equal(Either.right([2, 4]));
 		});
 	});
@@ -507,6 +558,7 @@ describe("Either", () => {
 				one,
 				3,
 			]);
+			expectTypeOf(either).toEqualTypeOf<Either<[1, 3], 2>>();
 			expect(either).to.deep.equal(Either.left([1, 3]));
 		});
 	});
@@ -514,6 +566,7 @@ describe("Either", () => {
 	describe("#map", () => {
 		it("applies the function to the value if the variant is Right", () => {
 			const either = Either.right<2, 1>(2).map((two): [2, 4] => [two, 4]);
+			expectTypeOf(either).toEqualTypeOf<Either<1, [2, 4]>>();
 			expect(either).to.deep.equal(Either.right([2, 4]));
 		});
 	});

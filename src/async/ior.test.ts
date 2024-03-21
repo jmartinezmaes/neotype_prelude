@@ -14,11 +14,12 @@
  * limitations under the License.
  */
 
-import { describe, expect, it } from "vitest";
+import { describe, expect, expectTypeOf, it } from "vitest";
 import { Str, TestBuilder } from "../_test/utils.js";
 import { Ior } from "../ior.js";
 import { delay } from "./_test/utils.js";
-import { AsyncIor } from "./ior.js";
+import { AsyncIor, type AsyncIorLike } from "./ior.js";
+import type { Semigroup } from "../cmb.js";
 
 describe("AsyncIor", () => {
 	describe("go", async () => {
@@ -31,6 +32,7 @@ describe("AsyncIor", () => {
 				return [two, four];
 			}
 			const ior = await AsyncIor.go(f());
+			expectTypeOf(ior).toEqualTypeOf<Ior<Str, [2, 4]>>();
 			expect(ior).to.deep.equal(Ior.left(new Str("b")));
 		});
 
@@ -41,6 +43,7 @@ describe("AsyncIor", () => {
 				return [two, four];
 			}
 			const ior = await AsyncIor.go(f());
+			expectTypeOf(ior).toEqualTypeOf<Ior<Str, [2, 4]>>();
 			expect(ior).to.deep.equal(Ior.right([2, 4]));
 		});
 
@@ -53,6 +56,7 @@ describe("AsyncIor", () => {
 				return [two, four];
 			}
 			const ior = await AsyncIor.go(f());
+			expectTypeOf(ior).toEqualTypeOf<Ior<Str, [2, 4]>>();
 			expect(ior).to.deep.equal(Ior.both(new Str("b"), [2, 4]));
 		});
 
@@ -67,6 +71,7 @@ describe("AsyncIor", () => {
 				return [two, four];
 			}
 			const ior = await AsyncIor.go(f());
+			expectTypeOf(ior).toEqualTypeOf<Ior<Str, [2, 4]>>();
 			expect(ior).to.deep.equal(Ior.left(new Str("ab")));
 		});
 
@@ -79,6 +84,7 @@ describe("AsyncIor", () => {
 				return [two, four];
 			}
 			const ior = await AsyncIor.go(f());
+			expectTypeOf(ior).toEqualTypeOf<Ior<Str, [2, 4]>>();
 			expect(ior).to.deep.equal(Ior.both(new Str("a"), [2, 4]));
 		});
 
@@ -93,6 +99,7 @@ describe("AsyncIor", () => {
 				return [two, four];
 			}
 			const ior = await AsyncIor.go(f());
+			expectTypeOf(ior).toEqualTypeOf<Ior<Str, [2, 4]>>();
 			expect(ior).to.deep.equal(Ior.both(new Str("ab"), [2, 4]));
 		});
 
@@ -107,6 +114,7 @@ describe("AsyncIor", () => {
 				return Promise.resolve([two, four]);
 			}
 			const ior = await AsyncIor.go(f());
+			expectTypeOf(ior).toEqualTypeOf<Ior<Str, [2, 4]>>();
 			expect(ior).to.deep.equal(Ior.both(new Str("ab"), [2, 4]));
 		});
 
@@ -122,6 +130,7 @@ describe("AsyncIor", () => {
 				}
 			}
 			const ior = await AsyncIor.go(f());
+			expectTypeOf(ior).toEqualTypeOf<Ior<Str, 2>>();
 			expect(ior).to.deep.equal(Ior.left(new Str("a")));
 			expect(logs).to.deep.equal(["finally"]);
 		});
@@ -139,6 +148,7 @@ describe("AsyncIor", () => {
 				}
 			}
 			const ior = await AsyncIor.go(f());
+			expectTypeOf(ior).toEqualTypeOf<Ior<Str, 2>>();
 			expect(ior).to.deep.equal(Ior.left(new Str("ab")));
 		});
 
@@ -155,6 +165,7 @@ describe("AsyncIor", () => {
 				}
 			}
 			const ior = await AsyncIor.go(f());
+			expectTypeOf(ior).toEqualTypeOf<Ior<Str, 2>>();
 			expect(ior).to.deep.equal(Ior.left(new Str("ab")));
 		});
 	});
@@ -171,6 +182,7 @@ describe("AsyncIor", () => {
 				return [two, four];
 			}
 			const ior = await AsyncIor.fromGoFn(f);
+			expectTypeOf(ior).toEqualTypeOf<Ior<Str, [2, 4]>>();
 			expect(ior).to.deep.equal(Ior.both(new Str("ab"), [2, 4]));
 		});
 	});
@@ -184,7 +196,12 @@ describe("AsyncIor", () => {
 				return [two, four];
 			}
 			const wrapped = AsyncIor.wrapGoFn(f);
+			expectTypeOf(wrapped).toEqualTypeOf<
+				(two: 2) => AsyncIor<Str, [2, 4]>
+			>();
+
 			const ior = await wrapped(2);
+			expectTypeOf(ior).toEqualTypeOf<Ior<Str, [2, 4]>>();
 			expect(ior).to.deep.equal(Ior.both(new Str("a"), [2, 4]));
 		});
 	});
@@ -203,6 +220,7 @@ describe("AsyncIor", () => {
 					),
 				"",
 			);
+			expectTypeOf(ior).toEqualTypeOf<Ior<Str, string>>();
 			expect(ior).to.deep.equal(Ior.both(new Str("ab"), "a0b1"));
 		});
 	});
@@ -217,9 +235,13 @@ describe("AsyncIor", () => {
 			const ior = await AsyncIor.traverseInto(
 				gen(),
 				(char, idx) =>
-					delay(1).then(() => Ior.both(new Str(char), [idx, char])),
+					delay(1).then(
+						(): Ior<Str, [number, string]> =>
+							Ior.both(new Str(char), [idx, char]),
+					),
 				builder,
 			);
+			expectTypeOf(ior).toEqualTypeOf<Ior<Str, [number, string][]>>();
 			expect(ior).to.deep.equal(
 				Ior.both(new Str("ab"), [
 					[0, "a"],
@@ -236,10 +258,12 @@ describe("AsyncIor", () => {
 				yield delay(10).then(() => "b");
 			}
 			const ior = await AsyncIor.traverse(gen(), (char, idx) =>
-				delay(1).then(() =>
-					Ior.both<Str, [number, string]>(new Str(char), [idx, char]),
+				delay(1).then(
+					(): Ior<Str, [number, string]> =>
+						Ior.both(new Str(char), [idx, char]),
 				),
 			);
+			expectTypeOf(ior).toEqualTypeOf<Ior<Str, [number, string][]>>();
 			expect(ior).to.deep.equal(
 				Ior.both(new Str("ab"), [
 					[0, "a"],
@@ -257,6 +281,7 @@ describe("AsyncIor", () => {
 			}
 			const builder = new TestBuilder<number>();
 			const ior = await AsyncIor.allInto(gen(), builder);
+			expectTypeOf(ior).toEqualTypeOf<Ior<Str, number[]>>();
 			expect(ior).to.deep.equal(Ior.both(new Str("ab"), [2, 4]));
 		});
 	});
@@ -268,6 +293,7 @@ describe("AsyncIor", () => {
 				yield delay(10).then(() => Ior.both(new Str("b"), 4));
 			}
 			const ior = await AsyncIor.all(gen());
+			expectTypeOf(ior).toEqualTypeOf<Ior<Str, number[]>>();
 			expect(ior).to.deep.equal(Ior.both(new Str("ab"), [2, 4]));
 		});
 	});
@@ -280,11 +306,12 @@ describe("AsyncIor", () => {
 			}
 			const results: [number, string][] = [];
 			const ior = await AsyncIor.forEach(gen(), (char, idx) =>
-				delay(1).then(() => {
+				delay(1).then((): Ior<Str, void> => {
 					results.push([idx, char]);
 					return Ior.both(new Str(char), undefined);
 				}),
 			);
+			expectTypeOf(ior).toEqualTypeOf<Ior<Str, void>>();
 			expect(ior).to.deep.equal(Ior.both(new Str("ab"), undefined));
 			expect(results).to.deep.equal([
 				[0, "a"],
@@ -298,13 +325,15 @@ describe("AsyncIor", () => {
 			const ior = await AsyncIor.traverseIntoPar(
 				["a", "b"],
 				(char, idx) =>
-					delay(char === "a" ? 50 : 10).then(() =>
-						char === "a"
-							? Ior.both(new Str(char), [idx, char])
-							: Ior.left(new Str(idx.toString() + char)),
+					delay(char === "a" ? 50 : 10).then(
+						(): Ior<Str, [number, string]> =>
+							char === "a"
+								? Ior.both(new Str(char), [idx, char])
+								: Ior.left(new Str(idx.toString() + char)),
 					),
 				new TestBuilder<[number, string]>(),
 			);
+			expectTypeOf(ior).toEqualTypeOf<Ior<Str, [number, string][]>>();
 			expect(ior).to.deep.equal(Ior.left(new Str("1b")));
 		});
 
@@ -313,11 +342,13 @@ describe("AsyncIor", () => {
 			const ior = await AsyncIor.traverseIntoPar(
 				["a", "b"],
 				(char, idx) =>
-					delay(char === "a" ? 50 : 10).then(() =>
-						Ior.right([idx, char]),
+					delay(char === "a" ? 50 : 10).then(
+						(): Ior<Str, [number, string]> =>
+							Ior.right([idx, char]),
 					),
 				builder,
 			);
+			expectTypeOf(ior).toEqualTypeOf<Ior<Str, [number, string][]>>();
 			expect(ior).to.deep.equal(
 				Ior.right([
 					[1, "b"],
@@ -331,13 +362,15 @@ describe("AsyncIor", () => {
 			const ior = await AsyncIor.traverseIntoPar(
 				["a", "b"],
 				(char, idx) =>
-					delay(char === "a" ? 50 : 10).then(() =>
-						char === "a"
-							? Ior.both(new Str(char), [idx, char])
-							: Ior.right([idx, char]),
+					delay(char === "a" ? 50 : 10).then(
+						(): Ior<Str, [number, string]> =>
+							char === "a"
+								? Ior.both(new Str(char), [idx, char])
+								: Ior.right([idx, char]),
 					),
 				builder,
 			);
+			expectTypeOf(ior).toEqualTypeOf<Ior<Str, [number, string][]>>();
 			expect(ior).to.deep.equal(
 				Ior.both(new Str("a"), [
 					[1, "b"],
@@ -350,13 +383,15 @@ describe("AsyncIor", () => {
 			const ior = await AsyncIor.traverseIntoPar(
 				["a", "b"],
 				(char, idx) =>
-					delay(char === "a" ? 50 : 10).then(() =>
-						char === "a"
-							? Ior.left(new Str(idx.toString() + char))
-							: Ior.both(new Str(char), [idx, char]),
+					delay(char === "a" ? 50 : 10).then(
+						(): Ior<Str, [number, string]> =>
+							char === "a"
+								? Ior.left(new Str(idx.toString() + char))
+								: Ior.both(new Str(char), [idx, char]),
 					),
 				new TestBuilder<[number, string]>(),
 			);
+			expectTypeOf(ior).toEqualTypeOf<Ior<Str, [number, string][]>>();
 			expect(ior).to.deep.equal(Ior.left(new Str("b0a")));
 		});
 
@@ -365,13 +400,15 @@ describe("AsyncIor", () => {
 			const ior = await AsyncIor.traverseIntoPar(
 				["a", "b"],
 				(char, idx) =>
-					delay(char === "a" ? 50 : 10).then(() =>
-						char === "a"
-							? Ior.right([idx, char])
-							: Ior.both(new Str(char), [idx, char]),
+					delay(char === "a" ? 50 : 10).then(
+						(): Ior<Str, [number, string]> =>
+							char === "a"
+								? Ior.right([idx, char])
+								: Ior.both(new Str(char), [idx, char]),
 					),
 				builder,
 			);
+			expectTypeOf(ior).toEqualTypeOf<Ior<Str, [number, string][]>>();
 			expect(ior).to.deep.equal(
 				Ior.both(new Str("b"), [
 					[1, "b"],
@@ -385,11 +422,13 @@ describe("AsyncIor", () => {
 			const ior = await AsyncIor.traverseIntoPar(
 				["a", "b"],
 				(char, idx) =>
-					delay(char === "a" ? 50 : 10).then(() =>
-						Ior.both(new Str(char), [idx, char]),
+					delay(char === "a" ? 50 : 10).then(
+						(): Ior<Str, [number, string]> =>
+							Ior.both(new Str(char), [idx, char]),
 					),
 				builder,
 			);
+			expectTypeOf(ior).toEqualTypeOf<Ior<Str, [number, string][]>>();
 			expect(ior).to.deep.equal(
 				Ior.both(new Str("ba"), [
 					[1, "b"],
@@ -402,10 +441,12 @@ describe("AsyncIor", () => {
 	describe("traversePar", () => {
 		it("applies the function to the elements and collects the right-hand values in an array if no results are Left", async () => {
 			const ior = await AsyncIor.traversePar(["a", "b"], (char, idx) =>
-				delay(char === "a" ? 50 : 10).then(() =>
-					Ior.both<Str, [number, string]>(new Str(char), [idx, char]),
+				delay(char === "a" ? 50 : 10).then(
+					(): Ior<Str, [number, string]> =>
+						Ior.both(new Str(char), [idx, char]),
 				),
 			);
+			expectTypeOf(ior).toEqualTypeOf<Ior<Str, [number, string][]>>();
 			expect(ior).to.deep.equal(
 				Ior.both(new Str("ba"), [
 					[0, "a"],
@@ -425,6 +466,7 @@ describe("AsyncIor", () => {
 				],
 				builder,
 			);
+			expectTypeOf(ior).toEqualTypeOf<Ior<Str, number[]>>();
 			expect(ior).to.deep.equal(Ior.both(new Str("ba"), [4, 2]));
 		});
 	});
@@ -435,6 +477,7 @@ describe("AsyncIor", () => {
 				delay(50).then<Ior<Str, 2>>(() => Ior.both(new Str("a"), 2)),
 				delay(10).then<Ior<Str, 4>>(() => Ior.both(new Str("b"), 4)),
 			]);
+			expectTypeOf(ior).toEqualTypeOf<Ior<Str, [2, 4]>>();
 			expect(ior).to.deep.equal(Ior.both(new Str("ba"), [2, 4]));
 		});
 	});
@@ -449,6 +492,7 @@ describe("AsyncIor", () => {
 					Ior.both(new Str("b"), 4),
 				),
 			});
+			expectTypeOf(ior).toEqualTypeOf<Ior<Str, { two: 2; four: 4 }>>();
 			expect(ior).to.deep.equal(
 				Ior.both(new Str("ba"), { two: 2, four: 4 }),
 			);
@@ -459,11 +503,12 @@ describe("AsyncIor", () => {
 		it("applies the function to the elements while the result is not Left", async () => {
 			const results: [number, string][] = [];
 			const ior = await AsyncIor.forEachPar(["a", "b"], (char, idx) =>
-				delay(char === "a" ? 50 : 10).then(() => {
+				delay(char === "a" ? 50 : 10).then((): Ior<Str, void> => {
 					results.push([idx, char]);
 					return Ior.both(new Str(char), undefined);
 				}),
 			);
+			expectTypeOf(ior).toEqualTypeOf<Ior<Str, void>>();
 			expect(ior).to.deep.equal(Ior.both(new Str("ba"), undefined));
 			expect(results).to.deep.equal([
 				[1, "b"],
@@ -477,10 +522,19 @@ describe("AsyncIor", () => {
 			async function f<A, B>(lhs: A, rhs: B): Promise<[A, B]> {
 				return [lhs, rhs];
 			}
-			const ior = await AsyncIor.liftPar(f<2, 4>)(
+			const lifted = AsyncIor.liftPar(f<2, 4>);
+			expectTypeOf(lifted).toEqualTypeOf<
+				<A extends Semigroup<A>>(
+					lhs: Ior<A, 2> | AsyncIorLike<A, 2>,
+					rhs: Ior<A, 4> | AsyncIorLike<A, 4>,
+				) => AsyncIor<A, [2, 4]>
+			>();
+
+			const ior = await lifted(
 				delay(50).then(() => Ior.both(new Str("a"), 2)),
 				delay(10).then(() => Ior.both(new Str("b"), 4)),
 			);
+			expectTypeOf(ior).toEqualTypeOf<Ior<Str, [2, 4]>>();
 			expect(ior).to.deep.equal(Ior.both(new Str("ba"), [2, 4]));
 		});
 	});

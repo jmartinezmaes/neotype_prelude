@@ -15,7 +15,7 @@
  */
 
 import * as Fc from "fast-check";
-import { describe, expect, it } from "vitest";
+import { describe, expect, expectTypeOf, it } from "vitest";
 import {
 	Str,
 	TestBuilder,
@@ -26,7 +26,7 @@ import {
 	expectLawfulSemigroup,
 } from "./_test/utils.js";
 import { Annotation } from "./annotation.js";
-import { cmb } from "./cmb.js";
+import { type Semigroup, cmb } from "./cmb.js";
 import { Ordering, cmp, eq } from "./cmp.js";
 
 describe("Annotation", () => {
@@ -45,6 +45,11 @@ describe("Annotation", () => {
 	describe("value", () => {
 		it("constructs a Value variant", () => {
 			const anno = Annotation.value<2, 1>(2);
+
+			expectTypeOf(anno).toEqualTypeOf<Annotation<2, 1>>();
+			expectTypeOf(anno.kind).toEqualTypeOf<Annotation.Kind>();
+			expectTypeOf(anno.val).toEqualTypeOf<2>();
+
 			expect(anno).to.be.an.instanceOf(Annotation.Value);
 			expect(anno.kind).to.equal(Annotation.Kind.VALUE);
 			expect(anno.val).to.equal(2);
@@ -54,14 +59,22 @@ describe("Annotation", () => {
 	describe("unit", () => {
 		it("contructs a Value variant with an undefined value", () => {
 			const anno = Annotation.unit<1>();
-			expect(anno).to.be.an.instanceOf(Annotation.Value);
-			expect(anno.val).to.be.undefined;
+			expectTypeOf(anno).toEqualTypeOf<Annotation<void, 1>>();
+			expect(anno).to.deep.equal(Annotation.value(undefined));
 		});
 	});
 
 	describe("note", () => {
 		it("constructs a Note variant", () => {
 			const anno = Annotation.note<2, 1>(2, 1);
+
+			expectTypeOf(anno).toEqualTypeOf<Annotation<2, 1>>();
+			expectTypeOf(anno.kind).toEqualTypeOf<Annotation.Kind>();
+			expectTypeOf(anno.val).toEqualTypeOf<2>();
+			expectTypeOf(
+				(anno as Annotation.Note<2, 1>).log,
+			).toEqualTypeOf<1>();
+
 			expect(anno).to.be.an.instanceOf(Annotation.Note);
 			expect(anno.kind).to.equal(Annotation.Kind.NOTE);
 			expect(anno.val).to.equal(2);
@@ -72,18 +85,20 @@ describe("Annotation", () => {
 	describe("write", () => {
 		it("writes to the log and returns no value", () => {
 			const anno = Annotation.write<1>(1);
+			expectTypeOf(anno).toEqualTypeOf<Annotation<void, 1>>();
 			expect(anno).to.deep.equal(Annotation.note(undefined, 1));
 		});
 	});
 
 	describe("go", () => {
 		it("completes if all yielded values are Value", () => {
-			function* f(): Annotation.Go<[2, 4], never> {
+			function* f(): Annotation.Go<[2, 4], Str> {
 				const two = yield* Annotation.value<2>(2);
 				const four = yield* Annotation.value<4>(4);
 				return [two, four];
 			}
 			const anno = Annotation.go(f());
+			expectTypeOf(anno).toEqualTypeOf<Annotation<[2, 4], Str>>();
 			expect(anno).to.deep.equal(Annotation.value([2, 4]));
 		});
 
@@ -94,6 +109,7 @@ describe("Annotation", () => {
 				return [two, four];
 			}
 			const anno = Annotation.go(f());
+			expectTypeOf(anno).toEqualTypeOf<Annotation<[2, 4], Str>>();
 			expect(anno).to.deep.equal(Annotation.note([2, 4], new Str("b")));
 		});
 
@@ -104,6 +120,7 @@ describe("Annotation", () => {
 				return [two, four];
 			}
 			const anno = Annotation.go(f());
+			expectTypeOf(anno).toEqualTypeOf<Annotation<[2, 4], Str>>();
 			expect(anno).to.deep.equal(Annotation.note([2, 4], new Str("a")));
 		});
 
@@ -114,6 +131,7 @@ describe("Annotation", () => {
 				return [two, four];
 			}
 			const anno = Annotation.go(f());
+			expectTypeOf(anno).toEqualTypeOf<Annotation<[2, 4], Str>>();
 			expect(anno).to.deep.equal(Annotation.note([2, 4], new Str("ab")));
 		});
 
@@ -131,6 +149,7 @@ describe("Annotation", () => {
 				}
 			}
 			const anno = Annotation.go(f());
+			expectTypeOf(anno).toEqualTypeOf<Annotation<[2, 4], Str>>();
 			expect(anno).to.deep.equal(Annotation.note([2, 4], new Str("abc")));
 		});
 	});
@@ -143,6 +162,7 @@ describe("Annotation", () => {
 				return [two, four];
 			}
 			const anno = Annotation.fromGoFn(f);
+			expectTypeOf(anno).toEqualTypeOf<Annotation<[2, 4], Str>>();
 			expect(anno).to.deep.equal(Annotation.note([2, 4], new Str("ab")));
 		});
 	});
@@ -154,7 +174,12 @@ describe("Annotation", () => {
 				return [two, four];
 			}
 			const wrapped = Annotation.wrapGoFn(f);
+			expectTypeOf(wrapped).toEqualTypeOf<
+				(two: 2) => Annotation<[2, 4], Str>
+			>();
+
 			const anno = wrapped(2);
+			expectTypeOf(anno).toEqualTypeOf<Annotation<[2, 4], Str>>();
 			expect(anno).to.deep.equal(Annotation.note([2, 4], new Str("a")));
 		});
 	});
@@ -167,6 +192,7 @@ describe("Annotation", () => {
 					Annotation.note(chars + char + idx, new Str(char)),
 				"",
 			);
+			expectTypeOf(anno).toEqualTypeOf<Annotation<string, Str>>();
 			expect(anno).to.deep.equal(Annotation.note("a0b1", new Str("ab")));
 		});
 	});
@@ -176,9 +202,13 @@ describe("Annotation", () => {
 			const builder = new TestBuilder<[number, string]>();
 			const anno = Annotation.traverseInto(
 				["a", "b"],
-				(char, idx) => Annotation.note([idx, char], new Str(char)),
+				(char, idx): Annotation<[number, string], Str> =>
+					Annotation.note([idx, char], new Str(char)),
 				builder,
 			);
+			expectTypeOf(anno).toEqualTypeOf<
+				Annotation<[number, string][], Str>
+			>();
 			expect(anno).to.deep.equal(
 				Annotation.note(
 					[
@@ -193,12 +223,14 @@ describe("Annotation", () => {
 
 	describe("traverse", () => {
 		it("applies the function to the elements and collects the values in an array", () => {
-			const anno = Annotation.traverse(["a", "b"], (char, idx) =>
-				Annotation.note<[number, string], Str>(
-					[idx, char],
-					new Str(char),
-				),
+			const anno = Annotation.traverse(
+				["a", "b"],
+				(char, idx): Annotation<[number, string], Str> =>
+					Annotation.note([idx, char], new Str(char)),
 			);
+			expectTypeOf(anno).toEqualTypeOf<
+				Annotation<[number, string][], Str>
+			>();
 			expect(anno).to.deep.equal(
 				Annotation.note(
 					[
@@ -221,6 +253,7 @@ describe("Annotation", () => {
 				],
 				builder,
 			);
+			expectTypeOf(anno).toEqualTypeOf<Annotation<number[], Str>>();
 			expect(anno).to.deep.equal(Annotation.note([2, 4], new Str("ab")));
 		});
 	});
@@ -231,6 +264,7 @@ describe("Annotation", () => {
 				Annotation.note<2, Str>(2, new Str("a")),
 				Annotation.note<4, Str>(4, new Str("b")),
 			]);
+			expectTypeOf(anno).toEqualTypeOf<Annotation<[2, 4], Str>>();
 			expect(anno).to.deep.equal(Annotation.note([2, 4], new Str("ab")));
 		});
 	});
@@ -241,6 +275,9 @@ describe("Annotation", () => {
 				two: Annotation.note<2, Str>(2, new Str("a")),
 				four: Annotation.note<4, Str>(4, new Str("b")),
 			});
+			expectTypeOf(anno).toEqualTypeOf<
+				Annotation<{ two: 2; four: 4 }, Str>
+			>();
 			expect(anno).to.deep.equal(
 				Annotation.note({ two: 2, four: 4 }, new Str("ab")),
 			);
@@ -254,6 +291,7 @@ describe("Annotation", () => {
 				results.push([idx, char]);
 				return Annotation.note(undefined, new Str(char));
 			});
+			expectTypeOf(anno).toEqualTypeOf<Annotation<void, Str>>();
 			expect(anno).to.deep.equal(
 				Annotation.note(undefined, new Str("ab")),
 			);
@@ -265,10 +303,19 @@ describe("Annotation", () => {
 			function f<A, B>(lhs: A, rhs: B): [A, B] {
 				return [lhs, rhs];
 			}
-			const anno = Annotation.lift(f<2, 4>)(
+			const lifted = Annotation.lift(f<2, 4>);
+			expectTypeOf(lifted).toEqualTypeOf<
+				<W extends Semigroup<W>>(
+					lhs: Annotation<2, W>,
+					rhs: Annotation<4, W>,
+				) => Annotation<[2, 4], W>
+			>();
+
+			const anno = lifted(
 				Annotation.note(2, new Str("a")),
 				Annotation.note(4, new Str("b")),
 			);
+			expectTypeOf(anno).toEqualTypeOf<Annotation<[2, 4], Str>>();
 			expect(anno).to.deep.equal(Annotation.note([2, 4], new Str("ab")));
 		});
 	});
@@ -453,6 +500,7 @@ describe("Annotation", () => {
 				(two): [2, 4] => [two, 4],
 				(two, one): [2, 1] => [two, one],
 			);
+			expectTypeOf(result).toEqualTypeOf<[2, 4] | [2, 1]>();
 			expect(result).to.deep.equal([2, 4]);
 		});
 
@@ -461,6 +509,7 @@ describe("Annotation", () => {
 				(two): [2, 4] => [two, 4],
 				(two, one): [2, 1] => [two, one],
 			);
+			expectTypeOf(result).toEqualTypeOf<[2, 4] | [2, 1]>();
 			expect(result).to.deep.equal([2, 1]);
 		});
 	});
@@ -470,6 +519,7 @@ describe("Annotation", () => {
 			const anno = Annotation.value<2, Str>(2).andThen(
 				(two): Annotation<[2, 4], Str> => Annotation.value([two, 4]),
 			);
+			expectTypeOf(anno).toEqualTypeOf<Annotation<[2, 4], Str>>();
 			expect(anno).to.deep.equal(Annotation.value([2, 4]));
 		});
 
@@ -478,6 +528,7 @@ describe("Annotation", () => {
 				(two): Annotation<[2, 4], Str> =>
 					Annotation.note([two, 4], new Str("b")),
 			);
+			expectTypeOf(anno).toEqualTypeOf<Annotation<[2, 4], Str>>();
 			expect(anno).to.deep.equal(Annotation.note([2, 4], new Str("b")));
 		});
 
@@ -485,6 +536,7 @@ describe("Annotation", () => {
 			const anno = Annotation.note<2, Str>(2, new Str("a")).andThen(
 				(two): Annotation<[2, 4], Str> => Annotation.value([two, 4]),
 			);
+			expectTypeOf(anno).toEqualTypeOf<Annotation<[2, 4], Str>>();
 			expect(anno).to.deep.equal(Annotation.note([2, 4], new Str("a")));
 		});
 
@@ -493,6 +545,7 @@ describe("Annotation", () => {
 				(two): Annotation<[2, 4], Str> =>
 					Annotation.note([two, 4], new Str("b")),
 			);
+			expectTypeOf(anno).toEqualTypeOf<Annotation<[2, 4], Str>>();
 			expect(anno).to.deep.equal(Annotation.note([2, 4], new Str("ab")));
 		});
 	});
@@ -508,6 +561,7 @@ describe("Annotation", () => {
 					return [two, four];
 				},
 			);
+			expectTypeOf(anno).toEqualTypeOf<Annotation<[2, 4], Str>>();
 			expect(anno).to.deep.equal(Annotation.note([2, 4], new Str("ab")));
 		});
 	});
@@ -518,6 +572,7 @@ describe("Annotation", () => {
 				Annotation.note(2, new Str("b")),
 				new Str("a"),
 			).flatten();
+			expectTypeOf(anno).toEqualTypeOf<Annotation<2, Str>>();
 			expect(anno).to.deep.equal(Annotation.note(2, new Str("ab")));
 		});
 	});
@@ -527,6 +582,7 @@ describe("Annotation", () => {
 			const anno = Annotation.note<2, Str>(2, new Str("a")).and(
 				Annotation.note<4, Str>(4, new Str("b")),
 			);
+			expectTypeOf(anno).toEqualTypeOf<Annotation<4, Str>>();
 			expect(anno).to.deep.equal(Annotation.note(4, new Str("ab")));
 		});
 	});
@@ -537,6 +593,7 @@ describe("Annotation", () => {
 				Annotation.note<4, Str>(4, new Str("b")),
 				(two, four): [2, 4] => [two, four],
 			);
+			expectTypeOf(anno).toEqualTypeOf<Annotation<[2, 4], Str>>();
 			expect(anno).to.deep.equal(Annotation.note([2, 4], new Str("ab")));
 		});
 	});
@@ -547,6 +604,7 @@ describe("Annotation", () => {
 				two,
 				4,
 			]);
+			expectTypeOf(anno).toEqualTypeOf<Annotation<[2, 4], 1>>();
 			expect(anno).to.deep.equal(Annotation.value([2, 4]));
 		});
 
@@ -555,6 +613,7 @@ describe("Annotation", () => {
 				two,
 				4,
 			]);
+			expectTypeOf(anno).toEqualTypeOf<Annotation<[2, 4], 1>>();
 			expect(anno).to.deep.equal(Annotation.note([2, 4], 1));
 		});
 	});
@@ -565,6 +624,7 @@ describe("Annotation", () => {
 				one,
 				3,
 			]);
+			expectTypeOf(anno).toEqualTypeOf<Annotation<2, [1, 3]>>();
 			expect(anno).to.deep.equal(Annotation.value(2));
 		});
 
@@ -573,6 +633,7 @@ describe("Annotation", () => {
 				one,
 				3,
 			]);
+			expectTypeOf(anno).toEqualTypeOf<Annotation<2, [1, 3]>>();
 			expect(anno).to.deep.equal(Annotation.note(2, [1, 3]));
 		});
 	});
@@ -582,6 +643,7 @@ describe("Annotation", () => {
 			const anno = Annotation.note<2, Str>(2, new Str("a")).notateWith(
 				(two) => new Str(two.toString()),
 			);
+			expectTypeOf(anno).toEqualTypeOf<Annotation<2, Str>>();
 			expect(anno).to.deep.equal(Annotation.note(2, new Str("a2")));
 		});
 	});
@@ -591,6 +653,7 @@ describe("Annotation", () => {
 			const anno = Annotation.note<2, Str>(2, new Str("a")).notate(
 				new Str("b"),
 			);
+			expectTypeOf(anno).toEqualTypeOf<Annotation<2, Str>>();
 			expect(anno).to.deep.equal(Annotation.note(2, new Str("ab")));
 		});
 	});
@@ -598,11 +661,13 @@ describe("Annotation", () => {
 	describe("#eraseLog", () => {
 		it("does nothing if the variant is Value", () => {
 			const anno = Annotation.value<2, 1>(2).eraseLog();
+			expectTypeOf(anno).toEqualTypeOf<Annotation<2, never>>();
 			expect(anno).to.deep.equal(Annotation.value(2));
 		});
 
 		it("deletes the log and changes the Note to a Value if the variant is Note", () => {
 			const anno = Annotation.note<2, 1>(2, 1).eraseLog();
+			expectTypeOf(anno).toEqualTypeOf<Annotation<2, never>>();
 			expect(anno).to.deep.equal(Annotation.value(2));
 		});
 	});

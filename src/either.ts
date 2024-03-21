@@ -298,11 +298,11 @@ export namespace Either {
 	 */
 	export function lift<TArgs extends unknown[], T>(
 		f: (...args: TArgs) => T,
-	): <TEithers extends { [K in keyof TArgs]: Either<any, TArgs[K]> }>(
-		...eithers: TEithers
-	) => Either<LeftT<TEithers[number]>, T> {
+	): <E>(
+		...eithers: { [K in keyof TArgs]: Either<E, TArgs[K]> }
+	) => Either<E, T> {
 		return (...eithers) =>
-			all(eithers).map((args) => f(...(args as TArgs)));
+			all(eithers).map((args) => f(...(args as TArgs))) as Either<any, T>;
 	}
 
 	/** An enumeration that discriminates `Either`. */

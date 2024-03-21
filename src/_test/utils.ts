@@ -55,7 +55,7 @@ export function arbStr(): Fc.Arbitrary<Str> {
 export class TestBuilder<in out T> implements Builder<T, T[]> {
 	output: T[] = [];
 
-	add(input: T): void {
+	add(input: Readonly<T>): void {
 		this.output.push(input);
 	}
 

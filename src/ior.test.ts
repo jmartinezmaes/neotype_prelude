@@ -15,7 +15,7 @@
  */
 
 import * as Fc from "fast-check";
-import { describe, expect, it } from "vitest";
+import { describe, expect, expectTypeOf, it } from "vitest";
 import {
 	Str,
 	TestBuilder,
@@ -26,7 +26,7 @@ import {
 	expectLawfulSemigroup,
 } from "./_test/utils.js";
 import { Annotation } from "./annotation.js";
-import { cmb } from "./cmb.js";
+import { type Semigroup, cmb } from "./cmb.js";
 import { Ordering, cmp, eq } from "./cmp.js";
 import { Either } from "./either.js";
 import { Ior } from "./ior.js";
@@ -47,6 +47,11 @@ describe("Ior", () => {
 	describe("left", () => {
 		it("constucts a Left variant", () => {
 			const ior = Ior.left<1, 2>(1);
+
+			expectTypeOf(ior).toEqualTypeOf<Ior<1, 2>>();
+			expectTypeOf(ior.kind).toEqualTypeOf<Ior.Kind>();
+			expectTypeOf(ior.val).toEqualTypeOf<1 | 2 | [1, 2]>();
+
 			expect(ior).to.be.an.instanceOf(Ior.Left);
 			expect(ior.kind).to.equal(Ior.Kind.LEFT);
 			expect(ior.val).to.equal(1);
@@ -56,6 +61,11 @@ describe("Ior", () => {
 	describe("right", () => {
 		it("constructs a Right variant", () => {
 			const ior = Ior.right<2, 1>(2);
+
+			expectTypeOf(ior).toEqualTypeOf<Ior<1, 2>>();
+			expectTypeOf(ior.kind).toEqualTypeOf<Ior.Kind>();
+			expectTypeOf(ior.val).toEqualTypeOf<1 | 2 | [1, 2]>();
+
 			expect(ior).to.be.an.instanceOf(Ior.Right);
 			expect(ior.kind).to.equal(Ior.Kind.RIGHT);
 			expect(ior.val).to.equal(2);
@@ -65,6 +75,7 @@ describe("Ior", () => {
 	describe("unit", () => {
 		it("constructs a Right variant with an undefined value", () => {
 			const ior = Ior.unit<1>();
+			expectTypeOf(ior).toEqualTypeOf<Ior<1, void>>();
 			expect(ior).to.be.an.instanceOf(Ior.Right);
 			expect(ior.val).to.be.undefined;
 		});
@@ -73,6 +84,13 @@ describe("Ior", () => {
 	describe("both", () => {
 		it("constructs a Both variant", () => {
 			const ior = Ior.both<1, 2>(1, 2);
+
+			expectTypeOf(ior).toEqualTypeOf<Ior<1, 2>>();
+			expectTypeOf(ior.kind).toEqualTypeOf<Ior.Kind>();
+			expectTypeOf(ior.val).toEqualTypeOf<1 | 2 | [1, 2]>();
+			expectTypeOf((ior as Ior.Both<1, 2>).fst).toEqualTypeOf<1>();
+			expectTypeOf((ior as Ior.Both<1, 2>).snd).toEqualTypeOf<2>();
+
 			expect(ior).to.be.an.instanceOf(Ior.Both);
 			expect(ior.kind).to.equal(Ior.Kind.BOTH);
 			expect((ior as Ior.Both<1, 2>).fst).to.equal(1);
@@ -84,20 +102,21 @@ describe("Ior", () => {
 	describe("write", () => {
 		it("constructs a Both variant with an undefined right-hand value", () => {
 			const ior = Ior.write<1>(1);
-			expect(ior).to.be.an.instanceOf(Ior.Both);
-			expect((ior as Ior.Both<1, void>).fst).to.equal(1);
-			expect((ior as Ior.Both<1, void>).snd).to.be.undefined;
+			expectTypeOf(ior).toEqualTypeOf<Ior<1, void>>();
+			expect(ior).to.deep.equal(Ior.both(1, undefined));
 		});
 	});
 
 	describe("fromAnnotation", () => {
 		it("constructs a Right if the Annotation is a Value", () => {
 			const ior = Ior.fromAnnotation(Annotation.value<2, 1>(2));
+			expectTypeOf(ior).toEqualTypeOf<Ior<1, 2>>();
 			expect(ior).to.deep.equal(Ior.right(2));
 		});
 
 		it("constructs a Both if the Annotation is a Note", () => {
 			const ior = Ior.fromAnnotation(Annotation.note<2, 1>(2, 1));
+			expectTypeOf(ior).toEqualTypeOf<Ior<1, 2>>();
 			expect(ior).to.deep.equal(Ior.both(1, 2));
 		});
 	});
@@ -105,11 +124,13 @@ describe("Ior", () => {
 	describe("fromEither", () => {
 		it("constructs a Left if the Either is a Left", () => {
 			const ior = Ior.fromEither(Either.left<1, 2>(1));
+			expectTypeOf(ior).toEqualTypeOf<Ior<1, 2>>();
 			expect(ior).to.deep.equal(Ior.left(1));
 		});
 
 		it("constructs a Right if the Either is a Right", () => {
 			const ior = Ior.fromEither(Either.right<2, 1>(2));
+			expectTypeOf(ior).toEqualTypeOf<Ior<1, 2>>();
 			expect(ior).to.deep.equal(Ior.right(2));
 		});
 	});
@@ -117,11 +138,13 @@ describe("Ior", () => {
 	describe("fromValidation", () => {
 		it("constructs a Left if the Validation is an Err", () => {
 			const ior = Ior.fromValidation(Validation.err<1, 2>(1));
+			expectTypeOf(ior).toEqualTypeOf<Ior<1, 2>>();
 			expect(ior).to.deep.equal(Ior.left(1));
 		});
 
 		it("constructs a Right if the Validation is an Ok", () => {
 			const ior = Ior.fromValidation(Validation.ok<2, 1>(2));
+			expectTypeOf(ior).toEqualTypeOf<Ior<1, 2>>();
 			expect(ior).to.deep.equal(Ior.right(2));
 		});
 	});
@@ -129,6 +152,7 @@ describe("Ior", () => {
 	describe("fromTuple", () => {
 		it("constructs a Both from a 2-tuple of values", () => {
 			const ior = Ior.fromTuple([1, 2] as [1, 2]);
+			expectTypeOf(ior).toEqualTypeOf<Ior<1, 2>>();
 			expect(ior).to.deep.equal(Ior.both(1, 2));
 		});
 	});
@@ -141,6 +165,7 @@ describe("Ior", () => {
 				return [two, four];
 			}
 			const ior = Ior.go(f());
+			expectTypeOf(ior).toEqualTypeOf<Ior<Str, [2, 4]>>();
 			expect(ior).to.deep.equal(Ior.left(new Str("b")));
 		});
 
@@ -151,6 +176,7 @@ describe("Ior", () => {
 				return [two, four];
 			}
 			const ior = Ior.go(f());
+			expectTypeOf(ior).toEqualTypeOf<Ior<Str, [2, 4]>>();
 			expect(ior).to.deep.equal(Ior.right([2, 4]));
 		});
 
@@ -161,6 +187,7 @@ describe("Ior", () => {
 				return [two, four];
 			}
 			const ior = Ior.go(f());
+			expectTypeOf(ior).toEqualTypeOf<Ior<Str, [2, 4]>>();
 			expect(ior).to.deep.equal(Ior.both(new Str("b"), [2, 4]));
 		});
 
@@ -171,6 +198,7 @@ describe("Ior", () => {
 				return [two, four];
 			}
 			const ior = Ior.go(f());
+			expectTypeOf(ior).toEqualTypeOf<Ior<Str, [2, 4]>>();
 			expect(ior).to.deep.equal(Ior.left(new Str("ab")));
 		});
 
@@ -181,6 +209,7 @@ describe("Ior", () => {
 				return [two, four];
 			}
 			const ior = Ior.go(f());
+			expectTypeOf(ior).toEqualTypeOf<Ior<Str, [2, 4]>>();
 			expect(ior).to.deep.equal(Ior.both(new Str("a"), [2, 4]));
 		});
 
@@ -191,6 +220,7 @@ describe("Ior", () => {
 				return [two, four];
 			}
 			const ior = Ior.go(f());
+			expectTypeOf(ior).toEqualTypeOf<Ior<Str, [2, 4]>>();
 			expect(ior).to.deep.equal(Ior.both(new Str("ab"), [2, 4]));
 		});
 
@@ -204,6 +234,7 @@ describe("Ior", () => {
 				}
 			}
 			const ior = Ior.go(f());
+			expectTypeOf(ior).toEqualTypeOf<Ior<Str, 2>>();
 			expect(ior).to.deep.equal(Ior.left(new Str("a")));
 			expect(logs).to.deep.equal(["finally"]);
 		});
@@ -217,6 +248,7 @@ describe("Ior", () => {
 				}
 			}
 			const ior = Ior.go(f());
+			expectTypeOf(ior).toEqualTypeOf<Ior<Str, 2>>();
 			expect(ior).to.deep.equal(Ior.left(new Str("ab")));
 		});
 
@@ -229,6 +261,7 @@ describe("Ior", () => {
 				}
 			}
 			const ior = Ior.go(f());
+			expectTypeOf(ior).toEqualTypeOf<Ior<Str, 2>>();
 			expect(ior).to.deep.equal(Ior.left(new Str("ab")));
 		});
 	});
@@ -241,6 +274,7 @@ describe("Ior", () => {
 				return [two, four];
 			}
 			const ior = Ior.fromGoFn(f);
+			expectTypeOf(ior).toEqualTypeOf<Ior<Str, [2, 4]>>();
 			expect(ior).to.deep.equal(Ior.both(new Str("ab"), [2, 4]));
 		});
 	});
@@ -253,6 +287,7 @@ describe("Ior", () => {
 			}
 			const wrapped = Ior.wrapGoFn(f);
 			const ior = wrapped(2);
+			expectTypeOf(ior).toEqualTypeOf<Ior<Str, [2, 4]>>();
 			expect(ior).to.deep.equal(Ior.both(new Str("a"), [2, 4]));
 		});
 	});
@@ -265,6 +300,7 @@ describe("Ior", () => {
 					Ior.both(new Str(char), chars + char + idx),
 				"",
 			);
+			expectTypeOf(ior).toEqualTypeOf<Ior<Str, string>>();
 			expect(ior).to.deep.equal(Ior.both(new Str("ab"), "a0b1"));
 		});
 	});
@@ -274,9 +310,11 @@ describe("Ior", () => {
 			const builder = new TestBuilder<[number, string]>();
 			const ior = Ior.traverseInto(
 				["a", "b"],
-				(char, idx) => Ior.both(new Str(char), [idx, char]),
+				(char, idx): Ior<Str, [number, string]> =>
+					Ior.both(new Str(char), [idx, char]),
 				builder,
 			);
+			expectTypeOf(ior).toEqualTypeOf<Ior<Str, [number, string][]>>();
 			expect(ior).to.deep.equal(
 				Ior.both(new Str("ab"), [
 					[0, "a"],
@@ -288,9 +326,12 @@ describe("Ior", () => {
 
 	describe("traverse", () => {
 		it("applies the function to the elements and collects the right-hand values in an array if no results are Left", () => {
-			const ior = Ior.traverse(["a", "b"], (char, idx) =>
-				Ior.both<Str, [number, string]>(new Str(char), [idx, char]),
+			const ior = Ior.traverse(
+				["a", "b"],
+				(char, idx): Ior<Str, [number, string]> =>
+					Ior.both(new Str(char), [idx, char]),
 			);
+			expectTypeOf(ior).toEqualTypeOf<Ior<Str, [number, string][]>>();
 			expect(ior).to.deep.equal(
 				Ior.both(new Str("ab"), [
 					[0, "a"],
@@ -307,6 +348,7 @@ describe("Ior", () => {
 				[Ior.both(new Str("a"), 2), Ior.both(new Str("b"), 4)],
 				builder,
 			);
+			expectTypeOf(ior).toEqualTypeOf<Ior<Str, number[]>>();
 			expect(ior).to.deep.equal(Ior.both(new Str("ab"), [2, 4]));
 		});
 	});
@@ -317,6 +359,7 @@ describe("Ior", () => {
 				Ior.both<Str, 2>(new Str("a"), 2),
 				Ior.both<Str, 4>(new Str("b"), 4),
 			]);
+			expectTypeOf(ior).toEqualTypeOf<Ior<Str, [2, 4]>>();
 			expect(ior).to.deep.equal(Ior.both(new Str("ab"), [2, 4]));
 		});
 	});
@@ -327,6 +370,7 @@ describe("Ior", () => {
 				two: Ior.both<Str, 2>(new Str("a"), 2),
 				four: Ior.both<Str, 4>(new Str("b"), 4),
 			});
+			expectTypeOf(ior).toEqualTypeOf<Ior<Str, { two: 2; four: 4 }>>();
 			expect(ior).to.deep.equal(
 				Ior.both(new Str("ab"), { two: 2, four: 4 }),
 			);
@@ -340,6 +384,7 @@ describe("Ior", () => {
 				results.push([idx, char]);
 				return Ior.both(new Str(char), undefined);
 			});
+			expectTypeOf(ior).toEqualTypeOf<Ior<Str, void>>();
 			expect(ior).to.deep.equal(Ior.both(new Str("ab"), undefined));
 			expect(results).to.deep.equal([
 				[0, "a"],
@@ -353,10 +398,19 @@ describe("Ior", () => {
 			function f<A, B>(lhs: A, rhs: B): [A, B] {
 				return [lhs, rhs];
 			}
-			const ior = Ior.lift(f<2, 4>)(
+			const lifted = Ior.lift(f<2, 4>);
+			expectTypeOf(lifted).toEqualTypeOf<
+				<A extends Semigroup<A>>(
+					lhs: Ior<A, 2>,
+					rhs: Ior<A, 4>,
+				) => Ior<A, [2, 4]>
+			>();
+
+			const ior = lifted(
 				Ior.both(new Str("a"), 2),
 				Ior.both(new Str("b"), 4),
 			);
+			expectTypeOf(ior).toEqualTypeOf<Ior<Str, [2, 4]>>();
 			expect(ior).to.deep.equal(Ior.both(new Str("ab"), [2, 4]));
 		});
 	});
@@ -699,6 +753,7 @@ describe("Ior", () => {
 				(two): [2, 4] => [two, 4],
 				(one, two): [1, 2] => [one, two],
 			);
+			expectTypeOf(result).toEqualTypeOf<[1, 3] | [2, 4] | [1, 2]>();
 			expect(result).to.deep.equal([1, 3]);
 		});
 
@@ -708,6 +763,7 @@ describe("Ior", () => {
 				(two): [2, 4] => [two, 4],
 				(one, two): [1, 2] => [one, two],
 			);
+			expectTypeOf(result).toEqualTypeOf<[1, 3] | [2, 4] | [1, 2]>();
 			expect(result).to.deep.equal([2, 4]);
 		});
 
@@ -717,6 +773,7 @@ describe("Ior", () => {
 				(two): [2, 4] => [two, 4],
 				(one, two): [1, 2] => [one, two],
 			);
+			expectTypeOf(result).toEqualTypeOf<[1, 3] | [2, 4] | [1, 2]>();
 			expect(result).to.deep.equal([1, 2]);
 		});
 	});
@@ -768,6 +825,7 @@ describe("Ior", () => {
 			const ior = Ior.left<Str, 2>(new Str("a")).andThen(
 				(two): Ior<Str, [2, 4]> => Ior.both(new Str("b"), [two, 4]),
 			);
+			expectTypeOf(ior).toEqualTypeOf<Ior<Str, [2, 4]>>();
 			expect(ior).to.deep.equal(Ior.left(new Str("a")));
 		});
 
@@ -775,6 +833,7 @@ describe("Ior", () => {
 			const ior = Ior.right<2, Str>(2).andThen(
 				(two): Ior<Str, [2, 4]> => Ior.right([two, 4]),
 			);
+			expectTypeOf(ior).toEqualTypeOf<Ior<Str, [2, 4]>>();
 			expect(ior).to.deep.equal(Ior.right([2, 4]));
 		});
 
@@ -782,6 +841,7 @@ describe("Ior", () => {
 			const ior = Ior.right<2, Str>(2).andThen(
 				(two): Ior<Str, [2, 4]> => Ior.both(new Str("b"), [two, 4]),
 			);
+			expectTypeOf(ior).toEqualTypeOf<Ior<Str, [2, 4]>>();
 			expect(ior).to.deep.equal(Ior.both(new Str("b"), [2, 4]));
 		});
 
@@ -789,6 +849,7 @@ describe("Ior", () => {
 			const ior = Ior.both<Str, 2>(new Str("a"), 2).andThen(
 				(): Ior<Str, [2, 4]> => Ior.left(new Str("b")),
 			);
+			expectTypeOf(ior).toEqualTypeOf<Ior<Str, [2, 4]>>();
 			expect(ior).to.deep.equal(Ior.left(new Str("ab")));
 		});
 
@@ -796,6 +857,7 @@ describe("Ior", () => {
 			const ior = Ior.both<Str, 2>(new Str("a"), 2).andThen(
 				(two): Ior<Str, [2, 4]> => Ior.right([two, 4]),
 			);
+			expectTypeOf(ior).toEqualTypeOf<Ior<Str, [2, 4]>>();
 			expect(ior).to.deep.equal(Ior.both(new Str("a"), [2, 4]));
 		});
 
@@ -803,6 +865,7 @@ describe("Ior", () => {
 			const ior = Ior.both<Str, 2>(new Str("a"), 2).andThen(
 				(two): Ior<Str, [2, 4]> => Ior.both(new Str("b"), [two, 4]),
 			);
+			expectTypeOf(ior).toEqualTypeOf<Ior<Str, [2, 4]>>();
 			expect(ior).to.deep.equal(Ior.both(new Str("ab"), [2, 4]));
 		});
 	});
@@ -815,6 +878,7 @@ describe("Ior", () => {
 					return [two, four];
 				},
 			);
+			expectTypeOf(ior).toEqualTypeOf<Ior<Str, [2, 4]>>();
 			expect(ior).to.deep.equal(Ior.both(new Str("ab"), [2, 4]));
 		});
 	});
@@ -825,6 +889,7 @@ describe("Ior", () => {
 				new Str("a"),
 				Ior.both(new Str("b"), 2),
 			).flatten();
+			expectTypeOf(ior).toEqualTypeOf<Ior<Str, 2>>();
 			expect(ior).to.deep.equal(Ior.both(new Str("ab"), 2));
 		});
 	});
@@ -834,6 +899,7 @@ describe("Ior", () => {
 			const ior = Ior.both<Str, 2>(new Str("a"), 2).and(
 				Ior.both<Str, 4>(new Str("b"), 4),
 			);
+			expectTypeOf(ior).toEqualTypeOf<Ior<Str, 4>>();
 			expect(ior).to.deep.equal(Ior.both(new Str("ab"), 4));
 		});
 	});
@@ -844,6 +910,7 @@ describe("Ior", () => {
 				Ior.both<Str, 4>(new Str("b"), 4),
 				(two, four): [2, 4] => [two, four],
 			);
+			expectTypeOf(ior).toEqualTypeOf<Ior<Str, [2, 4]>>();
 			expect(ior).to.deep.equal(Ior.both(new Str("ab"), [2, 4]));
 		});
 	});
@@ -851,16 +918,19 @@ describe("Ior", () => {
 	describe("#mapLeft", () => {
 		it("applies the function to the value if the variant is Left", () => {
 			const ior = Ior.left<1, 2>(1).mapLeft((one): [1, 3] => [one, 3]);
+			expectTypeOf(ior).toEqualTypeOf<Ior<[1, 3], 2>>();
 			expect(ior).to.deep.equal(Ior.left([1, 3]));
 		});
 
 		it("does not apply the function if the variant is Right", () => {
 			const ior = Ior.right<2, 1>(2).mapLeft((one): [1, 3] => [one, 3]);
+			expectTypeOf(ior).toEqualTypeOf<Ior<[1, 3], 2>>();
 			expect(ior).to.deep.equal(Ior.right(2));
 		});
 
 		it("applies the function to the left-hand value if the variant is Both", () => {
 			const ior = Ior.both<1, 2>(1, 2).mapLeft((one): [1, 3] => [one, 3]);
+			expectTypeOf(ior).toEqualTypeOf<Ior<[1, 3], 2>>();
 			expect(ior).to.deep.equal(Ior.both([1, 3], 2));
 		});
 	});
@@ -868,16 +938,19 @@ describe("Ior", () => {
 	describe("#map", () => {
 		it("does not apply the function if the variant is Left", () => {
 			const ior = Ior.left<1, 2>(1).map((two): [2, 4] => [two, 4]);
+			expectTypeOf(ior).toEqualTypeOf<Ior<1, [2, 4]>>();
 			expect(ior).to.deep.equal(Ior.left(1));
 		});
 
 		it("applies the function to the value if the variant is Right", () => {
 			const ior = Ior.right<2, 1>(2).map((two): [2, 4] => [two, 4]);
+			expectTypeOf(ior).toEqualTypeOf<Ior<1, [2, 4]>>();
 			expect(ior).to.deep.equal(Ior.right([2, 4]));
 		});
 
 		it("applies the function to the right-hand value if the variant is Both", () => {
 			const ior = Ior.both<1, 2>(1, 2).map((two): [2, 4] => [two, 4]);
+			expectTypeOf(ior).toEqualTypeOf<Ior<1, [2, 4]>>();
 			expect(ior).to.deep.equal(Ior.both(1, [2, 4]));
 		});
 	});
