@@ -216,7 +216,7 @@ describe("AsyncIor", () => {
 				gen(),
 				(chars, char, idx) =>
 					delay(1).then(() =>
-						Ior.both(new Str(char), chars + char + idx),
+						Ior.both(new Str(char), chars + char + idx.toString()),
 					),
 				"",
 			);

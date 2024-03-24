@@ -174,7 +174,7 @@ describe("Either", () => {
 			const either = Either.reduce(
 				["a", "b"],
 				(chars, char, idx): Either<1, string> =>
-					Either.right(chars + char + idx),
+					Either.right(chars + char + idx.toString()),
 				"",
 			);
 			expectTypeOf(either).toEqualTypeOf<Either<1, string>>();

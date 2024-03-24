@@ -189,7 +189,10 @@ describe("Annotation", () => {
 			const anno = Annotation.reduce(
 				["a", "b"],
 				(chars, char, idx) =>
-					Annotation.note(chars + char + idx, new Str(char)),
+					Annotation.note(
+						chars + char + idx.toString(),
+						new Str(char),
+					),
 				"",
 			);
 			expectTypeOf(anno).toEqualTypeOf<Annotation<string, Str>>();
