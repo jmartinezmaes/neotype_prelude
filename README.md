@@ -65,7 +65,7 @@ syntax to their synchronous counterparts for working seamlessly with async data
 types.
 
 ```ts
-import { AsyncMaybe } from "@neotype/prelude/async/maybe.js";
+import { AsyncMaybe } from "@neotype/prelude/async.js";
 
 declare function fetchAuthorIdByEmail(email: string): AsyncMaybe<number>;
 declare function fetchPostsByAuthorId(id: number): AsyncMaybe<string[]>;

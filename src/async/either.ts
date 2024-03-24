@@ -17,35 +17,6 @@
 /**
  * Functionality for using `Either` with promises.
  *
- * @remarks
- *
- * {@link AsyncEither:type | `AsyncEither<A, B>`} is an alias for
- * `Promise<Either<A, B>>`. The {@link AsyncEither:namespace `AsyncEither`}
- * companion namespace provides utilities for working with the `AsyncEither<A,
- * B>` type.
- *
- * To accommodate promise-like values, this module also provides the
- * {@link AsyncEitherLike | `AsyncEitherLike<A, B>`} type as an alias for
- * `PromiseLike<Either<A, B>>`.
- *
- * ## Importing from this module
- *
- * The types and namespaces from this module can be imported under the same
- * aliases:
- *
- * ```ts
- * import { AsyncEither } from "@neotype/prelude/async/either.js";
- * ```
- *
- * Or, they can be imported and aliased separately:
- *
- * ```ts
- * import {
- *     type AsyncEither,
- *     AsyncEither as AE
- * } from "@neotype/prelude/async/either.js";
- * ```
- *
  * @module
  */
 
