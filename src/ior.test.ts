@@ -297,7 +297,7 @@ describe("Ior", () => {
 			const ior = Ior.reduce(
 				["a", "b"],
 				(chars, char, idx) =>
-					Ior.both(new Str(char), chars + char + idx),
+					Ior.both(new Str(char), chars + char + idx.toString()),
 				"",
 			);
 			expectTypeOf(ior).toEqualTypeOf<Ior<Str, string>>();

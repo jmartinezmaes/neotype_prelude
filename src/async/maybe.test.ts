@@ -127,7 +127,9 @@ describe("AsyncMaybe", () => {
 			const maybe = await AsyncMaybe.reduce(
 				gen(),
 				(chars, char, idx) =>
-					delay(1).then(() => Maybe.just(chars + char + idx)),
+					delay(1).then(() =>
+						Maybe.just(chars + char + idx.toString()),
+					),
 				"",
 			);
 			expectTypeOf(maybe).toEqualTypeOf<Maybe<string>>();

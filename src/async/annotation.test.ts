@@ -170,7 +170,10 @@ describe("AsyncAnnotation", () => {
 				gen(),
 				(chars, char, idx) =>
 					delay(1).then(() =>
-						Annotation.note(chars + char + idx, new Str(char)),
+						Annotation.note(
+							chars + char + idx.toString(),
+							new Str(char),
+						),
 					),
 				"",
 			);

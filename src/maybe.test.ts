@@ -233,7 +233,7 @@ describe("Maybe", () => {
 		it("reduces the finite iterable from left to right in the context of Maybe", () => {
 			const maybe = Maybe.reduce(
 				["a", "b"],
-				(chars, char, idx) => Maybe.just(chars + char + idx),
+				(chars, char, idx) => Maybe.just(chars + char + idx.toString()),
 				"",
 			);
 			expectTypeOf(maybe).toEqualTypeOf<Maybe<string>>();

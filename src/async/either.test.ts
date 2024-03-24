@@ -135,7 +135,7 @@ describe("AsyncEither", () => {
 				(chars, char, idx) =>
 					delay(1).then(
 						(): Either<1, string> =>
-							Either.right(chars + char + idx),
+							Either.right(chars + char + idx.toString()),
 					),
 				"",
 			);
