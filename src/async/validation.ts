@@ -17,35 +17,6 @@
 /**
  * Functionality for using `Validation` with promises.
  *
- * @remarks
- *
- * {@link AsyncValidation:type | `AsyncValidation<E, T>`} is an alias for
- * `Promise<Validation<E, T>>`. The
- * {@link AsyncValidation:namespace | `AsyncValidation`} companion namespace
- * provides utilities for working with the `AsyncValidation<E, T>` type.
- *
- * To accommodate promise-like values, this module also provides the
- * {@link AsyncValidationLike | `AsyncValidationLike<E, T>`} type as an alias
- * for `PromiseLike<Validation<E, T>>`.
- *
- * ## Importing from this module
- *
- * The types and namespaces from this module can be imported under the same
- * aliases:
- *
- * ```ts
- * import { AsyncValidation } from "@neotype/prelude/async/validation.js";
- * ```
- *
- * Or, the types and namespaces can be imported and aliased separately:
- *
- * ```ts
- * import {
- *     type AsyncValidation,
- *     AsyncValidation as AV
- * } from "@neotype/prelude/async/validation.js";
- * ```
- *
  * @module
  */
 

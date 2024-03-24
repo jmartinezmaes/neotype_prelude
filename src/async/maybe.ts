@@ -17,35 +17,6 @@
 /**
  * Functionality for using `Maybe` with promises.
  *
- * @remarks
- *
- * {@link AsyncMaybe:type | `AsyncMaybe<T>`} is an alias for
- * `Promise<Maybe<T>>`. The {@link AsyncMaybe:namespace | `AsyncMaybe`}
- * companion namespace provides utilities for working with the `AsyncMaybe<T>`
- * type.
- *
- * To accommodate promise-like values, this module also provides the
- * {@link AsyncMaybeLike | `AsyncMaybeLike<T>`} type as an alias for
- * `PromiseLike<Maybe<T>>`.
- *
- * ## Importing from this module
- *
- * The types and namespaces from this module can be imported under the same
- * aliases:
- *
- * ```ts
- * import { AsyncMaybe } from "@neotype/prelude/async/maybe.js";
- * ```
- *
- * Or, they can be imported and aliased separately:
- *
- * ```ts
- * import {
- *     type AsyncMaybe,
- *     AsyncMaybe as AM
- * } from "@neotype/prelude/async/maybe.js";
- * ```
- *
  * @module
  */
 

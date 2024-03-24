@@ -1,9 +1,19 @@
 {
 	"$schema": "https://typedoc.org/schema.json",
 	"customCss": "./assets/custom.css",
-	"entryPoints": ["./src"],
-	"entryPointStrategy": "expand",
-	"exclude": ["**/_*", "**/*.test.ts", "**/_test/*"],
+	"entryPoints": [
+		"./src/annotation.ts",
+		"./src/async.ts",
+		"./src/builder.ts",
+		"./src/cmb.ts",
+		"./src/cmp.ts",
+		"./src/either.ts",
+		"./src/fn.ts",
+		"./src/ior.ts",
+		"./src/maybe.ts",
+		"./src/pair.ts",
+		"./src/validation.ts"
+	],
 	"excludePrivate": true,
 	"json": "./docsite/docs.json",
 	"name": "Neotype Prelude",

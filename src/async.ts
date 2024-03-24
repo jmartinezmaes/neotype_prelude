@@ -21,20 +21,33 @@
  *
  * This module exports the following async data types:
  *
- * -   `AsyncAnnotation<T, W>` for working with `Promise<Annotation<T, W>>`
- * -   `AsyncEither<A, B>` for working with `Promise<Either<A, B>>`
- * -   `AsyncIor<A, B>` for working with `Promise<Ior<A, B>>`
- * -   `AsyncMaybe<T>` for working with `Promise<Maybe<T>>`
- * -   `AsyncValidation<E, T>` for working with `Promise<Validation<E, T>>`
+ * -   {@link AsyncAnnotation:type | `AsyncAnnotation<T, W>`} for working with
+ *     `Promise<Annotation<T, W>>`
+ * -   {@link AsyncEither:type | `AsyncEither<A, B>`} for working with
+ *     `Promise<Either<A, B>>`
+ * -   {@link AsyncIor:type | `AsyncIor<A, B>`} for working with `Promise<Ior<A,
+ *     B>>`
+ * -   {@link AsyncMaybe:type | `AsyncMaybe<T>`} for working with
+ *     `Promise<Maybe<T>>`
+ * -   {@link AsyncValidation:type | `AsyncValidation<E, T>`} for working with
+ *     `Promise<Validation<E, T>>`
  *
  * All async data type alises have a companion namespace exported under the same
  * identifier. Each namespace provides utilities for working with its associated
  * data type.
  *
+ * There are also type alises for working with promise-like values:
+ *
+ * -   {@link AsyncAnnotationLike | `AsyncAnnotationLike<T, W>`}
+ * -   {@link AsyncEitherLike | `AsyncEitherLike<A, B>`}
+ * -   {@link AsyncIorLike | `AsyncIorLike<A, B>`}
+ * -   {@link AsyncMaybeLike | `AsyncMaybeLike<T>`}
+ * -   {@link AsyncValidationLike | `AsyncValidationLike<E, T>`}
+ *
  * ## Importing from this module
  *
- * The types and namespaces from this module can be imported under the same
- * aliases:
+ * The async data types and companion namespaces from this module can be
+ * imported under the same aliases:
  *
  * ```ts
  * import {
@@ -63,11 +76,23 @@
  * } from "@neotype/prelude/async.js";
  * ```
  *
+ * Promise-like type aliases can be imported as named or aliased as needed:
+ *
+ * ```ts
+ * import type {
+ *     AsyncAnnotationLike,
+ *     AsyncEitherLike,
+ *     AsyncIorLike,
+ *     AsyncMaybeLike,
+ *     AsyncValidationLike,
+ * } from "@neotype/prelude/async.js";
+ * ```
+ *
  * @module
  */
 
-export * from "./async/annotation.js";
-export * from "./async/either.js";
-export * from "./async/ior.js";
-export * from "./async/maybe.js";
-export * from "./async/validation.js";
+export { AsyncAnnotation, AsyncAnnotationLike } from "./async/annotation.js";
+export { AsyncEither, AsyncEitherLike } from "./async/either.js";
+export { AsyncIor, AsyncIorLike } from "./async/ior.js";
+export { AsyncMaybe, AsyncMaybeLike } from "./async/maybe.js";
+export { AsyncValidation, AsyncValidationLike } from "./async/validation.js";
