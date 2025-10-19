@@ -174,8 +174,8 @@ export namespace Maybe {
 		return fromGoFn(function* () {
 			let acc = initial;
 			let idx = 0;
-			for (const val of elems) {
-				acc = yield* f(acc, val, idx);
+			for (const elem of elems) {
+				acc = yield* f(acc, elem, idx);
 				idx++;
 			}
 			return acc;

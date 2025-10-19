@@ -102,8 +102,8 @@ export namespace AsyncMaybe {
 		return fromGoFn(async function* () {
 			let acc = initial;
 			let idx = 0;
-			for await (const val of elems) {
-				acc = yield* await f(acc, val, idx);
+			for await (const elem of elems) {
+				acc = yield* await f(acc, elem, idx);
 				idx++;
 			}
 			return acc;
