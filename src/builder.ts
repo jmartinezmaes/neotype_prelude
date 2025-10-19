@@ -270,9 +270,7 @@ export class AddManyBuilder<in T, out TFinish>
 	}
 }
 
-/**
- * A builder that does not consider its arguments and does not produce a result.
- */
+/** A builder that does not consider its arguments and does not produce a result. */
 export class NoOpBuilder implements Builder<unknown, void> {
 	add(): void {
 		return;

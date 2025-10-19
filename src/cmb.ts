@@ -254,9 +254,7 @@
  * ```
  */
 export interface Semigroup<in out T> {
-	/**
-	 * Combine this and that semigroup using an associative operation.
-	 */
+	/** Combine this and that semigroup using an associative operation. */
 	[Semigroup.cmb](that: T): T;
 }
 

@@ -313,9 +313,7 @@ export namespace Validation {
 			return that.isOk() ? cmp(this.val, that.val) : Ordering.greater;
 		}
 
-		/**
-		 * If this and that `Validation` both succeed, combine their successes.
-		 */
+		/** If this and that `Validation` both succeed, combine their successes. */
 		[Semigroup.cmb]<E extends Semigroup<E>, T extends Semigroup<T>>(
 			this: Validation<E, T>,
 			that: Validation<E, T>,
@@ -452,9 +450,7 @@ export namespace Validation {
 			return this.isErr() ? err(f(this.val)) : this;
 		}
 
-		/**
-		 * If this `Validation` succeeds, apply a function to map its success.
-		 */
+		/** If this `Validation` succeeds, apply a function to map its success. */
 		map<E, T, T1>(
 			this: Validation<E, T>,
 			f: (val: T) => T1,

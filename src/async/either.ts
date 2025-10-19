@@ -46,9 +46,7 @@ export type AsyncEither<A, B> = Promise<Either<A, B>>;
  * `AsyncEither`.
  */
 export namespace AsyncEither {
-	/**
-	 * Evaluate an `AsyncEither.Go` async generator to return an `AsyncEither`.
-	 */
+	/** Evaluate an `AsyncEither.Go` async generator to return an `AsyncEither`. */
 	export async function go<E, TReturn>(
 		gen: Go<E, TReturn>,
 	): AsyncEither<E, TReturn> {

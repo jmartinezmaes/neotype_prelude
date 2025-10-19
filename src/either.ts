@@ -293,9 +293,7 @@ export namespace Either {
 		return traverseInto(elems, f, new NoOpBuilder());
 	}
 
-	/**
-	 * Adapt a synchronous function to be applied in the context of `Either`.
-	 */
+	/** Adapt a synchronous function to be applied in the context of `Either`. */
 	export function lift<TArgs extends unknown[], T>(
 		f: (...args: TArgs) => T,
 	): <E>(

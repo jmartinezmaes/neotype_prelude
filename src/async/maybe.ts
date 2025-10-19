@@ -46,9 +46,7 @@ export type AsyncMaybe<T> = Promise<Maybe<T>>;
  * `AsyncMaybe`.
  */
 export namespace AsyncMaybe {
-	/**
-	 * Evaluate an `AsyncMaybe.Go` async generator to return an `AsyncMaybe`.
-	 */
+	/** Evaluate an `AsyncMaybe.Go` async generator to return an `AsyncMaybe`. */
 	export async function go<TReturn>(
 		gen: Go<TReturn>,
 	): Promise<Maybe<TReturn>> {

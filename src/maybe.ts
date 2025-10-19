@@ -452,9 +452,7 @@ export namespace Maybe {
 			return this.andThen(id);
 		}
 
-		/**
-		 * If this `Maybe` is `Just`, ignore its value and return that `Maybe`.
-		 */
+		/** If this `Maybe` is `Just`, ignore its value and return that `Maybe`. */
 		and<T1>(this: Maybe<any>, that: Maybe<T1>): Maybe<T1> {
 			return this.andThen(() => that);
 		}

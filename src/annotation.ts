@@ -443,9 +443,7 @@ export namespace Annotation {
 			return this.andThen(() => that);
 		}
 
-		/**
-		 * Apply a function to combine the values of this and that `Annotation`.
-		 */
+		/** Apply a function to combine the values of this and that `Annotation`. */
 		zipWith<T, W extends Semigroup<W>, T1, T2>(
 			this: Annotation<T, W>,
 			that: Annotation<T1, W>,
